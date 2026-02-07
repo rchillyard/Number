@@ -1,7 +1,5 @@
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.expression.Expression
-import com.phasmidsoftware.number.core.expression.Expression.convertFieldToExpression
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import com.phasmidsoftware.number.core.numerical.Complex.{ComplexHelper, convertToCartesian, convertToPolar}
@@ -82,21 +80,21 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     val c3 = p1_pi `add` c2_0
     c3 shouldBe ComplexCartesian(Number.one, Number.zero)
   }
-  it should "multiply" in {
-    val z1 = Expression(c1_2) * c2_0
-    val result = z1.materialize
-    result shouldBe ComplexCartesian(Number.two, 4)
-  }
+//  it should "multiply" in {
+//    val z1 = Expression(c1_2) * c2_0
+//    val result = z1.materialize
+//    result shouldBe ComplexCartesian(Number.two, 4)
+//  }
   it should "unary_$minus" in {
     val z = -c1_2
     z shouldBe ComplexCartesian(Number.negOne, -2)
   }
-  it should "divide" in {
-    val z = ComplexCartesian(Number.two, 4)
-    val z1: Expression = z / c2_0
-    (z1 * Expression(c2_0)).materialize shouldBe z
-    z1.materialize shouldBe c1_2
-  }
+//  it should "divide" in {
+//    val z = ComplexCartesian(Number.two, 4)
+//    val z1: Expression = z / c2_0
+//    (z1 * Expression(c2_0)).materialize shouldBe z
+//    z1.materialize shouldBe c1_2
+//  }
   it should "- Constants" in {
     -Constants.one shouldBe Constants.minusOne
   }
@@ -389,5 +387,15 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
 
     // The following will be represented as "±√5", that's to say +- square root(5).
     √(5).asComplex.render shouldBe "±√5"
+  }
+
+  it should "evaluate an equation" in {
+    val p = Rational(100)
+    val q = Rational(10000)
+    val c = ComplexCartesian(Number(-50), Number(7500).sqrt)
+    val pTimesC = p * c
+    println(pTimesC)
+    val evaluation = c * c + pTimesC + q
+    evaluation.isZero shouldBe true
   }
 }

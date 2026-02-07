@@ -26,5 +26,5 @@ val solution = QuadraticSolution(base, offset, 0, imaginary = false)
 solution.toLatex // should be "\frac{1}{2} + \sqrt{2}"
 
 val phi1 = lazymath"\frac{1+\sqrt{5}}{2}"
-phi1.toLatex
-phi1.materialize.render
+phi1.materialize
+phi1.materialize.toLatex

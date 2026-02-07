@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.expression.algebraic
 
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.core.numerical.ComplexCartesian
 import com.phasmidsoftware.number.expression.expr.ExpressionException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -112,6 +113,7 @@ class QuadraticEquationSpec extends AnyFlatSpec with Matchers {
   // Solving - Complex Roots
   // =========================
 
+  // FIXME Issue #172
   it should "solve equation with complex roots" in {
     // x² + x + 1 = 0, discriminant = -3 (negative)
     val equation = QuadraticEquation(Rational(1), Rational(1))
@@ -126,6 +128,7 @@ class QuadraticEquationSpec extends AnyFlatSpec with Matchers {
     equation.evaluate(root1).isZero shouldBe true
   }
 
+  // FIXME Issue #172
   it should "solve equation x² + 1 = 0 (pure imaginary roots)" in {
     // Roots are ±i
     val equation = QuadraticEquation(Rational.zero, Rational(1))
@@ -334,6 +337,7 @@ class QuadraticEquationSpec extends AnyFlatSpec with Matchers {
     }
   }
 
+  // FIXME Issue #172
   it should "evaluate Complex solution to zero for its equation" in {
     val equation = QuadraticEquation(Rational.zero, Rational.one)
     val sol = equation.solve(0)
@@ -457,6 +461,7 @@ class QuadraticEquationSpec extends AnyFlatSpec with Matchers {
   // Edge Cases
   // =========================
 
+  // FIXME Issue #172
   it should "handle equation with zero p coefficient" in {
     val equation = QuadraticEquation(Rational.zero, Rational(4))
     equation.discriminant shouldBe Rational(-16)
@@ -488,6 +493,7 @@ class QuadraticEquationSpec extends AnyFlatSpec with Matchers {
     equation.evaluate(root1).isZero shouldBe true
   }
 
+  // FIXME Issue #172
   it should "handle very small coefficients" in {
     val equation = QuadraticEquation(Rational(1, 100), Rational(1, 1000))
     val root0 = equation.solve(0)
@@ -495,8 +501,7 @@ class QuadraticEquationSpec extends AnyFlatSpec with Matchers {
 
     equation.evaluate(root0) match {
       case Complex(c) =>
-        // TODO this is not exactly a resoundingly confident test. Something is up!
-        c.modulus.signum(0.0001) shouldBe -1
+        c.isSame(ComplexCartesian(0, 0)) shouldBe true
       case x =>
         x.isZero shouldBe true
     }

@@ -4,14 +4,11 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.inner.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
 import com.phasmidsoftware.number.core.numerical.Number.{inverse, negate}
-// TODO eliminate references to expression package
-import com.phasmidsoftware.number.core.expression.{Expression, ExpressionException}
 import com.phasmidsoftware.number.core.parse.NumberParser
 import com.phasmidsoftware.number.core.parse.RationalParser.parseComponents
 
@@ -22,14 +19,6 @@ import scala.util.*
 /**
   * Trait to model numbers as a sub-class of Field and such that we can order Numbers.
   * That's to say that Numbers have linear domain and all belong, directly or indirectly, to the set R (real numbers).
-  *
-  * CONSIDER storing all numbers in the form `r e to the power of i theta`.
-  *
-  * CONSIDER eliminate extending Field
-  *
-  * CONSIDER rename as CoreNumber (temporarily)
-  *
-  * TODO remove references to Expression
   *
   * Every number has three properties:
   * * nominalValue: Value
@@ -286,8 +275,6 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
         Real(doAdd(n))
       case c@BaseComplex(_, _) => // TESTME
         c.add(this.asComplex)
-      case s: Algebraic =>
-        s `add` Real(this)
       case _ =>
         throw CoreException(s"logic error: add not supported for this addend: $x")
     }
@@ -334,8 +321,6 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
       doMultiply(n).normalize
     case (_, c@BaseComplex(_, _)) =>
       c.multiply(this.asComplex)
-    case (_, s: Algebraic) =>
-      s `multiply` Real(this)
     case _ =>
       throw CoreException("logic error: multiply not supported for non-Number multiplicands")
   }
@@ -915,23 +900,6 @@ object Number {
   }
 
   /**
-    * Implicit converter from Expression to Number.
-    * CONSIDER we should try to move this implicit converter into Expression...
-    * but be warned--it's not easy!
-    *
-    * @param x the Expression to be converted.
-    * @return the equivalent exact Number.
-    */
-  //noinspection Annotator
-  implicit def convertExpression(x: Expression): Number =
-    x.materialize match {
-      case Real(n) =>
-        n
-      case _ =>
-        throw ExpressionException(s"Expression $x cannot be converted implicitly to a Number")
-    }
-
-  /**
     * Implicit converter from Int to Number.
     *
     * @param x the Int to be converted.
@@ -1494,7 +1462,7 @@ object Number {
             case Some(4) | Some(8) =>
               rootThreeQuarters // pi/3 and 2pi/3
             case Some(1) | Some(11) =>
-              rootSix `doSubtract` root2 `doDivide` 4 // pi/12 and 11pi/12 would be nice for this to be an Expression
+              rootSix `doSubtract` root2 `doDivide` 4 // pi/12 and 11pi/12 
             case Some(5) | Some(7) =>
               rootSix `doAdd` root2 `doDivide` 4 // 5pi/12 and 7pi/12 ditto // TESTME
             case _ =>
@@ -1515,7 +1483,7 @@ object Number {
     * @return the arctangent of the angle, in radians
     */
   def atan(x: Number, y: Number): Number =
-    doAtan(y `doDivide` x, x.signum)
+    doAtan(x, y)
 
   /**
     * Yield the natural log of x.
@@ -1597,6 +1565,14 @@ object Number {
     no.getOrElse(Number())
 
   /**
+    * Computes the square root of the given integer value.
+    *
+    * @param x The integer value for which the square root is to be computed.
+    * @return A Number representing the square root of the input value.
+    */
+  def √(x: Int): Number = x.sqrt
+
+  /**
     * Calculates the arctangent (atan) of the given number with a specified sign.
     * This method performs recursive computation based on the factor type of the input number.
     *
@@ -1605,37 +1581,41 @@ object Number {
     * @return A `Number` representing the computed arctangent in radians. If the input number's factor is not supported or valid, the method may throw an exception.
     */
   @tailrec
-  private def doAtan(number: Number, sign: Int): Number = number.factor match {
-    case PureNumber =>
-      prepareWithSpecialize(number.transformMonadic(Radian)(MonadicOperationAtan(sign))).modulate
-    case SquareRoot =>
-      val ry = number.toNominalRational map (_.abs) match {
-        case Some(Rational(Rational.bigThree, Rational.bigOne)) => //
-          Success(Rational(1, 3))
-        case Some(Rational(Rational.bigOne, Rational.bigThree)) =>
-          Success(Rational(1, 6))
-        case None =>
-          Failure(CoreException("input to atan is not rational"))
-        case _ =>
-          Failure(CoreException("rational is not matched"))
-      }
-      (for (flip <- number.toNominalRational map (_.signum < 0); z <- MonadicOperationAtan(sign).modulateAngle(ry, flip).toOption) yield z) match {
-        case Some(r) =>
-          Number(r, Radian)
-        case None =>
-          doAtan(number.scale(PureNumber), sign)
-      }
-    case _ =>
-      throw CoreException("number.factor is not matched")
-  }
+  private def doAtan(x: Number, y: Number): Number = {
+    val ratio = y doDivide x
+    val xSign = x.signum
+    val ySign = y.signum
 
-  /**
-    * Computes the square root of the given integer value.
-    *
-    * @param x The integer value for which the square root is to be computed.
-    * @return A Number representing the square root of the input value.
-    */
-  def √(x: Int): Number = x.sqrt
+    ratio.factor match {
+      case PureNumber =>
+        prepareWithSpecialize(ratio.transformMonadic(Radian)(MonadicOperationAtan(xSign, ySign))).modulate
+
+      case SquareRoot =>
+        val ry = ratio.toNominalRational map (_.abs) match {
+          case Some(Rational(Rational.bigThree, Rational.bigOne)) =>
+            Success(Rational(1, 3)) // √3 → π/3
+          case Some(Rational(Rational.bigOne, Rational.bigThree)) =>
+            Success(Rational(1, 6)) // 1/√3 → π/6
+          case None =>
+            Failure(CoreException("input to atan is not rational"))
+          case _ =>
+            Failure(CoreException("rational is not matched"))
+        }
+
+        (for {
+          flip <- ratio.toNominalRational.map(_.signum < 0)
+          z <- MonadicOperationAtan(xSign, ySign).modulateAngle(ry, flip).toOption
+        } yield z) match {
+          case Some(r) =>
+            Number(r, Radian)
+          case None =>
+            doAtan(ratio.scale(PureNumber), Number.one)
+        }
+
+      case _ =>
+        throw CoreException(s"atan: factor not matched: ${ratio.factor}") // TESTME
+    }
+  }
 
   /**
     * Following are the definitions required by Numeric[Number]

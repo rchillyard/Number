@@ -1951,15 +1951,19 @@ object Render {
     optionMap(v)(
       y => renderInt(y),
       x => optionMap(x)(
-        // XXX related to (fixed) Issue #48
-        y => if (exact) renderRational(y) else (y.renderApproximate(100, Some(16)).stripLeading(), false),
-        {
-          case Some(n) =>
-            Some(renderDouble(n))
-          case None =>
-            None
-        })
+        // XXX Render a Rational (not all Rationals can be rendered precisely in decimal format)
+        renderRationalMaybeNonExact(exact),
+        renderDoubleOrNaN
+      )
     ).getOrElse(("<undefined>", true))
+
+  private val renderDoubleOrNaN: PartialFunction[Option[Double], Option[(String, Boolean)]] = {
+    // XXX Render a Double (all Doubles can be rendered precisely in decimal format)
+    case Some(n) =>
+      Some(renderDouble(n))
+    case None =>
+      None // XXX NaN
+  }
 
   /**
     * Renders an integer as a tuple containing its string representation and a boolean flag indicating exact rendering.
@@ -1968,8 +1972,26 @@ object Render {
     * @return a tuple where the first element is the string representation of the integer and the second element is `true`,
     *         indicating it is rendered exactly.
     */
-  private def renderInt(x: Int): (String, Boolean) =
-    (x.toString, true)
+  private def renderInt(x: Int): (String, Boolean) = (x.toString, true)
+
+  /**
+    * Renders a `Rational` value as a tuple of its string representation and a boolean flag
+    * indicating whether the value was rendered exactly or approximately.
+    *
+    * @param y     the `Rational` value to be rendered.
+    * @param exact a boolean flag indicating whether the value should be rendered exactly.
+    *              If `true`, the method attempts to render the value exactly; otherwise,
+    *              it renders an approximate representation.
+    * @return a tuple where the first element is the string representation of the `Rational` value and
+    *         the second element is a boolean flag indicating whether the rendering was exact (`true`)
+    *         or approximate (`false`).
+    */
+  private def renderRationalMaybeNonExact(exact: Boolean)(y: Rational): (String, Boolean) = {
+    if (exact)
+      renderRational(y)
+    else
+      (y.renderApproximate(100, Some(16)).stripLeading(), false)
+  }
 
   /**
     * Add exact parameter.

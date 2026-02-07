@@ -95,7 +95,7 @@ class QuantityLaTeXSpec extends AnyFlatSpec with Matchers {
 
   it should "render fractional values with units" in {
     val distance = Quantity(RationalNumber(1, 2), Mile)
-    distance.renderLaTeX shouldBe "½\\,\\text{mi}"
+    distance.renderLaTeX shouldBe "\\tfrac{1}{2}\\,\\text{mi}"
   }
 
   it should "handle zero values" in {

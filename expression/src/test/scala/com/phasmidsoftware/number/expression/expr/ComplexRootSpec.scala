@@ -118,6 +118,7 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
     * Solutions: -1/2 ± i√(3/4) = -1/2 ± i√3/2
     * These are the complex cube roots of unity (ω and ω²)
     */
+  // FIXME Issue #172
   it should "generate cube roots of unity for x² + x + 1 = 0" in {
     val equation = QuadraticEquation(Rational.one, Rational.one)
     val root0 = QuadraticRoot(equation, 0)
@@ -147,6 +148,7 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
   /**
     * Verify that complex roots can be added
     */
+  // FIXME Issue #172
   it should "add two complex roots correctly" in {
     val eq1 = QuadraticEquation(Rational.zero, Rational.one) // x² + 1 = 0, roots: ±i
     val root1 = QuadraticRoot(eq1, 0)
@@ -185,6 +187,7 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
   /**
     * Verify that evaluating the equation at its complex root gives zero
     */
+  // FIXME Issue #172
   it should "evaluate to zero when substituted back into the equation" in {
     val equation = QuadraticEquation(Rational.two, Rational.two)
     val root0 = QuadraticRoot(equation, 0)
@@ -196,6 +199,7 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
     result.isZero shouldBe true
   }
 
+  // FIXME Issue #172
   it should "evaluate x² + 1 = 0 at i to get zero" in {
     val equation = QuadraticEquation(Rational.zero, Rational.one)
     val root = QuadraticRoot(equation, 0)
@@ -240,6 +244,7 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
     * - Sum of roots = -p
     * - Product of roots = q
     */
+  // FIXME Issue #172
   it should "satisfy Vieta's formulas for sum and product" in {
     val p = Rational(3)
     val q = Rational(5)
@@ -278,15 +283,15 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
     * Test with large coefficients
     */
   it should "handle equations with large coefficients" in {
-    //    val equation = QuadraticEquation(Rational(100), Rational(10000))
-    //    val root0 = QuadraticRoot(equation, 0)
+    val equation = QuadraticEquation(Rational(100), Rational(10000))
+    val root0 = QuadraticRoot(equation, 0)
 
-    // Should produce complex roots
-    //    root0.solution shouldBe a[Complex]
+    //     Should produce complex roots
+    root0.solution shouldBe a[Complex]
 
-    //    val result = equation.evaluate(root0.solution)
-    //    result.isZero shouldBe true
-    pending
+    val result = equation.evaluate(root0.solution)
+    result.isZero shouldBe true
+    //    pending
   }
 
   /**
@@ -342,10 +347,6 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
     val root0 = QuadraticRoot(equation, 0)
 
     val complex = root0.solution.asInstanceOf[Complex]
-    val normalized = complex.normalize
-
-    normalized shouldBe a[Complex]
-    normalized.isComplex shouldBe true
+    complex.normalize shouldBe a[Complex]
   }
-
 }

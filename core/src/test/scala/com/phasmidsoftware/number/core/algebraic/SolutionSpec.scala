@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.number.core.algebraic
 
-import com.phasmidsoftware.number.core.expression.Root
 import com.phasmidsoftware.number.core.inner.{Rational, SquareRoot, Value}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -12,10 +11,10 @@ import org.scalatest.matchers.should
 class SolutionSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Solution"
-  val phi: Solution = Root.phi.solution
-  val psi: Solution = Root.psi.solution
-  val root2: Solution = Root.rootTwo.solution
-  val negRoot2: Solution = Root.negRootTwo.solution
+  val phi: Solution = QuadraticSolution.phi
+  val psi: Solution = QuadraticSolution.psi
+  val root2: Solution = QuadraticSolution.root2
+  val negRoot2: Solution = QuadraticSolution.root2Neg
   it should "isPureNumber" in {
     phi.isPureNumber shouldBe false
     psi.isPureNumber shouldBe false

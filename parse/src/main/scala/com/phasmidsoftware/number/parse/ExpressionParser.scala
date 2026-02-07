@@ -88,5 +88,19 @@ object ExpressionParser {
       */
     inline def mathOpt(args: Any*): Option[Eager] =
       Try(math(args *)).toOption
+
+    /**
+      * Processes LaTeX-like mathematical expressions using interpolation, applies fuzzy evaluation logic,
+      * and generates an `Eager` result. This method builds upon the `math` extension, integrating fuzzy 
+      * evaluation when processing the provided arguments.
+      *
+      * @param args vararg of arguments to be embedded into the LaTeX-like string for parsing
+      *             and fuzzy evaluation.
+      * @return an `Eager` instance representing the result of the parsed and fuzzily evaluated 
+      *         mathematical expression.
+      */
+    inline def fuzzymath(args: Any*): Eager =
+      math(args *).fuzzy
+
 }
 

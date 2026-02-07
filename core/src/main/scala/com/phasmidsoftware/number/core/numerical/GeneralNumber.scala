@@ -490,14 +490,11 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     // XXX Int case
     case Right(_) =>
       this
-    // XXX Rational case
+    // XXX Rational cases
+    case Left(Right(Rational(x, Rational.bigOne))) =>
+      make(x)
     case Left(Right(r)) =>
-      Try(r.toInt) match {
-        case Success(b) =>
-          make(b).specialize
-        case _ =>
-          this
-      }
+      this
     case Left(Left(Some(x))) if x.isNaN =>
       Number.NaN
     case Left(Left(Some(x))) if x.isInfinity =>

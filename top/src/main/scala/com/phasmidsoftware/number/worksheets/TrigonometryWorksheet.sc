@@ -7,7 +7,7 @@ import com.phasmidsoftware.number.expression.expr.{ConstI, E, Pi}
 
 val iPi = ConstI * Pi
 val euler = E ∧ iPi
-euler.render
+euler.materialize.render
 
 val piBy2 = Pi / 2
 piBy2.cos
@@ -15,6 +15,6 @@ piBy2.sin
 piBy2.tan
 
 // You should see
-val p: String = (piBy2 / 2).cos.materialize.render
-val q: String = (piBy2 / 3).cos.materialize.render
-val x: String = (Pi / 3).sin.materialize.render
+val p: String = (piBy2 / 2).cos.materialize
+val q: String = (piBy2 / 3).cos.materialize
+val x: String = (Pi / 3).sin.materialize

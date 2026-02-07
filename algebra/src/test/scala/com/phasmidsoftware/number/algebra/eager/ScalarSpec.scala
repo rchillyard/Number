@@ -19,8 +19,8 @@ class ScalarSpec extends AnyFlatSpec with should.Matchers {
     x1 shouldBe WholeNumber(5)
     val x2: Valuable = Eager("5.01")
     x2 shouldBe RationalNumber(501, 100)
-    val x3: Valuable = Eager("5.012")
-    x3 shouldBe Real(5.012, Some(AbsoluteFuzz(5.0E-4, Box)))
+    val x3: Valuable = Eager(5.012)
+    x3 should ===(Real(5.012, Some(AbsoluteFuzz(5.0E-4, Box))))
     val x4: Valuable = Eager("0.5𝛑")
     x4 shouldBe Angle(RationalNumber(1, 2))
   }

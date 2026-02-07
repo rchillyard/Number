@@ -14,6 +14,7 @@ import com.phasmidsoftware.number.core.parse.RationalParser
 import java.lang.Math.*
 import scala.annotation.tailrec
 import scala.language.implicitConversions
+import scala.util.matching.Regex
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -1393,11 +1394,30 @@ object Rational {
 
   // NOTE this corresponds to the renderExact method's output but allows
   // a LaTeX renderer to recognize the situation.
-  val repeatingDecimals = """^-?(\d+\.\d*)<(\d+)>$""".r
+  val repeatingDecimals: Regex = """^-?(\d+\.\d*)<(\d+)>$""".r
 
   // NOTE this corresponds the output form where the best that can be done is
   // to render the rational in rational form.
-  val rationalForm = """^(-?\d+)/(\d+)$""".r
+  val rationalForm: Regex = """^(-?\d+)/(\d+)$""".r
+
+  /**
+    * Regular expression pattern to match an integer in string form,
+    * which can be positive or negative. The pattern ensures that the entire
+    * string represents a valid integer.
+    *
+    * Examples of matching strings:
+    * - "123"
+    * - "-456"
+    * - "0"
+    *
+    * Examples of non-matching strings:
+    * - "12.3" (not an integer)
+    * - "abc" (not numeric)
+    * - "123abc" (contains invalid characters)
+    */
+  val integerForm: Regex = """^(-?\d+)$""".r
+
+  val unicodeForm: Regex = """^([⁰-₉½-⅞])$""".r
 
   /**
     * Generate the String representation of n/d where d is a Prime number (at least, very probably).
@@ -1874,6 +1894,24 @@ object Inverse {
     case _ =>
       None
   }
+}
+
+/**
+  * An object providing an extractor method for converting a Rational number into
+  * a pair of integers representing its numerator and denominator.
+  *
+  * The `IntRational` object simplifies working with Rational numbers when you
+  * need to decompose them into integers for further processing or pattern matching.
+  */
+object IntRational {
+  /**
+    * Extracts the numerator and denominator of a Rational number as a pair of integers.
+    *
+    * @param x the Rational number to be decomposed
+    * @return an Option containing a tuple of two integers (numerator, denominator)
+    *         if the decomposition is successful; None otherwise
+    */
+  def unapply(x: Rational): Option[(Int, Int)] = toInts(x)
 }
 
 /**

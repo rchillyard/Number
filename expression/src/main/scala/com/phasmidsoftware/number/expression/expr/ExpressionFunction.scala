@@ -327,7 +327,7 @@ object ExpressionBiFunction {
     */
   def unapply(f: ExpressionBiFunction): Option[((Eager, Eager) => Eager, String, Option[Eager], Option[Eager])] = f match {
     case e: ExpressionBiFunction =>
-      Some(e.f, e.name, e.maybeIdentityL, e.maybeIdentityR)
+      Some(e.f, e.name, e.maybeIdentityL, e.maybeIdentityR) // TESTME
   }
 }
 
@@ -392,14 +392,14 @@ case object Atan extends ExpressionBiFunction("atan", ExpressionFunction.lift2(R
         Some(Angle.piBy3)
       case (Eager.zero, Eager.one) =>
         Some(Angle.piBy2)
-      case (Real(ExactNumber(x, PureNumber)), Real(ExactNumber(y, PureNumber))) => // TESTME
-        for
-          q <- Value.maybeRational(x)
-          p <- Value.maybeRational(y)
-          r = p / q
-          // TODO test this--I have no idea if this is correct
-          d = if Value.signum(x) == Value.signum(y) then 1 else -1
-          v <- Operations.doTransformValueMonadic(Value.fromRational(r))(MonadicOperationAtan(d).functions)
+      case (Real(ExactNumber(xValue, PureNumber)), Real(ExactNumber(yValue, PureNumber))) =>
+        for // TESTME (this never apparently is called)
+          xRat <- Value.maybeRational(xValue) // a is x-coordinate
+          yRat <- Value.maybeRational(yValue) // b is y-coordinate
+          ratio = yRat / xRat // y/x
+          xSign = Value.signum(xValue)
+          ySign = Value.signum(yValue)
+          v <- Operations.doTransformValueMonadic(Value.fromRational(ratio))(MonadicOperationAtan(xSign, ySign).functions)
         yield Eager(Real(ExactNumber(v, Radian)))
       case _ =>
         None // TESTME

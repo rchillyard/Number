@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.number.core.misc
 
-import com.phasmidsoftware.number.core.expression.Expression
 import com.phasmidsoftware.number.core.misc.{ContinuedFraction, Newton}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Constants
@@ -36,19 +35,19 @@ class NewtonSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "Newton Worksheet"
-  it should "worksheet" in {
-
-    /**
-      * Some trigonometric identities.
-      */
-    val iPi = Expression(Constants.i) * Constants.pi
-    val euler = Expression(Constants.e) ∧ iPi
-    println(euler.asNumber)
-
-    val a: numerical.Number = piBy2.cos
-    println(a)
-    val b: numerical.Number = piBy2.sin
-    println(b)
-    println(piBy2.tan)
-  }
+//  it should "worksheet" in {
+//
+//    /**
+//      * Some trigonometric identities.
+//      */
+//    val iPi = Expression(Constants.i) * Constants.pi
+//    val euler = Expression(Constants.e) ∧ iPi
+//    println(euler.asNumber)
+//
+//    val a: numerical.Number = piBy2.cos
+//    println(a)
+//    val b: numerical.Number = piBy2.sin
+//    println(b)
+//    println(piBy2.tan)
+//  }
 }

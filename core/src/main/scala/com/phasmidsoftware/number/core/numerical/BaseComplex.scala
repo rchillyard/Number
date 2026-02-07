@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.expression.Literal
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.BaseComplex.narrow
@@ -122,8 +121,10 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     * * @return the product.
     */
   def multiply(x: Field): Field = x match {
-    case Real(n) => numberProduct(n)
-    case c@BaseComplex(_, _) => product(c)
+    case Real(n) =>
+      numberProduct(n)
+    case c@BaseComplex(_, _) =>
+      product(c)
   }
 
   /**
@@ -420,7 +421,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     * @return true if this NumberLike object is exact in the context of No factor, else false.
     */
   lazy val isExact: Boolean =
-    x.isExact && y.isExact
+    x.isExact && y.isExact  // TESTME
 
   /**
     * Method to determine the modulus of this Complex number.
@@ -468,7 +469,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     * @return the value of this * i.
     */
   lazy val rotate: BaseComplex =
-    ComplexCartesian(imag.makeNegative, real)
+    ComplexCartesian(imag.makeNegative, real)  // TESTME
 
   /**
     * Method to multiply this BaseComplex by a Number.
@@ -493,7 +494,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
       val real: Number = (a `doMultiply` x) `doAdd` (b `doMultiply` y `doMultiply` Number.negOne)
       val imag: Number = (a `doMultiply` y) `doAdd` (b `doMultiply` x)
       ComplexCartesian(real, imag)
-    case ComplexPolar(_, _, _) =>
+    case ComplexPolar(_, _, _) =>  // TESTME
       throw ComplexException("logic error: ComplexCartesian.doAdd")
   }
 
@@ -522,7 +523,8 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return the natural logarithm of this Field as a Field.
     */
-  lazy val ln: Field = throw ComplexException("not implemented: ComplexCartesian.ln")
+  lazy val ln: Field =  // TESTME
+    throw ComplexException("not implemented: ComplexCartesian.ln")
 
   /**
     * TESTME
@@ -538,10 +540,10 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     }
 
   /**
-    * Action to simplifyAndEvaluate this Expression and render it as a String,
-    * that is to say we eagerly evaluate this Expression as a String.
+    * Action to simplifyAndEvaluate this ComplexCartesian and render it as a String,
+    * that is to say we eagerly evaluate this ComplexCartesian as a String.
     *
-    * @return a String representing the value of this expression.
+    * @return a String representing the value of this value.
     */
   lazy val render: String =
     if (isReal)
@@ -559,12 +561,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     */
   def doAdd(complex: Complex): BaseComplex = complex match {
     case ComplexCartesian(a, b) =>
-      // CONSIDER we should not be relying on expression package here.
-      import com.phasmidsoftware.number.core.expression.Expression.ExpressionOps
-      // TODO replace materialize with evaluateAsIs and do the appropriate things below (a for-comprehension).
-      val partA = Literal(x).+(Real(a)).materialize
-      val partB = Literal(y).+(Real(b)).materialize
-      Complex.apply(partA, partB, ComplexCartesian.apply, ComplexException(s"logic error: ComplexCartesian.doAdd: $complex"))
+      ComplexCartesian(x `doAdd` a, y `doAdd` b)
     case c@ComplexPolar(_, _, _) =>
       doAdd(convertToCartesian(c))
   }
@@ -576,8 +573,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return a `ComplexCartesian` instance representing the square of the original complex number.
     */
-  lazy val square: ComplexCartesian =
-    ComplexCartesian(x.doPower(Number.two) `doSubtract` y.doPower(Number.two), x `doMultiply` y `doMultiply` Number.two)
+  lazy val square: ComplexCartesian = ComplexCartesian(realPartOfSquare, imagPartOfSquare)
 
   /**
     * Yields the inverse of this Complex.
@@ -596,6 +592,10 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
   lazy val modulusSquared: Number =
     imag.doPower(two) `doAdd` real.doPower(two)
 
+  private lazy val realPartOfSquare: Number = x.square `doSubtract` y.square
+
+  private lazy val imagPartOfSquare: Number = x `doMultiply` (y `doMultiply` Number.two)
+
   /**
     * Method to scale this Cartesian Complex number by a factor.
     *
@@ -606,7 +606,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     */
   private def scale(x: Number) = x match {
     case Number.i =>
-      make(negate(imag), real)
+      make(negate(imag), real) // TESTME
     case _ =>
       make(real `doMultiply` x, imag `doMultiply` x)
   }
@@ -629,7 +629,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     * @return an Option[Real].
     */
   def asReal: Option[Real] =
-    if (isReal) Some(Real(x)) else None
+    if (isReal) Some(Real(x)) else None // TESTME
 
   /**
     * Determine the "sign" of this field.
@@ -639,7 +639,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     * @return +1 if to the right of the origin, -1 if to the left, 0 if at the origin.
     */
   lazy val signum: Int =
-    x.signum
+    x.signum // TESTME
 
   /**
     * Computes the absolute value of this complex number, represented in Cartesian coordinates.
@@ -850,13 +850,13 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
   }
 
   /**
-    * Action to simplifyAndEvaluate this Expression and render it as a String,
-    * that is to say we eagerly evaluate this Expression as a String.
+    * Action to simplifyAndEvaluate this ComplexPolar and render it as a String,
+    * that is to say we eagerly evaluate this ComplexPolar as a String.
     * TESTME (partial)
     *
     * NOTE that some of these special cases that are handled here should be eliminated by a prior call to normalize.
     *
-    * @return a String representing the value of this expression.
+    * @return a String representing the value of this object.
     */
   def render: String = (r, theta, n) match {
     case (Number.one, Number.zero, 1) => "1"
@@ -941,7 +941,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     * @return true if the angle theta is a multiple of pi.
     */
   def isReal: Boolean =
-    theta.isZero || theta.doDivide(Number.pi).isInteger
+    theta.factor == Radian && Value.maybeInt(theta.nominalValue).isDefined
 
   /**
     * Determine the "sign" of this field.
@@ -953,7 +953,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     * @return +1 if to the right of the origin, -1 if to the left, 0 if at the origin.
     */
   def signum: Int =
-    convertToCartesian(this).signum
+    convertToCartesian(this).signum // TESTME
 
   /**
     * Computes the absolute value (magnitude) of this ComplexPolar instance.
@@ -962,7 +962,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     *
     * @return the absolute value as a Numerical.
     */
-  def abs: Numerical = convertToCartesian(this).abs
+  def abs: Numerical = convertToCartesian(this).abs // TESTME
 }
 
 /**

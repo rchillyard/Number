@@ -4,7 +4,9 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.eager.{Angle, NaturalExponential, Real}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NaturalExponential, Real}
+import com.phasmidsoftware.number.core.inner.{Rational, Value}
+import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -57,7 +59,7 @@ class TranscendentalSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "materialize 𝛾 to Real" in {
-    val materialized = EulerMascheroni.materialize
+    val materialized: Eager = EulerMascheroni.materialize
     materialized shouldBe a[Real]
     materialized shouldBe Real.𝛾
     materialized.asInstanceOf[Real].toDouble shouldBe 0.57721566490153286060651209 +- 1e-20
@@ -68,4 +70,67 @@ class TranscendentalSpec extends AnyFlatSpec with should.Matchers {
     LgE.isAtomic shouldBe true
     EulerMascheroni.isAtomic shouldBe true
   }
+
+  behavior of "old tests"
+
+  behavior of "Transcendental"
+  it should "evaluate pi" in {
+    Pi.evaluateAsIs shouldBe Some(Eager.pi)
+  }
+  it should "evaluate e" in {
+    E.evaluateAsIs shouldBe Some(Eager.e)
+  }
+  it should "evaluate l2" in {
+    L2.evaluateAsIs shouldBe None
+    L2.fuzzy should matchPattern { case Real(_, _) => }
+    L2.fuzzy.render shouldBe "0.69314718055994530[94]"
+  }
+  // Test for (fixed) Issue #124
+  it should "evaluate lg2e" in {
+    LgE.evaluateAsIs shouldBe None
+    (Two ∧ LgE.expression).materialize shouldEqual Eager.e
+  }
+  it should "evaluate gamma" in {
+    val rational = Rational("7215195811269160757581401126030030388026991699249/12500000000000000000000000000000000000000000000000")
+    val fuzz = AbsoluteFuzz(5.0E-51, Box)
+    val value1 = Value.fromRational(rational)
+    EulerMascheroni.evaluateAsIs.get.render shouldBe "0.5772156649015329*" // matchPattern { case Some(Real(FuzzyNumber(`value1`, PureNumber, Some(`fuzz`)))) => }
+    EulerMascheroni.fuzzy.render shouldBe "0.5772156649015329*"
+  }
+  it should "expression pi" in {
+    PiTranscendental.expression shouldEqual Pi
+  }
+  it should "expression e" in {
+    ETranscendental.expression shouldEqual E
+  }
+  it should "expression l2" in {
+    L2.expression shouldEqual Two.ln
+  }
+  it should "simplify pi" in {
+    val actual = Pi.simplify
+    val expected = Pi
+    actual shouldBe expected
+  }
+  it should "simplify e" in {
+    ETranscendental.simplify shouldBe ETranscendental
+  }
+  it should "simplify l2" in {
+    L2.simplify === Two.ln
+  }
+  it should "function 1" in {
+    val result = PiTranscendental.function(Sine).materialize
+    val expected = Eager.zero
+    result shouldEqual expected
+  }
+  it should "function 2" in {
+    val natLog2 = L2
+    val result = natLog2.function(Exp).simplify
+    result.materialize shouldEqual Eager.two
+  }
+  it should "render" in {
+    PiTranscendental.render shouldBe "\uD835\uDED1"
+    ETranscendental.render shouldBe "\uD835\uDF00"
+    L2.render shouldBe "ln(2)"
+  }
+
 }

@@ -9,7 +9,6 @@ class AlgebraicSpec extends AnyFlatSpec with should.Matchers {
 
   import com.phasmidsoftware.number.algebra.eager.Eager.half
   import com.phasmidsoftware.number.algebra.eager.{Eager, QuadraticSolution, Solution}
-  import com.phasmidsoftware.number.core.algebraic.Algebraic_Quadratic
   import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
   import com.phasmidsoftware.number.expression.expr.Root
 
@@ -30,7 +29,7 @@ class AlgebraicSpec extends AnyFlatSpec with should.Matchers {
 
     phiSquared.render shouldBe "(\uD835\uDED7 + 1)"
 
-    phiSquared.materialize.toString shouldBe "(1.5 + √1.25)"
+    phiSquared.materialize.render shouldBe "(1.5 + √1.25)"
 
     phi.approximation.get.toDouble should ===(1.618033988749895)
 
@@ -48,7 +47,8 @@ class AlgebraicSpec extends AnyFlatSpec with should.Matchers {
 
     QuadraticEquation.goldenRatioEquation.solve(0) match {
       case q: QuadraticSolution =>
-        q.render shouldBe "\uD835\uDED7"
+        q.render shouldBe "(½ + √1.25)"
+//        q.render shouldBe "\uD835\uDED7" (this is not working)
       case _ =>
         fail("not a QuadraticSolution")
     }

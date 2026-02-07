@@ -4,14 +4,13 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.core.{AnyContext, CanPower, Context, Nameable, Q, RestrictedContext}
+import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
-import com.phasmidsoftware.number.algebra.eager.WholeNumber.convIntWholeNumber
-import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, IsInteger, NaturalExponential, QuadraticSolution, RationalNumber, Structure, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, IsInteger, NaturalExponential, QuadraticSolution, RationalNumber, Structure}
 import com.phasmidsoftware.number.algebra.util.FP
-import com.phasmidsoftware.number.core.algebraic.Algebraic_Quadratic
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian, Rational}
 import com.phasmidsoftware.number.core.misc.Bumperator
+import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Number}
 import com.phasmidsoftware.number.expression.algebraic
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
@@ -730,15 +729,15 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   private def matchLiteral(l: Expression, x: Expression, f: ExpressionBiFunction): em.MatchResult[Expression] = (l, x, f) match {
     //    case (Literal(a@QuadraticSolution(_, _, _), _), q@QuadraticRoot(_, _), Sum) =>
     //      em.Match(Literal(a add q.algebraic))
-    case (Literal(Algebraic_Quadratic(_, e1, b1), _), Literal(Algebraic_Quadratic(_, e2, b2), _), f) if e1 == e2 =>
-      f match {
-        case Sum if b1 != b2 =>
-          em.Match(e1.conjugateSum)
-        case Product if b1 != b2 =>
-          em.Match(e1.conjugateProduct)
-        case _ =>
-          em.Miss[Expression, Expression](s"BiFunction: matchLiteral: no trivial simplification for Algebraics and $f", this) // TESTME
-      }
+//    case (Literal(Algebraic_Quadratic(_, e1, b1), _), Literal(Algebraic_Quadratic(_, e2, b2), _), f) if e1 == e2 =>
+//      f match {
+//        case Sum if b1 != b2 =>
+//          em.Match(e1.conjugateSum)
+//        case Product if b1 != b2 =>
+//          em.Match(e1.conjugateProduct)
+//        case _ =>
+//          em.Miss[Expression, Expression](s"BiFunction: matchLiteral: no trivial simplification for Algebraics and $f", this) // TESTME
+//      }
     case (Literal(a: CanPower[Structure] @unchecked, _), Literal(b: RationalNumber, _), Power) =>
       em.matchIfDefined(a.pow(b).map(x => Literal(x)))(this)
     case (a, b, Power) =>
@@ -821,6 +820,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(a.reciprocal)
       case (_, Infinity) =>
         em.Match(Infinity)
+      case (E, ValueExpression(Complex(c), _)) if c.isImaginary && c.modulus == numerical.Number.pi =>
+        em.Match(MinusOne)
       case (E, ValueExpression(v: eager.Number, _)) =>
         em.Match(Literal(NaturalExponential(v)))
       case (x, BiFunction(y, z, Log)) if x == y =>
