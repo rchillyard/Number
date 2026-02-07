@@ -9,7 +9,6 @@ import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical.ComplexCartesian
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.matchers.should.Matchers.shouldBe
 
 /**
   * Comprehensive test suite for the normalize method across all Valuable types.
@@ -179,24 +178,18 @@ class NormalizeSpec extends AnyFlatSpec with Matchers {
     // Adjust based on actual Complex implementation
     val complex = Complex(ComplexCartesian(3.14, 0.0))
     val actual = complex.normalize
-    val expected = Real(3.14, None)
-    expected.render shouldBe "3.14*"
-//    actual shouldBe expected
-    pending
+    actual shouldBe RationalNumber(157, 50)
   }
 
   it should "reduce further to WholeNumber if possible" in {
     val complex = Complex(ComplexCartesian(5, 0))
-//    complex.normalize shouldBe WholeNumber(5)
-    pending
+    complex.normalize shouldBe WholeNumber(5)
   }
 
   it should "stay as Complex when imaginary part is non-zero" in {
     val complex = Complex(ComplexCartesian(3.14, 1.0))
     complex.normalize shouldBe complex
-//    pending
   }
-
 
   behavior of "normalize integration tests"
 

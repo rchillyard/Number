@@ -347,10 +347,6 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
     val root0 = QuadraticRoot(equation, 0)
 
     val complex = root0.solution.asInstanceOf[Complex]
-    val normalized = complex.normalize
-
-    normalized shouldBe a[Complex]
-    normalized.isComplex shouldBe true
+    complex.normalize shouldBe a[Complex]
   }
-
 }

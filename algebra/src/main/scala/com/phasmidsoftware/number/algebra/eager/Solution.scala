@@ -115,15 +115,21 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
   def signum: Int = complex.signum
 
   /**
-    * Normalizes this `Valuable` to its simplest equivalent form.
-    * This may change the type (e.g., RationalNumber → WholeNumber, Complex(5,0) → WholeNumber(5)).
+    * Normalizes the `Complex` instance represented by the current object.
     *
-    * For Expression types, this will attempt to simplify and materialize if the result is exact.
-    * For Eager types, this will reduce to the simplest type representation.
+    * This method computes a normalized form of the underlying complex structure,
+    * converting it to either a `Complex` or `Eager` representation, depending on the resulting value.
+    * If the normalized value is of type `numerical.Complex`, it is converted into a `Complex` instance.
+    * Otherwise, if the normalized value is a `Field`, it is wrapped in an `Eager` instance.
     *
-    * @return the simplest `Valuable` representation of this value
+    * @return an `Eager` instance that encapsulates the normalized value, either as a `Complex` or another `Eager` representation.
     */
-  def normalize: Complex = this // CONSIDER should this be a method on Complex?
+  def normalize: Eager = complex.normalize match {
+    case c: numerical.Complex =>
+      Complex(c)()
+    case x: Field =>
+      Eager(x)
+  }
 
   /**
     * Scales the current Complex instance by a given Rational value.
