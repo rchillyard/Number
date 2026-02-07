@@ -377,7 +377,7 @@ case object MonadicOperationSin extends MonadicOperation {
     */
   private val sinRatInexact: Rational => Try[Rational] = x =>
     if (!x.invert.isWhole)
-      sinDouble(x.toDouble).flatMap(Rational.createExact)
+      sinDouble(x.toDouble).flatMap(Rational.createExact) // TESTME
     else
       Failure(OperationsException("MonadicOperationSin: logic error: whole Rational"))
 
@@ -564,7 +564,7 @@ case class MonadicOperationScale(r: Rational) extends MonadicOperation {
     * - `fRational`: A function for scaling `Rational` values by the given `Rational` `r`.
     * - `fDouble`: A function for scaling `Double` values by the corresponding `Double` representation of `r`.
     */
-  val functions: MonadicFunctions = {
+  val functions: MonadicFunctions = { // TESTME
     val fInt =
       if (r.isWhole)
         tryF[Int, Int](math.multiplyExact(_, r.toInt))
