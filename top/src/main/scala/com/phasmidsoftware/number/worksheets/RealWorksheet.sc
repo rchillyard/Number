@@ -3,12 +3,13 @@
   * NOTE that Number is deprecated for application use -- it's designed for internal use.
   */
 
-import com.phasmidsoftware.number.core.Constants.one
-import com.phasmidsoftware.number.core.Real.RealOps
+import com.phasmidsoftware.number.core.numerical.Constants.one
+import com.phasmidsoftware.number.core.numerical.Real.RealOps
 import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
-import com.phasmidsoftware.number.core.{Constants, Field, Fuzzy, Number, Real}
+import com.phasmidsoftware.number.core.numerical.{Constants, Field, Fuzzy, Number, Real}
 
 val three: Field = 2 + one
+
 
 // NOTE see the corresponding expression in Expression.sc
 val half: Field = Real(r"1/2")
@@ -29,15 +30,14 @@ val sinePiBy4 = piBy4.sin
 val oneHalf = (sinePiBy4 doMultiply sinePiBy4).normalize
 
 // Parsing from Strings: Exact
-Real("1.1") // only one decimal place
-Real("1.00") // ends in two zeroes
-Real("1.0100") // ditto
-Real("1.100") // ditto
+Real("1.0") // fewer than 15 decimal places
+Real("0.57721566490153") // ditto
 
 // Parsing from Strings: Fuzzy
-Real("1.010") // more than two decimal places
-Real("1.100*") // ends in "*"
-Real("1.100...") // ends in "..."
-Real("1.1000[5]") // has explicit (box) error bounds
-Real("1.1000(5)") // has explicit (Gaussian) error bounds
+Real("1.100*").render // ends in "*"
+Real("1.100...").render // ends in "..."
+Real("1.1000[1]").render // has explicit (box) error bounds
+Real("1.1000[5]").render // has explicit (box) error bounds
+Real("1.1000(5)").render // has explicit (Gaussian) error bounds
+Real("0.577215664901533").render // 15 or more decimal places
 

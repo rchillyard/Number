@@ -4,7 +4,6 @@
 
 import com.phasmidsoftware.number.algebra.eager.Eager.half
 import com.phasmidsoftware.number.algebra.eager.{Eager, QuadraticSolution, Solution}
-import com.phasmidsoftware.number.core.algebraic.Algebraic_Quadratic
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
 import com.phasmidsoftware.number.expression.expr.Root
 
@@ -19,13 +18,13 @@ val phiPlus1 = phi + 1
 val phiSquared = (phi * phi).simplify
 
 // an approximation to phi
-val phiApprox = phi.fuzzy
+val phiApprox = phi.fuzzy.render
 
 // psi, the conjugate of Phi
 val conjugate = psi
 
 // an approximation to psi
-val psiSolution = psi.fuzzy
+val psiSolution = psi.fuzzy.render
 
 // the sum of phi and psi should be 1
 val sum = phi add psi
@@ -37,16 +36,16 @@ val product = phi * psi
 val goldenRationEquation = phi.equation
 
 // The value of the product should be -r from the equation
-val productString = product.materialize
+val productString = product.materialize.render
 
-val phiSquareApprox = phiSquared.fuzzy
+val phiSquareApprox = phiSquared.fuzzy.render
 
 // We define the Algebraic for the golden ratio from two numbers
 val myPhi: Solution = QuadraticEquation.goldenRatioEquation.solve(0)
-myPhi
+myPhi.render
 myPhi match {
   case q: QuadraticSolution =>
-    q
+    q.render
   case _ =>
     "not a QuadraticSolution"
 }

@@ -69,7 +69,7 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
     * @param x the addend.
     * @return the sum.
     */
-  def add(x: Field): Field
+  infix def add(x: Field): Field
 
   /**
     * Synonym for add.
@@ -77,7 +77,7 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
     * @param x the addend.
     * @return the result.
     */
-  def +(x: Field): Field = add(x)
+  infix def +(x: Field): Field = add(x)
 
   /**
     * Subtract x from this Field and return the result.
@@ -85,7 +85,7 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
     * @param x the subtrahend.
     * @return the difference of this - x.
     */
-  def subtract(x: Field): Field = this + -x
+  infix def subtract(x: Field): Field = this + -x
 
   /**
     * Synonym for subtract.
@@ -93,7 +93,7 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
     * @param x the subtrahend.
     * @return <code>this - x</code>.
     */
-  def -(x: Field): Field = subtract(x)
+  infix def -(x: Field): Field = subtract(x)
 
   /**
     * Multiply this Field by x and return the result.
@@ -101,7 +101,7 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
     * * @param x the multiplicand.
     * * @return the product.
     */
-  def multiply(x: Field): Field
+  infix def multiply(x: Field): Field
 
   /**
     * Multiply this Field by the given Field and return the result.
@@ -109,7 +109,7 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
     * @param x the multiplicand, an instance of Field.
     * @return the product of this Field and the given Field.
     */
-  def *(x: Field): Field = multiply(x)
+  infix def *(x: Field): Field = multiply(x)
 
   /**
     * Divide this Field by x and return the result.
@@ -117,7 +117,7 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
     * @param x the divisor.
     * @return the quotient.
     */
-  def divide(x: Field): Field
+  infix def divide(x: Field): Field
 
   /**
     * Divide this Field by another Field.
@@ -127,7 +127,7 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
     * @param x the other Field.
     * @return the quotient of this and x.
     */
-  def /(x: Field): Field = divide(x)
+  infix def /(x: Field): Field = divide(x)
 
   /**
     * Raise this Field to the power p.
@@ -135,7 +135,7 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
     * @param p an Int.
     * @return this Field raised to power p.
     */
-  def power(p: Int): Field = p match {
+  infix def power(p: Int): Field = p match {
     case 0 =>
       Real(Number.one)
     case 1 =>
@@ -159,7 +159,7 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
     * @param p the exponent, provided as a Number.
     * @return the result of raising this Field to the power p.
     */
-  def power(p: Number): Field
+  infix def power(p: Number): Field
 
   /**
     * Raise this Field to the power p.
@@ -167,7 +167,7 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
     * @param p a Field.
     * @return this Field raised to power p.
     */
-  def power(p: Field): Field
+  infix def power(p: Field): Field
 
   /**
     * Computes an approximation of the field as a real number, if possible.

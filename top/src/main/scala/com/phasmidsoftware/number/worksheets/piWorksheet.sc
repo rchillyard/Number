@@ -10,17 +10,17 @@ import scala.util.Random
 Pi
 // 𝛑 forced to be a Real (fuzzy) value.
 // Note the "*" signifying "Here be dragons," (i.e., you're into the unknown)
-Pi.fuzzy
+Pi.fuzzy.render
 // 𝛑 as an (eager) value
-𝛑
+𝛑.render
 // 𝛑 parsed from Latex
-math"𝛑"
+math"𝛑".render
 // 𝛑 parsed from Latex and forced to be fuzzy
-fuzzymath"𝛑"
+fuzzymath"𝛑".render
 // 𝛑 parsed from Latex (note that the complaint about the escape character is not significant)
-math"\pi"
+math"\pi".render
 // 𝛑 parsed from Unicode
-Eager("\uD835\uDED1")
+Eager("\uD835\uDED1").render
 
 def getPoints(n: Int)(implicit r: Random): LazyList[(Double, Double)] = {
   def getCoordinate: Double = (r.nextDouble() - 0.5) * 2
