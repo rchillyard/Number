@@ -43,14 +43,17 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "evaluate"
 
+  it should "evaluate i as an inverse power" in {
+    val i: Expression = I
+    i.evaluateAsIs shouldBe Some(Eager.i)
+  }
+
   // TODO #Issue 149 this has to do with imaginary numbers
   it should "evaluate i * 2" in {
-    //    val x: Expression = ConstI * 2
-    //    val result: Option[Valuable] = x.evaluateAsIs
-    //    result.isDefined shouldBe true
-    //    val expected = Eager(numerical.Real(ExactNumber(-4, SquareRoot)))
-    //    result.get shouldBe expected
-    pending
+    val x: Expression = I * 2
+    val result: Eager = x.materialize
+    val expected = InversePower(2, WholeNumber(-4))
+    result shouldBe expected
   }
 
   behavior of "parse"

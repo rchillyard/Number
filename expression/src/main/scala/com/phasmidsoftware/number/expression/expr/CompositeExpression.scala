@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
-import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, IsInteger, NaturalExponential, QuadraticSolution, RationalNumber, Structure}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, IsInteger, NaturalExponential, QuadraticSolution, RationalNumber, Structure, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian, Rational}
 import com.phasmidsoftware.number.core.misc.Bumperator
@@ -793,6 +793,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(-a)
       case (MinusOne, b) =>
         em.Match(-b)
+      case (ValueExpression(ip@InversePower(n, _), _), ValueExpression(b: CanPower[eager.Number] @unchecked, _)) if n > 1 =>
+        em.matchIfDefined(simplifyInversePowerTimesNumber(ip, b))(this)
+      case (ValueExpression(b: CanPower[eager.Number] @unchecked, _), ValueExpression(ip@InversePower(n, _), _)) if n > 1 =>
+        em.matchIfDefined(simplifyInversePowerTimesNumber(ip, b))(this)
       case (q1@QuadraticRoot(quadratic: QuadraticEquation, b1, _), q2@QuadraticRoot(e2, b2, _)) if quadratic == e2 && b1 != b2 =>
         em.Match(quadratic.conjugateProduct)
       // CONSIDER the following case should be copied for Sum (not just Product)
@@ -803,6 +807,15 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case _ =>
         em.Miss[Expression, Expression]("BiFunction: matchBiFunctionProduct: no trivial simplification for Product", this)
     }
+
+  /**
+    * Simplifies the multiplication of an `InversePower` instance with a number that supports exponentiation.
+    *
+    * @param ip The `InversePower` instance representing an inverse power.
+    * @param b  A numeric type instance capable of being raised to a power.
+    */
+  private def simplifyInversePowerTimesNumber(ip: InversePower, b: CanPower[eager.Number]) =
+    b.pow(WholeNumber(ip.n)) map (e => Literal(InversePower(ip.n, ip.number * e)))
 
   /**
     * Attempts to match and simplify a bi-function of type "Power" based on specific rules.
@@ -852,7 +865,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       // TODO this is a temporary suppression
       //      case (ValueExpression(x: ExactNumber,_), ValueExpression(RationalNumber(r: Rational, _), _)) if r==Rational.half =>
       //        em.Match(Root.squareRoot(x.toRational,0)) // NOTE we arbitrarily choose the positive branch here.
-      case (E, BiFunction(ConstI, Pi, Product)) | (E, BiFunction(Pi, ConstI, Product)) =>
+      case (E, BiFunction(I, Pi, Product)) | (E, BiFunction(Pi, I, Product)) =>
         em.Match(MinusOne)
       //      case (E, Literal(ComplexCartesian(numerical.Number.zero, numerical.Number.pi))) =>
       //        em.Match(MinusOne) // TESTME NOTE Euler's identity

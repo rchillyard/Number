@@ -455,12 +455,12 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "simplify e^(iπ) to -1 (Euler's identity)" in {
-    val eulerExp = BiFunction(E, BiFunction(ConstI, Pi, Product), Power)
+    val eulerExp = BiFunction(E, BiFunction(I, Pi, Product), Power)
     eulerExp.simplify shouldBe MinusOne
   }
 
   it should "simplify e^(πi) to -1 (Euler's identity, reversed)" in {
-    val eulerExp = BiFunction(E, BiFunction(Pi, ConstI, Product), Power)
+    val eulerExp = BiFunction(E, BiFunction(Pi, I, Product), Power)
     eulerExp.simplify shouldBe MinusOne
   }
 
