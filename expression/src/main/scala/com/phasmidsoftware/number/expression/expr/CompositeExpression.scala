@@ -793,9 +793,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(-a)
       case (MinusOne, b) =>
         em.Match(-b)
-      case (ValueExpression(ip@InversePower(n, _), _), ValueExpression(b: CanPower[eager.Number] @unchecked, _)) if n > 1 =>
-        em.matchIfDefined(simplifyInversePowerTimesNumber(ip, b))(this)
-      case (ValueExpression(b: CanPower[eager.Number] @unchecked, _), ValueExpression(ip@InversePower(n, _), _)) if n > 1 =>
+      case InversePowerTimesNumberCommutative(ip, b) =>
         em.matchIfDefined(simplifyInversePowerTimesNumber(ip, b))(this)
       case (q1@QuadraticRoot(quadratic: QuadraticEquation, b1, _), q2@QuadraticRoot(e2, b2, _)) if quadratic == e2 && b1 != b2 =>
         em.Match(quadratic.conjugateProduct)
@@ -1332,3 +1330,14 @@ object Aggregate {
     }
 }
 
+object InversePowerTimesNumberCommutative extends CommutativeExtractor[InversePower, CanPower[eager.Number]] {
+  protected def extractLeft(e: Expression): Option[InversePower] = e match {
+    case ValueExpression(ip@InversePower(n, _), _) if n > 1 => Some(ip)
+    case _ => None
+  }
+
+  protected def extractRight(e: Expression): Option[CanPower[eager.Number]] = e match {
+    case ValueExpression(b: CanPower[eager.Number], _) => Some(b)
+    case _ => None
+  }
+}

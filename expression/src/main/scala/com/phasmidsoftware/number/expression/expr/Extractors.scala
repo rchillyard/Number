@@ -174,3 +174,42 @@ object CubeRoot {
     case _ => None
   }
 }
+
+/**
+  * Abstract extractor for commutative binary operations.
+  * Handles trying both (left, right) and (right, left) orderings automatically.
+  *
+  * @tparam A the type extracted from the "left" position
+  * @tparam B the type extracted from the "right" position
+  */
+abstract class CommutativeExtractor[A, B] {
+  /**
+    * Extract value of type A from an expression.
+    */
+  protected def extractLeft(e: Expression): Option[A]
+
+  /**
+    * Extract value of type B from an expression.
+    */
+  protected def extractRight(e: Expression): Option[B]
+
+  /**
+    * Unapply method that tries both orderings on a tuple.
+    * First tries (extractLeft(left), extractRight(right)),
+    * then tries (extractLeft(right), extractRight(left)).
+    */
+  def unapply(pair: (Expression, Expression)): Option[(A, B)] = {
+    val (left, right) = pair
+
+    // Try (A, B) ordering
+    (extractLeft(left), extractRight(right)) match {
+      case (Some(a), Some(b)) => Some((a, b))
+      case _ =>
+        // Try (B, A) ordering
+        (extractLeft(right), extractRight(left)) match {
+          case (Some(a), Some(b)) => Some((a, b))
+          case _ => None
+        }
+    }
+  }
+}
