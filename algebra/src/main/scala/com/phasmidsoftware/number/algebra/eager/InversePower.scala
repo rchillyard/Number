@@ -615,15 +615,11 @@ object InversePower {
   implicit val inversePowerLatexRenderer: LatexRenderer[InversePower] = LatexRenderer.instance { ip =>
     val baseLatex = ip.number.asMonotone.toLatex
 
-    if (ip.n == 2) {
-      LatexRenderer.sqrt(baseLatex)
-    } else {
+    if (ip.n == 2) 
+      LatexRenderer.sqrt(baseLatex) 
+    else 
       nthRoot(ip.n, baseLatex)
-    }
   }
-
-//  private def tryConvertAndCompareTransformed[B <: Transformed, Z](f: (Transformed, B) => Try[Z])(s: Exponential, e: B): Try[Z] =
-//    FP.fail(s"Transformed: unsupported cross-type operation: ${s.getClass.getSimpleName} op ${e.getClass.getSimpleName}")
 
   /**
     * Represents the multiplicative identity for roots.
@@ -646,6 +642,8 @@ object InversePower {
   /**
     * Provides an implicit implementation of a commutative group for the `Root` type, supporting
     * group operations such as identity, combination, and inversion.
+    * 
+    * TESTME
     *
     * This allows `Root` objects to adhere to the algebraic structure of a commutative group, where
     * the `combine` operation is associative and commutative, an identity element exists, and
