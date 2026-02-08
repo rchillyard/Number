@@ -118,9 +118,7 @@ class QuadraticRootSpec extends AnyFlatSpec with should.Matchers {
     val equation = QuadraticEquation(Rational(-5, 2), Rational(1))
     val root = QuadraticRoot(equation, 0)
     val normalized = root.normalize
-    normalized shouldBe a[QuadraticSolution]
-    val solution = normalized.asInstanceOf[QuadraticSolution]
-    solution.toDouble shouldBe 2.0 +- 1e-10
+    normalized shouldBe WholeNumber(2)
   }
 
   behavior of "normalize - double root"

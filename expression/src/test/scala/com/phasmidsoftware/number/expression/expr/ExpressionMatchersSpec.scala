@@ -1571,16 +1571,10 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val e1 = BiFunction(Pi, One, Sum)
     val e2 = BiFunction(Literal(Eager.pi), MinusOne, Sum)
     val result = p(Product ~ e1 ~ e2)
-//    result.successful shouldBe true
-//    result shouldBe em.Match(Aggregate(Sum, Seq(-1, BiFunction(Pi, 2, Power))))
-    val e = result.get
-//    val actual = p(e)
-//    actual.successful shouldBe true
-    // NOTE it's not trivially easy to arrange for this and it's not really that necessary, either. So let's be happy!
-    //    val idealExpectedExpression = BiFunction(Pi ∧ 2, MinusOne, Sum)
-    //    val interimExpectedExpression = Aggregate(Sum, Seq(-1, BiFunction(Pi, 2, Power)))
-//    actual.get shouldBe interimExpectedExpression
-    pending
+    result shouldBe em.Match(BiFunction(-1, BiFunction(Pi, 2, Power), Sum))
+    val actual = result.get
+    val expected = BiFunction(MinusOne, Pi ∧ 2, Sum)
+    actual shouldBe expected
   }
 
   behavior of "complementaryTermsEliminatorBiFunction"

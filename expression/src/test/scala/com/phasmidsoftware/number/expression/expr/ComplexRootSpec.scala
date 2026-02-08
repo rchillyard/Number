@@ -291,7 +291,6 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
 
     val result = equation.evaluate(root0.solution)
     result.isZero shouldBe true
-    //    pending
   }
 
   /**

@@ -95,23 +95,67 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
   def normalize: Monotone = n match {
     case 1 =>
       number.normalize
+
     case 2 | 3 =>
       val lookups = Map(2 -> Rational.squareRoots, 3 -> Rational.cubeRoots)
       val normalized = number.normalize
       normalized match {
+        case rn@RationalNumber(r@IntRational(num, den), _) =>
+          // Handle rational bases by taking root of numerator and denominator separately
+          val defaultValue: InversePower = if (number == normalized) this else InversePower(n, rn)
+          val isNegative = num < 0
+          val absNum = if (isNegative) -num else num
+
+          val maybeLookup = lookups.get(n)
+
+          val result = for {
+            lookup <- maybeLookup
+            nr <- if (!isNegative || n % 2 == 1) lookup.get(absNum) else None
+            dr <- lookup.get(den)
+          } yield RationalNumber(handleNegativeRoot(BigInt(nr), n, isNegative), BigInt(dr))
+
+          result.getOrElse(defaultValue)
+
         case q: Q if q.isInstanceOf[Number] =>
+          // Handle integer bases (including WholeNumber)
           val defaultValue: InversePower = if (number == normalized) this else InversePower(n, q.asInstanceOf[Number])
           val r = q.toRational
-          val rootValue = getRoot(r, lookups).map(WholeNumber(_))
-          lazy val recipRootValue = getRoot(r.invert, lookups).map(x => RationalNumber(Rational(x).invert))
-          (rootValue orElse recipRootValue) getOrElse defaultValue
+          val isNegative = r.signum < 0
+          val absR = if (isNegative) r.negate else r
+
+          val rootValue = if (!isNegative || n % 2 == 1) {
+            getRoot(absR, lookups).map { root =>
+              WholeNumber(handleNegativeRoot(root, n, isNegative))
+            }
+          } else None
+
+          lazy val recipRootValue = if (!isNegative || n % 2 == 1) {
+            getRoot(absR.invert, lookups).map { x =>
+              RationalNumber(Rational(handleNegativeRoot(x, n, isNegative)).invert)
+            }
+          } else None
+
+          (rootValue orElse recipRootValue).getOrElse(defaultValue)
       }
-    case _ =>
+
+    case _ => // For higher roots, use prime factorization
       doNormalize match {
         case Left(value) => value
         case Right(value) => value
       }
   }
+
+  /**
+    * Handles the root operation result for negative values.
+    *
+    * @param value      The result of the root operation as a BigInt.
+    * @param n          The degree of the root.
+    * @param isNegative A flag indicating whether the original value was negative.
+    * @return The adjusted root value, negated if the original value 
+    *         was negative and the root degree is odd.
+    */
+  private def handleNegativeRoot(value: BigInt, n: Int, isNegative: Boolean): BigInt =
+    if (isNegative && n % 2 == 1) -value else value
 
   private lazy val simplified: InversePower = doNormalize match {
     case Left(number) =>
@@ -473,9 +517,14 @@ object InversePower {
     * @throws AlgebraException If any prime factor of the radicand is out of range for an Int.
     */
   def normalizeIntegralRoot(radicand: Int, rootDegree: Int): (Int, Int) = {
-    val factors: Seq[Option[Int]] = Prime.primeFactors(radicand).map(_.toIntOption)
+    // We need to check all prime factors up to radicand itself
+    // But we can limit to primes up to sqrt(radicand) for the factorization process
+    // Actually, for complete factorization, we need all primes up to radicand
+    val absRadicand = radicand.abs
+
+    val factors: Seq[Option[Int]] = Prime.primeFactors(BigInt(absRadicand)).map(_.toIntOption)
     val xs: Seq[Int] = for {
-      prime <- Prime.primeFactors(radicand)
+      prime <- Prime.primeFactors(BigInt(absRadicand))
       x <- prime.toIntOption
     } yield x
 
@@ -496,7 +545,10 @@ object InversePower {
       remainingProduct *= Math.pow(prime, remaining).toInt
     }
 
-    (extractedProduct, remainingProduct)
+    // Handle the sign for odd roots
+    val signedExtracted = if (radicand < 0 && rootDegree % 2 == 1) -extractedProduct else extractedProduct
+
+    (signedExtracted, remainingProduct)
   }
 
   val logger: Logger = LoggerFactory.getLogger(getClass)

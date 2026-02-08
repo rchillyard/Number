@@ -1,8 +1,8 @@
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.eager.{Eager, Real}
-import com.phasmidsoftware.number.core.inner.{Inverse, Rational}
+import com.phasmidsoftware.number.algebra.eager.{Eager, InversePower, RationalNumber, Real}
 import com.phasmidsoftware.number.core.inner.Rational.RationalOps
+import com.phasmidsoftware.number.core.inner.{Inverse, Rational}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -26,11 +26,6 @@ class InversePowerSpec extends AnyFlatSpec with Matchers {
     materialized shouldBe Eager(2)
   }
 
-  it should "handle fifth root" in {
-    val expr = Expression((32)) ∧ 5.invert
-    expr.materialize.normalize shouldBe Eager(2)
-  }
-
   it should "evaluate 27^(1/3)" in {
     val expr = Expression((27)) ∧ 3.invert
     expr.materialize shouldBe Eager(3)
@@ -51,15 +46,14 @@ class InversePowerSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "handle negative radicands with odd roots" in {
-    //    val expr = Expression(-8) ∧ Rational(1, 3)
-    //    expr.materialize shouldBe Eager(-2)
-    pending
+    val expr = Expression(-8) ∧ Rational(1, 3)
+    val simplified = expr.simplify
+    expr.materialize shouldBe Eager(-2)
   }
 
   it should "handle rational bases" in {
-    //    val expr = Expression(Rational(8, 27)) ∧ Rational(3).invert
-    //    expr.materialize shouldBe Rational(2, 3)
-    pending
+    val expr = Expression(Rational(8, 27)) ∧ Rational(3).invert
+    expr.materialize shouldBe RationalNumber(2, 3)
   }
 
   it should "handle unit fractions for higher roots" in {
@@ -137,4 +131,15 @@ class InversePowerSpec extends AnyFlatSpec with Matchers {
     val expr = Expression(1) ∧ 100.invert
     expr.materialize shouldBe Eager(1)
   }
+
+  behavior of "normalize"
+  it should "normalize the cube root of 8" in {
+    InversePower(3, 8).normalize
+  }
+
+  it should "handle fifth root" in {
+    val expr = Expression(32) ∧ 5.invert
+    expr.materialize.normalize shouldBe Eager(2)
+  }
+
 }
