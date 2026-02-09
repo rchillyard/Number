@@ -234,6 +234,7 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
 
   it should "evaluate sum with zero" in {
     val target = BiFunction(Two, Zero, Sum)
+    target.simplify shouldBe Two
     target.evaluate(pureNumberContext) shouldBe Some(WholeNumber.two)
   }
 
@@ -265,8 +266,10 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "evaluate product with minus one" in {
-    val prodNeg = BiFunction(Two, MinusOne, Product)
-    prodNeg.evaluate(pureNumberContext) shouldBe Some(WholeNumber(-2))
+    val prodNeg1 = BiFunction(Two, MinusOne, Product)
+    prodNeg1.evaluate(pureNumberContext) shouldBe Some(WholeNumber(-2))
+    val prodNeg2 = BiFunction(MinusOne, Two, Product)
+    prodNeg2.evaluate(pureNumberContext) shouldBe Some(WholeNumber(-2))
   }
 
   // ============================================================================

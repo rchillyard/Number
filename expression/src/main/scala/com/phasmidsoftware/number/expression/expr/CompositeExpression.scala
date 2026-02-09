@@ -762,11 +762,11 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   private def matchBiFunctionIdentitiesSum(a: Expression, b: Expression): em.MatchResult[Expression] =
     (a, b) match {
-      case (a, b) if a.plus(b) == Zero =>
-        em.Match(Zero) // TODO invoke method to check for appropriate identity (it exists but I've forgotten its name)
+      case AdditiveIdentityCommutative(a, _) =>
+        em.Match(a)
       case (q1@QuadraticRoot(quadratic: QuadraticEquation, b1, _), q2@QuadraticRoot(e2, b2, _)) if quadratic == e2 && b1 != b2  =>
         em.Match(quadratic.conjugateSum)
-      case (l: Literal, q: QuadraticRoot) =>
+      case (l: Literal, q: QuadraticRoot) => // TODO this should use the commutative extractor
         matchLiteral(l, q, Sum)
       case _ =>
         em.Miss[Expression, Expression]("BiFunction: matchBiFunctionSum: no trivial simplification for Sum", this)
@@ -785,14 +785,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     (a, b) match {
       case (Zero, _) | (_, Zero) =>
         em.Match(Zero)
-      case (a, One) =>
+      case MultiplicativeIdentityCommutative(a, _) =>
         em.Match(a)
-      case (One, b) =>
-        em.Match(b)
-      case (a, MinusOne) =>
+      case ExpressionNegationCommutative(a, _) =>
         em.Match(-a)
-      case (MinusOne, b) =>
-        em.Match(-b)
       case InversePowerTimesNumberCommutative(ip, b) =>
         em.matchIfDefined(simplifyInversePowerTimesNumber(ip, b))(this)
       case (q1@QuadraticRoot(quadratic: QuadraticEquation, b1, _), q2@QuadraticRoot(e2, b2, _)) if quadratic == e2 && b1 != b2 =>
@@ -1330,6 +1326,89 @@ object Aggregate {
     }
 }
 
+/**
+  * An object that extracts and matches expressions based on the commutative property
+  * of multiplication with the identity element (unity).
+  *
+  * This object extends `CommutativeExtractor` and provides the specific implementation
+  * for extracting expressions in the form of a multiplicative operation where one operand
+  * is the multiplicative identity (unity), and the other is the remaining expression.
+  *
+  * It defines the following extraction rules:
+  * - The `extractLeft` method always extracts and returns the input expression as-is.
+  * - The `extractRight` method matches an expression that is the multiplicative identity
+  *   (`IsUnity(x)`) and extracts the contained value `x`.
+  *
+  * The unapply mechanism allows this extractor to match pairs of expressions in a commutative
+  * manner, ensuring symmetry in the analysis of multiplicative operations.
+  */
+object MultiplicativeIdentityCommutative extends CommutativeExtractor[Expression, Expression] {
+  protected def extractLeft(e: Expression) = Some(e)
+
+  protected def extractRight(e: Expression) = e match {
+    case IsUnity(x) => Some(x)
+    case _ => None
+  }
+}
+
+/**
+  * Extractor for commutative additive operations with an identity element (zero).
+  *
+  * This object is a specialized implementation of the `CommutativeExtractor` trait,
+  * specifically designed to handle expressions where one side of a commutative addition
+  * operation is an additive identity (e.g., zero).
+  *
+  * It operates under the assumption that addition is commutative and attempts to extract
+  * sub-expressions from either side of a binary expression in a manner that accounts for
+  * the commutativity of the operation.
+  *
+  * The left-hand side of the expression is simply returned as-is, while the right-hand
+  * side is inspected to check if it represents the additive identity (zero). If the
+  * right-hand side is zero, its associated sub-expression is extracted.
+  */
+object AdditiveIdentityCommutative extends CommutativeExtractor[Expression, Expression] {
+  protected def extractLeft(e: Expression) = Some(e)
+
+  protected def extractRight(e: Expression) = e match {
+    case IsZero(x) => Some(x)
+    case _ => None
+  }
+}
+
+/**
+  * Extractor object for handling negation expressions in a commutative manner.
+  * Matches pairs of expressions where one is an `Expression` and the other is
+  * a negated `ValueExpression(-1)`.
+  *
+  * This object extends the `CommutativeExtractor` to allow the extraction
+  * of operands in any order (i.e., it supports both (A, B) and (B, A) configurations).
+  */
+object ExpressionNegationCommutative extends CommutativeExtractor[Expression, Expression] {
+  protected def extractLeft(e: Expression): Option[Expression] = e match {
+    case x: Expression => Some(x)
+  }
+
+  protected def extractRight(e: Expression): Option[Expression] = e match {
+    case x@ValueExpression(Eager.minusOne, _) => Some(x)
+    case _ => None
+  }
+}
+
+/**
+  * Extractor object for commutative operations between an `InversePower` and a
+  * value that can be powered, represented by `CanPower[eager.Number]`.
+  *
+  * This object extends `CommutativeExtractor`, enabling it to automatically
+  * handle both `(left, right)` and `(right, left)` orderings in commutative
+  * binary operations. Specifically, it extracts:
+  * - An `InversePower` from the "left" side of the expression, provided the
+  *   base of the inverse power (`n`) is greater than 1.
+  * - A `CanPower[eager.Number]` from the "right" side of the expression.
+  *
+  * The unapply method allows pattern matching to operate on pairs of expressions,
+  * extracting valid `(InversePower, CanPower[eager.Number])` pairs regardless of their
+  * position in the tuple.
+  */
 object InversePowerTimesNumberCommutative extends CommutativeExtractor[InversePower, CanPower[eager.Number]] {
   protected def extractLeft(e: Expression): Option[InversePower] = e match {
     case ValueExpression(ip@InversePower(n, _), _) if n > 1 => Some(ip)

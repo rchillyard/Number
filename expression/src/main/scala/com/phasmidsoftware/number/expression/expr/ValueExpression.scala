@@ -576,7 +576,7 @@ case object One extends ScalarConstant(WholeNumber.one, "1") {
   * This constant can be used in mathematical expressions involving Valuables and
   * supports operations defined in the `Valuable` trait.
   */
-case object MinusOne extends ScalarConstant(-WholeNumber.one, "-1") {
+case object MinusOne extends ScalarConstant(WholeNumber.minusOne, "-1") {
   /**
     * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
     * and attempts to produce an atomic result.
