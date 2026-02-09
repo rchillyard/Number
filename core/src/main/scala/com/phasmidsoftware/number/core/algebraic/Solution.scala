@@ -23,6 +23,7 @@ import scala.util.Failure
   *
   * CONSIDER it is inappropriate to include branch in `Solution`. A `Solution` should be a unique solution.
   */
+@deprecated("use com.phasmidsoftware.number.algebra.eager.Solution instead", "1.6.5")
 trait Solution extends NumberLike {
   /**
     * Retrieves the base value of the solution.
