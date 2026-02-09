@@ -1419,7 +1419,7 @@ object InversePowerTimesNumberCommutative extends CommutativeExtractor[InversePo
   }
 
   protected def extractRight(e: Expression): Option[CanPower[eager.Number]] = e match {
-    case ValueExpression(b: CanPower[eager.Number], _) => Some(b)
+    case ValueExpression(b: CanPower[eager.Number] @unchecked, _) => Some(b)
     case _ => None
   }
 }

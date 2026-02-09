@@ -71,7 +71,6 @@ trait CatsKernelInstances {
           def magBits(z: Fuzziness[Double]): Option[Long] = z match {
             case Abs(m: Double, _) => Some(java.lang.Double.doubleToRawLongBits(m))
             case Rel(m: Double, _) => Some(java.lang.Double.doubleToRawLongBits(m))
-            case _ => None
           }
           (magBits(f), magBits(g)) match {
             case (Some(a), Some(b)) => java.lang.Long.compare(a, b).toDouble

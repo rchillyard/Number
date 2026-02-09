@@ -583,6 +583,8 @@ object Real {
     * Parses a string representation of a number and constructs a `Real` instance.
     * If the input string cannot be parsed into a valid number, a `AlgebraException` is thrown.
     *
+    * NOTE this deprecation is OK--there is no alternative NumberParser
+    *
     * @param w the input string to be parsed and converted into a `Real` instance
     * @return a `Real` instance constructed from the parsed numeric value of the input string
     */

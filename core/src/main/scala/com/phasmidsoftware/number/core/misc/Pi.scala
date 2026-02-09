@@ -42,7 +42,7 @@ object PiMain extends App {
     val (result, milliseconds) = 1.times {
       val xfs: Seq[Future[Double]] = Seq.fill(p)(Future(Pi.calculatePi(N)))
       val xs: Seq[Double] = Await.result(Future.sequence(xfs), 100 second)
-    xs.sum / xs.length
+      xs.sum / xs.length
   }
 
     println(s"result: $result, milliseconds: $milliseconds")
