@@ -59,12 +59,11 @@ class QuantityParserSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "parse with LaTeX thin space" in {
-    //    QuantityParser.parse("10\\,m") match {
-    //      case Right(quantity) =>
-    //        quantity.unit shouldBe Meter
-    //      case Left(err) => fail(s"Parse failed: $err")
-    //    }
-    pending
+    QuantityParser.parse("10\\,m") match {
+      case Right(quantity) =>
+        quantity.unit shouldBe Meter
+      case Left(err) => fail(s"Parse failed: $err")
+    }
   }
 
   it should "parse composite units" in {

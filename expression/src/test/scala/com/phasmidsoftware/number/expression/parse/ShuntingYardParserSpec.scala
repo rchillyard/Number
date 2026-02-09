@@ -28,8 +28,9 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
   }
   // TODO Issue #143
   it should "parse the tricky expressions" in {
-//    ShuntingYardParser.stringParser(shuntingYard, "(sin(𝛑)-1)") shouldBe Success(ShuntingYard(List(Item("𝛑"), Sin, Item("1"), Subtract), List()))
-    pending
+    val expression = ShuntingYardParser.stringParser(shuntingYard, "(sin(𝛑)-1)")
+//    expression shouldBe Success(ShuntingYard(List(Item("𝛑"), Sin, Item("1"), Subtract), List()))
+    pending // Issue #143
   }
 
   behavior of "Mill"

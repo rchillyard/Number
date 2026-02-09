@@ -46,7 +46,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * on the implementation of the `Radian.modulate` logic.
     * Various specific cases are covered based on the type of the input:
     *   - Rational numbers are converted using their rational representation.
-    *   - Reals are adjusted using their double value, with fuzz consideration pending implementation.
+    *   - Reals are adjusted using their double value, with fuzz consideration awaiting implementation.
     *   - Whole numbers are directly handled using their integer representation.
     *
     * CONSIDER we lose information regarding degrees here (perhaps fix that?)
