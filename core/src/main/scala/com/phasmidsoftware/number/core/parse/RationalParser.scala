@@ -20,6 +20,7 @@ trait ValuableNumber {
 /**
   * A parser of Rational objects.
   */
+@deprecated("use com.phasmidsoftware.number.expression.parse.baseRationalParser instead", "1.6.5")
 abstract class BaseRationalParser extends SignificantSpaceParsers {
 
   /**
@@ -74,6 +75,7 @@ abstract class BaseRationalParser extends SignificantSpaceParsers {
 
 }
 
+@deprecated("use com.phasmidsoftware.number.expression.parse.RationalParser instead", "1.6.5")
 object RationalParser extends BaseRationalParser {
   def parse(s: String): Try[Rational] = stringParser(rationalNumber, s).flatMap(_.value)
 

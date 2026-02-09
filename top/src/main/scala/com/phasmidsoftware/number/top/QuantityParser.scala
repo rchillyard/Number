@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.top
 
 import com.phasmidsoftware.number.algebra.eager.Scalar
+// TODO This looks wrong. We should not be importing this class.
 import com.phasmidsoftware.number.core.parse.NumberParser
 import com.phasmidsoftware.number.dimensions.core.*
 import com.phasmidsoftware.number.expression.expr.{Expression, Literal}

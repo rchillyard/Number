@@ -11,6 +11,7 @@ import scala.util.parsing.combinator.JavaTokenParsers
 /**
   * This abstract class extends JavaTokenParsers but where white space is not ignored.
   */
+@deprecated("use com.phasmidsoftware.number.expression.parse.SignificantSpaceParsers instead", "1.6.5")
 abstract class SignificantSpaceParsers extends JavaTokenParsers {
 
   self =>

@@ -10,6 +10,7 @@ import scala.util.Try
 /**
   * A parser of Rational objects.
   */
+@deprecated("use com.phasmidsoftware.number.expression.parse.ComplexParser instead", "1.6.5")
 class ComplexParser extends BaseNumberParser {
 
   def doParse(w: String): Try[Complex] = parseAll(complexNumber, w) match {
