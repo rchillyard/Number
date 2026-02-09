@@ -16,7 +16,7 @@ class FieldSpec extends AnyFlatSpec with should.Matchers {
 //    val result = z.materialize
 //    result shouldBe Constants.minusOne
 //  }
-  ignore should "add" in {
+  it should "add" in {
     val one = Number.one
     val result = one `add` Constants.i
     result shouldBe ComplexCartesian(1, 1)

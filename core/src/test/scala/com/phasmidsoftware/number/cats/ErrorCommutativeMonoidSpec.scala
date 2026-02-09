@@ -8,6 +8,7 @@ import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, FuzzyNumber, Gau
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.tagobjects.Slow
+
 import scala.concurrent.duration.*
 import scala.concurrent.{Await, ExecutionContext, Future}
 
@@ -20,7 +21,7 @@ class ErrorCommutativeMonoidSpec extends AnyFlatSpec with Matchers {
 
   behavior of "Abstracting advocacy communication into lawful scalar folding"
 
-  ignore should "match decoupled parallel error folding with direct Number addition (all addition)" taggedAs Slow in {
+  it should "match decoupled parallel error folding with direct Number addition (all addition)" taggedAs Slow in {
     implicit val ec: ExecutionContext = ExecutionContext.global
 
     // Build many fuzzy addends: same nominal 1.2 with absolute Gaussian sigma 0.05
@@ -75,7 +76,7 @@ class ErrorCommutativeMonoidSpec extends AnyFlatSpec with Matchers {
   }
 
   // CONSIDER this test is slow. We might want to tag it as Slow (or perhaps try to speed it up)
-  ignore should "match decoupled parallel error folding with direct Number multiplication (all multiplication)" in {
+  it should "match decoupled parallel error folding with direct Number multiplication (all multiplication)" taggedAs Slow in {
     implicit val ec: ExecutionContext = ExecutionContext.global
 
     // Build many fuzzy addends: same nominal 1.2 with absolute Gaussian sigma 0.05

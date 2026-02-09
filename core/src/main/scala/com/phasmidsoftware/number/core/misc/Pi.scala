@@ -5,10 +5,9 @@ import com.phasmidsoftware.number.core.misc.Variance.rootSumSquares
 
 import scala.concurrent.*
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.Random
 
-object Pi extends App {
-
-  import scala.util.Random
+object Pi {
 
   def getPoints(n: Int)(implicit r: Random): LazyList[(Double, Double)] = {
     lazy val getCoordinate: Double = (r.nextDouble() - 0.5) * 2
@@ -29,19 +28,26 @@ object Pi extends App {
     result
   }
 
-  import scala.concurrent.duration.DurationInt
-  import scala.language.postfixOps
+}
 
-  implicit val r: Random = Random
-  val N = 10_000_000
-  val p = 2
+object PiMain extends App {
+  def doMain(): Unit = {
+    import scala.concurrent.duration.DurationInt
+    import scala.language.postfixOps
 
-  val (result, milliseconds) = 1.times {
-    val xfs: Seq[Future[Double]] = Seq.fill(p)(Future(calculatePi(N)))
-    val xs: Seq[Double] = Await.result(Future.sequence(xfs), 100 second)
+    implicit val r: Random = Random
+    val N = 10_000_000
+    val p = 2
+
+    val (result, milliseconds) = 1.times {
+      val xfs: Seq[Future[Double]] = Seq.fill(p)(Future(Pi.calculatePi(N)))
+      val xs: Seq[Double] = Await.result(Future.sequence(xfs), 100 second)
     xs.sum / xs.length
   }
 
-  println(s"result: $result, milliseconds: $milliseconds")
+    println(s"result: $result, milliseconds: $milliseconds")
 
+  }
+
+  doMain()
 }
