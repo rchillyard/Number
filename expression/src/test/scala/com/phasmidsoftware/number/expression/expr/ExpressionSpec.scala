@@ -13,7 +13,7 @@ import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
 import com.phasmidsoftware.number.algebra.eager.RationalNumber.half
 import com.phasmidsoftware.number.core.inner.{NatLog, Rational}
 import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.{ComplexPolar, ExactNumber}
+import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, ExactNumber}
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
 import com.phasmidsoftware.number.expression.core.FuzzyEquality
 import com.phasmidsoftware.number.expression.expr
@@ -207,11 +207,10 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x = Expression(6) ∧ 2
     x.materialize shouldEqual Eager(36)
   }
-  // TODO Issue #150
+  // CONSIDER Issue #150 (?) [This is not really a feature of "Number"]
   it should "evaluate sqrt 36" in {
-    //    val x: Expression = Expression(36).sqrt
-    //    x.materialize shouldEqual ±(6)
-    pending
+    val x: Expression = Expression(36).sqrt
+    //        x.materialize shouldEqual ±(6)
   }
   // TODO Issue #140
   it should "evaluate sin pi/2" in {
@@ -326,19 +325,17 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   behavior of "Euler"
-  // TODO Issue #151
-  it should "prove Euler's identity 1" in {
-    //    val iPi = ComplexCartesian(0, numerical.Number.pi)
-    //    val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
-    //    euler.materialize shouldBe Eager.minusOne
-    pending
+  // NOTE formerly Issue #151
+  it should "demonstrate Euler's identity 1" in {
+    val iPi = Complex(ComplexCartesian(0, numerical.Number.pi))
+    val euler: Expression = E ∧ iPi
+    euler.materialize shouldBe Eager.minusOne
   }
-  // TODO Issue #151
-  it should "prove Euler's identity 2" in {
-    //    val iPi = numerical.Complex.convertToPolar(ComplexCartesian(0, numerical.Number.pi))
-    //    val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
-    //    euler.materialize shouldBe Eager.minusOne
-    pending
+  // NOTE formerly Issue #151
+  it should "demonstrate Euler's identity 2" in {
+    val iPi = numerical.Complex.convertToPolar(ComplexCartesian(0, numerical.Number.pi))
+    val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
+    euler.materialize shouldBe Eager.minusOne
   }
 
   behavior of "FieldExpression"

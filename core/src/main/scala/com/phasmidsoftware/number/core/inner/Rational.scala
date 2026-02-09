@@ -1120,6 +1120,16 @@ object Rational {
     apply(n, BigInt(d))
 
   /**
+    * Creates a Rational number from the given numerator and denominator values.
+    *
+    * @param n the numerator of the rational number
+    * @param d the denominator of the rational number
+    * @return a Rational number representing the fraction n/d
+    */
+  def apply(n: Long, d: Long): Rational =
+    apply(BigInt(n), d)
+
+  /**
     * Method to construct a Rational from a BigInt.
     *
     * @param n the value.

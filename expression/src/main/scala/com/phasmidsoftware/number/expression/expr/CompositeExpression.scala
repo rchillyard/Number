@@ -578,13 +578,11 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       em.Match(Literal(radicand, None))
     // NOTE these first two cases are kind of strange! CONSIDER removing them.
     // In any case, they don't belong in structuralMatcher because they depend on specific values.
+    // TODO use a commutative extractor
     case BiFunction(a, UniFunction(b, Negate), Product) if a == b =>
-      // NOTE: duplicate code
-      val xSq = Expression.simplifyExact(BiFunction(a, Two, Power)).getOrElse(BiFunction(a, Two, Power)) // x²
-      em.Match(-xSq)
-    case BiFunction(UniFunction(a, Negate), b, Product) if a == b =>
-      val xSq = Expression.simplifyExact(BiFunction(a, Two, Power)).getOrElse(BiFunction(a, Two, Power))
-      em.Match(-xSq)
+      minusXSquared(a)
+    case BiFunction(UniFunction(b, Negate), a, Product) if b == a =>
+      minusXSquared(a)
     case b@BiFunction(r1: Root, r2: Root, Sum) =>
       em.matchIfDefined(r1 add r2)(b)
     // TODO: Concern - identity patterns might be missed if aggregation happens before they're caught
@@ -592,6 +590,11 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       x.genericStructuralSimplification
     case x =>
       em.Miss("structuralMatcher", x) // TESTME
+  }
+
+  private def minusXSquared(x: Expression) = {
+    val xSq = Expression.simplifyExact(BiFunction(x, Two, Power)).getOrElse(BiFunction(x, Two, Power)) // x²
+    em.Match(-xSq)
   }
 
   /**
