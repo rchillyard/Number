@@ -219,7 +219,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val y: Expression = x.sin
     y.materialize shouldBe Eager.one
   }
-  // FIXME stack overflow
   it should "evaluate atan" in {
     val zero: Expression = expr.Zero
     zero.atan(Eager.one).materialize shouldBe Angle.piBy2

@@ -561,7 +561,7 @@ object Angle {
       * @param u       the `Real` value to be converted into an `Angle`
       * @return a new `Angle` instance created from the numeric representation of the provided `Real` value
       */
-    def convert(witness: Angle, u: Real): Angle = Angle(Rational.convertDouble(u.asDouble)) // FIXME need the inverse operation
+    def convert(witness: Angle, u: Real): Angle = Angle(Rational.convertDouble(u.asDouble))
 
   /**
     * Provides a `DyadicOperator` instance for the type `Angle`.

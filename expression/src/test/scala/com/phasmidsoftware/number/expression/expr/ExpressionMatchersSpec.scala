@@ -865,22 +865,13 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     //      case x => fail(s"expected a Match(Field) but got $x")
     //    }
   }
-  // FIXME this became an infinite loop when we added support for Root in algebra.
   it should "simplify aggregate 3a" in {
     val target: Expression = Aggregate(Sum, Seq(Literal(root2), Literal(root2) * Eager.minusOne))
-    //val value1 = em.simplifier(target)
-    //val result = value1 map (_.materialize)
     val result = target.simplify.materialize
     result shouldBe Eager.zero
-    //    result match {
-    //      case em.Match(x: Field) => convertToNumber(x) shouldBe Number.zero
-    //      case x => fail(s"expected a Match(Field) but got $x")
-    //    }
   }
-  // FIXME infinite loop
   it should "simplify aggregate 4a" in {
     val target: Expression = Aggregate(Sum, Seq(One, E, expr.UniFunction(E, Negate)))
-    //val result: em.MatchResult[Expression] = em.simplifier(target)
     val result = target.simplify
     result shouldBe One
   }
@@ -1565,8 +1556,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result.successful shouldBe true
     result.get shouldBe Zero
   }
-  // Formerly Issue #128 (fixed)
-  // TODO Issue #148
+  // XXX Issue #148
   it should "work for (π :+ 1) * (π - 1)" in {
     val p = Expression.matchSimpler
     val e1 = BiFunction(Pi, One, Sum)

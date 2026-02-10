@@ -345,12 +345,10 @@ class RootSpec extends AnyFlatSpec with Matchers {
   it should "add two quadratic roots with compatible solutions" in {
     val root1 = Root.rootTwo
     val root2 = Root.rootTwo
-    val sum = root1.add(root2) // This throws an exception.
-
-    //     √2 + √2 might yield a new root
+    val sum = root1.add(root2)
     sum match {
       case Some(result) => result shouldBe a[QuadraticRoot]
-      case None => // Addition might not always be supported
+      case None => fail("not supported")
     }
   }
 

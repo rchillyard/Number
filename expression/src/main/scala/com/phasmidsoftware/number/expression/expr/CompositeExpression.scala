@@ -650,7 +650,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   def approximation(force: Boolean): Option[eager.Real] = {
     val maybeValuable = for {x <- a.approximation(true); y <- b.approximation(true)} yield f(x, y)
     // TODO asInstanceOf
-    // FIXME this cast is a problem! We need to force the approximation to be be fuzzy otherwise we get a ClassCastException
+    // TODO this cast is a potential problem! We need to force the approximation to be be fuzzy otherwise we get a ClassCastException
     maybeValuable.asInstanceOf[Option[eager.Real]]
   }
 

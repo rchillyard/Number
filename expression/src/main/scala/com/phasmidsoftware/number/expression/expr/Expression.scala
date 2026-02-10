@@ -209,9 +209,9 @@ object ExpressionHelper {
   /**
     * Adds utility methods for evaluating and materializing expressions from a String.
     * These methods allow parsing and processing of a string as a mathematical or logical expression.
-    *
+    * NOTE that this doesn't get used so it could be removed.
     */
-  extension (x: String)
+  extension (x: String) // TESTME
     def evaluateAsIs: Option[Valuable] =
       Expression.parse(x).flatMap(_.evaluateAsIs)
     def evaluate(context: Context = RestrictedContext(PureNumber)): Option[Valuable] =
@@ -497,7 +497,7 @@ object Expression {
     /**
       * Eagerly compare this expression with y.
       *
-      * FIXME this is recursive!
+      * XXX this appears to be recursive! But it isn't
       *
       * @param comparand the number to be compared.
       * @return the result of the comparison.
