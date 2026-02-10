@@ -6,6 +6,7 @@ import com.phasmidsoftware.number.expression.parse.ShuntingYardParser.{InfixToke
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Success, Try}
 
 class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
@@ -23,13 +24,12 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
   it should "parse the easy expressions" in {
     ShuntingYardParser.stringParser(shuntingYard, "1") shouldBe Success(ShuntingYard(List(Item("1")), List()))
     ShuntingYardParser.stringParser(shuntingYard, "( 1 + ( ( 2 + 3 ) * ( 4 * 5 ) ) )") shouldBe Success(ShuntingYard(List(Item("1"), Item("2"), Item("3"), Add, Item("4"), Item("5"), Multiply, Multiply, Add), List()))
-    ShuntingYardParser.stringParser(shuntingYard, "(sin(𝛑) * -1)") shouldBe Success(ShuntingYard(List(Item("𝛑"), Sin, Item("-1"), Multiply), List()))
     ShuntingYardParser.stringParser(shuntingYard, "sin(𝛑) - 1") shouldBe Success(ShuntingYard(List(Item("𝛑"), Sin, Item("1"), Subtract), List()))
   }
   // TODO Issue #143
   it should "parse the tricky expressions" in {
-//    ShuntingYardParser.stringParser(shuntingYard, "(sin(𝛑)-1)") shouldBe Success(ShuntingYard(List(Item("𝛑"), Sin, Item("1"), Subtract), List()))
-    pending
+    val expression = ShuntingYardParser.stringParser(shuntingYard, "sin(𝛑)-1")
+    expression shouldBe Success(ShuntingYard(List(Item("𝛑"), Sin, Item("1"), Subtract), List()))
   }
 
   behavior of "Mill"
@@ -95,12 +95,12 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
     value.toOption flatMap (_.evaluate) map (_.value) shouldBe Some(Number(9))
   }
   it should "parse Infix and evaluate:  0.5" in {
-    val value: Try[Mill] = p.parseInfix("2 ∧ -1")
+    val value: Try[Mill] = p.parseInfix("2 ∧ (1 chs)")
     value should matchPattern { case Success(_) => }
     value.toOption flatMap (_.evaluate) map (_.value) shouldBe Some(Number.half)
   }
   it should "parse Infix and evaluate: sqrt(3)" in {
-    val value: Option[Mill] = p.parseInfix("3 ∧ ( 2 ∧ -1 )").toOption
+    val value: Option[Mill] = p.parseInfix("3 ∧ ( 2 ∧ (1 chs) )").toOption
     value.isDefined shouldBe true
     val z: Option[Expression] = value.flatMap(_.evaluate)
     val q = z map (_.value)

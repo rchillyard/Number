@@ -865,22 +865,13 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     //      case x => fail(s"expected a Match(Field) but got $x")
     //    }
   }
-  // FIXME this became an infinite loop when we added support for Root in algebra.
   it should "simplify aggregate 3a" in {
     val target: Expression = Aggregate(Sum, Seq(Literal(root2), Literal(root2) * Eager.minusOne))
-    //val value1 = em.simplifier(target)
-    //val result = value1 map (_.materialize)
     val result = target.simplify.materialize
     result shouldBe Eager.zero
-    //    result match {
-    //      case em.Match(x: Field) => convertToNumber(x) shouldBe Number.zero
-    //      case x => fail(s"expected a Match(Field) but got $x")
-    //    }
   }
-  // FIXME infinite loop
   it should "simplify aggregate 4a" in {
     val target: Expression = Aggregate(Sum, Seq(One, E, expr.UniFunction(E, Negate)))
-    //val result: em.MatchResult[Expression] = em.simplifier(target)
     val result = target.simplify
     result shouldBe One
   }
@@ -1256,9 +1247,10 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   // (fixed) Issue #57
+  // NOTE this uses deprecated code.
   it should "simplify expressions involving square root 3" in {
-    val xo = Expression.parse("( 3 ∧ ( 2 ∧ -1 ) )")
-    val yo = Expression.parse("( ( 3 ∧ ( 2 ∧ -1 ) ) * -1 )")
+    val xo = Expression.parse("( 3 ∧ ( 2 ∧ (1 chs) ) )")
+    val yo = Expression.parse("( ( 3 ∧ ( 2 ∧ (1 chs) ) ) * (1 chs) )")
     val zo = for (x <- xo; y <- yo)
       yield Expression.matchSimpler(x * y) // 1st round
 //          .flatMap(Expression.matchSimpler) // 2nd round
@@ -1564,23 +1556,16 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result.successful shouldBe true
     result.get shouldBe Zero
   }
-  // Formerly Issue #128 (fixed)
-  // TODO Issue #148
+  // XXX Issue #148
   it should "work for (π :+ 1) * (π - 1)" in {
     val p = Expression.matchSimpler
     val e1 = BiFunction(Pi, One, Sum)
     val e2 = BiFunction(Literal(Eager.pi), MinusOne, Sum)
     val result = p(Product ~ e1 ~ e2)
-//    result.successful shouldBe true
-//    result shouldBe em.Match(Aggregate(Sum, Seq(-1, BiFunction(Pi, 2, Power))))
-    val e = result.get
-//    val actual = p(e)
-//    actual.successful shouldBe true
-    // NOTE it's not trivially easy to arrange for this and it's not really that necessary, either. So let's be happy!
-    //    val idealExpectedExpression = BiFunction(Pi ∧ 2, MinusOne, Sum)
-    //    val interimExpectedExpression = Aggregate(Sum, Seq(-1, BiFunction(Pi, 2, Power)))
-//    actual.get shouldBe interimExpectedExpression
-    pending
+    result shouldBe em.Match(BiFunction(-1, BiFunction(Pi, 2, Power), Sum))
+    val actual = result.get
+    val expected = BiFunction(MinusOne, Pi ∧ 2, Sum)
+    actual shouldBe expected
   }
 
   behavior of "complementaryTermsEliminatorBiFunction"

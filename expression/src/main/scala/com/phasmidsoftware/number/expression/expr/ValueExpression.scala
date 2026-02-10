@@ -10,7 +10,7 @@ import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InverseP
 import com.phasmidsoftware.number.algebra.util.LatexRenderer
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.{Constants, Field}
+import com.phasmidsoftware.number.core.numerical.Field
 import com.phasmidsoftware.number.expression.expr.Expression.em
 
 import scala.language.implicitConversions
@@ -270,7 +270,7 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
     * - `Valuable.half` maps to `Half`
     * - `Valuable.pi` maps to `Pi`
     * - `Valuable.e` maps to `E`
-    * - `Constants.i` maps to `ConstI`
+    * - `Constants.i` maps to `I`
     * - `Valuable.infinity` maps to `Infinity`
     *
     * If the input does not match any supported constants, it returns a miss indicating the inability to simplify.
@@ -301,7 +301,7 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
       em.Match(Literal(WholeNumber(r.toBigInt)))
     // TODO reinstate this match...
     //    case Literal(Eager.i, _) =>
-    //      em.Match(ConstI)
+    //      em.Match(I)
     case Literal(Eager.infinity, _) =>
       em.Match(Infinity)
     case x =>
@@ -576,7 +576,7 @@ case object One extends ScalarConstant(WholeNumber.one, "1") {
   * This constant can be used in mathematical expressions involving Valuables and
   * supports operations defined in the `Valuable` trait.
   */
-case object MinusOne extends ScalarConstant(-WholeNumber.one, "-1") {
+case object MinusOne extends ScalarConstant(WholeNumber.minusOne, "-1") {
   /**
     * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
     * and attempts to produce an atomic result.
@@ -677,9 +677,18 @@ case object E extends NamedConstant(NaturalExponential.e, "e") {
   * The constant i (viz., the square root of 2)
   * Yes, this is an exact number.
   */
-case object ConstI extends NamedConstant(Eager(Constants.i), "i") {
+case object I extends NamedConstant(Eager.i, "i") {
 
   override val protectedName: Boolean = true
+
+  /**
+    * Evaluates this `Expression` in the context of `AnyContext` without simplification or factor-based conversion.
+    * This allows obtaining a direct evaluation of the `Expression` as a `Field`, if possible.
+    * NOTE: no simplification or factor-based conversion occurs here.
+    *
+    * @return an `Option[Field]` containing the evaluated `Field` if evaluation is successful, or `None` otherwise.
+    */
+  override lazy val evaluateAsIs: Option[Eager] = Some(InversePower(2, -1))
 
   /**
     * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`

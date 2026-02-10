@@ -17,6 +17,7 @@ import scala.util.Try
   *
   * CONSIDER using a TokenParser instead of a RegexParser.
   */
+@deprecated("use com.phasmidsoftware.number.expression.parse.BaseMillParser instead", "1.6.5")
 abstract class BaseMillParser extends BaseNumberParser {
 
   /**

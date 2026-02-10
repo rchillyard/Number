@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
-import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, IsInteger, NaturalExponential, QuadraticSolution, RationalNumber, Structure}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, IsInteger, NaturalExponential, QuadraticSolution, RationalNumber, Structure, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian, Rational}
 import com.phasmidsoftware.number.core.misc.Bumperator
@@ -578,13 +578,11 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       em.Match(Literal(radicand, None))
     // NOTE these first two cases are kind of strange! CONSIDER removing them.
     // In any case, they don't belong in structuralMatcher because they depend on specific values.
+    // TODO use a commutative extractor
     case BiFunction(a, UniFunction(b, Negate), Product) if a == b =>
-      // NOTE: duplicate code
-      val xSq = Expression.simplifyExact(BiFunction(a, Two, Power)).getOrElse(BiFunction(a, Two, Power)) // x²
-      em.Match(-xSq)
-    case BiFunction(UniFunction(a, Negate), b, Product) if a == b =>
-      val xSq = Expression.simplifyExact(BiFunction(a, Two, Power)).getOrElse(BiFunction(a, Two, Power))
-      em.Match(-xSq)
+      minusXSquared(a)
+    case BiFunction(UniFunction(b, Negate), a, Product) if b == a =>
+      minusXSquared(a)
     case b@BiFunction(r1: Root, r2: Root, Sum) =>
       em.matchIfDefined(r1 add r2)(b)
     // TODO: Concern - identity patterns might be missed if aggregation happens before they're caught
@@ -592,6 +590,11 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       x.genericStructuralSimplification
     case x =>
       em.Miss("structuralMatcher", x) // TESTME
+  }
+
+  private def minusXSquared(x: Expression) = {
+    val xSq = Expression.simplifyExact(BiFunction(x, Two, Power)).getOrElse(BiFunction(x, Two, Power)) // x²
+    em.Match(-xSq)
   }
 
   /**
@@ -647,7 +650,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   def approximation(force: Boolean): Option[eager.Real] = {
     val maybeValuable = for {x <- a.approximation(true); y <- b.approximation(true)} yield f(x, y)
     // TODO asInstanceOf
-    // FIXME this cast is a problem! We need to force the approximation to be be fuzzy otherwise we get a ClassCastException
+    // TODO this cast is a potential problem! We need to force the approximation to be be fuzzy otherwise we get a ClassCastException
     maybeValuable.asInstanceOf[Option[eager.Real]]
   }
 
@@ -762,11 +765,11 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   private def matchBiFunctionIdentitiesSum(a: Expression, b: Expression): em.MatchResult[Expression] =
     (a, b) match {
-      case (a, b) if a.plus(b) == Zero =>
-        em.Match(Zero) // TODO invoke method to check for appropriate identity (it exists but I've forgotten its name)
+      case AdditiveIdentityCommutative(a, _) =>
+        em.Match(a)
       case (q1@QuadraticRoot(quadratic: QuadraticEquation, b1, _), q2@QuadraticRoot(e2, b2, _)) if quadratic == e2 && b1 != b2  =>
         em.Match(quadratic.conjugateSum)
-      case (l: Literal, q: QuadraticRoot) =>
+      case (l: Literal, q: QuadraticRoot) => // TODO this should use the commutative extractor
         matchLiteral(l, q, Sum)
       case _ =>
         em.Miss[Expression, Expression]("BiFunction: matchBiFunctionSum: no trivial simplification for Sum", this)
@@ -785,14 +788,12 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     (a, b) match {
       case (Zero, _) | (_, Zero) =>
         em.Match(Zero)
-      case (a, One) =>
+      case MultiplicativeIdentityCommutative(a, _) =>
         em.Match(a)
-      case (One, b) =>
-        em.Match(b)
-      case (a, MinusOne) =>
+      case ExpressionNegationCommutative(a, _) =>
         em.Match(-a)
-      case (MinusOne, b) =>
-        em.Match(-b)
+      case InversePowerTimesNumberCommutative(ip, b) =>
+        em.matchIfDefined(simplifyInversePowerTimesNumber(ip, b))(this)
       case (q1@QuadraticRoot(quadratic: QuadraticEquation, b1, _), q2@QuadraticRoot(e2, b2, _)) if quadratic == e2 && b1 != b2 =>
         em.Match(quadratic.conjugateProduct)
       // CONSIDER the following case should be copied for Sum (not just Product)
@@ -803,6 +804,15 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case _ =>
         em.Miss[Expression, Expression]("BiFunction: matchBiFunctionProduct: no trivial simplification for Product", this)
     }
+
+  /**
+    * Simplifies the multiplication of an `InversePower` instance with a number that supports exponentiation.
+    *
+    * @param ip The `InversePower` instance representing an inverse power.
+    * @param b  A numeric type instance capable of being raised to a power.
+    */
+  private def simplifyInversePowerTimesNumber(ip: InversePower, b: CanPower[eager.Number]) =
+    b.pow(WholeNumber(ip.n)) map (e => Literal(InversePower(ip.n, ip.number * e)))
 
   /**
     * Attempts to match and simplify a bi-function of type "Power" based on specific rules.
@@ -852,7 +862,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       // TODO this is a temporary suppression
       //      case (ValueExpression(x: ExactNumber,_), ValueExpression(RationalNumber(r: Rational, _), _)) if r==Rational.half =>
       //        em.Match(Root.squareRoot(x.toRational,0)) // NOTE we arbitrarily choose the positive branch here.
-      case (E, BiFunction(ConstI, Pi, Product)) | (E, BiFunction(Pi, ConstI, Product)) =>
+      case (E, BiFunction(I, Pi, Product)) | (E, BiFunction(Pi, I, Product)) =>
         em.Match(MinusOne)
       //      case (E, Literal(ComplexCartesian(numerical.Number.zero, numerical.Number.pi))) =>
       //        em.Match(MinusOne) // TESTME NOTE Euler's identity
@@ -1319,3 +1329,97 @@ object Aggregate {
     }
 }
 
+/**
+  * An object that extracts and matches expressions based on the commutative property
+  * of multiplication with the identity element (unity).
+  *
+  * This object extends `CommutativeExtractor` and provides the specific implementation
+  * for extracting expressions in the form of a multiplicative operation where one operand
+  * is the multiplicative identity (unity), and the other is the remaining expression.
+  *
+  * It defines the following extraction rules:
+  * - The `extractLeft` method always extracts and returns the input expression as-is.
+  * - The `extractRight` method matches an expression that is the multiplicative identity
+  *   (`IsUnity(x)`) and extracts the contained value `x`.
+  *
+  * The unapply mechanism allows this extractor to match pairs of expressions in a commutative
+  * manner, ensuring symmetry in the analysis of multiplicative operations.
+  */
+object MultiplicativeIdentityCommutative extends CommutativeExtractor[Expression, Expression] {
+  protected def extractLeft(e: Expression) = Some(e)
+
+  protected def extractRight(e: Expression) = e match {
+    case IsUnity(x) => Some(x)
+    case _ => None
+  }
+}
+
+/**
+  * Extractor for commutative additive operations with an identity element (zero).
+  *
+  * This object is a specialized implementation of the `CommutativeExtractor` trait,
+  * specifically designed to handle expressions where one side of a commutative addition
+  * operation is an additive identity (e.g., zero).
+  *
+  * It operates under the assumption that addition is commutative and attempts to extract
+  * sub-expressions from either side of a binary expression in a manner that accounts for
+  * the commutativity of the operation.
+  *
+  * The left-hand side of the expression is simply returned as-is, while the right-hand
+  * side is inspected to check if it represents the additive identity (zero). If the
+  * right-hand side is zero, its associated sub-expression is extracted.
+  */
+object AdditiveIdentityCommutative extends CommutativeExtractor[Expression, Expression] {
+  protected def extractLeft(e: Expression) = Some(e)
+
+  protected def extractRight(e: Expression) = e match {
+    case IsZero(x) => Some(x)
+    case _ => None
+  }
+}
+
+/**
+  * Extractor object for handling negation expressions in a commutative manner.
+  * Matches pairs of expressions where one is an `Expression` and the other is
+  * a negated `ValueExpression(-1)`.
+  *
+  * This object extends the `CommutativeExtractor` to allow the extraction
+  * of operands in any order (i.e., it supports both (A, B) and (B, A) configurations).
+  */
+object ExpressionNegationCommutative extends CommutativeExtractor[Expression, Expression] {
+  protected def extractLeft(e: Expression): Option[Expression] = e match {
+    case x: Expression => Some(x)
+  }
+
+  protected def extractRight(e: Expression): Option[Expression] = e match {
+    case x@ValueExpression(Eager.minusOne, _) => Some(x)
+    case _ => None
+  }
+}
+
+/**
+  * Extractor object for commutative operations between an `InversePower` and a
+  * value that can be powered, represented by `CanPower[eager.Number]`.
+  *
+  * This object extends `CommutativeExtractor`, enabling it to automatically
+  * handle both `(left, right)` and `(right, left)` orderings in commutative
+  * binary operations. Specifically, it extracts:
+  * - An `InversePower` from the "left" side of the expression, provided the
+  *   base of the inverse power (`n`) is greater than 1.
+  * - A `CanPower[eager.Number]` from the "right" side of the expression.
+  *
+  * The unapply method allows pattern matching to operate on pairs of expressions,
+  * extracting valid `(InversePower, CanPower[eager.Number])` pairs regardless of their
+  * position in the tuple.
+  */
+object InversePowerTimesNumberCommutative extends CommutativeExtractor[InversePower, CanPower[eager.Number]] {
+  protected def extractLeft(e: Expression): Option[InversePower] = e match {
+    case ValueExpression(ip@InversePower(n, _), _) if n > 1 => Some(ip)
+    case _ => None
+  }
+
+  protected def extractRight(e: Expression): Option[CanPower[eager.Number]] = e match {
+    case ValueExpression(b: CanPower[eager.Number] @unchecked, _) => Some(b)
+    case _ => None
+  }
+}

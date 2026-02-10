@@ -30,7 +30,7 @@ class RealAlgebraicInstancesSpec extends AnyFlatSpec with Matchers with RealAlge
   */
   behavior of "realTruncatedDivisionCRing (tquot/tmod/tquotMod + order)"
 
-  ignore should "truncate quotient toward zero and compute remainder" in {
+  it should "truncate quotient toward zero and compute remainder" in {
     val TD = realTruncatedDivisionCRing
 
     // 7 / 3 => q = 2, r = 1

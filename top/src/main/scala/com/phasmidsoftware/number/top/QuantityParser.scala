@@ -1,9 +1,9 @@
 package com.phasmidsoftware.number.top
 
 import com.phasmidsoftware.number.algebra.eager.Scalar
-import com.phasmidsoftware.number.core.parse.NumberParser
 import com.phasmidsoftware.number.dimensions.core.*
 import com.phasmidsoftware.number.expression.expr.{Expression, Literal}
+import com.phasmidsoftware.number.expression.parse.NumberParser
 import com.phasmidsoftware.number.parse.*
 import fastparse.*
 import fastparse.NoWhitespace.*
@@ -43,18 +43,21 @@ object QuantityParser {
     *
     * @return a parser that produces an `Expression` representation of the parsed numerical value.
     */
-  def numberParser(using P[Any]): P[Expression] =
-    P(CharsWhile(c =>
-      c.isDigit || c == '.' || c == '/' || c == '-' || c == '+' ||
-        c == 'e' || c == 'E' || c == '\\' || c == '{' || c == '}'
-    ).!).flatMap { numStr =>
-      // Check if it ends with backslash (incomplete \, separator)
-      if (numStr.endsWith("\\"))
-        Pass(numStr.dropRight(1))
-      else
-        Pass(numStr)
-    }.map(doParseNumber)
+  def numberParser(using P[Any]): P[Expression] = {
+    def latexCommand: P[String] = P(
+      "\\" ~ CharsWhileIn("a-z", 1).! ~ braceGroup.rep(1)
+    ).map { case (cmd, groups) => "\\" + cmd + groups.mkString }
 
+    def braceGroup: P[String] = P("{" ~ CharsWhile(_ != '}').! ~ "}").map(s => s"{$s}")
+
+    def regularNumChars: P[String] = P(
+      CharIn("0-9.+\\-eE/").rep(1).!
+    )
+
+    def numberContent: P[String] = P((latexCommand | regularNumChars).rep(1)).map(_.mkString)
+
+    P(numberContent).map(doParseNumber)
+  }
   /**
     * Parses a string representation of a number, attempting to process it first using
     * the LaTeX parser. If the LaTeX parser fails, it falls back to a numeric parser.

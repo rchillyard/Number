@@ -16,6 +16,7 @@ import scala.util.Try
   * NOTE when we specify an exact number by following an integer by an exponent, we must precede the "E" with a decimal point.
   * CONSIDER Try to eliminate that requirement.
   */
+@deprecated("use com.phasmidsoftware.number.expression.parse.BaseNumberParser instead", "1.6.5")
 abstract class BaseNumberParser extends BaseRationalParser {
 
   /**
@@ -206,5 +207,6 @@ abstract class BaseNumberParser extends BaseRationalParser {
   * and exponents, and encapsulates results within domain-specific types, such
   * as `Number`, `NumberWithFuzziness`, and `ValuableNumber`.
   */
+@deprecated("use com.phasmidsoftware.number.expression.parse.NumberParser instead", "1.6.5")
 object NumberParser extends BaseNumberParser
 

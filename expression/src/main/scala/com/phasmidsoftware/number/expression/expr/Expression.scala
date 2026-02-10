@@ -209,9 +209,9 @@ object ExpressionHelper {
   /**
     * Adds utility methods for evaluating and materializing expressions from a String.
     * These methods allow parsing and processing of a string as a mathematical or logical expression.
-    *
+    * NOTE that this doesn't get used so it could be removed.
     */
-  extension (x: String)
+  extension (x: String) // TESTME
     def evaluateAsIs: Option[Valuable] =
       Expression.parse(x).flatMap(_.evaluateAsIs)
     def evaluate(context: Context = RestrictedContext(PureNumber)): Option[Valuable] =
@@ -497,7 +497,7 @@ object Expression {
     /**
       * Eagerly compare this expression with y.
       *
-      * FIXME this is recursive!
+      * XXX this appears to be recursive! But it isn't
       *
       * @param comparand the number to be compared.
       * @return the result of the comparison.
@@ -560,6 +560,7 @@ object Expression {
       Literal(x)
   }
 
+  @deprecated("Use puremath or lazymath string interpolators instead", "1.6.5")
   def apply(w: String): Expression =
     parse(w) getOrElse Noop(w)
 
@@ -585,10 +586,13 @@ object Expression {
   /**
     * Method to parse a String as an Expression.
     *
-    * TODO this may not accurately parse all infix expressions.
-    * The idea is for render and parse.get to be inverses.
-    * NOTE that it might be a problem with render instead.
+    * NOTE that, in particular, this parser fails when the string
+    * includes signed numbers.
+    * For example, the string "3 ∧ ( 2 ∧ -1 )" includes a signed value (-1).
+    * You can parse the following equivalent string: "3 ∧ ( 2 ∧ (1 chs) )"
+    *
     */
+  @deprecated("Use puremath or lazymath string interpolators instead", "1.6.5")
   def parse(x: String): Option[Expression] =
     mill.Expression.parseToExpression(x).map(convertMillExpressionToExpression)
 

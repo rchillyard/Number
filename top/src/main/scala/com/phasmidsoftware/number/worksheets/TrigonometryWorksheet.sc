@@ -3,9 +3,9 @@
   */
 
 import com.phasmidsoftware.number.algebra.eager.Eager
-import com.phasmidsoftware.number.expression.expr.{ConstI, E, Pi}
+import com.phasmidsoftware.number.expression.expr.{E, I, Pi}
 
-val iPi = ConstI * Pi
+val iPi = I * Pi
 val euler = E ∧ iPi
 euler.materialize.render
 

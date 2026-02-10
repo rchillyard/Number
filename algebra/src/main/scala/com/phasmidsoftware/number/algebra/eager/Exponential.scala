@@ -519,7 +519,7 @@ case class BinaryExponential(exponent: Number)(val maybeName: Option[String] = N
     * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
     */
   def fuzz: Option[Fuzziness[Double]] =
-    Eager(Eager.eagerToField(exponent).exp) match { // FIXME we need 2^x
+    Eager(Eager.eagerToField(exponent).exp) match {
       case fuzzy: WithFuzziness =>
         fuzzy.fuzz
       case _ =>

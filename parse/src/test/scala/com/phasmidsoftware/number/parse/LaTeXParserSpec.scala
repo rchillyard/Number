@@ -7,6 +7,7 @@ package com.phasmidsoftware.number.parse
 import com.phasmidsoftware.number.algebra.eager.{Angle, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.expression.expr.*
+import com.phasmidsoftware.number.parse.ExpressionParser.puremath
 import com.phasmidsoftware.number.parse.LaTeXParser
 import fastparse.Parsed
 import org.scalatest.flatspec.AnyFlatSpec
@@ -54,6 +55,7 @@ class LaTeXParserSpec extends AnyFlatSpec with should.Matchers {
     p("""\tan(\pi)""") shouldBe Parsed.Success(BiFunction(UniFunction(Pi, Sine), UniFunction(UniFunction(Pi, Cosine), Reciprocal), Product), 9)
     p("""\ln(\e)""") shouldBe Parsed.Success(UniFunction(E, Ln), 7)
     p("""\sin(\pi) * -1""") shouldBe Parsed.Success(BiFunction(UniFunction(Pi, Sine), UniFunction(One, Negate), Product), 14)
+    p("""\sin(\pi) + -1""") shouldBe Parsed.Success(BiFunction(UniFunction(Pi, Sine), UniFunction(One, Negate), Sum), 14)
     p("""\exp(2)""") shouldBe Parsed.Success(UniFunction(Two, Exp), 7)
   }
 
@@ -70,10 +72,21 @@ class LaTeXParserSpec extends AnyFlatSpec with should.Matchers {
     p("90°") shouldBe Parsed.Success(Literal(Angle.degrees(90), Some("90°")), 3) 
   }
 
-  // NOTE that the latex parse cannot understand uncertainty.
+  // NOTE that the latex parser cannot understand uncertainty.
   behavior of "exponents"
-  // TODO why is this failing?
-  ignore should "parse 8.8541878128 \\times 10^{-12}" in {
-    p("8.8541878128 \\times 10^{-12}").isSuccess shouldBe true
+  it should "parse 8.8541878128 \\times 10^{-12}" in {
+    //    p("8.8541878128 \\times 10^{-12}").isSuccess shouldBe true
+    pending // TODO Issue #176
   }
+
+  behavior of "old Expression.parse string"
+  it should "parse and evaluate sqrt(3)" in {
+    val e: Expression = puremath"3 ∧ ( 2 ∧ -1 )"
+    e shouldBe Literal(3) ∧ (Literal(2) ∧ -1)
+  }
+  it should "parse and evaluate half" in {
+    val e: Expression = puremath"2 ∧ -1"
+    e shouldBe Literal(2) ∧ -1
+  }
+
 }

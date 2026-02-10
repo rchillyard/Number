@@ -1,6 +1,6 @@
 //import com.phasmidsoftware.number.algebra.eager.{Angle, Eager}
 //import com.phasmidsoftware.number.core.applications.Approximation
-//import com.phasmidsoftware.number.expression.expr.{E, ConstI, Pi}
+//import com.phasmidsoftware.number.expression.expr.{E, I, Pi}
 //import com.phasmidsoftware.number.core.numerical.{Number, Real}
 //import com.phasmidsoftware.number.expression.expr
 //import com.phasmidsoftware.number.expression.expr.Expression
@@ -50,7 +50,7 @@
 ///**
 //  * Some trigonometric identities.
 //  */
-//val iPi = ConstI * Pi
+//val iPi = I * Pi
 //val euler: expr.Expression = E ∧ iPi
 //val number = euler.render
 //

@@ -11,10 +11,10 @@ import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.core.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
-import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
-import com.phasmidsoftware.number.core.numerical.{CoreExceptionWithCause, Field, ComplexCartesian}
+import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, CoreExceptionWithCause, Field}
 import com.phasmidsoftware.number.core.parse.NumberParser
-import com.phasmidsoftware.number.core.{algebraic, inner, numerical}
+import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.{algebra, core}
 
 import scala.Option.when
@@ -341,7 +341,16 @@ object Eager {
     */
   lazy val e: Eager = NaturalExponential.e
 
-  lazy val i: Eager = Complex(ComplexCartesian(0, numerical.Number.one))
+  /**
+    * Represents the imaginary unit `i` as an `Eager` instance.
+    *
+    * This specific value corresponds to the mathematical constant √(-1), which is
+    * represented internally as the result of applying the `InversePower` constructor
+    * with a base of 2 and an exponent of -1.
+    *
+    * The value is lazily initialized, meaning it is computed only when accessed.
+    */
+  lazy val i: Eager = InversePower(2, -1)
 
   /**
     * Exact value of iPi.
@@ -419,6 +428,9 @@ object Eager {
   /**
     * Parses the given string into a `Valuable` representation. If the string cannot be parsed
     * into a valid `Number`, an exception is thrown.
+    *
+    * NOTE this deprecation is OK--there is no alternative NumberParser
+    *
     *
     * @param str the input string representing a numerical value.
     * @return a `Valuable` representation of the parsed `Number`.
@@ -586,21 +598,6 @@ object Eager {
     (x, y, p) =>
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
-
-  /**
-    * Converts the given value and factor into a `Monotone` representation.
-    * Throws an `AlgebraException` if the conversion does not result in a valid `Monotone` instance.
-    *
-    * @param value  the input value of type `inner.Value` to be converted into a `Monotone`.
-    * @param factor the input factor of type `inner.Factor` used for the conversion process.
-    * @return a `Monotone` instance representing the input value and factor.
-    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the conversion yields an unexpected result.
-    */
-  private def convertToMonotone(value: inner.Value, factor: inner.Factor): Monotone =
-    Eager(numerical.Real(numerical.Number.one.make(value, factor))) match {
-      case m: Monotone => m
-      case _ => throw AlgebraException(s"convertToMonotone: unexpected value: $value")
-    }
 
   private def tryConvertAndOp[T <: Eager, Z](f: (Eager, T) => Try[Z])(s: Structure, e: T): Try[Z] = e match {
     case c: Complex =>

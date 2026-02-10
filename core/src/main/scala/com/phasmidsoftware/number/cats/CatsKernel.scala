@@ -10,8 +10,6 @@ import cats.kernel.{Eq, Order, PartialOrder}
 import com.phasmidsoftware.number.core.inner.{Rational, Value}
 import com.phasmidsoftware.number.core.numerical.{Box, Complex, ComplexCartesian, ComplexPolar, ExactNumber, Field, Gaussian, GeneralNumber, Number, Real}
 
-import scala.annotation.tailrec
-
 /**
   * Centralized Cats Kernel instances, kept out of core companion objects
   * to avoid forcing a Cats dependency on core types at definition sites.
@@ -73,7 +71,6 @@ trait CatsKernelInstances {
           def magBits(z: Fuzziness[Double]): Option[Long] = z match {
             case Abs(m: Double, _) => Some(java.lang.Double.doubleToRawLongBits(m))
             case Rel(m: Double, _) => Some(java.lang.Double.doubleToRawLongBits(m))
-            case _ => None
           }
           (magBits(f), magBits(g)) match {
             case (Some(a), Some(b)) => java.lang.Long.compare(a, b).toDouble
@@ -86,42 +83,30 @@ trait CatsKernelInstances {
     }
   }
 
-  /*
-   * WARNING: Avoid providing inputs that "look like zero but are not exactly zero".
-   * Examples: 0.00(...), 0.00[...], 0* — these are fuzzy renderings whose nominal values may be non-zero.
-   * This Eq[Number] deems two numbers equal only if their numeric values are equal within a tolerance AND their factors match.
-   * Near-zero-but-non-zero inputs can therefore compare unequal to exact zero and may violate users’ expectations in equality/ordering checks.
-   *
-   * Guidance for callers:
-   * - When zero is intended, pass an exact zero (e.g., ExactNumber(Rational(0,1)) or Number.zeroR), not a fuzzy/near-zero value.
-   * - Upstream, normalize or filter values with |x| <= 1e-10 to exact zero if semantic zero is desired.
-   * - Avoid comparing numbers across different factors unless you first normalize them into the same factor.
-   */
+  /**
+    * NOTE: This has changed from the original. It now uses isSame instead of isSameWithinTolerance.
+    *
+    * WARNING: Avoid providing inputs that "look like zero but are not exactly zero".
+    * Examples: 0.00(...), 0.00[...], 0* — these are fuzzy renderings whose nominal values may be non-zero.
+    * This Eq[Number] deems two numbers equal only if their numeric values are equal within a tolerance AND their factors match.
+    * Near-zero-but-non-zero inputs can therefore compare unequal to exact zero and may violate users’ expectations in equality/ordering checks.
+    *
+    * Guidance for callers:
+    * - When zero is intended, pass an exact zero (e.g., ExactNumber(Rational(0,1)) or Number.zeroR), not a fuzzy/near-zero value.
+    * - Upstream, normalize or filter values with |x| <= 1e-10 to exact zero if semantic zero is desired.
+    * - Avoid comparing numbers across different factors unless you first normalize them into the same factor.
+    */
 
   // A strict Eq for Number: structural or zero-difference equality, excluding NaN
   implicit val numberEq: Eq[Number] = Eq.instance {
-    case (Number.NaN, Number.NaN) => true
+    case (Number.NaN, Number.NaN) =>
+      true
     case (a: GeneralNumber, b: GeneralNumber) =>
       val ax = a.simplify.specialize
       val bx = b.simplify.specialize
-
-      def asDouble(v: Value): Option[Double] =
-        Value.maybeRational(v).map(r => (BigDecimal(r.n) / BigDecimal(r.d)).toDouble)
-          .orElse(Value.maybeInt(v).map(_.toDouble))
-          .orElse(Value.maybeDouble(v))
-      
-      def isNearZero(d: Double, eps: Double) = d == 0.0 || math.abs(d) < eps
-
-      def numericEqual(v1: Value, v2: Value, eps: Double = 1e-9): Boolean =
-        (asDouble(v1), asDouble(v2)) match {
-          case (Some(x), Some(y)) => (isNearZero(x, eps) && isNearZero(y, eps)) || math.abs(x - y) < eps
-          case _ => false
-        }
-
-      if (numericEqual(ax.nominalValue, bx.nominalValue) && ax.factor == bx.factor) true
-      else false
-      
-    case _ => false
+      ax.isSame(bx)
+    case _ =>
+      false
   }
 
   implicit val numberShow: Show[Number] = Show.show(_.render)

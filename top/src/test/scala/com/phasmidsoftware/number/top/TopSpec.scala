@@ -130,10 +130,9 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     math"(2.00 + 1) * (3.00 + ½)" shouldBe Eager(r"21/2")
   }
   it should "distributeProductSum b 2" in {
-    //    val value = lazymath"(2.005 + 1) * (2.995 + ½)"
-    //    value should ===(Real(10.502475, Some(AbsoluteFuzz(0.012835619415020195, Gaussian))))
-    //        math"(2.005 + 1) * (2.995 + ½)" should ===(Real(10.502475, Some(AbsoluteFuzz(0.012835619415020195, Gaussian))))
-    pending
+    val value = lazymath"(2.005 + 1) * (2.995 + ½)"
+    value shouldBe Literal(RationalNumber(420099, 40000))
+    math"(2.005 + 1) * (2.995 + ½)" shouldBe RationalNumber(420099, 40000)
   }
   it should "distributeProductPower on root(3) * root(3)" in {
     val exp = """\sqrt{3}^2"""
@@ -289,5 +288,18 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     val lazyHalf = One / 2
     val half: Eager = lazyHalf.materialize
     half shouldBe RationalNumber(x)
+  }
+
+  behavior of "Expression parsing"
+
+  it should "parse power with negative exponent (new style)" in {
+    val e: Expression = puremath"2 ∧ -1"
+    e shouldBe Literal(2) ∧ -1
+  }
+
+  it should "parse power with negative exponent (deprecated Expression.parse with chs)" in {
+    val eo: Option[Expression] = Expression.parse("2 ∧ (1 chs)")
+    eo should matchPattern { case Some(_) => }
+    eo.get shouldBe BiFunction(2, BiFunction(1, -1, Product), Power)
   }
 }

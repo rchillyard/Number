@@ -237,6 +237,15 @@ object RationalNumber {
   def apply(x: Long, y: Long): RationalNumber = new RationalNumber(Rational(x, y))()
 
   /**
+    * Constructs a `RationalNumber` instance from the given numerator and denominator.
+    *
+    * @param x The numerator as a `BigInt`.
+    * @param y The denominator as a `BigInt`.
+    * @return A `RationalNumber` representing the fraction `x / y`.
+    */
+  def apply(x: BigInt, y: BigInt): RationalNumber = new RationalNumber(Rational(x, y))()
+
+  /**
     * Creates a rational number representation from a given integer value.
     *
     * @param x the integer value to be converted into a rational number

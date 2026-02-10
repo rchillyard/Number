@@ -294,24 +294,24 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers with TableDr
   }
 
   // ============================================================================
-  // ConstI Tests (Imaginary Unit)
+  // I Tests (Imaginary Unit)
   // ============================================================================
 
-  behavior of "ConstI"
+  behavior of "I"
 
   it should "be atomic and exact" in {
-    ConstI.isAtomic shouldBe true
-    ConstI.isExact shouldBe true
+    I.isAtomic shouldBe true
+    I.isExact shouldBe true
   }
 
   it should "render as i" in {
-    ConstI.render shouldBe "i"
+    I.render shouldBe "i"
   }
 
   it should "return None for all monadic functions" in {
-    ConstI.monadicFunction(Exp) shouldBe None
-    ConstI.monadicFunction(Ln) shouldBe None
-    ConstI.monadicFunction(Sine) shouldBe None
+    I.monadicFunction(Exp) shouldBe None
+    I.monadicFunction(Ln) shouldBe None
+    I.monadicFunction(Sine) shouldBe None
   }
 
   // ============================================================================

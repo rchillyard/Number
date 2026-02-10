@@ -46,7 +46,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * on the implementation of the `Radian.modulate` logic.
     * Various specific cases are covered based on the type of the input:
     *   - Rational numbers are converted using their rational representation.
-    *   - Reals are adjusted using their double value, with fuzz consideration pending implementation.
+    *   - Reals are adjusted using their double value, with fuzz consideration awaiting implementation.
     *   - Whole numbers are directly handled using their integer representation.
     *
     * CONSIDER we lose information regarding degrees here (perhaps fix that?)
@@ -561,7 +561,7 @@ object Angle {
       * @param u       the `Real` value to be converted into an `Angle`
       * @return a new `Angle` instance created from the numeric representation of the provided `Real` value
       */
-    def convert(witness: Angle, u: Real): Angle = Angle(Rational.convertDouble(u.asDouble)) // FIXME need the inverse operation
+    def convert(witness: Angle, u: Real): Angle = Angle(Rational.convertDouble(u.asDouble))
 
   /**
     * Provides a `DyadicOperator` instance for the type `Angle`.
