@@ -19,6 +19,7 @@ import com.phasmidsoftware.number.expression.core.FuzzyEquality
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, em}
 import com.phasmidsoftware.number.expression.expr.Root.phi
+import com.phasmidsoftware.number.expression.mill.MillException
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
@@ -80,14 +81,14 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   //    syp.parseInfix("( ( 0.5 + 3.00* ) + ( 2.00* * ( 0.5 + 3.00* ) ) )") should matchPattern { case Success(_) => }
   //  }
   it should "parse and evaluate sqrt(3)" in {
-    val eo: Option[Expression] = Expression.parse("3 ∧ ( 2 ∧ -1 )")
+    val eo: Option[Expression] = Expression.parse("3 ∧ ( 2 ∧ (1 chs) )")
     eo should matchPattern { case Some(_) => }
-    eo.get shouldBe BiFunction(Expression(3), BiFunction(Expression(2), Expression(-1), Power), Power)
+    eo.get shouldBe BiFunction(3, BiFunction(2, BiFunction(1, -1, Product), Power), Power)
+    eo.get.materialize shouldBe Eager.root3
   }
-  it should "parse and evaluate half" in {
-    val eo: Option[Expression] = Expression.parse("2 ∧ -1")
-    eo should matchPattern { case Some(_) => }
-    eo.get shouldBe BiFunction(Expression(2), Expression(-1), Power)
+  // NOTE what happens if you try to parse a signed integer: it fails (see test above)
+  it should "fail to evaluate 3 ∧ ( 2 ∧ -1 )" in {
+    a[MillException] should be thrownBy Expression.parse("3 ∧ ( 2 ∧ -1 )")
   }
 
   // NOTE that the apply function always takes a Field and returns a Field. Not to be confused with applyExact.
@@ -530,12 +531,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     e.simplifyExact(e).successful shouldBe false
   }
   // NOTE Test case for Issue #142
+  // NOTE This is actually Issue #143
+  // It involves deprecated code.
   it should "simplifyExact 2" in {
-    Expression("sin(𝛑) * -1") match {
+    Expression("sin(𝛑) * (1 chs)") match {
       case expression: CompositeExpression =>
-        val simplified = expression.simplifyExact(expression)
-        simplified.successful shouldBe true
-        simplified.get shouldBe Literal(WholeNumber(0), Some("0")) // NOTE this should be Zero, not Literal(WholeNumber(0))
+        val simplified = expression.simplify
+        simplified shouldBe Literal(WholeNumber(0), Some("0")) // NOTE this should be Zero, not Literal(WholeNumber(0))
       case x =>
         fail(s"expected CompositeExpression, got $x")
     }

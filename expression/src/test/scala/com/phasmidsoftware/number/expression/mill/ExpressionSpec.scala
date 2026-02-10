@@ -10,6 +10,7 @@ import com.phasmidsoftware.number.expression.parse.ShuntingYardParser
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Success, Try}
 
 class ExpressionSpec extends AnyFlatSpec with should.Matchers {
@@ -86,12 +87,12 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
     value.toOption flatMap (_.evaluate) map (_.value) shouldBe Some(Number(9))
   }
   it should "parse Infix and evaluate:  0.5" in {
-    val value: Try[Mill] = p.parseInfix("2 ∧ -1")
+    val value: Try[Mill] = p.parseInfix("2 ∧ (1 chs)")
     value should matchPattern { case Success(_) => }
     value.toOption flatMap (_.evaluate) map (_.value) shouldBe Some(Number.half)
   }
   it should "parse Infix and evaluate: sqrt(3)" in {
-    val value: Option[Mill] = p.parseInfix("3 ∧ ( 2 ∧ -1 )").toOption
+    val value: Option[Mill] = p.parseInfix("3 ∧ ( 2 ∧ (1 chs) )").toOption
     value should matchPattern { case Some(_) => }
     val z: Option[Expression] = value.flatMap(_.evaluate)
     z.isDefined shouldBe true

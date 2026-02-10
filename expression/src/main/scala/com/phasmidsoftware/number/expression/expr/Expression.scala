@@ -560,6 +560,7 @@ object Expression {
       Literal(x)
   }
 
+  @deprecated("Use puremath or lazymath string interpolators instead", "1.6.5")
   def apply(w: String): Expression =
     parse(w) getOrElse Noop(w)
 
@@ -585,10 +586,13 @@ object Expression {
   /**
     * Method to parse a String as an Expression.
     *
-    * TODO this may not accurately parse all infix expressions.
-    * The idea is for render and parse.get to be inverses.
-    * NOTE that it might be a problem with render instead.
+    * NOTE that, in particular, this parser fails when the string
+    * includes signed numbers.
+    * For example, the string "3 ∧ ( 2 ∧ -1 )" includes a signed value (-1).
+    * You can parse the following equivalent string: "3 ∧ ( 2 ∧ (1 chs) )"
+    *
     */
+  @deprecated("Use puremath or lazymath string interpolators instead", "1.6.5")
   def parse(x: String): Option[Expression] =
     mill.Expression.parseToExpression(x).map(convertMillExpressionToExpression)
 

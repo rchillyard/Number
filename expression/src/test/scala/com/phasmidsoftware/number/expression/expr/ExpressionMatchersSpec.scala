@@ -1256,9 +1256,10 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   // (fixed) Issue #57
+  // NOTE this uses deprecated code.
   it should "simplify expressions involving square root 3" in {
-    val xo = Expression.parse("( 3 ∧ ( 2 ∧ -1 ) )")
-    val yo = Expression.parse("( ( 3 ∧ ( 2 ∧ -1 ) ) * -1 )")
+    val xo = Expression.parse("( 3 ∧ ( 2 ∧ (1 chs) ) )")
+    val yo = Expression.parse("( ( 3 ∧ ( 2 ∧ (1 chs) ) ) * (1 chs) )")
     val zo = for (x <- xo; y <- yo)
       yield Expression.matchSimpler(x * y) // 1st round
 //          .flatMap(Expression.matchSimpler) // 2nd round

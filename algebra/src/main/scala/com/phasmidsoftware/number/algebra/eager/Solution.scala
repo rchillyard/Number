@@ -19,7 +19,7 @@ import org.slf4j.{Logger, LoggerFactory}
 import scala.util.{Failure, Success, Try}
 
 /**
-  * This is a placeholder for a Complex number to demonstrate where it should appear in the type hierarchy (it should extend Structure).
+  * This is a wrapper for a Complex number to demonstrate where it should appear in the type hierarchy (it should extend Solution).
   *
   * @see com.phasmidsoftware.number.core.numerical.Complex
   */

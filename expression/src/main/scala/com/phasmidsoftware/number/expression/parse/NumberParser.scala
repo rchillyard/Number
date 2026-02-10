@@ -104,7 +104,7 @@ abstract class BaseNumberParser extends BaseRationalParser {
   //  Any number with a longer fractional part is assumed to be fuzzy.
   private val DPExact = 2
 
-  private def optionalNumber(ro: Option[ValuableNumber], fo: Option[Factor]): Option[Number] =
+  protected def optionalNumber(ro: Option[ValuableNumber], fo: Option[Factor]): Option[Number] =
     if (ro.isDefined || fo.isDefined)
       for (
         r <- ro.orElse(Some(WholeNumber.one));

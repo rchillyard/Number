@@ -289,4 +289,17 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     val half: Eager = lazyHalf.materialize
     half shouldBe RationalNumber(x)
   }
+
+  behavior of "Expression parsing"
+
+  it should "parse power with negative exponent (new style)" in {
+    val e: Expression = puremath"2 ∧ -1"
+    e shouldBe Literal(2) ∧ -1
+  }
+
+  it should "parse power with negative exponent (deprecated Expression.parse with chs)" in {
+    val eo: Option[Expression] = Expression.parse("2 ∧ (1 chs)")
+    eo should matchPattern { case Some(_) => }
+    eo.get shouldBe BiFunction(2, BiFunction(1, -1, Product), Power)
+  }
 }
