@@ -869,8 +869,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
   lazy val ln: Field =
     r.ln match {
       case Real(n) =>
-        // theta is in Radian factor (units of π), convert to PureNumber (actual radians)
-        ComplexCartesian(n, theta.scale(PureNumber))
+        ComplexCartesian(n, theta)
       case _ =>
         throw ComplexException("logic error: ComplexPolar.ln")
     }

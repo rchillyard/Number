@@ -428,14 +428,25 @@ class BaseComplexSpec extends AnyFlatSpec with Matchers {
     }
   }
 
-  it should "compute ln of polar form correctly" in {
-    val z = ComplexPolar(Number(Math.E), Number.pi) // e·e^(iπ) = -e
+  it should "compute ln of polar form correctly (exact)" in {
+    val z = ComplexPolar(Number.e, Number.pi) // e·e^(iπ) = -e (exact)
     val lnZ = z.ln
     // ln(-e) = ln(e) + iπ = 1 + iπ
     lnZ match {
       case ComplexCartesian(x, y) =>
+        x shouldBe Number.one
+        y shouldBe Number.pi
+    }
+  }
+
+  it should "compute ln of polar form correctly (fuzzy)" in {
+    val z = ComplexPolar(Number(Math.E), Number.pi) // e·e^(iπ) = -e (fuzzy)
+    val lnZ = z.ln
+    // ln(-e) = ln(e) + iπ ≈ 1 + iπ
+    lnZ match {
+      case ComplexCartesian(x, y) =>
         x.toNominalDouble.get should be(1.0 +- 1e-10)
-        y.toNominalDouble.get should be(Math.PI +- 1e-10)
+        y shouldBe Number.pi // angle stays exact even if magnitude is fuzzy
     }
   }
 
