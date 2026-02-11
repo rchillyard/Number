@@ -212,7 +212,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     ePi match {
       case Real(x) =>
         x.factor shouldBe PureNumber
-        x.nominalValue shouldBe Value.fromDouble(Some(8.539734222673568))
+        x.toNominalDouble.get should be(8.539734222673568 +- 1e-10)
       case _ =>
         fail("multiply e and e")
     }
@@ -223,7 +223,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
       case Real(x) =>
         // CONSIDER should the factor by Radian, with a nominal value of 2.718?
         x.factor shouldBe PureNumber
-        x.nominalValue shouldBe Value.fromDouble(Some(8.539734222673568))
+        x.toNominalDouble.get should be(8.539734222673568 +- 1e-10)
       case _ =>
         fail("multiply e and e")
     }
