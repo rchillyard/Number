@@ -449,42 +449,11 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
       Failure(AlgebraException(s"QuadraticSolution.add($solution)"))
   }
 
-//  def add(solution: Algebraic): Option[Eager] = (value, solution.value) match {
-//    case (v: CanAdd[Number, Number], y: Number) =>
-//      Some(v.+(y))
-//    case _ =>
-//      None
-//  }
-
-//  def add(solution: Algebraic): Option[Algebraic] = {
-//    (isPureNumber, solution.isPureNumber) match {
-//      case (true, true) =>
-//        copy(base = sumBases(base, solution.base))
-//      case _ =>
-//        None
-//    }
-//
-//    // XXX match not exhaustive
-//    solution match {
-//      case q: QuadraticSolution =>
-//        if (maybeFactor(AnyContext.asInstanceOf[Context]) == q.factor) {
-//          // CONSIDER should we be using z here?
-//          val (a, b, z) = (branch, q.branch) match {
-//            case (0, _) => (this, q, branch)
-//            case (_, 0) => (q, this, q.branch)
-//            case _ => (this.conjugate, q.conjugate, 1 - branch)
-//          }
-//          for {
-//            x <- doComposeValueDyadic(a.base, b.base)(DyadicOperationPlus.functions)
-//            (v, f, z) <- factor.add(a.offset, b.offset, factor, b.branch == 1)
-//            if f == factor && z.isEmpty
-//          } yield Algebraic(x, branch = a.branch)
-//        }
-//        else
-//        None  // TESTME
-//    }
-//  }
-
+  /**
+    * Computes the square of the current instance by multiplying it with itself.
+    *
+    * @return The result of squaring the current instance.
+    */
   def square: Eager = this * this
 
   def *(other: QuadraticSolution): Eager = (this, other) match {
@@ -515,29 +484,10 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
       Some(x * y)
     case (x: QuadraticSolution, y: QuadraticSolution) =>
       Some(x * y)
-    // TODO add more cases (see commented code below)
+    // CONSIDER add more cases
     case _ =>
       None
   }
-    // XXX match not exhaustive
-//    solution match {
-//      case q: QuadraticSolution =>
-//        if (factor == q.factor) {
-//          // CONSIDER should we be using z here?
-//          val (a, b, z) = (branch, q.branch) match {
-//            case (0, _) => (this, q, branch)
-//            case (_, 0) => (q, this, q.branch)
-//            case _ => (this.conjugate, q.conjugate, 1 - branch)
-//          }
-//          for {
-//            x <- doComposeValueDyadic(a.base, b.base)(DyadicOperationTimes.functions)
-//            (v, f, z) <- factor.multiply(a.offset, b.offset, factor)
-//            if f == factor && z.isEmpty
-//          } yield Algebraic(x, branch = a.branch)
-//        }
-//        else
-//        None  // TESTME
-//    }
 
   /**
     * Scales the quadratic solution using a given rational factor.

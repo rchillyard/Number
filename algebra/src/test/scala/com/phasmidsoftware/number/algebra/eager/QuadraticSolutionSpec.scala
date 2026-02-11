@@ -416,7 +416,7 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
   it should "handle approximation for pure number solutions" in {
     val solution = QuadraticSolution(RationalNumber(Rational(5)), RationalNumber.zero, 1, false)
     val approx = solution.approximation(force = false)
-    approx shouldBe empty // TESTME
+    approx shouldBe empty
 
     // Pure numbers might not need approximation
     // Test that it doesn't throw

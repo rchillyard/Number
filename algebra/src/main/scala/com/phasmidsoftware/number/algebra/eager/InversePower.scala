@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.number.algebra.eager
 
-import algebra.CommutativeGroup
 import cats.Show
 import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
@@ -638,51 +637,4 @@ object InversePower {
     * requiring a `Show` typeclass instance for displaying or logging purposes.
     */
   implicit val showInversePower: Show[InversePower] = Show.show(_.render)
-
-  /**
-    * Provides an implicit implementation of a commutative group for the `Root` type, supporting
-    * group operations such as identity, combination, and inversion.
-    * 
-    * TESTME
-    *
-    * This allows `Root` objects to adhere to the algebraic structure of a commutative group, where
-    * the `combine` operation is associative and commutative, an identity element exists, and
-    * each element has a multiplicative inverse.
-    */
-  implicit object rootIsCommutativeGroup extends CommutativeGroup[InversePower] {
-    /**
-      * Provides the identity element for the `Root` group, representing a root of one.
-      *
-      * @return a `Root` instance with zero base, acting as the identity element in the group structure.
-      */
-    def empty: InversePower = InversePower.one
-
-    /**
-      * Combines two `Root` instances by adding their respective base.
-      * TODO implement this method for InversePower (or eliminate it).
-      *
-      * @param x the first `Root` to combine
-      * @param y the second `Root` to combine
-      * @return a new `Root` representing the sum of the base of the two provided `Root` instances
-      * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the provided `Root` instances are not of the same type.
-      */
-    def combine(x: InversePower, y: InversePower): InversePower = (x, y) match {
-      case (InversePower(n1, x1: Number), InversePower(n2, x2: Number)) =>
-        throw AlgebraException(s"InversePower.combine: cannot combine $x and $y")
-    }
-
-    /**
-      * Computes the additive inverse of the given `Root`.
-      * TODO eliminate this method.
-      *
-      * This method inverts the input root, returning a `Root` instance
-      * that represents its multiplicative inverse, relative to `Root.one`.
-      *
-      * @param a the `Root` instance to be inverted
-      * @return a new `Root` instance representing the multiplicative inverse of the input
-      * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the provided `Root` instance is not invertible.
-      */
-    def inverse(a: InversePower): InversePower =
-      throw AlgebraException(s"InversePower.inverse: cannot invert $a")
-  }
 }

@@ -521,7 +521,7 @@ sealed trait Logarithmic extends Factor {
           None // Not yet implemented
       } 
     case _ =>
-      None // TESTME
+      None
   }
 
   /**

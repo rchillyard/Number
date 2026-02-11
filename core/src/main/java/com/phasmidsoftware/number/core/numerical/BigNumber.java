@@ -54,7 +54,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Factory method to convert a long into a BigNumber.
-     * TESTME
      *
      * @param x a long.
      * @return a new BigNumber.
@@ -65,7 +64,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Factory method to create a BigNumber from an (exact) BigDecimal.
-     * TESTME
      *
      * @param x a BigDecimal number.
      * @return a new BigNumber.
@@ -89,7 +87,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Factory method to create a BigNumber from a long whole number and a long representing the decimals.
-     * TESTME
      *
      * @param whole    a non-negative long.
      * @param decimals a non-negative long, for example, 14 for a 3.14 valued result.
@@ -112,7 +109,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Factory method to create a BigNumber from a whole number and a decimal number.
-     * TESTME
      *
      * @param whole    a non-negative long.
      * @param decimals a non-negative long, for example, 14 for a 3.14 valued result.
@@ -152,7 +148,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Method to determine if this BigNumber is a whole number.
-     * TESTME
      *
      * @return true if this BigNumber is a whole number.
      */
@@ -165,7 +160,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * The reason it might not be exact is that we allow division to yield a BigNumber.
      * For now at least, we simply look at the number of decimals.
      * CONSIDER in future we might have a field which explicitly determines exactness.
-     * TESTME
      *
      * @return true if this BigNumber is exact.
      */
@@ -175,7 +169,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Return a BigDecimal which has the exact value of this BigNumber.
-     * TESTME
      *
      * @return a BigDecimal.
      */
@@ -191,7 +184,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Returns the value of the specified number as an {@code int}.
-     * TESTME
      *
      * @return the numeric value represented by this object after conversion
      * to type {@code int}.
@@ -206,7 +198,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Returns the value of the specified number as a {@code long}.
-     * TESTME
      *
      * @return the numeric value represented by this object after conversion
      * to type {@code long}.
@@ -221,7 +212,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Returns the value of the specified number as a {@code float}.
-     * TESTME
      *
      * @return the numeric value represented by this object after conversion
      * to type {@code float}.
@@ -236,7 +226,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * In general, the result will NOT be exact.
      * But you can check on that by using the isExact() method.
      * CONSIDER It is possible that isExact() will be false but the resulting double will be exact.
-     * TESTME
      *
      * @return a double representation of this.
      */
@@ -250,11 +239,14 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
         return sign ? result : -result;
     }
 
+    public boolean isZero() {
+        return isWhole() && isExact() && whole.equals(BigInteger.ZERO) && Arrays.equals(decimals, new int[0]);
+    }
+
     /**
      * Add a BigNumber <code>that</code> to <code>this</code>.
      * <p>
      * TODO fix the high cyclomatic complexity of this method.
-     * TESTME
      *
      * @param that a BigNumber.
      * @return the sum of <code>this</code> and <code>that</code>.
@@ -295,8 +287,17 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
     }
 
     /**
+     * Subtracts the specified BigNumber from the current instance.
+     *
+     * @param that the BigNumber to subtract from the current instance
+     * @return a new BigNumber representing the result of the subtraction
+     */
+    public BigNumber subtract(final BigNumber that) {
+        return add(that.negate());
+    }
+
+    /**
      * Method to compare <code>this</code> with <code>that</code>.
-     * TESTME
      *
      * @param that the object to be compared.
      * @return a negative, zero, or positive int.
@@ -326,7 +327,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Negates the current BigNumber instance by flipping its sign.
-     * TESTME
      *
      * @return a new BigNumber instance that represents the negated value of this BigNumber.
      */
@@ -336,7 +336,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Method to multiply Big Numbers using Karatsuba Algorithm.
-     * TESTME
      *
      * @param other a BigNumber value.
      * @return a BigNumber.
@@ -370,7 +369,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Multiplies two integer arrays representing numerical values and returns the result in an array.
-     * TESTME
      *
      * @param arr1       the first integer array representing a number
      * @param arr2       the second integer array representing a number
@@ -406,7 +404,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * Performs multiplication of two integer arrays representing large numbers using the recursive Karatsuba algorithm.
      * This method is designed to handle scenarios where large integers are split into smaller parts for more
      * efficient computation of the product.
-     * TESTME
      *
      * @param first   The first integer array, where each element represents part of a larger number.
      * @param second  The second integer array, where each element represents part of a larger number.
@@ -456,7 +453,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
     /**
      * Shifts the non-zero elements of the given array to the left by the specified offset.
      * Zeros are appended to the end of the array to maintain the original length.
-     * TESTME
      *
      * @param arr    the array of integers to be shifted; must not be null
      * @param offset the number of positions to shift the elements to the left; must be non-negative
@@ -475,7 +471,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
     /**
      * Adds corresponding elements from two parts of the input array with a carry operation,
      * and stores the result in a new array of specified size.
-     * TESTME
      *
      * @param first   the input array from which elements are added
      * @param start   the starting index of the first part in the array
@@ -512,7 +507,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * Adds the values of the second array to the first array in-place,
      * considering each array represents a number with its digits stored in order.
      * Handles carry values appropriately during addition.
-     * TESTME
      *
      * @param first  the array representing the first number. Must be large enough
      *               to accommodate the result of the addition.
@@ -538,7 +532,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
      * in a digit-by-digit manner and updates the first array with the result.
      * The arrays must have the same length, and the first array must represent a number
      * that is greater than or equal to the number represented by the second array.
-     * TESTME
      *
      * @param first  the array representing the first number; will be modified to store the result
      * @param second the array representing the second number; remains unchanged
@@ -556,7 +549,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Multiplies the current BigNumber with another BigNumber and returns the result.
-     * TESTME
      *
      * @param that the BigNumber to multiply with the current BigNumber
      * @return a new BigNumber representing the result of the multiplication
@@ -581,7 +573,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Method to divide this BigNumber by a BigNumber.
-     * TESTME (partial)
      *
      * @param x a BigNumber value.
      * @return a BigNumber y such that x * y = this.
@@ -627,7 +618,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
     /**
      * Method to divide this BigNumber by a long.
      * The implementation is based on division by BigInteger.
-     * TESTME
      *
      * @param x a long value.
      * @return a BigNumber y such that x * y = this.
@@ -637,10 +627,71 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
     }
 
     /**
+     * Raises this BigNumber to the power of the given exponent.
+     * Supports positive, negative, and zero exponents.
+     * For negative exponents, the result may not be exact.
+     *
+     * @param exponent the exponent to raise this BigNumber to
+     * @return a new BigNumber representing this^exponent
+     * @throws BigNumberException if attempting 0^0
+     */
+    public BigNumber power(final int exponent) {
+        // Handle special cases
+        if (exponent == 0) {
+            if (this.equals(zero))
+                throw new BigNumberException("0^0 is undefined");
+            return one;
+        }
+
+        if (exponent == 1)
+            return this;
+
+        if (this.equals(zero))
+            return zero;
+
+        if (this.equals(one))
+            return one;
+
+        // Handle negative exponents: a^(-n) = 1 / a^n
+        if (exponent < 0) {
+            BigNumber positiveResult = this.power(-exponent);
+            return one.divide(positiveResult);
+        }
+
+        // Positive exponent: use exponentiation by squaring for efficiency
+        // This reduces the number of multiplications from O(n) to O(log n)
+        return powerBySquaring(this, exponent);
+    }
+
+    /**
+     * Helper method to compute power using exponentiation by squaring algorithm.
+     * This is more efficient than repeated multiplication.
+     *
+     * @param base the base BigNumber
+     * @param exp  the exponent (must be non-negative)
+     * @return base^exp
+     */
+    private static BigNumber powerBySquaring(final BigNumber base, final int exp) {
+        if (exp == 0)
+            return one;
+        if (exp == 1)
+            return base;
+
+        if (exp % 2 == 0) {
+            // Even exponent: base^(2n) = (base^n)^2
+            BigNumber half = powerBySquaring(base, exp / 2);
+            return half.multiply(half);
+        } else {
+            // Odd exponent: base^(2n+1) = base * (base^n)^2
+            BigNumber half = powerBySquaring(base, exp / 2);
+            return base.multiply(half.multiply(half));
+        }
+    }
+
+    /**
      * Compares the specified object with this BigNumber for equality.
      * The method determines whether two BigNumber instances are logically equivalent by comparing
      * their whole part, sign, and decimals.
-     * TESTME
      *
      * @param o the object to be compared for equality with this BigNumber
      * @return true if the specified object is a BigNumber, has the same whole part,
@@ -655,7 +706,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
     }
 
     /**
-     * TESTME
      *
      * @return the hashCode for this BigNumber.
      */
@@ -691,7 +741,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Secondary constructor to creat a BigNumber which has no decimal part.
-     * TESTME
      *
      * @param whole any BigInteger value (positive or negative).
      */
@@ -722,7 +771,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Retrieves a specific element based on the given index.
-     * TESTME
      *
      * @param i the index of the element to retrieve; if 0, retrieves the whole number;
      *          if positive, retrieves the corresponding decimal index;
@@ -733,7 +781,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
     private long element(final int i) {
         if (i == 0) return whole.longValueExact();
         else if (i > 0) return decimals[i - 1];
-        else return 0; // TESTME CONSIDER throwing an exception.
+        else return 0; // CONSIDER throwing an exception.
     }
 
     /**
@@ -752,7 +800,7 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
     private final int[] decimals;
     private final boolean sign;
 
-    static class BigNumberException extends RuntimeException {
+    public static class BigNumberException extends RuntimeException {
         public BigNumberException(final String s) {
             super(s);
         }
@@ -764,7 +812,6 @@ public class BigNumber extends java.lang.Number implements Comparable<BigNumber>
 
     /**
      * Measures and compares the performance of two multiplication algorithms (standard and Karatsuba) for large numbers.
-     * TESTME
      * <p>
      * The method performs the following steps:
      * 1. Initializes a large constant string representing a seed value and extracts a portion for computation.

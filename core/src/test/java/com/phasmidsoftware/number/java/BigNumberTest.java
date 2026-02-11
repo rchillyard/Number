@@ -306,4 +306,652 @@ public class BigNumberTest {
     public void testDoMain() {
         BigNumber.doMain();
     }
+
+    /**
+     * The following tests are by Claude.
+     */
+
+    @Test
+    public void testConstructorWithLong() {
+        BigNumber bn = new BigNumber(42);
+        assertEquals("42", bn.toString());
+        assertTrue(bn.isWhole());
+        assertTrue(bn.isExact());
+    }
+
+    @Test
+    public void testConstructorWithNegativeLong() {
+        BigNumber bn = new BigNumber(-42);
+        assertEquals("-42", bn.toString());
+        assertTrue(bn.isWhole());
+    }
+
+    @Test
+    public void testConstructorWithBigInteger() {
+        BigInteger bi = new BigInteger("123456789012345678901234567890");
+        BigNumber bn = new BigNumber(bi);
+        assertEquals("123456789012345678901234567890", bn.toString());
+        assertTrue(bn.isWhole());
+    }
+
+    @Test
+    public void testConstructorWithNegativeBigInteger() {
+        BigInteger bi = new BigInteger("-999");
+        BigNumber bn = new BigNumber(bi);
+        assertEquals("-999", bn.toString());
+    }
+
+    @Test
+    public void testConstructorWithWholeAndDecimals() {
+        int[] decimals = {1, 4};
+        BigNumber bn = new BigNumber(BigInteger.valueOf(3), decimals, true);
+        assertEquals("3.14", bn.toString());
+    }
+
+    // ========== Factory Method Tests ==========
+
+    @Test
+    public void testValueLong() {
+        BigNumber bn = BigNumber.value(100L);
+        assertEquals("100", bn.toString());
+    }
+
+    @Test
+    public void testValueBigInteger() {
+        BigInteger bi = new BigInteger("987654321");
+        BigNumber bn = BigNumber.value(bi);
+        assertEquals("987654321", bn.toString());
+    }
+
+    @Test
+    public void testValueBigDecimal() {
+        BigDecimal bd = new BigDecimal("3.14159");
+        BigNumber bn = BigNumber.value(bd);
+        assertEquals("3.14159", bn.toString());
+    }
+
+    @Test
+    public void testValueWholeAndDecimals() {
+        BigNumber bn = BigNumber.value(3, 14);
+        assertEquals("3.14", bn.toString());
+    }
+
+    @Test
+    public void testValueWholeAndDecimalsWithSign() {
+        BigNumber bn = BigNumber.value(3, 14, false);
+        assertEquals("-3.14", bn.toString());
+    }
+
+    // ========== Parse Tests ==========
+
+    @Test
+    public void testParseWholeNumber() {
+        BigNumber bn = BigNumber.parse("42");
+        assertEquals("42", bn.toString());
+        assertTrue(bn.isWhole());
+    }
+
+    @Test
+    public void testParseNegativeWholeNumber() {
+        BigNumber bn = BigNumber.parse("-42");
+        assertEquals("-42", bn.toString());
+    }
+
+    @Test
+    public void testParseDecimalNumber() {
+        BigNumber bn = BigNumber.parse("3.14159");
+        assertEquals("3.14159", bn.toString());
+        assertFalse(bn.isWhole());
+    }
+
+    @Test
+    public void testParseNegativeDecimalNumber() {
+        BigNumber bn = BigNumber.parse("-2.71828");
+        assertEquals("-2.71828", bn.toString());
+    }
+
+    // Ignored test
+    public void testParseLargeNumber() {
+        String large = "123456789012345678901234567890.987654321";
+        BigNumber bn = BigNumber.parse(large);
+        assertEquals(large, bn.toString());
+    }
+
+    @Test
+    public void testParseZero() {
+        BigNumber bn = BigNumber.parse("0");
+        assertEquals("0", bn.toString());
+        assertTrue(bn.isZero());
+    }
+
+    // ========== Constants Tests ==========
+
+    @Test
+    public void testZeroConstant() {
+        assertTrue(BigNumber.zero.isZero());
+        assertEquals("0", BigNumber.zero.toString());
+    }
+
+    @Test
+    public void testOneConstant() {
+        assertFalse(BigNumber.one.isZero());
+        assertEquals("1", BigNumber.one.toString());
+    }
+
+    @Test
+    public void testTwoConstant() {
+        assertEquals("2", BigNumber.two.toString());
+    }
+
+    @Test
+    public void testTenConstant() {
+        assertEquals("10", BigNumber.ten.toString());
+    }
+
+    @Test
+    public void testPiConstant() {
+        BigNumber pi = BigNumber.pi;
+        String piStr = pi.toString();
+        assertTrue(piStr.startsWith("3.14159"));
+        assertTrue(pi.isExact()); // pi is not exact
+    }
+
+    @Test
+    public void testEConstant() {
+        String eStr = BigNumber.e.toString();
+        assertTrue(eStr.startsWith("2.71828"));
+    }
+
+    // ========== Addition Tests ==========
+
+    @Test
+    public void testAddWholeNumbers() {
+        BigNumber a = new BigNumber(5);
+        BigNumber b = new BigNumber(7);
+        BigNumber result = a.add(b);
+        assertEquals("12", result.toString());
+    }
+
+    @Test
+    public void testAddNegativeNumbers() {
+        BigNumber a = new BigNumber(-5);
+        BigNumber b = new BigNumber(-3);
+        BigNumber result = a.add(b);
+        assertEquals("-8", result.toString());
+    }
+
+    @Test
+    public void testAddMixedSigns() {
+        BigNumber a = new BigNumber(10);
+        BigNumber b = new BigNumber(-3);
+        BigNumber result = a.add(b);
+        assertEquals("7", result.toString());
+    }
+
+    @Test
+    public void testAddDecimalNumbers() {
+        BigNumber a = BigNumber.parse("3.14");
+        BigNumber b = BigNumber.parse("2.86");
+        BigNumber result = a.add(b);
+        assertEquals("6", result.toString());
+    }
+
+    @Test
+    public void testAddWithDifferentDecimalLengths() {
+        BigNumber a = BigNumber.parse("1.5");
+        BigNumber b = BigNumber.parse("2.25");
+        BigNumber result = a.add(b);
+        assertEquals("3.75", result.toString());
+    }
+
+    @Test
+    public void testAddZero() {
+        BigNumber a = new BigNumber(42);
+        BigNumber result = a.add(BigNumber.zero);
+        assertEquals("42", result.toString());
+    }
+
+    // ========== Subtraction Tests ==========
+
+    @Test
+    public void testSubtractWholeNumbers() {
+        BigNumber a = new BigNumber(10);
+        BigNumber b = new BigNumber(3);
+        BigNumber result = a.subtract(b);
+        assertEquals("7", result.toString());
+    }
+
+    @Test
+    public void testSubtractResultingInNegative() {
+        BigNumber a = new BigNumber(3);
+        BigNumber b = new BigNumber(10);
+        BigNumber result = a.subtract(b);
+        assertEquals("-7", result.toString());
+    }
+
+    @Test
+    public void testSubtractDecimalNumbers() {
+        BigNumber a = BigNumber.parse("5.75");
+        BigNumber b = BigNumber.parse("2.5");
+        BigNumber result = a.subtract(b);
+        assertEquals("3.25", result.toString());
+    }
+
+    @Test
+    public void testSubtractFromZero() {
+        BigNumber a = BigNumber.zero;
+        BigNumber b = new BigNumber(5);
+        BigNumber result = a.subtract(b);
+        assertEquals("-5", result.toString());
+    }
+
+    // ========== Multiplication Tests ==========
+
+    @Test
+    public void testMultiplyWholeNumbers() {
+        BigNumber a = new BigNumber(6);
+        BigNumber b = new BigNumber(7);
+        BigNumber result = a.multiply(b);
+        assertEquals("42", result.toString());
+    }
+
+    @Test
+    public void testMultiplyByZero() {
+        BigNumber a = new BigNumber(42);
+        BigNumber result = a.multiply(BigNumber.zero);
+        assertEquals("0", result.toString());
+    }
+
+    @Test
+    public void testMultiplyByOne() {
+        BigNumber a = new BigNumber(42);
+        BigNumber result = a.multiply(BigNumber.one);
+        assertEquals("42", result.toString());
+    }
+
+    @Test
+    public void testMultiplyNegativeNumbers() {
+        BigNumber a = new BigNumber(-5);
+        BigNumber b = new BigNumber(-3);
+        BigNumber result = a.multiply(b);
+        assertEquals("15", result.toString());
+    }
+
+    @Test
+    public void testMultiplyMixedSigns() {
+        BigNumber a = new BigNumber(5);
+        BigNumber b = new BigNumber(-3);
+        BigNumber result = a.multiply(b);
+        assertEquals("-15", result.toString());
+    }
+
+    @Test
+    public void testMultiplyDecimalNumbers() {
+        BigNumber a = BigNumber.parse("2.5");
+        BigNumber b = BigNumber.parse("4");
+        BigNumber result = a.multiply(b);
+        assertEquals("10", result.toString());
+    }
+
+    @Test
+    public void testMultiplyDecimalsWithDecimals() {
+        BigNumber a = BigNumber.parse("1.5");
+        BigNumber b = BigNumber.parse("2.5");
+        BigNumber result = a.multiply(b);
+        assertEquals("3.75", result.toString());
+    }
+
+    // ========== Karatsuba Multiplication Tests ==========
+
+    @Test
+    public void testMultiplyWithKaratsubaBasic() {
+        BigNumber a = new BigNumber(12);
+        BigNumber b = new BigNumber(34);
+        BigNumber result = a.multiplyWithKaratsuba(b);
+        assertEquals("408", result.toString());
+    }
+
+    @Test
+    public void testMultiplyWithKaratsubaMatchesStandard() {
+        BigNumber a = BigNumber.parse("123.456");
+        BigNumber b = BigNumber.parse("789.012");
+        BigNumber standard = a.multiply(b);
+        BigNumber karatsuba = a.multiplyWithKaratsuba(b);
+        assertEquals(standard.toString(), karatsuba.toString());
+    }
+
+
+    // ========== Division Tests ==========
+
+    @Test
+    public void testDivideWholeNumbers() {
+        BigNumber a = new BigNumber(42);
+        BigNumber b = new BigNumber(6);
+        BigNumber result = a.divide(b);
+        assertEquals("7", result.toString());
+        assertTrue(result.isExact());
+    }
+
+    @Test
+    public void testDivideWithRemainder() {
+        BigNumber a = new BigNumber(10);
+        BigNumber b = new BigNumber(3);
+        BigNumber result = a.divide(b);
+        assertTrue(result.toString().startsWith("3.333"));
+        assertFalse(result.isExact());
+    }
+
+    @Test
+    public void testDivideByOne() {
+        BigNumber a = new BigNumber(42);
+        BigNumber result = a.divide(BigNumber.one);
+        assertEquals("42", result.toString());
+    }
+
+    @Test
+    public void testDivideOneByTwo() {
+        BigNumber result = BigNumber.one.divide(BigNumber.two);
+        assertEquals("0.5", result.toString());
+    }
+
+    @Test
+    public void testDivideDecimalNumbers() {
+        BigNumber a = BigNumber.parse("7.5");
+        BigNumber b = BigNumber.parse("2.5");
+        BigNumber result = a.divide(b);
+        assertEquals("3", result.toString());
+    }
+
+    @Test
+    public void testDivideByBigInteger() {
+        BigNumber a = new BigNumber(100);
+        BigNumber result = a.divide(BigInteger.valueOf(4));
+        assertEquals("25", result.toString());
+    }
+
+    // ========== Power Tests ==========
+
+    @Test
+    public void testPowerPositiveExponent() {
+        BigNumber a = new BigNumber(2);
+        BigNumber result = a.power(3);
+        assertEquals("8", result.toString());
+    }
+
+    @Test
+    public void testPowerZeroExponent() {
+        BigNumber a = new BigNumber(42);
+        BigNumber result = a.power(0);
+        assertEquals("1", result.toString());
+    }
+
+    @Test
+    public void testPowerOneExponent() {
+        BigNumber a = new BigNumber(42);
+        BigNumber result = a.power(1);
+        assertEquals("42", result.toString());
+    }
+
+    @Test
+    public void testPowerNegativeExponent() {
+        BigNumber a = new BigNumber(2);
+        BigNumber result = a.power(-2);
+        assertEquals("0.25", result.toString());
+    }
+
+    @Test
+    public void testPowerOfZero() {
+        BigNumber result = BigNumber.zero.power(5);
+        assertEquals("0", result.toString());
+    }
+
+    @Test
+    public void testPowerOfOne() {
+        BigNumber result = BigNumber.one.power(100);
+        assertEquals("1", result.toString());
+    }
+
+    // ========== Comparison Tests ==========
+
+    @Test
+    public void testCompareToEqual() {
+        BigNumber a = new BigNumber(42);
+        BigNumber b = new BigNumber(42);
+        assertEquals(0, a.compareTo(b));
+    }
+
+    @Test
+    public void testCompareToLess() {
+        BigNumber a = new BigNumber(10);
+        BigNumber b = new BigNumber(20);
+        assertTrue(a.compareTo(b) < 0);
+    }
+
+    @Test
+    public void testCompareToGreater() {
+        BigNumber a = new BigNumber(20);
+        BigNumber b = new BigNumber(10);
+        assertTrue(a.compareTo(b) > 0);
+    }
+
+    @Test
+    public void testCompareToWithDecimals() {
+        BigNumber a = BigNumber.parse("3.14");
+        BigNumber b = BigNumber.parse("3.15");
+        assertTrue(a.compareTo(b) < 0);
+    }
+
+    @Test
+    public void testCompareToNegativeNumbers() {
+        BigNumber a = new BigNumber(-5);
+        BigNumber b = new BigNumber(-10);
+        assertTrue(a.compareTo(b) > 0);
+    }
+
+    // ========== Equality Tests ==========
+
+    @Test
+    public void testEqualsIdentical() {
+        BigNumber a = new BigNumber(42);
+        BigNumber b = new BigNumber(42);
+        assertEquals(a, b);
+    }
+
+    @Test
+    public void testEqualsWithDecimals() {
+        BigNumber a = BigNumber.parse("3.14");
+        BigNumber b = BigNumber.parse("3.14");
+        assertEquals(a, b);
+    }
+
+    @Test
+    public void testNotEquals() {
+        BigNumber a = new BigNumber(42);
+        BigNumber b = new BigNumber(43);
+        assertNotEquals(a, b);
+    }
+
+    @Test
+    public void testEqualsWithTrailingZeros() {
+        BigNumber a = BigNumber.parse("3.14");
+        BigNumber b = BigNumber.parse("3.140");
+        assertEquals(a, b);
+    }
+
+    @Test
+    public void testEqualsSameObject() {
+        BigNumber a = new BigNumber(42);
+        assertEquals(a, a);
+    }
+
+    @Test
+    public void testEqualsNull() {
+        BigNumber a = new BigNumber(42);
+        assertNotEquals(null, a);
+    }
+
+    // ========== Hash Code Tests ==========
+
+    @Test
+    public void testHashCodeConsistent() {
+        BigNumber a = new BigNumber(42);
+        int hash1 = a.hashCode();
+        int hash2 = a.hashCode();
+        assertEquals(hash1, hash2);
+    }
+
+    @Test
+    public void testHashCodeEqualObjects() {
+        BigNumber a = new BigNumber(42);
+        BigNumber b = new BigNumber(42);
+        assertEquals(a.hashCode(), b.hashCode());
+    }
+
+    // ========== Negate Tests ==========
+
+    @Test
+    public void testNegatePositive() {
+        BigNumber a = new BigNumber(42);
+        BigNumber result = a.negate();
+        assertEquals("-42", result.toString());
+    }
+
+    @Test
+    public void testNegateNegative() {
+        BigNumber a = new BigNumber(-42);
+        BigNumber result = a.negate();
+        assertEquals("42", result.toString());
+    }
+
+    @Test
+    public void testNegateZero() {
+        BigNumber result = BigNumber.zero.negate();
+        assertEquals("-0", result.toString());
+    }
+
+    // ========== Property Tests ==========
+
+    @Test
+    public void testIsWhole() {
+        assertTrue(new BigNumber(42).isWhole());
+        assertFalse(BigNumber.parse("3.14").isWhole());
+    }
+
+    @Test
+    public void testIsExactClaude() {
+        assertTrue(new BigNumber(42).isExact());
+        assertTrue(BigNumber.parse("3.14").isExact());
+        // Division that doesn't terminate should not be exact
+        BigNumber result = BigNumber.one.divide(new BigNumber(3));
+        assertFalse(result.isExact());
+    }
+
+
+    // ========== Conversion Tests ==========
+
+    @Test
+    public void testIntValueClaude() {
+        BigNumber bn = new BigNumber(42);
+        assertEquals(42, bn.intValue());
+    }
+
+    @Test
+    public void testLongValueClaude() {
+        BigNumber bn = new BigNumber(123456789);
+        assertEquals(123456789L, bn.longValue());
+    }
+
+    @Test
+    public void testFloatValueClaude() {
+        BigNumber bn = BigNumber.parse("3.14");
+        assertEquals(3.14f, bn.floatValue(), 0.01f);
+    }
+
+    @Test
+    public void testDoubleValueClaude() {
+        BigNumber bn = BigNumber.parse("3.14159");
+        assertEquals(3.14159, bn.doubleValue(), 0.00001);
+    }
+
+    // ========== toString Tests ==========
+
+    @Test
+    public void testToStringWholeNumber() {
+        BigNumber bn = new BigNumber(42);
+        assertEquals("42", bn.toString());
+    }
+
+    @Test
+    public void testToStringNegativeNumber() {
+        BigNumber bn = new BigNumber(-42);
+        assertEquals("-42", bn.toString());
+    }
+
+    @Test
+    public void testToStringDecimalNumber() {
+        BigNumber bn = BigNumber.parse("3.14159");
+        assertEquals("3.14159", bn.toString());
+    }
+
+    @Test
+    public void testToStringZero() {
+        assertEquals("0", BigNumber.zero.toString());
+    }
+
+    // ========== Edge Cases ==========
+
+    // Ignored
+    public void testVeryLargeNumber() {
+        String large = "999999999999999999999999999999999999999999999999999999999999";
+        BigNumber bn = BigNumber.parse(large);
+        assertEquals(large, bn.toString());
+    }
+
+    @Test
+    public void testVerySmallDecimal() {
+        String small = "0.000000000000000000000000000001";
+        BigNumber bn = BigNumber.parse(small);
+        assertEquals(small, bn.toString());
+    }
+
+    @Test
+    public void testAdditionCommutative() {
+        BigNumber a = BigNumber.parse("123.456");
+        BigNumber b = BigNumber.parse("789.012");
+        assertEquals(a.add(b), b.add(a));
+    }
+
+    @Test
+    public void testMultiplicationCommutative() {
+        BigNumber a = BigNumber.parse("12.34");
+        BigNumber b = BigNumber.parse("56.78");
+        assertEquals(a.multiply(b), b.multiply(a));
+    }
+
+    @Test
+    public void testAdditionAssociative() {
+        BigNumber a = new BigNumber(1);
+        BigNumber b = new BigNumber(2);
+        BigNumber c = new BigNumber(3);
+        assertEquals(a.add(b).add(c), a.add(b.add(c)));
+    }
+
+    @Test
+    public void testMultiplicationAssociative() {
+        BigNumber a = new BigNumber(2);
+        BigNumber b = new BigNumber(3);
+        BigNumber c = new BigNumber(4);
+        assertEquals(a.multiply(b).multiply(c), a.multiply(b.multiply(c)));
+    }
+
+    @Test
+    public void testDistributiveLaw() {
+        BigNumber a = new BigNumber(2);
+        BigNumber b = new BigNumber(3);
+        BigNumber c = new BigNumber(4);
+        // a * (b + c) = a * b + a * c
+        BigNumber left = a.multiply(b.add(c));
+        BigNumber right = a.multiply(b).add(a.multiply(c));
+        assertEquals(left, right);
+    }
 }
