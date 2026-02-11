@@ -116,7 +116,6 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
     val ip = InversePower(2, Real(2)) // √2
     // TODO this is not correct. What's the false part?
     //    ip.render shouldBe "√(2.0,false)*"
-    // ip.show shouldBe ???
     ip.asAbsolute shouldBe ip.render
   }
 

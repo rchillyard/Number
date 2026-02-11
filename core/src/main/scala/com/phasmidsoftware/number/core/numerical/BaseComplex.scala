@@ -254,7 +254,19 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     *
     * @return the sine of this complex number as an instance of `Field`.
     */
-  lazy val sin: Field = ??? // TODO implement me
+  lazy val sin: Field = this match {
+    case c@ComplexCartesian(x, y) =>
+      // sin(z) = (exp(iz) - exp(-iz)) / (2i)
+      val iz = ComplexCartesian(y.makeNegative, x) // iz = i(x+iy) = -y + ix
+      val negIz = ComplexCartesian(y, x.makeNegative) // -iz = y - ix
+      val expIz = iz.exp
+      val expNegIz = negIz.exp
+      val numerator = expIz.asComplex `add` (expNegIz.asComplex.unary_-)
+      val twoI = ComplexCartesian(Number.zero, Number.two)
+      numerator `divide` twoI
+    case c@ComplexPolar(_, _, _) =>
+      convertToCartesian(c).sin
+  }
 
   /**
     * Computes the cosine of this field element, interpreted in the context of a complex number.
@@ -263,22 +275,45 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     *
     * @return a `Field` representing the cosine of this field element.
     */
-  lazy val cos: Field = ??? // TODO implement me
+  lazy val cos: Field = this match {
+    case c@ComplexCartesian(x, y) =>
+      // cos(z) = (exp(iz) + exp(-iz)) / 2
+      val iz = ComplexCartesian(y.makeNegative, x) // iz = i(x+iy) = -y + ix
+      val negIz = ComplexCartesian(y, x.makeNegative) // -iz = y - ix
+      val expIz = iz.exp
+      val expNegIz = negIz.exp
+      val numerator = expIz.asComplex `add` expNegIz
+      numerator `divide` Real(Number.two)
+    case c@ComplexPolar(_, _, _) =>
+      convertToCartesian(c).cos
+  }
 
   /**
     * Computes the tangent of this complex number.
     *
     * @return The tangent of this complex number as a `Field`.
     */
-  lazy val tan: Field = ??? // TODO implement me
+  lazy val tan: Field = sin `divide` cos
 
   /**
     * Computes the arc tangent of the given real number `y` in the context of this `Field`.
+    * This implements atan2(y, x) where this represents the x coordinate.
     *
-    * @param y the real number whose arc tangent is to be computed.
-    * @return a `Field` representing the arc tangent of the input.
+    * @param y the real number representing the y coordinate.
+    * @return a `Field` representing the arc tangent atan2(y, x).
     */
-  def atan(y: Real): Field = ??? // TODO implement me
+  def atan(y: Real): Field = this match {
+    case ComplexCartesian(x, imag) if imag.isZero =>
+      // Standard atan2(y, x) for real numbers
+      // Use Number's atan method: x.atan(y)
+      Real(x.atan(y.x))
+    case c@ComplexCartesian(_, _) =>
+      // For complex x, use the real part and compute atan2
+      val cartesian = convertToCartesian(c)
+      Real(cartesian.real.atan(y.x))
+    case c@ComplexPolar(_, _, _) =>
+      convertToCartesian(c).atan(y)
+  }
 
   /**
     * Computes the natural logarithm of this Field.
@@ -294,7 +329,33 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     *
     * @return the exponential of this Field as a new Field instance.
     */
-  lazy val exp: Field = ??? // TODO implement me
+  lazy val exp: Field = this match {
+    case ComplexCartesian(x, y) if y.isZero =>
+      // exp(x + 0i) = e^x (real exponential)
+      Real(x.exp)
+    case ComplexCartesian(x, y) if x.isZero =>
+      // exp(0 + iy) = cos(y) + i*sin(y)
+      // Use Euler's formula directly in Cartesian form
+      ComplexCartesian(y.cos, y.sin)
+    case ComplexCartesian(x, y) =>
+      // exp(x + iy) = e^x * (cos(y) + i*sin(y))
+      val eToX = x.exp.scale(PureNumber)
+      val cosY = y.cos
+      val sinY = y.sin
+
+      // Debug output
+      println(s"exp debug: x=$x, y=$y")
+      println(s"  eToX=$eToX")
+      println(s"  cosY=$cosY")
+      println(s"  sinY=$sinY")
+      println(s"  eToX * cosY = ${eToX `doMultiply` cosY}")
+      println(s"  eToX * sinY = ${eToX `doMultiply` sinY}")
+
+      ComplexCartesian(eToX `doMultiply` cosY, eToX `doMultiply` sinY)
+    case c@ComplexPolar(r, theta, n) =>
+      // For polar form, convert to Cartesian first
+      convertToCartesian(c).exp
+  }
 
   /**
     * Method to render the imaginary value as a String.
@@ -523,8 +584,21 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     *
     * @return the natural logarithm of this Field as a Field.
     */
-  lazy val ln: Field =  // TESTME
-    throw ComplexException("not implemented: ComplexCartesian.ln")
+  lazy val ln: Field = {
+    // ln(z) = ln(|z|) + i·arg(z)
+    // where |z| is the modulus and arg(z) is the argument
+    val mag = modulus
+    val arg = argument
+    mag.ln match {
+      case Real(lnMag) =>
+        // argument is in Radian factor (units of π), convert to pure number (actual radians)
+        // Use scale to convert: Scalar.convert uses scaleDouble which multiplies by π
+        val argPure = arg.scale(PureNumber)
+        ComplexCartesian(lnMag, argPure)
+      case _ =>
+        throw ComplexException("ln of modulus did not produce a Real")
+    }
+  }
 
   /**
     * TESTME
@@ -795,7 +869,8 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
   lazy val ln: Field =
     r.ln match {
       case Real(n) =>
-        ComplexCartesian(n, theta)
+        // theta is in Radian factor (units of π), convert to PureNumber (actual radians)
+        ComplexCartesian(n, theta.scale(PureNumber))
       case _ =>
         throw ComplexException("logic error: ComplexPolar.ln")
     }

@@ -197,6 +197,38 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "multiply root2 and root2" in {
     (root2 `multiply` Constants.root2).normalize shouldBe Constants.two
   }
+  it should "multiply e and e" in {
+    val eSquared: Field = (Constants.e `multiply` Constants.e).normalize
+    eSquared match {
+      case Real(x) =>
+        x.factor shouldBe NatLog
+        x.nominalValue shouldBe Value.fromInt(2)
+      case _ =>
+        fail("multiply e and e")
+    }
+  }
+  it should "multiply e and pi" in {
+    val ePi: Field = (Constants.e `multiply` Constants.pi).normalize
+    ePi match {
+      case Real(x) =>
+        x.factor shouldBe PureNumber
+        x.nominalValue shouldBe Value.fromDouble(Some(8.539734222673568))
+      case _ =>
+        fail("multiply e and e")
+    }
+  }
+  it should "multiply pi and e" in {
+    val ePi: Field = (Constants.pi `multiply` Constants.e).normalize
+    ePi match {
+      case Real(x) =>
+        // CONSIDER should the factor by Radian, with a nominal value of 2.718?
+        x.factor shouldBe PureNumber
+        x.nominalValue shouldBe Value.fromDouble(Some(8.539734222673568))
+      case _ =>
+        fail("multiply e and e")
+    }
+  }
+
   // NOTE Looks like this is fixed (problem with handling roots)
   it should "multiply sin by sin" in {
     val piBy4 = Number.pi `doDivide` 4
@@ -1006,6 +1038,10 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     import com.phasmidsoftware.number.core.numerical.Number.FuzzOps
     sin should ===(0.2588190451025207 ~ 10)
   }
+  it should "work for 1/3" in {
+    // Get the sine of 1/3 as a pure number.
+    Number(Rational(1, 3)).sin shouldBe FuzzyNumber(Value.fromDouble(Some(0.3271946967961522)), PureNumber, Some(RelativeFuzz(1.4797611308423386E-15, Box)))
+  }
 
   behavior of "cos"
   it should "be zero for pi" in {
@@ -1029,6 +1065,10 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val cos = target.cos
     val expected = Number(3).sqrt `doDivide` 2
     cos should ===(expected)
+  }
+  it should "work for 2/3" in {
+    // Get the cosine of 2/3 as a pure number.
+    Number(Rational(2, 3)).cos shouldBe FuzzyNumber(Value.fromDouble(Some(0.7858872607769481)), PureNumber, Some(RelativeFuzz(8.542624017840829E-16, Gaussian)))
   }
 
   behavior of "tan"
