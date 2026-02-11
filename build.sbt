@@ -161,6 +161,8 @@ lazy val dimensions = (project in file("dimensions"))
 
 Test / parallelExecution := false
 
+Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports")
+
 // Only enable the task in the root project
 generateMermaidDiagrams / aggregate := false
 
