@@ -857,7 +857,7 @@ trait Fuzz[T] extends WithFuzziness {
     * @param f the fuzziness to add, represented as a Fuzziness[T].
     * @return a Number that represents the result of adding the provided fuzziness.
     */
-  def addFuzz(f: Fuzziness[T]): Number
+  def addFuzz(f: Fuzziness[T]): Fuzz[Double]
 
   /**
     * Creates a fuzziness value with zero magnitude and a Gaussian distribution.

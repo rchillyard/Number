@@ -35,11 +35,11 @@ val commonScalacOptions = Seq(
 // Scala 3-specific options - FOCUSED on catching string concatenation
 val scala3Options = Seq(
   // CORE: These three are the minimum to catch the + operator issue
-//  "-Xfatal-warnings",              // Turn warnings into errors
+  //  "-Xfatal-warnings",              // Turn warnings into errors
   "-Wvalue-discard", // Error on discarded non-Unit values
   "-Wnonunit-statement", // Error when non-Unit expressions used as statements
 
-//  "-source:3.7-migration", "-rewrite", // Rewrites, here we do 3.7-migration.
+  //  "-source:3.7-migration", "-rewrite", // Rewrites, here we do 3.7-migration.
 
   // HELPFUL: Good practices that don't add much burden
   "-explain", // Detailed error explanations
@@ -60,88 +60,87 @@ val scala3TestSettings = Seq(
 // ============================================================================
 
 lazy val root = (project in file("."))
-    .enablePlugins(ScalaUnidocPlugin)
-    .aggregate(core, algebra, expression, parse, top)
-    .dependsOn(top)
-    .settings(
-      name := "number",
-      scalaVersion := scalaVersionNumber,
-      publish / skip := true,  // Don't publish the root aggregator
+  .enablePlugins(ScalaUnidocPlugin)
+  .aggregate(core, algebra, expression, parse, top)
+  .dependsOn(top)
+  .settings(
+    name := "number",
+    scalaVersion := scalaVersionNumber,
 
-      // Unidoc settings - create unified scaladoc for all modules
-      ScalaUnidoc / unidoc / unidocProjectFilter :=
-          inProjects(core, algebra, expression, parse, top),
+    // Unidoc settings - create unified scaladoc for all modules
+    ScalaUnidoc / unidoc / unidocProjectFilter :=
+      inProjects(core, algebra, expression, parse, top),
 
-      // Scaladoc options for the unified documentation
-      ScalaUnidoc / unidoc / scalacOptions ++= Seq(
-        "-groups",
-        "-doc-title", "Number - Scala Mathematical Library",
-        "-doc-version", version.value,
-        "-sourcepath", (LocalRootProject / baseDirectory).value.getAbsolutePath,
-        "-doc-root-content", (LocalRootProject / baseDirectory).value + "/rootdoc.txt"
-      )
+    // Scaladoc options for the unified documentation
+    ScalaUnidoc / unidoc / scalacOptions ++= Seq(
+      "-groups",
+      "-doc-title", "Number - Scala Mathematical Library",
+      "-doc-version", version.value,
+      "-sourcepath", (LocalRootProject / baseDirectory).value.getAbsolutePath,
+      "-doc-root-content", (LocalRootProject / baseDirectory).value + "/rootdoc.txt"
     )
+  )
 lazy val core = (project in file("core"))
-    .settings(
-      scalaVersion := scalaVersionNumber,
-      scalacOptions ++= commonScalacOptions ++ scala3Options,
+  .settings(
+    scalaVersion := scalaVersionNumber,
+    scalacOptions ++= commonScalacOptions ++ scala3Options,
 
-      libraryDependencies ++= Seq(
-        "com.phasmidsoftware" %% "flog" % flogVersion,
-        "com.phasmidsoftware" %% "matchers" % "1.0.13",
-        "org.apache.commons" % "commons-math3" % apacheCommonsVersion,
-        "org.scala-lang.modules" %% "scala-parser-combinators" % scalaParserCombinatorsVersion,
-        "org.typelevel" %% "spire" % "0.18.0",
-        "org.typelevel" %% "cats-kernel" % catsVersion,
-        "org.typelevel" %% "cats-core" % catsVersion,
-        "org.typelevel" %% "discipline-scalatest" % "2.3.0" % "test",
-        "com.novocode" % "junit-interface" % "0.11" % "test", // NOTE vulnerability here
-        "org.scalacheck" %% "scalacheck" % "1.19.0" % "test", // This is used for testing Rational
-        "org.typelevel" %% "cats-laws" % catsVersion % "test",
-        "org.typelevel" %% "algebra-laws" % catsVersion % "test",
-        "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
-        "ch.qos.logback" % "logback-classic" % logbackClassicVersion % "runtime"
-      )
+    libraryDependencies ++= Seq(
+      "com.phasmidsoftware" %% "flog" % flogVersion,
+      "com.phasmidsoftware" %% "matchers" % "1.0.13",
+      "org.apache.commons" % "commons-math3" % apacheCommonsVersion,
+      "org.scala-lang.modules" %% "scala-parser-combinators" % scalaParserCombinatorsVersion,
+      "org.typelevel" %% "spire" % "0.18.0",
+      "org.typelevel" %% "cats-kernel" % catsVersion,
+      "org.typelevel" %% "cats-core" % catsVersion,
+      "org.typelevel" %% "discipline-scalatest" % "2.3.0" % "test",
+      "com.novocode" % "junit-interface" % "0.11" % "test", // NOTE vulnerability here
+      "org.scalacheck" %% "scalacheck" % "1.19.0" % "test", // This is used for testing Rational
+      "org.typelevel" %% "cats-laws" % catsVersion % "test",
+      "org.typelevel" %% "algebra-laws" % catsVersion % "test",
+      "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
+      "ch.qos.logback" % "logback-classic" % logbackClassicVersion % "runtime"
     )
-    .settings(scala3TestSettings)
+  )
+  .settings(scala3TestSettings)
 
 lazy val algebra = (project in file("algebra"))
-    .settings(
-      scalaVersion := scalaVersionNumber,
-      scalacOptions ++= commonScalacOptions ++ scala3Options
-    )
-    .settings(scala3TestSettings)
-    .dependsOn(core)
+  .settings(
+    scalaVersion := scalaVersionNumber,
+    scalacOptions ++= commonScalacOptions ++ scala3Options
+  )
+  .settings(scala3TestSettings)
+  .dependsOn(core)
 
 lazy val expression = (project in file("expression"))
-    .settings(
-      scalaVersion := scalaVersionNumber,
-      scalacOptions ++= commonScalacOptions ++ scala3Options
-    )
-    .settings(scala3TestSettings)
-    .dependsOn(core, algebra)
+  .settings(
+    scalaVersion := scalaVersionNumber,
+    scalacOptions ++= commonScalacOptions ++ scala3Options
+  )
+  .settings(scala3TestSettings)
+  .dependsOn(core, algebra)
 
 lazy val parse = (project in file("parse"))
-    .settings(
-      scalaVersion := scalaVersionNumber,
-      scalacOptions ++= commonScalacOptions ++ scala3Options,
+  .settings(
+    scalaVersion := scalaVersionNumber,
+    scalacOptions ++= commonScalacOptions ++ scala3Options,
 
-      libraryDependencies ++= Seq(
-        "com.lihaoyi" %% "fastparse" % "3.1.1"
-      )
+    libraryDependencies ++= Seq(
+      "com.lihaoyi" %% "fastparse" % "3.1.1"
     )
-    .settings(scala3TestSettings)
-    .dependsOn(core, algebra, expression, dimensions)
+  )
+  .settings(scala3TestSettings)
+  .dependsOn(core, algebra, expression, dimensions)
 
 lazy val top = (project in file("top"))
-    .settings(
-      scalaVersion := scalaVersionNumber,
-      scalacOptions ++= commonScalacOptions ++ scala3Options,
-      scalacOptions ++= Seq(
-        "-Wconf:msg=any2stringadd:e"  // Make any2stringadd usage an ERROR
-      )
+  .settings(
+    scalaVersion := scalaVersionNumber,
+    scalacOptions ++= commonScalacOptions ++ scala3Options,
+    scalacOptions ++= Seq(
+      "-Wconf:msg=any2stringadd:e" // Make any2stringadd usage an ERROR
     )
-    .settings(scala3TestSettings)
+  )
+  .settings(scala3TestSettings)
   .dependsOn(core, algebra, expression, parse, dimensions)
 
 lazy val dimensions = (project in file("dimensions"))

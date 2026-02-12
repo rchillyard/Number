@@ -221,7 +221,7 @@ object ExpressionHelper {
     def normalize: Option[Valuable] =
       Expression.parse(x).map(x => x.normalize)
     def render: String =
-      Expression.parse(x).map(_.render).getOrElse("???")
+      Expression.parse(x).map(_.render).getOrElse(s"<Unable to parse $x>")
     def plus(y: Valuable): Option[Valuable] =
       Expression.parse(s"$x + $y").flatMap(_.evaluateAsIs)
     def times(y: Valuable): Option[Valuable] =
