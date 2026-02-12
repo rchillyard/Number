@@ -190,8 +190,6 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     * Only the nominalValue and factor will change.
     * This method should be followed by a call to specialize.
     *
-    * TESTME
-    *
     * @param v  the nominalValue (a Double).
     * @param f  Factor.
     * @param fo optional fuzz.
@@ -216,8 +214,6 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     * Method to determine the sense of this number: negative, zero, or positive.
     * If this `FuzzyNumber` cannot be distinguished from zero with `p` confidence, then
     * the result will be zero.
-    *
-    * TESTME
     *
     * @param p the confidence desired (ignored).
     * @return an `Int` which is negative, zero, or positive, according to the magnitude of this.

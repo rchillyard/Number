@@ -1026,6 +1026,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val sin = target.sin
     sin shouldBe Number(Rational.half, SquareRoot)
   }
+  it should "work for 5/12 Radian" in {
+    val target = Number(Rational(5, 12), Radian)
+    val expected = (Number.sqrt(6) doAdd Number.root2) doDivide 4
+    target.sin should ===(expected)
+  }
   it should "work for One" in {
     val target = Number.one
     val sin = target.sin

@@ -77,7 +77,6 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
   /**
     * Determines if this complex number has a modulus of unity (magnitude of one).
     * This is true if the modulus of the complex number, when subtracted by one, equals zero.
-    * TESTME
     *
     * @return true if the modulus of this complex number is unity (1), otherwise false.
     */
@@ -365,7 +364,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
   protected def showImaginary(polar: Boolean, branch: Int = 0, n: Int = 1): String = (imag, branch, n) match {
     case (Number.zero, 0, 1) | (Number.zeroR, 0, 1) =>
       "0"
-    case (x, 0, 1) => // TESTME
+    case (x, 0, 1) =>
       // CONSIDER Try to merge this code with the following case
       val sign = (x, polar) match {
         case (Number.zero, true) =>
@@ -482,7 +481,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     * @return true if this NumberLike object is exact in the context of No factor, else false.
     */
   lazy val isExact: Boolean =
-    x.isExact && y.isExact  // TESTME
+    x.isExact && y.isExact
 
   /**
     * Method to determine the modulus of this Complex number.
@@ -525,12 +524,11 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
 
   /**
     * Rotate this Complex number by pi/2 counter-clockwise (i.e. multiply by i).
-    * TESTME
     *
     * @return the value of this * i.
     */
   lazy val rotate: BaseComplex =
-    ComplexCartesian(imag.makeNegative, real)  // TESTME
+    ComplexCartesian(imag.makeNegative, real)
 
   /**
     * Method to multiply this BaseComplex by a Number.
@@ -555,7 +553,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
       val real: Number = (a `doMultiply` x) `doAdd` (b `doMultiply` y `doMultiply` Number.negOne)
       val imag: Number = (a `doMultiply` y) `doAdd` (b `doMultiply` x)
       ComplexCartesian(real, imag)
-    case ComplexPolar(_, _, _) =>  // TESTME
+    case ComplexPolar(_, _, _) =>
       throw ComplexException("logic error: ComplexCartesian.doAdd")
   }
 
@@ -601,9 +599,15 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
   }
 
   /**
-    * TESTME
+    * Lazily computed normalized Field value based on the normalization of the `x` and `y` components
+    * of the current `ComplexCartesian` instance.
     *
-    * @return a Field which is in canonical form.
+    * The normalization process involves:
+    * - Converting the normalized `x` and `y` components into numerical representations.
+    * - Constructing a `ComplexCartesian` representation from these components.
+    * - Simplifying the result to a `Real` if the imaginary part is zero, or retaining the `ComplexCartesian` otherwise.
+    *
+    * @return A `Field` instance representing the normalized form of the current value.
     */
   lazy val normalize: Field =
     ComplexCartesian(convertToNumber(x.normalize), convertToNumber(y.normalize)) match {
@@ -680,7 +684,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     */
   private def scale(x: Number) = x match {
     case Number.i =>
-      make(negate(imag), real) // TESTME
+      make(negate(imag), real)
     case _ =>
       make(real `doMultiply` x, imag `doMultiply` x)
   }
@@ -703,7 +707,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     * @return an Option[Real].
     */
   def asReal: Option[Real] =
-    if (isReal) Some(Real(x)) else None // TESTME
+    if (isReal) Some(Real(x)) else None
 
   /**
     * Determine the "sign" of this field.
@@ -713,18 +717,16 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     * @return +1 if to the right of the origin, -1 if to the left, 0 if at the origin.
     */
   lazy val signum: Int =
-    x.signum // TESTME
+    x.signum
 
   /**
-    * Computes the absolute value of this complex number, represented in Cartesian coordinates.
-    * The result is a new complex number with both the real and imaginary components replaced
-    * by their respective absolute values.
+    * A lazily initialized value representing the absolute value (or modulus) of this Complex number.
     *
-    * NOTE WARNING this is very arbitrary. Maybe abs should not be in NumberLike.
-    *
-    * @return a Numerical instance that is the absolute value of this complex number.
+    * The `abs` value provides the magnitude of the complex number as a `Numerical`. 
+    * It is calculated based on the `modulus` field of the `ComplexCartesian` class.
+    * This value is non-negative and represents the distance of the complex number from the origin of the complex plane.
     */
-  lazy val abs: Numerical = ComplexCartesian(x.abs, y.abs)
+  lazy val abs: Numerical = modulus
 }
 
 /**
@@ -891,8 +893,6 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
   /**
     * Method to determine if this ComplexPolar is zero.
     *
-    * TESTME
-    *
     * @return true if the magnitude of this Field is zero.
     */
   def isZero: Boolean =
@@ -926,7 +926,6 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
   /**
     * Action to simplifyAndEvaluate this ComplexPolar and render it as a String,
     * that is to say we eagerly evaluate this ComplexPolar as a String.
-    * TESTME (partial)
     *
     * NOTE that some of these special cases that are handled here should be eliminated by a prior call to normalize.
     *
@@ -1001,8 +1000,6 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     * Method to return this Field as a Real, if possible.
     * If this is a Real number x, return Some(x) otherwise, return None.
     *
-    * TESTME
-    *
     * @return an Option[Real].
     */
   def asReal: Option[Real] =
@@ -1022,12 +1019,10 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     * For a real-valued quantity (Real or Number), we try to determine if it is to the right, left or at the origin.
     * For a complex number, we get the signum of the real part.
     *
-    * TESTME
-    *
     * @return +1 if to the right of the origin, -1 if to the left, 0 if at the origin.
     */
   def signum: Int =
-    convertToCartesian(this).signum // TESTME
+    convertToCartesian(this).signum
 
   /**
     * Computes the absolute value (magnitude) of this ComplexPolar instance.
@@ -1036,7 +1031,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     *
     * @return the absolute value as a Numerical.
     */
-  def abs: Numerical = convertToCartesian(this).abs // TESTME
+  def abs: Numerical = r
 }
 
 /**
@@ -1061,7 +1056,6 @@ object ComplexPolar {
 
   /**
     * Creates a ComplexPolar object from an integer magnitude and a specified angle.
-    * TESTME
     *
     * @param r     an integer representing the radius (magnitude) of the ComplexPolar object
     * @param theta a Number representing the angle (theta) of the ComplexPolar object

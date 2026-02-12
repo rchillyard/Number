@@ -758,7 +758,7 @@ object Root {
     *               0 gives the positive root, 1 gives the negative root.
     * @return a `QuadraticRoot` instance representing the square root computation and branch selection.
     */
-  def squareRoot(r: Rational, branch: Int): Root = QuadraticRoot(squareRootEquation(r), branch, Some(s"√$r"))
+  def squareRoot(r: Rational, branch: Int = 0): Root = QuadraticRoot(squareRootEquation(r), branch, Some(s"√$r"))
 
   /**
     * Computes the square root of a given integer and returns the corresponding `Root`.

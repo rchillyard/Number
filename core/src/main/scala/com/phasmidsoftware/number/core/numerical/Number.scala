@@ -212,7 +212,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * @param n another Number.
     * @return the sum of this and n.
     */
-  def doAdd(n: Number): Number
+  infix def doAdd(n: Number): Number
 
   /**
     * Subtract n from this Number
@@ -1621,7 +1621,7 @@ object Number {
         }
 
       case _ =>
-        throw CoreException(s"atan: factor not matched: ${ratio.factor}") // TESTME
+        throw CoreException(s"atan: factor not matched: ${ratio.factor}")
     }
   }
 
