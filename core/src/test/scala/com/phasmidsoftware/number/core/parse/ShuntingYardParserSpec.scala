@@ -5,11 +5,12 @@
 package com.phasmidsoftware.number.core.parse
 
 import com.phasmidsoftware.number.core.mill.CoreMill
-import com.phasmidsoftware.number.core.numerical.{Constants, Number}
+import com.phasmidsoftware.number.core.numerical.Number
 import com.phasmidsoftware.number.core.parse.ShuntingYardParser
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Success, Try}
 
 class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
@@ -84,28 +85,6 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
     value should matchPattern { case Success(_) => }
     value map (_.evaluate shouldBe Some(0.5))
   }
-//  it should "parse Infix and evaluate: sqrt(3)" in {
-//    val value: Option[CoreMill] = p.parseInfix("3 ∧ ( 2 ∧ -1 )").toOption
-//    value should matchPattern { case Some(_) => }
-//    val z: Option[Expression] = value.flatMap(_.evaluate).map(convertMillExpressionToExpression)
-//    val q = z map (_.materialize)
-//    q shouldBe Some(Constants.root3)
-//    // TESTME the result.
-//  }
-//  it should "parse Infix and evaluate: sin(pi)" in {
-//    val value: Option[CoreMill] = p.parseInfix("sin(𝛑)").toOption
-//    value should matchPattern { case Some(_) => }
-//    val z: Option[Expression] = value.flatMap(_.evaluate).map(convertMillExpressionToExpression)
-//    val q = z map (_.materialize)
-//    q shouldBe Some(Constants.zero)
-//  }
-//  it should "parse Infix and evaluate: sin(pi/2)" in {
-//    val value: Option[CoreMill] = p.parseInfix("sin(𝛑/2)").toOption
-//    value should matchPattern { case Some(_) => }
-//    val z: Option[Expression] = value.flatMap(_.evaluate).map(convertMillExpressionToExpression)
-//    val q = z map (_.materialize)
-//    q shouldBe Some(Constants.one)
-//  }
   it should "shuntingYard" in {
     p.parseInfix("( 1 + 3 ) + ( 2 * 3 )") should matchPattern { case Success(_) => }
     p.parseInfix("( ( 1 + 3 ) + ( 2 * 3 ) )") should matchPattern { case Success(_) => }

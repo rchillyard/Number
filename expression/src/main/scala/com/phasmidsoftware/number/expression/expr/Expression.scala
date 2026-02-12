@@ -459,7 +459,7 @@ object Expression {
       * @return an Expression representing the tan(x).
       */
     def tan: Expression =
-      sin :* cos.reciprocal // TESTME
+      sin :* cos.reciprocal
 
     /**
       * Method to lazily get the natural log of x.
@@ -694,7 +694,7 @@ object Expression {
             em.eitherOr(simplifyExact,
               simplifyByEvaluation))))(x)
     case x =>
-      em.Error(ExpressionException(s"matchSimpler unsupported expression type: $x")) // TESTME
+      em.Error(ExpressionException(s"matchSimpler unsupported expression type: $x"))
   }
 
   /**
@@ -710,7 +710,7 @@ object Expression {
     case c: CompositeExpression =>
       c.operandsMatcher(c)
     case x =>
-      em.Miss("simplifyOperands: not a Composite expression type", x) // TESTME
+      em.Miss("simplifyOperands: not a Composite expression type", x)
   }
 
   /**
@@ -855,7 +855,6 @@ object Expression {
 
 /**
   * A custom exception that represents errors related to expressions.
-  * TESTME (unused)
   *
   * @param str The error message providing details about the expression error.
   */

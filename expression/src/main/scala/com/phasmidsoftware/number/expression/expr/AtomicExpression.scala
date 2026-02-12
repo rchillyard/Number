@@ -71,23 +71,23 @@ object AtomicExpression {
     * Extracts an optional `Valuable` from an `AtomicExpression` instance based on its type.
     * This method provides a mechanism for pattern matching on subtypes of `AtomicExpression`,
     * returning a `Valuable` where applicable.
+    * TESTME
     *
     * @param arg the `AtomicExpression` instance from which the `Valuable` is to be extracted.
     *            This can be one of the subtypes such as `Complex`, `ValueExpression`, `Literal`,
     *            `Valuable`, `Noop`, or `ReducedQuadraticRoot`.
-    *
     * @return an `Option` containing the extracted `Valuable` if one can be determined based on the
     *         type of `arg`. Returns `None` if no `Valuable` can be extracted, e.g., in the case of `Noop`.
     */
   def unapply(arg: AtomicExpression): Option[Valuable] = arg match {
     case c: Complex =>
-      Some(c) // CONSIDER eliminate this?  // TESTME
+      Some(c) // CONSIDER eliminate this?
     case ValueExpression(x, _) =>
       Some(x) // NOTE we lose the name here.
     case Literal(x, _) =>
-      Some(x) // NOTE we lose the name here. // TESTME
+      Some(x) // NOTE we lose the name here.
     case r: Root =>
-      r.evaluateAsIs // TESTME
+      r.evaluateAsIs
     case _ =>
       None
   }
