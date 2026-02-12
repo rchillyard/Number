@@ -144,17 +144,6 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     GeneralNumber.power(this, p)
 
   /**
-    * Method to scale this ExactNumber by a constant factor.
-    *
-    * TESTME
-    *
-    * @param v the factor.
-    * @return
-    */
-  def scale(v: Value): Number =
-    GeneralNumber.doTimes(this, ExactNumber(v, PureNumber), factor)
-
-  /**
     * Method to compare this Number with another.
     *
     * @param other the other Number.

@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.inner.{NatLog, Radian, Rational}
+import com.phasmidsoftware.number.core.numerical.Number.negate
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -360,6 +361,16 @@ class BaseComplexSpec extends AnyFlatSpec with Matchers {
         val cartesian = Complex.convertToCartesian(c)
         cartesian.real.toNominalDouble.get should be(3.0 / 25.0 +- 1e-10)
         cartesian.imag.toNominalDouble.get should be(-4.0 / 25.0 +- 1e-10)
+    }
+  }
+
+  it should "compute inverse correctly for polar" in {
+    val z = ComplexPolar(Number(2), Number.piBy2)
+    val inv = z.invert
+    inv match {
+      case ComplexPolar(r, theta, 1) =>
+        r shouldBe Number.half
+        theta shouldBe negate(Number.piBy2)
     }
   }
 

@@ -120,16 +120,6 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
   infix def divide(x: Field): Field
 
   /**
-    * Divide this Field by another Field.
-    *
-    * TESTME
-    *
-    * @param x the other Field.
-    * @return the quotient of this and x.
-    */
-  infix def /(x: Field): Field = divide(x)
-
-  /**
     * Raise this Field to the power p.
     *
     * @param p an Int.

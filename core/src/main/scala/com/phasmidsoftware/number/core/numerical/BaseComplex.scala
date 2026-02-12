@@ -559,7 +559,6 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
 
   /**
     * Method to determine if this complex number is probably zero (with probability of 1/2).
-    * TESTME
     *
     * @return true if the magnitude of this Field is zero.
     */
@@ -568,7 +567,6 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
 
   /**
     * Determines if either the real or imaginary part of this Complex number is infinite.
-    * TESTME
     *
     * @return true if the real part or the imaginary part is infinite; false otherwise.
     */
@@ -840,7 +838,6 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
 
   /**
     * Yields the inverse of this Complex.
-    * TESTME
     *
     * @return the result of invoking power(-1).
     */

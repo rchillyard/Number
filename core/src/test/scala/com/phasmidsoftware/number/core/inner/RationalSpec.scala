@@ -8,6 +8,7 @@ import com.phasmidsoftware.number.core.inner.Rational.{RationalHelper, bigTen, c
 import com.phasmidsoftware.number.core.numerical.Prime
 import org.scalatest.matchers.should
 import org.scalatest.{PrivateMethodTester, flatspec}
+
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
@@ -217,10 +218,11 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     r.toBigInt shouldBe BigInt(Long.MaxValue)
   }
 
-  behavior of "toLong"
+  behavior of "maybeLong"
   it should "work for Long.MaxValue" in {
     val r = Rational(Long.MaxValue)
-    r.toLong shouldBe Long.MaxValue
+    r.maybeLong shouldBe Some(Long.MaxValue)
+    Rational(BigInt(Long.MaxValue) + 1).maybeLong shouldBe None
   }
 
   behavior of "toBigDecimal"
