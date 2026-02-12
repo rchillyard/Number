@@ -220,9 +220,9 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     case Aggregate(Sum, Nil) =>
       Match(Zero)
     case Aggregate(Product, Nil) =>
-      Match(One) // TESTME
+      Match(One)
     case Aggregate(Power, Nil) =>
-      Miss("simplifyAggregate: cannot simplify Power(0, 0)", Aggregate(Power, Nil)) // TESTME
+      Miss("simplifyAggregate: cannot simplify Power(0, 0)", Aggregate(Power, Nil))
     case Aggregate(_, x :: Nil) =>
       Match(x) // XXX we should not need to simplify x since simplifyOperands should already have done that
     // NOTE it's important that you do not reintroduce a match into a BiFunction!
@@ -252,7 +252,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
         case Success(list) =>
           matchOrMiss(a.function, list)(a)
         case Failure(x) =>
-          Error(x) // XXX the result of an extremely improbable NoSuchElementException // TESTME
+          Error(x) // XXX the result of an extremely improbable NoSuchElementException
       }
   }
 
@@ -382,8 +382,10 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     */
   private def matchNumber(x: Valuable): AutoMatcher[Valuable] =
     Matcher("matchNumber") {
-      case `x` => Match(x) // TESTME
-      case e => Miss("matchNumber", e)
+      case `x` =>
+        Match(x)
+      case e =>
+        Miss("matchNumber", e)
     }
 
   /**

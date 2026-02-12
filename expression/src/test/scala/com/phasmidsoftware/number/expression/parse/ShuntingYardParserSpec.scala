@@ -105,7 +105,6 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
     val z: Option[Expression] = value.flatMap(_.evaluate)
     val q = z map (_.value)
     q shouldBe Some(Number.root3)
-    // TESTME the result.
   }
   it should "parse Infix and evaluate: sin(𝛑)" in {
     val value: Option[Mill] = p.parseInfix("sin(𝛑)").toOption

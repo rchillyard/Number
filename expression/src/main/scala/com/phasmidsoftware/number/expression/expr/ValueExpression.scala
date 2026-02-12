@@ -384,7 +384,7 @@ object Literal {
     * @return a Literal instance containing the provided Double value as a Real.
     */
   def apply(x: Double): Literal =
-    Literal(Real(x)) // TESTME
+    Literal(Real(x))
 
   /**
     * Creates a Literal instance from a given number.
@@ -533,7 +533,7 @@ case object Half extends ScalarConstant(RationalNumber.half, "\u00BD") {
     case Reciprocal =>
       Some(Two)
     case _ =>
-      None // TESTME
+      None
   }
 }
 
@@ -563,7 +563,7 @@ case object One extends ScalarConstant(WholeNumber.one, "1") {
     case Ln =>
       Some(Zero)
     case _ =>
-      None // TESTME
+      None
   }
 }
 

@@ -223,6 +223,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val zero: Expression = expr.Zero
     zero.atan(Eager.one).materialize shouldBe Angle.piBy2
     One.atan(0).materialize shouldBe Angle.zero
+    MinusOne.atan(0).materialize shouldBe Angle.pi
     One.atan(Eager.root3).evaluateAsIs shouldBe Some(Angle.piBy3)
     One.atan(One).evaluateAsIs shouldBe Some(Eager.piBy4)
   }

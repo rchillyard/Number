@@ -71,7 +71,6 @@ object AtomicExpression {
     * Extracts an optional `Valuable` from an `AtomicExpression` instance based on its type.
     * This method provides a mechanism for pattern matching on subtypes of `AtomicExpression`,
     * returning a `Valuable` where applicable.
-    * TESTME
     *
     * @param arg the `AtomicExpression` instance from which the `Valuable` is to be extracted.
     *            This can be one of the subtypes such as `Complex`, `ValueExpression`, `Literal`,

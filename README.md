@@ -40,7 +40,7 @@ Number is organized into multiple modules:
 
 #### Current Version
 
-The current version is 1.6.7.
+The current version is 1.6.8.
 
 To use Number in your project, add the following dependency:
 
@@ -1243,16 +1243,3 @@ For version history and migration notes, see the [HISTORY](docs/HISTORY.md).
 See [Testing Conventions](docs/testing/TESTING_CONVENTIONS.md) for comprehensive testing guidelines.
 
 Quick reference: [Testing Quick Reference](docs/testing/TESTING_QUICK_REFERENCE.md)
-
-## TODO
-
-The following strings should be recognized as part of the TODO set (configurable in your IDE), perhaps excluding NOTE
-and XXX:
-
-* FIXME: Will be annotated by an Issue #. Top priority to be fixed.
-* TESTME: This indicates that there are no unit tests for this code. Not used in private methods. Not used for cases
-  designed to catch all possibilities.
-* TODO: Technical debt to be paid back.
-* CONSIDER: An idea for an alternative approach.
-* NOTE: A note to readers that might perhaps be a surprise.
-* XXX: just a general comment.
