@@ -20,6 +20,13 @@ This project provides exact and fuzzy numeric computation with lazy evaluation i
 * **Quantities** which are based on (eager or lazy) numeric values together with their respective units.
 * **Cats integration** - leverages typelevel algebra for abstract algebra
 
+## Design Philosophy
+
+For a comprehensive explanation of how Number maintains exact arithmetic and when to use approximate values, see:
+
+📖 **[Exact vs Approximate Arithmetic](docs/EXACT_VS_APPROXIMATE.md)** - Understanding materialization, symbolic
+computation, and the `fuzzy` method
+
 ## Project Structure
 
 Number is organized into multiple modules:
@@ -32,7 +39,7 @@ Number is organized into multiple modules:
 * **`top`** - Top level example code
 
 #### Current Version
-The current version is 1.5.6.
+The current version is 1.6.5.
 
 **Migration Note**: The `algebra` module is replacing `core.Number` and `core.Field` with a cleaner type hierarchy based on algebraic structures.
 **Migration Note**: For version history and more detail regarding migration, see the [HISTORY](docs/HISTORY.md).
@@ -72,7 +79,8 @@ For more examples, see the `GettingStarted.sc` worksheet in the `top` module.
 #### Sources
 Wikipedia has been my constant reference for basic mathematical relationships.
 I'm also indebted to Claude (by Anthropic) for her excellent advice regarding the restructuring in versions 1.3.2 and beyond.
-**Note**: While "Claude" is typically a male name in the English-speaking world, in France it is also common as a female name. I'm particularly honoring poor Claude-Emma Debussy ("Chouchou") here. 
+**Note**: While "Claude" is typically a male name in the English-speaking world, in France it is also common as a female
+name. I'm particularly honoring poor Claude-Emma Debussy ("Chouchou") here.
 
 However, many of the specific ideas and much of the theory behind this project derives from the following book:
 
@@ -97,7 +105,7 @@ The purpose of the lazy values is that often, composing a value with another val
 exactly.
 In such a case, eager arithmetic would be forced to evaluate the expression as a fuzzy value.
 
-Yet, sometimes, that loss of precision is premature. For example, in the expression 
+Yet, sometimes, that loss of precision is premature. For example, in the expression
 $$(\sqrt{3} + 1)(\sqrt{3}-1)$$
 the value should be exactly 2.
 
@@ -176,7 +184,7 @@ Angles normalize to the range [-1, 1) where a full circle = 2.
 
 **Important**: `Angle` has no `Order` instance because circular ordering is meaningless. It only supports `Eq` for equality testing.
 
-#### Exponential 
+#### Exponential
 
 Transformed values, including `Exponential`, store a value which is then rendered as a pure number via a transforming function.
 However, this makes the terminology slightly confusing.
@@ -344,16 +352,17 @@ For more complex expression parsing with LaTeX-style syntax, see the **Expressio
 
 ### Core Module Parsing
 
-A String representing a number with two or fewer decimal places is considered exact--a number with more than two decimal places is
+A String representing a number with 14 or fewer decimal places is considered exact--a number with more than 14 decimal
+places is
 considered fuzzy, unless it ends in two zeroes, in which case it is considered exact.
 Here are some examples:
 * Real("1.00"): exact
 * Real("1.0100"): exact
 * Real("1.100"): exact
-* Real("1.010"): fuzzy
+* Real("1.010"): exact
 
-You can always override this behavior by adding "*" or "..." to the end of a number with fewer than two DPs,
-or by adding two 0s to the end of a number with more than two decimal places.
+You can always override this behavior by adding "*" or "..." to the end of a number with fewer than 14 DPs,
+or by adding two 0s to the end of a number with more than 14 decimal places.
 * Real("1.100*")" fuzzy
 
 See _RealWorksheet.sc_
@@ -361,7 +370,7 @@ See _RealWorksheet.sc_
 The rules are a little different if you define a number using a floating-point literal such as _Number(1.23400)_,
 the compiler will treat that as a fuzzy number, even though it ends with two zeroes because the compiler essentially ignores them.
 However, _Real(1.23)_ will be considered exact while _Real(1.234)_ will not.
-It's best always to use a String if you want to override the default behavior.
+It's best always to use a String if you want to be explicit about the fuzziness.
 
 In general, the form of a number to be parsed from a String is:
 
@@ -637,10 +646,9 @@ The hierarchy of _Factor_ is as follows:
     * _Scalar_ (trait: the domain of ordinary numbers)
         * _PureNumber_ (object: the domain of pure numbers)
         * _Radian_ (object: the domain of radians)
-    * _Logarithmic_ (trait: the domain of exponential quantities where the corresponding value is a logarithm)
-        * _NatLog_ (object: natural log, i.e., $\log_e$)
-        * _Log2_ (object: $\log_2$)
-        * _Log10_ (object: $\log_{10}$)
+  * _Exponential_ (trait: the domain of exponential quantities where the corresponding value is a logarithm)
+      * _NaturalExponential_
+      * _BinaryExponential_
     * _InversePower_ (trait: all the roots)
         * _NthRoot_ (abstract class)
             * _SquareRoot_ (object: the domain of square roots)
@@ -1137,7 +1145,8 @@ There are four domains of values, each identified by a domain or factor (see _Fa
 These allow the exact representation of roots, logarithmic numbers, radians, and pure numbers.
 
 #### Operators
-The most important operators are those defined in _Expression.ExpressionOps_. 
+
+The most important operators are those defined in _Expression.ExpressionOps_.
 That's because you should normally be using the (lazy) expressions mechanism for arithmetic expressions.
 These are the usual operators, except that the power operator is ∧ (not ^ or **).
 

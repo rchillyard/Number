@@ -1,8 +1,8 @@
 package com.phasmidsoftware.number.expression.core
 
 import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
-import com.phasmidsoftware.number.algebra.eager.Eager
-import com.phasmidsoftware.number.core.algebraic.{Algebraic, Solution}
+import com.phasmidsoftware.number.algebra.eager.{Algebraic, Eager}
+import com.phasmidsoftware.number.core.algebraic.Solution
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{Complex, Field, Number, Numerical, Real}
@@ -67,8 +67,6 @@ trait FuzzyEquality {
   implicit object FieldEquality extends Equality[Field] {
 
     def areEqual(a: Field, b: Any): Boolean = a match {
-      case algebraic: Algebraic =>
-        NumberLikeEquality.areEqual(algebraic.solve, b)
       case complex: Complex => b match {
         case n: Numerical =>
           complex.isSame(n)
@@ -95,8 +93,6 @@ trait FuzzyEquality {
     def areEqual(a: Real, b: Any): Boolean = b match {
       case Real(y) =>
         a.x.isSame(y)
-      case alg: Algebraic =>
-        NumberLikeEquality.areEqual(alg.solve, b)
       case _ =>
         NumberEquality.areEqual(a.x, b)
     }

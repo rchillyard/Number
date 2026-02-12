@@ -17,14 +17,13 @@ class InversePowerSpec extends AnyFlatSpec with should.Matchers {
   val two: InversePower = InversePower(1, 2)
   val three: InversePower = InversePower(1, 3)
 
-//  it should "compareTo" in {
-////    InversePower(2, 4).compareTo(two) shouldBe 0
-////    InversePower(2, 9).compareTo(three) shouldBe 0
-////    InversePower(2, 4).compareTo(three) should be < 0
-////    InversePower(2, 9).compareTo(two) should be > 0
-////    InversePower(3, 8).compareTo(two) shouldBe 0
-//    pending
-//  }
+  it should "compareTo" in {
+    InversePower(2, 4).compareTo(two) shouldBe 0
+    InversePower(2, 9).compareTo(three) shouldBe 0
+    InversePower(2, 4).compareTo(three) should be < 0
+    InversePower(2, 9).compareTo(two) should be > 0
+    InversePower(3, 8).compareTo(two) shouldBe 0
+  }
 
   it should "convert" in {
     InversePower(2, 4).convert[RationalNumber](RationalNumber.zero).get shouldBe RationalNumber(2, 1)
@@ -160,7 +159,7 @@ class InversePowerSpec extends AnyFlatSpec with should.Matchers {
     // Nested normalization
     InversePower(2, RationalNumber(9, 1)).normalize shouldBe WholeNumber(3)
 
-    // Higher degree roots (should remain as InversePower for now)
-    InversePower(4, 16).normalize shouldBe InversePower(4, WholeNumber(16))
+    // Higher degree roots
+    InversePower(4, 16).normalize shouldBe WholeNumber(2)
   }
 }

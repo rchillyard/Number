@@ -46,7 +46,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * on the implementation of the `Radian.modulate` logic.
     * Various specific cases are covered based on the type of the input:
     *   - Rational numbers are converted using their rational representation.
-    *   - Reals are adjusted using their double value, with fuzz consideration pending implementation.
+    *   - Reals are adjusted using their double value, with fuzz consideration awaiting implementation.
     *   - Whole numbers are directly handled using their integer representation.
     *
     * CONSIDER we lose information regarding degrees here (perhaps fix that?)
@@ -54,7 +54,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input type is not recognized.
     * @return a new instance of `Angle` representing the normalized value
     */
-  def normalize: Angle = number.normalize match {
+  lazy val normalize: Angle = number.normalize match {
     case WholeNumber(1) =>
       Angle.pi // Special named instance of Angle
     case WholeNumber(-1) =>
@@ -74,6 +74,23 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
   }
 
   /**
+    * Compares the current `Functional` instance with another `Functional` instance.
+    *
+    * The comparison is based on the numeric value contained within each `Functional` object
+    * and the sign of the derivative function at the numeric value.
+    *
+    * TODO check this as it won't work with all other Functional types.
+    *
+    * @param that the `Functional` instance to compare with the current instance
+    * @return an `Int` where:
+    *         - A negative value indicates that the current instance is less than `that`
+    *         - Zero indicates that both instances are equal
+    *         - A positive value indicates that the current instance is greater than `that`
+    */
+  def compare(that: Functional): Int =
+    number.compare(that.number) * derivativeFunction(number.toDouble).sign.toInt
+
+  /**
     * Compares the current `Angle` instance with another `Number` to determine their exact order.
     *
     * If the provided `Number` is an `Angle`, this method compares their underlying radian values.
@@ -91,6 +108,13 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     case _ =>
       None
   }
+
+  /**
+    * Determines whether this object represents unity.
+    *
+    * @return true if the object represents unity, false otherwise
+    */
+  lazy val isUnity: Boolean = false
 
   /**
     * Converts this Angle to a representation of the specified type `T`, if possible.
@@ -116,7 +140,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     *
     * @return true if the number is zero, false otherwise
     */
-  def isZero: Boolean = number.isZero
+  lazy val isZero: Boolean = number.isZero
 
   /**
     * Represents the zero value of the `Angle` class.
@@ -132,7 +156,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     *
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
     */
-  def signum: Int = compareExact(Angle.zero).get
+  lazy val signum: Int = compareExact(Angle.zero).get
 
   /**
     * Method to determine if this Structure object is exact.
@@ -140,7 +164,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     *
     * @return true if this Structure object is exact in the context of No factor, else false.
     */
-  def isExact: Boolean = number.isExact
+  lazy val isExact: Boolean = number.isExact
 
   /**
     * Retrieves an optional fuzziness value associated with this instance.
@@ -150,7 +174,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     *
     * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
     */
-  def fuzz: Option[Fuzziness[Double]] = number.fuzz match {
+  lazy val fuzz: Option[Fuzziness[Double]] = number.fuzz match {
     case Some(fuzz: AbsoluteFuzz[Double]) => fuzz.relative(asDouble)
     case x => x
   }
@@ -161,7 +185,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     *
     * @return the Double value corresponding to the current instance
     */
-  def asDouble: Double = scaleFactor * number.toDouble
+  lazy val asDouble: Double = scaleFactor * number.toDouble
 
   /**
     * Represents the derivative function associated with this `Functional` instance.
@@ -185,7 +209,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * @return an `Option[Q]` where `Some(Q)` is returned if `number` is of type `Q`,
     *         otherwise `None`.
     */
-  def maybeQ: Option[Q] = number match {
+  lazy val maybeQ: Option[Q] = number match {
     case q: Q => Some(q)
     case _ => None
   }
@@ -197,7 +221,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     *
     * @return a string representation of the `Angle` in terms of π
     */
-  def render: String = maybeName getOrElse {
+  lazy val render: String = maybeName getOrElse {
     val value = normalize.number
     if (degrees)
       value.scale(r180).render + "°" // CONSIDER switching to interpolation
@@ -216,7 +240,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     *
     * @return a new `Angle` instance representing the additive inverse of the current angle.
     */
-  def unary_- : Angle = angleIsCommutativeGroup.negate(this)
+  lazy val unary_- : Angle = angleIsCommutativeGroup.negate(this)
 
   /**
     * Adds the specified `Angle` to the current `Angle` instance.
@@ -276,12 +300,47 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     */
   def add(other: Angle): Try[Angle] = Try(this + other)
 
+  /**
+    * Multiplies the current `Angle` instance by a given `Number`.
+    *
+    * This operation is currently not supported and will always return a failure.
+    *
+    * @param n the `Number` to multiply with the current `Angle`
+    * @return a `Try[Angle]` containing a failure with an `AlgebraException` indicating
+    *         that the multiply operation is not supported
+    */
   def multiply(n: Number): Try[Angle] = Failure(AlgebraException("Angle.multiply: not supported"))
 
+  /**
+    * Subtracts the specified `Angle` from the current `Angle` instance.
+    *
+    * This method is not implemented and always returns a failure with a corresponding exception message.
+    *
+    * @param other the `Angle` to be subtracted from the current instance
+    * @return a `Try[Angle]` containing a failure with an exception indicating that the operation is not supported
+    */
   def subtract(other: Angle): Try[Angle] = Failure(AlgebraException("Angle.subtract: not supported"))
 
+  /**
+    * Divides the current `Angle` by the specified `Angle`.
+    *
+    * This operation is not supported for `Angle` instances and will always
+    * result in a failure containing an `AlgebraException`.
+    *
+    * @param other the `Angle` by which the current `Angle` is to be divided
+    * @return a `Try[Number]` containing a failure with an `AlgebraException`
+    *         indicating that the division operation is not supported
+    */
   def divide(other: Angle): Try[Number] = Failure(AlgebraException("Angle.divide: not supported"))
 
+  /**
+    * Attempts to divide the current `Angle` by the specified `Number`.
+    *
+    * This operation is not supported and will always return a failure.
+    *
+    * @param n the `Number` by which the current `Angle` is to be divided
+    * @return a `Try[Angle]`, which will always be a `Failure` containing an `AlgebraException`
+    */
   def divide(n: Number): Try[Angle] = Failure(AlgebraException("Angle.divide: not supported"))
 
   /**
@@ -303,7 +362,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * @return an `Option[Real]` containing the approximate representation
     *         of this `Number`, or `None` if no approximation is available.
     */
-  def approximation: Option[Real] = convert(Real.zero)
+  lazy val approximation: Option[Real] = convert(Real.zero)
 
   /**
     * Compares two instances of `Eager` for equality.
@@ -338,8 +397,10 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * @return an `Option[Real]` containing the scaled representation of the current instance,
     *         or `None` if the approximation fails.
     */
-  private def toMaybeReal: Option[Real] =
+  private lazy val toMaybeReal: Option[Real] =
     number.approximation(true).map(x => x.scaleByPi)
+
+  //  override def toString: String = s"Angle($number,$degrees)($maybeName)"
 }
 
 /**
@@ -471,11 +532,16 @@ object Angle {
     *
     * @group Typeclass Instances
     * @see Convertible
-    * @param witness a template `Angle` object, which is unused in this conversion
-    * @param u       the source `Angle` object that is to be returned as is
-    * @return the source `Angle` object `u`, effectively performing an identity conversion
     */
   given Convertible[Angle, Angle] with
+    /**
+      * Converts one `Angle` instance to another. This method performs an identity operation
+      * where the provided source `Angle` object is returned without modification.
+      *
+      * @param witness a template `Angle` instance, provided to align with the conversion structure, but not used in the method logic
+      * @param u       the input `Angle` instance that needs to be "converted"
+      * @return the same `Angle` instance as the input parameter `u`
+      */
     def convert(witness: Angle, u: Angle): Angle = u
 
   /**
@@ -485,13 +551,17 @@ object Angle {
     * using a `Real` value. The conversion relies on the `asDouble` method of the `Real` type
     * to extract its numeric representation before constructing the `Angle`.
     *
-    * @param witness a value of type `Angle` provided as a witness or template, although not
-    *                directly used in this implementation for the conversion process
-    * @param u       the input `Real` value to be converted into an `Angle` instance
-    * @return an `Angle` instance created from the numeric representation of the `Real` value
     */
   given Convertible[Angle, Real] with
-    def convert(witness: Angle, u: Real): Angle = Angle(Rational.convertDouble(u.asDouble)) // FIXME need the inverse operation
+    /**
+      * Converts a `Real` value into an `Angle` instance.
+      *
+      * @param witness a value of type `Angle` provided as a reference or template, though not
+      *                actively utilized in the conversion process
+      * @param u       the `Real` value to be converted into an `Angle`
+      * @return a new `Angle` instance created from the numeric representation of the provided `Real` value
+      */
+    def convert(witness: Angle, u: Real): Angle = Angle(Rational.convertDouble(u.asDouble))
 
   /**
     * Provides a `DyadicOperator` instance for the type `Angle`.

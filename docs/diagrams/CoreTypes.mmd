@@ -1,0 +1,17 @@
+classDiagram
+  class NumberLike
+  NumberLike <|-- Solution
+  class Solution
+  NumberLike <|-- Rational
+  class Rational
+  NumberLike <|-- Expression
+  class Expression
+  class Factor
+  Factor <|-- Scalar
+  class Scalar
+  Factor <|-- Logarithmic
+  class Logarithmic
+  Factor <|-- InversePower
+  class InversePower
+  Factor <|-- Composite
+  class Composite

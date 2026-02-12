@@ -152,6 +152,39 @@ object ShuntingYardParser extends BaseMillParser {
   def shuntingYard: Parser[ShuntingYard] =
     opt(whiteSpace) ~> rep(infixToken) :| "shuntingYard" ^^ (tokens => ShuntingYard(tokens))
 
+
+  /**
+    * Unsigned version of maybeNumber for infix parsing.
+    * This prevents signed numbers from being parsed, forcing minus signs
+    * to be treated as operators.
+    */
+  def unsignedMaybeNumber: Parser[Option[Number]] =
+    (opt(unsignedGeneralNumber) ~ opt(factor)) :| "unsignedMaybeNumber" ^^ {
+      case no ~ fo => optionalNumber(no, fo)
+    }
+
+  def unsignedGeneralNumber: Parser[ValuableNumber] =
+    (numberWithFuzziness | unsignedRationalNumber) :| "unsignedGeneralNumber"
+
+  def unsignedRationalNumber: Parser[ValuableNumber] =
+    (unsignedRealNumber | unsignedRatioNumber) :| "unsignedRationalNumber"
+
+  def unsignedRatioNumber: Parser[RatioNumber] =
+    (unsignedWholeNumber ~ opt("/" ~> unsignedWholeNumber)) :| "unsignedRatioNumber" ^^ {
+      case n ~ maybeD => RatioNumber(
+        WholeNumber(sign = false, n),
+        maybeD.map(d => WholeNumber(sign = false, d)).getOrElse(WholeNumber.one)
+      )
+    }
+
+  def unsignedRealNumber: Parser[RealNumber] =
+    (unsignedWholeNumber ~ ("." ~> opt(unsignedWholeNumber)) ~ opt(E ~> wholeNumber)) :| "unsignedRealNumber" ^^ {
+      case integerPart ~ fractionalPart ~ expo =>
+        RealNumber(sign = false, integerPart, fractionalPart, expo)
+    }
+
+  private val E = "[eE]".r
+
   /**
     * Parser for an InfixToken.
     * It matches on a Number, or an operator--including ( and ).
@@ -159,7 +192,7 @@ object ShuntingYardParser extends BaseMillParser {
     * @return a Parser[InfixToken].
     */
   private def infixToken: Parser[InfixToken] =
-    (maybeNumber ?| operator) <~ opt(whiteSpace) :| "infixToken" ^^ {
+    (unsignedMaybeNumber ?| operator) <~ opt(whiteSpace) :| "infixToken" ^^ {
       case Right(x) =>
         InfixToken(Some(Right(x)), paren = false)
       case Left("(") =>
@@ -183,4 +216,3 @@ object ShuntingYardParser extends BaseMillParser {
 
   private val closeParenthesis: String = ")"
 }
-

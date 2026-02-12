@@ -6,7 +6,6 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
 
 // The magic: make integer literals become Expressions
 object ExpressionPrelude:
@@ -28,8 +27,8 @@ object ExpressionPrelude:
   // Make pi, e, etc. available
   val π: Expression = Literal(Angle.pi)
   val e: Expression = Literal(Eager.e)
-  val 𝛗: Expression = QuadraticRoot(QuadraticEquation.goldenRatioEquation, 0)
-  val 𝛙: Expression = QuadraticRoot(QuadraticEquation.goldenRatioEquation, 1)
+  val 𝛗: Expression = Root.phi
+  val 𝛙: Expression = Root.psi
 
   // Common functions
   def sqrt(x: Expression): Expression = x ∧ RationalNumber.half

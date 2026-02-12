@@ -225,6 +225,7 @@ object FP {
 
   /**
     * Method to convert an `Option` into a `Try` where the default is an exception, i.e., a `Throwable`.
+    * TODO split parameter set into two.
     *
     * @param xo      an `Option[X]`.
     * @param default a `Throwable`.

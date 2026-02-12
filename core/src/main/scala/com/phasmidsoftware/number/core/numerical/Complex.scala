@@ -4,11 +4,11 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.expression.Literal
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian}
 import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.Complex.convertToCartesian
 import com.phasmidsoftware.number.core.parse.ComplexParser
+
 import scala.util.*
 
 /**
@@ -20,7 +20,7 @@ trait Complex extends Multivariate {
   /**
     * @return true.
     */
-  def isComplex: Boolean = true
+  lazy val isComplex: Boolean = true
 
   /**
     * Method to determine the modulus of this Complex number.
@@ -84,7 +84,7 @@ trait Complex extends Multivariate {
     */
   def numberProduct(n: Number): Complex
 
-  def asCartesian: ComplexCartesian = this match {
+  lazy val asCartesian: ComplexCartesian = this match {
     case complex: ComplexCartesian => complex
     case complex: ComplexPolar => convertToCartesian(complex).asInstanceOf[ComplexCartesian]
   }
@@ -134,12 +134,8 @@ object Complex {
     case ComplexCartesian(x, Number.zero) =>
       ComplexPolar(x.abs, if (x.signum > 0) Number.zeroR else Number.pi)
     case _ =>
-      // CONSIDER can we improve upon this? Basically, we should only need MonadicOperationAtan.
-      // CONSIDER we should not be relying on expression package here.
-      // TODO eliminate use of materialize (see doAdd in ComplexCartesian)
-      val ro: Option[Number] = for (p <- ((Literal(c.x) * Real(c.x)) `plus` (Literal(c.y) * Real(c.y))).materialize.asNumber; z = p.sqrt) yield z
-      val z: Number = recover(ro, ComplexException(s"logic error: convertToPolar1: $c"))
-      ComplexPolar(z, c.x `atan` c.y, 1)
+      val magnitude = (c.x.power(Number.two) doAdd c.y.power(Number.two)).sqrt
+      ComplexPolar(magnitude, c.x `atan` c.y, 1)
   }
 
   /**
@@ -148,8 +144,11 @@ object Complex {
     * @param c the ComplexPolar.
     * @return the equivalent ComplexCartesian.
     */
-  def convertToCartesian(c: ComplexPolar): BaseComplex =
-    apply(Real(c.r `doMultiply` c.theta.cos), Real(c.r `doMultiply` c.theta.sin), ComplexCartesian.apply, ComplexException(s"logic error: convertToCartesian: $c"))
+  def convertToCartesian(complex: Complex): BaseComplex = complex match {
+    case c: ComplexCartesian => c
+    case c: ComplexPolar => ComplexCartesian(c.r `doMultiply` c.theta.cos, c.r `doMultiply` c.theta.sin)
+  }
+  //    apply(Real(c.r `doMultiply` c.theta.cos), Real(c.r `doMultiply` c.theta.sin), ComplexCartesian.apply, ComplexException(s"logic error: convertToCartesian: $c"))
 
   /**
     * Method to construct a Complex from two fields, a (Number,Number)=>BaseComplex function, and an exception.

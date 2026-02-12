@@ -5,7 +5,8 @@
 package com.phasmidsoftware.number.algebra.core
 
 import com.phasmidsoftware.number.algebra.eager.Real
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.util.AlgebraException
+import com.phasmidsoftware.number.algebra.util.FP.recover
 
 /**
   * Trait representing a structure that supports approximation.
@@ -16,6 +17,18 @@ import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
   * or computational limitations.
   */
 trait Approximate {
+  /**
+    * Attempts to recover a `Real` value using the `approximation` method of the current instance.
+    *
+    * If an approximation is available, it will be converted to a `Real`. Otherwise, an 
+    * `AlgebraException` is thrown, indicating that the conversion to a `Real` was not possible
+    * for the current class instance.
+    *
+    * @return the recovered `Real` value based on an available approximation, or throws an
+    *         `AlgebraException` if no valid approximation is found.
+    */
+  def fuzzy: Real =
+    recover(approximation(true))(AlgebraException(s"fuzzy: unable to convert a ${this.getClass.getSimpleName} to Real (${this.toString})"))
 
   /**
     * Attempts to compute an approximate representation of the current value.
@@ -46,8 +59,8 @@ trait Approximate {
     * @return the approximate value as a `Double`.
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if no approximation can be obtained.
     */
-  def toDouble: Double = {
+  lazy val toDouble: Double = {
     // NOTE: it is possible for this to recurse infinitely if approximation(true) returns `Some(this)`.
-    FP.recover(approximation(true).map(_.toDouble))(AlgebraException("Approximate.toDouble: logic error"))
+    recover(approximation(true).map(_.toDouble))(AlgebraException("Approximate.toDouble: logic error"))
   }
 }

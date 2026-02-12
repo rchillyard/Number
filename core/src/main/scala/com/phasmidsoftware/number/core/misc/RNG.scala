@@ -32,7 +32,7 @@ abstract class BaseRNG[T](val get: T) extends RNG[T] {
 case class RandomLong(value: Long) extends BaseRNG[Long](value) {
   self =>
 
-  def nextRandom: Long = new Random(value).nextLong()
+  lazy val nextRandom: Long = new Random(value).nextLong()
 
   def unit[U](u: U): RNG[U] = u match {
     case x: Long => new RandomLong(x).asInstanceOf[RNG[U]]

@@ -4,11 +4,12 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.algebraic.{Algebraic, Solution}
+import com.phasmidsoftware.number.core.algebraic.{Solution}
 import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
 import com.phasmidsoftware.number.core.misc.FP.recover
 import com.phasmidsoftware.number.core.numerical.Number.{NumberIsFractional, NumberIsOrdering}
 import com.phasmidsoftware.number.core.numerical.Real.createFromRealField
+
 import scala.language.implicitConversions
 import scala.util.Try
 
@@ -23,12 +24,12 @@ case class Real(x: Number) extends Field {
   /**
     * @return false.
     */
-  def isAlgebraic: Boolean = false
+  lazy val isAlgebraic: Boolean = false
 
   /**
     * @return false.
     */
-  def isComplex: Boolean = false
+  lazy val isComplex: Boolean = false
 
   /**
     * Method to determine if this NumberLike object is exact.
@@ -36,21 +37,21 @@ case class Real(x: Number) extends Field {
     *
     * @return true if this NumberLike object is exact in the context of No factor, else false.
     */
-  def isExact: Boolean = x.isExact
+  lazy val isExact: Boolean = x.isExact
 
   /**
     * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
     *
     * @return an optional `Factor`.
     */
-  def maybeFactor: Option[Factor] = x.maybeFactor
+  lazy val maybeFactor: Option[Factor] = x.maybeFactor
 
   /**
     * Method to determine if this Real has infinite magnitude.
     *
     * @return true if the magnitude of this Field is infinite.
     */
-  def isInfinite: Boolean = x.isInfinite
+  lazy val isInfinite: Boolean = x.isInfinite
 
   /**
     * Method to determine if this Real has zero magnitude.
@@ -58,21 +59,21 @@ case class Real(x: Number) extends Field {
     *
     * @return true if the magnitude of this Field is zero.
     */
-  def isZero: Boolean = x.isZero
+  lazy val isZero: Boolean = x.isZero
 
   /**
     * Method to determine if this Complex is real-valued.
     *
     * @return true if this is not imaginary.
     */
-  def isReal: Boolean = !isImaginary
+  lazy val isReal: Boolean = !isImaginary
 
   /**
     * Method to determine if this Field is imaginary-valued (i.e. the point lies on the imaginary axis).
     *
     * @return true if this is a root of a negative number.
     */
-  def isImaginary: Boolean = x.isImaginary
+  lazy val isImaginary: Boolean = x.isImaginary
 
   /**
     * Method to determine if this Field is equivalent to another Field (x).
@@ -85,7 +86,7 @@ case class Real(x: Number) extends Field {
     case Real(y) => (x `doSubtract` y).isZero
     case c: Complex => c.isSame(this)
     case n: Number => isSame(Real(n))
-    case s: Algebraic => s.isSame(this)
+    case _ => throw CoreException(s"Real.isSame: cannot compare Real with $f")
   }
 
   /**
@@ -94,7 +95,7 @@ case class Real(x: Number) extends Field {
     *
     * @return true if the magnitude of this Field is one.
     */
-  def isUnity: Boolean = x.isUnity
+  lazy val isUnity: Boolean = x.isUnity
 
   /**
     * Add y to this Real and return the result.
@@ -171,7 +172,7 @@ case class Real(x: Number) extends Field {
     *
     * @return the result of squaring this Field.
     */
-  def square: Field = Real(x.square)
+  lazy val square: Field = Real(x.square)
 
   /**
     * Computes the square root of this Real number.
@@ -179,14 +180,14 @@ case class Real(x: Number) extends Field {
     *
     * @return the square root as a Field.
     */
-  def sqrt: Field = power(Real(Rational.half))
+  lazy val sqrt: Field = power(Real(Rational.half))
 
   /**
     * Yields the inverse of this Real.
     * This Number is first normalized so that its factor is PureNumber, since we cannot directly invert Numbers with other
     * factors.
     */
-  def invert: Field =
+  lazy val invert: Field =
     createFromRealField(x.invert)
 
   /**
@@ -195,7 +196,7 @@ case class Real(x: Number) extends Field {
     *
     * @return the sine of this.
     */
-  def sin: Field =
+  lazy val sin: Field =
     Real(x.sin)
 
   /**
@@ -204,7 +205,7 @@ case class Real(x: Number) extends Field {
     *
     * @return the cosine.
     */
-  def cos: Field =
+  lazy val cos: Field =
     Real(x.cos)
 
   /**
@@ -213,7 +214,7 @@ case class Real(x: Number) extends Field {
     *
     * @return the tangent
     */
-  def tan: Field =
+  lazy val tan: Field =
     Real(x.tan)
 
   /**
@@ -231,7 +232,7 @@ case class Real(x: Number) extends Field {
     *
     * @return the natural log of this.
     */
-  def ln: Field =
+  lazy val ln: Field =
     x.ln
 
   /**
@@ -240,7 +241,7 @@ case class Real(x: Number) extends Field {
     *
     * @return the e to the power of this.
     */
-  def exp: Field =
+  lazy val exp: Field =
     Real(x.exp)
 
   /**
@@ -248,7 +249,7 @@ case class Real(x: Number) extends Field {
     *
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
     */
-  def signum: Int =
+  lazy val signum: Int =
     x.signum
 
   /**
@@ -256,7 +257,7 @@ case class Real(x: Number) extends Field {
     *
     * @return a Real representing the absolute value of this.
     */
-  def abs: Real =
+  lazy val abs: Real =
     Real(x.abs)
 
   /**
@@ -264,7 +265,7 @@ case class Real(x: Number) extends Field {
     *
     * @return a Real which is in canonical form.
     */
-  def normalize: Field =
+  lazy val normalize: Field =
     x match {
       case Number.i =>
         ComplexCartesian(Number.zero, Number.one)
@@ -284,14 +285,14 @@ case class Real(x: Number) extends Field {
     *
     * @return Some(x).
     */
-  def asNumber: Option[Number] = Some(x)
+  lazy val asNumber: Option[Number] = Some(x)
 
   /**
     * Method to return this Real as an Option[Real]..
     *
     * @return Some(this).
     */
-  def asReal: Option[Real] = Some(this)
+  lazy val asReal: Option[Real] = Some(this)
 
   /**
     * Method to return this Real as a Complex.
@@ -299,16 +300,16 @@ case class Real(x: Number) extends Field {
     *
     * @return a Complex.
     */
-  def asComplex: Complex = ComplexPolar(x)
+  lazy val asComplex: Complex = ComplexPolar(x)
 
   /**
     * Method to render this Field in a presentable manner.
     *
     * @return a String
     */
-  def render: String = x.render
+  lazy val render: String = x.render
 
-  override def toString: String = x.toString
+  override lazy val toString: String = x.toString
 
   /**
     * Converts the true value of this Real to a Double.
@@ -316,7 +317,7 @@ case class Real(x: Number) extends Field {
     *
     * @return the Double representation of this Real, wrapped in Option.
     */
-  def maybeDouble: Option[Double] =
+  lazy val maybeDouble: Option[Double] =
     x.toPureNumber.toNominalDouble
 
   /**
@@ -325,7 +326,7 @@ case class Real(x: Number) extends Field {
     *
     * @return the Double representation of this Real.
     */
-  def toDouble: Double =
+  lazy val toDouble: Double =
     recover(maybeDouble, CoreException("Real.toDouble: logic error: x"))
 
   /**
@@ -415,8 +416,6 @@ object Real {
       apply(r)
     case x: Number =>
       apply(x)
-    case x: Algebraic =>
-      apply(x.solve)
     case solution: Solution =>
       apply(solution.asField)
     case _ =>

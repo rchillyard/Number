@@ -42,3 +42,6 @@ jobs:
       - run:
           name: Run tests
           command: cat /dev/null | sbt "testOnly * -- -l Slow"
+
+      - store_test_results:
+          path: target/test-reports

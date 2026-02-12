@@ -27,7 +27,7 @@ abstract class LazyFunction[X: Numeric] extends (X => X) {
 }
 
 abstract class KnownDifferentiableFunction[X](name: String, g: X => X, ds: X => Double*) extends DifferentiableFunction[X](g, ds *) {
-  override def toString: String = name
+  override lazy val toString: String = name
 }
 
 abstract class DifferentiableFunction[X](g: X => X, ds: X => Double*) extends DiFuncBase[X](g, ds *) with (X => X) {
@@ -35,7 +35,7 @@ abstract class DifferentiableFunction[X](g: X => X, ds: X => Double*) extends Di
 }
 
 abstract class Known[X: Numeric](name: String) extends LazyFunction[X] {
-  override def toString: String = name
+  override lazy val toString: String = name
 }
 
 case class Identity[X: Numeric]() extends Known[X]("Identity") {
@@ -60,7 +60,7 @@ case class Composed[X: Numeric](f: X => X, g: X => X) extends LazyFunction[X] {
 case class ComposedDifferentiable[X: Numeric](g1: DiFunc[X], g2: DiFunc[X]) extends LazyFunction[X] with DiFunc[X] {
   override def toString = s"$g1($g2(_))"
 
-  def arity: Int = if (g1.arity == g2.arity) g1.arity else throw new UnsupportedOperationException(s"composed differentiable function with different arities: ${g1.arity}, ${g2.arity}")
+  lazy val arity: Int = if (g1.arity == g2.arity) g1.arity else throw new UnsupportedOperationException(s"composed differentiable function with different arities: ${g1.arity}, ${g2.arity}")
 
   // This is the so-called "Chain Rule" of differentiation
   def df_dx(i: Int): X => Double = { x => g1.df_dx(i)(g2.f(x)) * g2.df_dx(i)(x) }

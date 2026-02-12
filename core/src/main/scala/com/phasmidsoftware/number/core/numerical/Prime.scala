@@ -10,6 +10,7 @@ import com.phasmidsoftware.number.core.numerical.Divides.IntDivides
 import com.phasmidsoftware.number.core.numerical.Prime.{coprime, reciprocalPeriods}
 import com.phasmidsoftware.number.core.numerical.Primes.*
 import com.sun.org.apache.xalan.internal.lib.ExsltDatetime.time
+
 import java.math.BigInteger
 import scala.annotation.{tailrec, unused}
 import scala.collection.SortedSet
@@ -50,7 +51,7 @@ case class Prime(n: BigInt) {
     *
     * @return the length in bits.
     */
-  def bits: Int = n.bitLength
+  lazy val bits: Int = n.bitLength
 
   /**
     * Determine the multiplicative inverse of a, modulo n.
@@ -69,7 +70,7 @@ case class Prime(n: BigInt) {
     *
     * @return the result of Prime.isProbablePrime(n).
     */
-  def isProbablePrime: Boolean = Prime.isProbablePrime(n)
+  lazy val isProbablePrime: Boolean = Prime.isProbablePrime(n)
 
   /**
     * This yields the value of a.pow(n-1) mod n.
@@ -86,7 +87,7 @@ case class Prime(n: BigInt) {
     *
     * @return true if for any random value a such that 0 < a < n - 1, Lucas(n-1, factors)(a) is true where factors are the prime factors of n - 1.
     */
-  def Lucas: Boolean = {
+  lazy val Lucas: Boolean = {
     val factors = Prime.primeFactors(n - 1)
     val as: Seq[BigInt] = Prime.getRandomValues(n)
     // NOTE that as will contain duplicates. We should try to eliminate the duplicates.
@@ -112,7 +113,7 @@ case class Prime(n: BigInt) {
     *
     * @return
     */
-  def primitiveRoot: BigInt = {
+  lazy val primitiveRoot: BigInt = {
     val as: Seq[BigInt] = Prime.getRandomValues(n)
     as.find(a => fermat(a) == 1 && testPrimitiveRoot(a)) match {
       case Some(a) => a
@@ -151,7 +152,7 @@ case class Prime(n: BigInt) {
     *
     * @return n.
     */
-  def toBigInt: BigInt = n
+  lazy val toBigInt: BigInt = n
 
   /**
     * Optionally get the value of this prime as an Int.
@@ -167,7 +168,7 @@ case class Prime(n: BigInt) {
     *
     * @return a probable prime which is greater than this.
     */
-  def next: Prime = {
+  lazy val next: Prime = {
     // Lazy list of numbers greater than n, that could conceivably be primes: viz. 2, 5, and all numbers ending with 1, 3, 7, or 9.
     val ys: LazyList[BigInt] = bigInts(n + 1).filter { x =>
       x == 2 || x == 5 || {
@@ -190,7 +191,7 @@ case class Prime(n: BigInt) {
     *
     * @return a String representing a Prime number.
     */
-  override def toString: String = Prime.formatWithCommas(n, ",")
+  override lazy val toString: String = Prime.formatWithCommas(n, ",")
 
   /**
     * Method to yield base raised to the power exponent modulo n (i.e., this prime number).
@@ -229,7 +230,7 @@ case class Prime(n: BigInt) {
     * @return true if this number is prime.
     */
   @unused
-  private def validate: Boolean = isProbablePrime && Prime.primeFactors(n).forall(_ == this)
+  private lazy val validate: Boolean = isProbablePrime && Prime.primeFactors(n).forall(_ == this)
 
   /**
     * Return a Boolean which is true if a.pow(c/q) != 1 mod n for all q where q is a prime factor of c.

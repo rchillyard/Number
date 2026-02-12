@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.top
 
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.dimensions.core.*
+import com.phasmidsoftware.number.expression.expr.ValueExpression
 import com.phasmidsoftware.number.parse.UnitsParser
 import org.scalactic.Prettifier.default
 import org.scalatest.flatspec.AnyFlatSpec
@@ -58,12 +59,11 @@ class QuantityParserSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "parse with LaTeX thin space" in {
-    //    QuantityParser.parse("10\\,m") match {
-    //      case Right(quantity) =>
-    //        quantity.unit shouldBe Meter
-    //      case Left(err) => fail(s"Parse failed: $err")
-    //    }
-    pending
+    QuantityParser.parse("10\\,m") match {
+      case Right(quantity) =>
+        quantity.unit shouldBe Meter
+      case Left(err) => fail(s"Parse failed: $err")
+    }
   }
 
   it should "parse composite units" in {
@@ -154,17 +154,20 @@ class QuantityParserSpec extends AnyFlatSpec with Matchers {
     }
   }
 
-  ignore should "parse LaTeX fractions" in {
-    QuantityParser.parse("\\frac{22}{7} m") match {
+  it should "parse LaTeX fractions" in {
+    val parsedQuantity = QuantityParser.parse("""\frac{22}{7} m""")
+    val expectedUnits = Meter
+    val expectedValue = RationalNumber(22L,7L)
+    parsedQuantity match {
       case Right(quantity) =>
-        quantity.unit shouldBe Meter
+        quantity.unit shouldBe expectedUnits
         quantity.value match {
-          case RationalNumber(r, false) =>
-            r.n shouldBe 22
-            r.d shouldBe 7
-          case _ => fail("Expected RationalNumber")
+          case ValueExpression(`expectedValue`, _) =>
+          case _ =>
+            fail(s"Expected $expectedValue but got ${quantity.value}")
         }
-      case Left(err) => fail(s"Parse failed: $err")
+      case Left(err) =>
+        fail(s"Parse failed: $err")
     }
   }
 

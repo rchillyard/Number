@@ -273,7 +273,7 @@ case class FiniteSeries[X: Numeric](terms: Seq[X]) extends AbstractSeries[X](ter
     *
     * @return The convergence rate as a `Double`.
     */
-  def convergenceRate: Double = 1
+  lazy val convergenceRate: Double = 1
 }
 
 /**

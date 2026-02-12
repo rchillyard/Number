@@ -222,20 +222,20 @@ classDiagram
     }
     
     %% Transformed (other Monotones)
-    class Logarithm {
+    class Exponential {
         <<trait>>
-        Logarithmic values
+        Exponential values
         +base: Number
-        +unit: Logarithm
+        +unit: Exponential
     }
     
-    class NatLog {
-        Natural logarithm
+    class NaturalExponential {
+        Natural exponent of e
         +x: Number
     }
     
-    class BinaryLog {
-        Binary logarithm
+    class BinaryExponential {
+        Binary exponential (power of 2)
         +x: Number
     }
     
@@ -330,10 +330,10 @@ classDiagram
     Radians <|-- Angle
     
     %% Transformed subtypes
-    Transformed <|-- Logarithm
+    Transformed <|-- Exponential
     Transformed <|-- InversePower
-    Logarithm <|-- NatLog   
-    Logarithm <|-- BinaryLog   
+    Exponential <|-- NaturalExponential
+    Exponential <|-- BinaryExponential   
 
     %% Branched subtypes
     Branched <|-- Equation

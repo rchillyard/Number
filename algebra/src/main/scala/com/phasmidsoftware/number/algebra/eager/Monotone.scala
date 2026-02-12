@@ -200,21 +200,14 @@ trait Functional extends Monotone with MaybeFuzzy with Ordered[Functional] {
   def nominalValue: Double = scaleFunction(number.toDouble)
 
   /**
-    * Compares this `Exponential` instance with another `Exponential` instance.
+    * If this `Valuable` is exact, it returns the exact value as a `Double`.
+    * Otherwise, it returns `None`.
+    * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
     *
-    * This method compares the `number` values of the current `Exponential` instance
-    * and the specified `Exponential` instance using their natural order.
-    *
-    * CONSIDER this should promoted into `Transformed`.
-    *
-    * @param that the `Exponential` instance to compare with the current instance
-    * @return an integer value:
-    *         - a negative value if this `Exponential` is less than `that`
-    *         - zero if this `Exponential` is equal to `that`
-    *         - a positive value if this `Exponential` is greater than `that`
+    * @return Some(x) where x is a Double if this is exact, else None.
     */
-  def compare(that: Functional): Int =
-    number.compare(that.number) * derivativeFunction(number.toDouble).sign.toInt
+  override def maybeDouble: Option[Double] =
+    Option.when(isExact)(nominalValue)
 
 }
 

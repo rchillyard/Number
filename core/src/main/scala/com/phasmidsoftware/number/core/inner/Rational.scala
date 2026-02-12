@@ -14,6 +14,7 @@ import com.phasmidsoftware.number.core.parse.RationalParser
 import java.lang.Math.*
 import scala.annotation.tailrec
 import scala.language.implicitConversions
+import scala.util.matching.Regex
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -169,7 +170,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return A new Rational instance with the numerator and denominator swapped.
     */
-  def invert: Rational =
+  lazy val invert: Rational =
     Rational(d, n)
 
   /**
@@ -218,7 +219,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return true if the number is exactly one and is a whole number, false otherwise
     */
-  def isUnity: Boolean =
+  lazy val isUnity: Boolean =
     n == bigOne && isWhole
 
   // Other methods appropriate to Rational
@@ -246,7 +247,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return true if the value is negative, false otherwise.
     */
-  def isNegative: Boolean =
+  lazy val isNegative: Boolean =
     signum < 0
 
   /**
@@ -254,7 +255,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return true if the number is zero and is a whole number, otherwise false
     */
-  def isZero: Boolean =
+  lazy val isZero: Boolean =
     n == bigZero && isWhole
 
   /**
@@ -263,7 +264,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return true if this NumberLike object is exact in the context of No factor, else false.
     */
-  def isExact: Boolean =
+  lazy val isExact: Boolean =
     !(isInfinity || isNaN)
 
   /**
@@ -271,7 +272,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return true if the Rational is both zero and infinite, indicating an undefined result; false otherwise.
     */
-  def isNaN: Boolean =
+  lazy val isNaN: Boolean =
     n == bigZero && d == bigZero
 
   /**
@@ -280,7 +281,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return an `Option[Int]`.
     */
-  def maybeInt: Option[Int] =
+  lazy val maybeInt: Option[Int] =
     if (isWhole) Rational.toInt(this).toOption else None
 
   /**
@@ -288,7 +289,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return true if the number is equal to the mathematical representation of one; false otherwise.
     */
-  def isWhole: Boolean =
+  lazy val isWhole: Boolean =
     d == bigOne
 
   /**
@@ -299,7 +300,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return an `Int`.
     */
-  def toInt: Int =
+  lazy val toInt: Int =
     recover(Rational.toInt(this))
 
   /**
@@ -314,7 +315,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return true if the prime factors only include 2 and/or 5.
     */
-  def isDecimal: Boolean =
+  lazy val isDecimal: Boolean =
     isWhole || {
       import com.phasmidsoftware.number.core.numerical.Divides.IntDivides
       (2 |> d) || (5 |> d)
@@ -328,7 +329,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return a `Long`.
     */
-  def toLong: Long =
+  lazy val toLong: Long =
     recover(Rational.toLong(this))
 
   /**
@@ -339,7 +340,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return a `BigInt`.
     */
-  def toBigInt: BigInt =
+  lazy val toBigInt: BigInt =
     recover(Rational.toBigInt(this))
 
   /**
@@ -347,7 +348,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return a `Float` value representing this `Rational`.
     */
-  def toFloat: Float =
+  lazy val toFloat: Float =
     Rational.toFloat(this)
 
   /**
@@ -357,7 +358,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return an `Option[Double]`, `Some(Double)` if the `Rational` can be exactly represented as a `Double`, otherwise `None`.
     */
-  def maybeDouble: Option[Double] =
+  lazy val maybeDouble: Option[Double] =
     if (isExactDouble)
       Some(toDouble)
     else
@@ -368,7 +369,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return the `Double` value of this `Rational`.
     */
-  def toDouble: Double =
+  lazy val toDouble: Double =
     Rational.toDouble(this)
 
   /**
@@ -376,7 +377,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return `true` if the `Rational` can be precisely converted to a `Double`, otherwise `false`.
     */
-  def isExactDouble: Boolean =
+  lazy val isExactDouble: Boolean =
     toBigDecimal.exists(_.isExactDouble) // Only work with Scala 2.11 or above
 
   /**
@@ -387,7 +388,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * @return an `Option[BigDecimal]`, where `Some(BigDecimal)` represents the exact conversion,
     *         or `None` if the `Rational` cannot be exactly represented.
     */
-  def toBigDecimal: Option[BigDecimal] =
+  lazy val toBigDecimal: Option[BigDecimal] =
     if (isDecimal)
       Some(forceToBigDecimal)
     else
@@ -412,7 +413,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * @return A BigDecimal representing the Rational number.
     * @note Throws RationalException if the Rational number is infinity.
     */
-  def forceToBigDecimal: BigDecimal =
+  lazy val forceToBigDecimal: BigDecimal =
     if (!isInfinity)
       BigDecimal(n) / BigDecimal(d)
     else
@@ -423,7 +424,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return true if the denominator is zero; false otherwise.
     */
-  def isInfinity: Boolean =
+  lazy val isInfinity: Boolean =
     d == bigZero && n != bigZero
 
   /**
@@ -470,7 +471,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *         condition evaluates to true, a specific value is
     *         returned; otherwise, the object's `toString` is used.
     */
-  def render: String = {
+  lazy val render: String = {
     val x -> y = renderConditional(true)
     if (y) x else toString
   }
@@ -500,7 +501,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return A new Rational instance representing the additive inverse of this Rational.
     */
-  def negate: Rational =
+  lazy val negate: Rational =
     Rational.negate(this)
 
   /**
@@ -534,7 +535,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return A string representation of the Rational object.
     */
-  override def toString: String = this match {
+  override lazy val toString: String = this match {
     case r: Rational if r == half =>
       "\u00BD"
     case Rational(n, `bigZero`) if n > 0 =>
@@ -598,7 +599,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return an exact String representation of this Rational.
     */
-  def renderExact: String = this match {
+  lazy val renderExact: String = this match {
     case VulgarFraction(w) =>
       w
     case `half` =>
@@ -633,7 +634,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return a Some(x) if this is a Number; otherwise return None.
     */
-  def asNumber: Option[Number] = Some(this)
+  lazy val asNumber: Option[Number] = Some(this)
 
   /**
     * Converts a number to a percentage representation with a specified number of decimal places.
@@ -683,7 +684,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return A string representation of the value, either as a rational string or a BigDecimal string with an ellipsis.
     */
-  private def asString: String = d match {
+  private lazy val asString: String = d match {
     case x if x <= 100000L => // XXX arbitrary limit of one hundred thousand.
       toRationalString
     case _ =>
@@ -762,7 +763,7 @@ object Rational {
       *
       * @return the inverted Rational representation of the integer.
       */
-    def invert: Rational =
+    lazy val invert: Rational =
       Rational(x).invert
 
     /**
@@ -1119,6 +1120,16 @@ object Rational {
     apply(n, BigInt(d))
 
   /**
+    * Creates a Rational number from the given numerator and denominator values.
+    *
+    * @param n the numerator of the rational number
+    * @param d the denominator of the rational number
+    * @return a Rational number representing the fraction n/d
+    */
+  def apply(n: Long, d: Long): Rational =
+    apply(BigInt(n), d)
+
+  /**
     * Method to construct a Rational from a BigInt.
     *
     * @param n the value.
@@ -1393,11 +1404,30 @@ object Rational {
 
   // NOTE this corresponds to the renderExact method's output but allows
   // a LaTeX renderer to recognize the situation.
-  val repeatingDecimals = """^-?(\d+\.\d*)<(\d+)>$""".r
+  val repeatingDecimals: Regex = """^-?(\d+\.\d*)<(\d+)>$""".r
 
   // NOTE this corresponds the output form where the best that can be done is
   // to render the rational in rational form.
-  val rationalForm = """^(-?\d+)/(\d+)$""".r
+  val rationalForm: Regex = """^(-?\d+)/(\d+)$""".r
+
+  /**
+    * Regular expression pattern to match an integer in string form,
+    * which can be positive or negative. The pattern ensures that the entire
+    * string represents a valid integer.
+    *
+    * Examples of matching strings:
+    * - "123"
+    * - "-456"
+    * - "0"
+    *
+    * Examples of non-matching strings:
+    * - "12.3" (not an integer)
+    * - "abc" (not numeric)
+    * - "123abc" (contains invalid characters)
+    */
+  val integerForm: Regex = """^(-?\d+)$""".r
+
+  val unicodeForm: Regex = """^([⁰-₉½-⅞])$""".r
 
   /**
     * Generate the String representation of n/d where d is a Prime number (at least, very probably).
@@ -1853,6 +1883,45 @@ object Rational {
       val y = floor(x).toInt
       approximate(x - y) + y
     }
+}
+
+/**
+  * Provides functionality to determine if a given `Rational` represents the inverse of an integer.
+  * This object serves as an extractor for such instances of `Rational`.
+  */
+object Inverse {
+  /**
+    * Extractor method for identifying whether the given `Rational` object represents an inverse
+    * of an integer, and if so, extracting that integer.
+    *
+    * @param x The `Rational` instance to be deconstructed and analyzed.
+    * @return An `Option` containing the integer if the `Rational` instance represents an inverse of an
+    *         integer and the denominator is a valid integer; otherwise, `None`.
+    */
+  def unapply(x: Rational): Option[Int] = x match {
+    case Rational(Rational.bigOne, d) if d.isValidInt =>
+      Some(d.toInt)
+    case _ =>
+      None
+  }
+}
+
+/**
+  * An object providing an extractor method for converting a Rational number into
+  * a pair of integers representing its numerator and denominator.
+  *
+  * The `IntRational` object simplifies working with Rational numbers when you
+  * need to decompose them into integers for further processing or pattern matching.
+  */
+object IntRational {
+  /**
+    * Extracts the numerator and denominator of a Rational number as a pair of integers.
+    *
+    * @param x the Rational number to be decomposed
+    * @return an Option containing a tuple of two integers (numerator, denominator)
+    *         if the decomposition is successful; None otherwise
+    */
+  def unapply(x: Rational): Option[(Int, Int)] = toInts(x)
 }
 
 /**

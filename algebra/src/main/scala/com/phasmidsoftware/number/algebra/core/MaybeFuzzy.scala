@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.algebra.core
 
-import com.phasmidsoftware.number.core.numerical.Fuzziness
+import com.phasmidsoftware.number.algebra.core.MaybeFuzzy.asAbsolute
+import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Fuzziness, RelativeFuzz}
 
 /**
   * A trait representing an optional association with a `Fuzziness[Double]`.
@@ -33,6 +34,23 @@ trait MaybeFuzzy extends Renderable {
     * @return The nominal value as a `Double`.
     */
   def nominalValue: Double
+
+  /**
+    * Method to render this `Valuable` for presentation to the user.
+    * NOTE to implementors: never ever invoke `this.toString` in your implementation lest you get a StackOverflow.
+    *
+    * TESTME this is never called.
+    *
+    * @return a String
+    */
+  def renderFuzzy: String = maybeFuzz match {
+    case None =>
+      nominalValue.toString
+    case Some(fuzz: AbsoluteFuzz[Double]) =>
+      this.asAbsolute
+    case Some(fuzz: RelativeFuzz[Double]) =>
+      this.asRelative
+  }
 }
 
 /**
@@ -40,9 +58,6 @@ trait MaybeFuzzy extends Renderable {
   * in various formats, including absolute, relative, and percentage representations.
   */
 object MaybeFuzzy:
-  /**
-    *
-    */
   /**
     * Extension methods for the `MaybeFuzzy` trait to render its properties in various formats.
     */
@@ -53,7 +68,7 @@ object MaybeFuzzy:
         case Some(fuzz) =>
           fuzz.normalize(m.nominalValue, relative = false) match
             case Some(absFuzz) =>
-              val (embedded, str) = absFuzz.toString(m.nominalValue)
+              val (embedded, str) = absFuzz.getQualifiedString(m.nominalValue)
               if embedded then str // AbsoluteFuzz embeds the value
               else s"${m.nominalValue} ± $str" // Just in case
             case None => m.render
@@ -64,9 +79,9 @@ object MaybeFuzzy:
         case Some(fuzz) =>
           fuzz.normalize(m.nominalValue, relative = true) match
             case Some(relFuzz) =>
-              val (embedded, str) = relFuzz.toString(m.nominalValue)
+              val (embedded, str) = relFuzz.getQualifiedString(m.nominalValue)
               if embedded then str
-              else s"${m.nominalValue} ± $str" // Show as decimal
+              else s"${m.nominalValue}±$str" // Show as decimal
             case None => m.render
 
     def asPercentage: String =
@@ -75,7 +90,7 @@ object MaybeFuzzy:
         case Some(fuzz) =>
           fuzz.normalize(m.nominalValue, relative = true) match
             case Some(relFuzz) =>
-              val (embedded, str) = relFuzz.toString(m.nominalValue)
+              val (embedded, str) = relFuzz.getQualifiedString(m.nominalValue)
               if embedded then str
-              else s"${m.nominalValue} ± ${relFuzz.asPercentage}"
+              else s"${m.nominalValue}±${relFuzz.asPercentage}"
             case None => m.render

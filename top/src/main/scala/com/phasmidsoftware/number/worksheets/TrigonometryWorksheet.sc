@@ -1,20 +1,20 @@
-import com.phasmidsoftware.number.core.Constants.{e, i, pi, piBy2}
-import com.phasmidsoftware.number.core.Number
-import com.phasmidsoftware.number.core.expression.Expression
-import com.phasmidsoftware.number.core.expression.Expression.ExpressionOps
-
 /**
   * This worksheet demonstrates some of the trigonometric expressions and identities.
   */
 
-val iPi = Expression(i) * pi
-val euler = Expression(e) ∧ iPi
-euler.asNumber
+import com.phasmidsoftware.number.algebra.eager.Eager
+import com.phasmidsoftware.number.expression.expr.{E, I, Pi}
 
+val iPi = I * Pi
+val euler = E ∧ iPi
+euler.materialize.render
+
+val piBy2 = Pi / 2
 piBy2.cos
 piBy2.sin
 piBy2.tan
 
-val p: Number = (Expression(piBy2) / 2).cos
-val q: Number = (Expression(piBy2) / 3).cos
-val x: Number = (Expression(pi) / 3).sin
+// You should see
+val p: String = (piBy2 / 2).cos.materialize
+val q: String = (piBy2 / 3).cos.materialize
+val x: String = (Pi / 3).sin.materialize

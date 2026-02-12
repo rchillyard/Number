@@ -38,7 +38,7 @@ import scala.util.{Success, Try}
   *                   Similarly to the `degrees` attribute of `Angle`,
   *                   this is a flag that is primarily cosmetic.
   */
-case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeName: Option[String] = None) extends ExactNumber with Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[ExactNumber] {
+case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeName: Option[String] = None) extends ExactNumber with Q with CanAddAndSubtract[RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[ExactNumber] {
   /**
     * Normalizes the current object to ensure it is represented in a simplified form.
     * If the denominator (r.d) is 1, it represents the object as a WholeNumber.
@@ -237,6 +237,15 @@ object RationalNumber {
   def apply(x: Long, y: Long): RationalNumber = new RationalNumber(Rational(x, y))()
 
   /**
+    * Constructs a `RationalNumber` instance from the given numerator and denominator.
+    *
+    * @param x The numerator as a `BigInt`.
+    * @param y The denominator as a `BigInt`.
+    * @return A `RationalNumber` representing the fraction `x / y`.
+    */
+  def apply(x: BigInt, y: BigInt): RationalNumber = new RationalNumber(Rational(x, y))()
+
+  /**
     * Creates a rational number representation from a given integer value.
     *
     * @param x the integer value to be converted into a rational number
@@ -422,6 +431,10 @@ object RationalNumber {
         x // TESTME this never happens, it seems.
       case Rational.rationalForm(_, _) if r.isExactDouble =>
         r.toDouble.toString // XXX It's very doubtful that this case will match
+      case Rational.integerForm(n) =>
+        n
+      case Rational.unicodeForm(_) =>
+        frac(r.n.toString(), r.d.toString())
       case Rational.rationalForm(n, d) =>
         frac(n, d)
       case x =>

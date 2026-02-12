@@ -7,6 +7,7 @@ package com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical.FuzzyNumber.{Ellipsis, withinWiggleRoom}
 import com.phasmidsoftware.number.core.numerical.Number.prepareWithSpecialize
+
 import scala.collection.mutable
 
 /**
@@ -34,7 +35,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     *
     * @return true if this NumberLike object is exact in the context of No factor, else false.
     */
-  def isExact: Boolean =
+  lazy val isExact: Boolean =
     fuzz.isEmpty
 
   /**
@@ -58,7 +59,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     *
     * @return the same FuzzyNumber but with absolute fuzziness.
     */
-  def normalizeFuzz: Number = this match {
+  lazy val normalizeFuzz: Number = this match {
     case FuzzyNumber(value, factor, maybeFuzz) =>
       val relativeFuzz = for {
         x <- toNominalDouble
@@ -72,7 +73,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     *
     * @return either this Number or a simplified Number.
     */
-  def simplify: Number = fuzz match {
+  lazy val simplify: Number = fuzz match {
     case None =>
       ExactNumber(nominalValue, factor).simplify
     case _ =>
@@ -128,7 +129,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     *
     * @return true if this Number is equivalent to zero with at least 50% confidence.
     */
-  def isZero: Boolean =
+  lazy val isZero: Boolean =
     isProbablyZero()
 
   /**
@@ -139,7 +140,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     *
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
     */
-  def signum: Int =
+  lazy val signum: Int =
     signum(0.5)
 
   /**
@@ -183,33 +184,28 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     *
     * @return a String representation of this FuzzyNumber.
     */
-  def render: String = toString
-
-  /**
-    * Render this FuzzyNumber in String form, including the factor, and the fuzz.
-    *
-    * TODO fuzzy zero (use createFuzzy(0)) renders as "0*" which I think is incorrect.
-    *
-    * @return
-    */
-  override def toString: String = {
+  lazy val render: String = {
     val sb = new mutable.StringBuilder()
     lazy val valueAsString = Value.valueToString(nominalValue, skipOne = false, exact = fuzz.isEmpty)
     val z = fuzz match {
       // CONSIDER will the following test work in all cases?
       case Some(f) if f.wiggle(0.5) > 1E-16 =>
-        f.toString(toNominalDouble.getOrElse(0.0))
+        f.getQualifiedString(toNominalDouble.getOrElse(0.0))
       case Some(_) =>
         true -> (valueAsString.replace(Ellipsis, "") + "*")
       case None =>
         true -> valueAsString
     }
-    val w = z match {
+    val ww = z match {
       case (true, s) =>
         s
       case (false, s) =>
         valueAsString + "\u00B1" + s
     }
+    // TODO Improve this.
+    //  Currently, this is a hack but other places essentially do this same thing but I'm having a hard time merging the appropriate code.
+    val w = ww.replaceAll("""0\[5]""", "*")
+
     factor match {
       case Logarithmic(_) =>
         sb.append(factor.render(w))
@@ -223,7 +219,6 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     }
     sb.toString
   }
-
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.

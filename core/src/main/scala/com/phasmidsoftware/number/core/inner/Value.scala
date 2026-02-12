@@ -312,8 +312,8 @@ object Value {
       x
     case ((x, _), false) =>
       x
-    case (x, _) =>
-      x.toString() + "*"
+    case ((x, _), _) =>
+      x + "*"
   }
 
   /**

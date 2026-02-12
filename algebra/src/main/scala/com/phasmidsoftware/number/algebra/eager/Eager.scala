@@ -11,11 +11,10 @@ import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.core.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
-import com.phasmidsoftware.number.core.algebraic.Algebraic_Quadratic
-import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
-import com.phasmidsoftware.number.core.numerical.{CoreExceptionWithCause, Field}
+import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, CoreExceptionWithCause, Field}
 import com.phasmidsoftware.number.core.parse.NumberParser
-import com.phasmidsoftware.number.core.{algebraic, inner, numerical}
+import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.{algebra, core}
 
 import scala.Option.when
@@ -49,7 +48,7 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     *
     * @return the materialized `Eager` instance representing the resolved value
     */
-  def materialize: Eager = this
+  lazy val materialize: Eager = this
 
   /**
     * Retrieves an optional name associated with this instance.
@@ -294,7 +293,7 @@ object Eager {
     * initialized only when accessed. The `half` constant provides a convenient
     * representation of the fractional value 1/2 in the `Eager` context.
     */
-  lazy val half: Eager = RationalNumber(Rational.half)
+  lazy val half: Number = RationalNumber(Rational.half)
   /**
     * A lazily initialized constant value of `10` within the `Eager` context.
     *
@@ -341,6 +340,23 @@ object Eager {
     * As a lazy value, the computation or retrieval of `e` is deferred until it is accessed for the first time.
     */
   lazy val e: Eager = NaturalExponential.e
+
+  /**
+    * Represents the imaginary unit `i` as an `Eager` instance.
+    *
+    * This specific value corresponds to the mathematical constant √(-1), which is
+    * represented internally as the result of applying the `InversePower` constructor
+    * with a base of 2 and an exponent of -1.
+    *
+    * The value is lazily initialized, meaning it is computed only when accessed.
+    */
+  lazy val i: Eager = InversePower(2, -1)
+
+  /**
+    * Exact value of iPi.
+    */
+  lazy val iPi: Eager = Complex(ComplexCartesian(0, numerical.Number.pi))
+
   /**
     * A lazily initialized constant for infinity: an `Eager` instance that encapsulates
     * a `RationalNumber` with an infinite value.
@@ -369,6 +385,18 @@ object Eager {
     * enabling mathematical expressions and computations involving this constant.
     */
   lazy val root2: Eager = new InversePower(2, 2)(Some("√2"))
+  /**
+    * Represents the square root of 1/2, lazily initialized.
+    *
+    * This value is an instance of `Eager`, constructed using the `InversePower`
+    * class with a base of 2 and an exponent of `Eager.half`. It models the 
+    * mathematical constant √½ and is labeled with its LaTeX representation for 
+    * display purposes.
+    *
+    * The creation of this value demonstrates the use of lazy initialization
+    * to defer computation until it is first accessed.
+    */
+  lazy val rootHalf: Eager = new InversePower(2, Eager.half)(Some("√½"))
   /**
     * Represents the square root of 3 as a lazy initialization of an `Eager` type.
     *
@@ -400,6 +428,9 @@ object Eager {
   /**
     * Parses the given string into a `Valuable` representation. If the string cannot be parsed
     * into a valid `Number`, an exception is thrown.
+    *
+    * NOTE this deprecation is OK--there is no alternative NumberParser
+    *
     *
     * @param str the input string representing a numerical value.
     * @return a `Valuable` representation of the parsed `Number`.
@@ -445,11 +476,6 @@ object Eager {
         Scalar(n)
       case c: numerical.Complex =>
         Complex(c)()
-      case a@Algebraic_Quadratic(_, com.phasmidsoftware.number.core.algebraic.Quadratic(p, q), pos) =>
-        val q: algebraic.Solution = a.solve
-        val m1: Monotone = convertToMonotone(q.base, PureNumber)
-        val m2: Monotone = convertToMonotone(q.offset, q.factor)
-        QuadraticSolution(m1, m2, q.branch, false)
       case _ =>
         throw AlgebraException(s"Valuable.apply: Algebraic not yet implemented: $field")
     }
@@ -572,21 +598,6 @@ object Eager {
     (x, y, p) =>
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
-
-  /**
-    * Converts the given value and factor into a `Monotone` representation.
-    * Throws an `AlgebraException` if the conversion does not result in a valid `Monotone` instance.
-    *
-    * @param value  the input value of type `inner.Value` to be converted into a `Monotone`.
-    * @param factor the input factor of type `inner.Factor` used for the conversion process.
-    * @return a `Monotone` instance representing the input value and factor.
-    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the conversion yields an unexpected result.
-    */
-  private def convertToMonotone(value: inner.Value, factor: inner.Factor): Monotone =
-    Eager(numerical.Real(numerical.Number.one.make(value, factor))) match {
-      case m: Monotone => m
-      case _ => throw AlgebraException(s"convertToMonotone: unexpected value: $value")
-    }
 
   private def tryConvertAndOp[T <: Eager, Z](f: (Eager, T) => Try[Z])(s: Structure, e: T): Try[Z] = e match {
     case c: Complex =>

@@ -17,6 +17,7 @@ import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Constants.sGamma
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, FuzzyNumber}
 import com.phasmidsoftware.number.core.parse.NumberParser
+import org.slf4j.LoggerFactory
 
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
@@ -37,7 +38,7 @@ import scala.util.{Failure, Success, Try}
   * @param value the central numeric value of the fuzzy number
   * @param fuzz  the optional fuzziness associated with the numeric value
   */
-case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: Option[String] = None) extends Number with R with CanAddAndSubtract[Real, Real] with Scalable[Real] with CanMultiplyAndDivide[Real] with CanPower[Number] with MaybeFuzzy {
+case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: Option[String] = None) extends Number with R with CanAddAndSubtract[Real] with Scalable[Real] with CanMultiplyAndDivide[Real] with CanPower[Number] with MaybeFuzzy {
   /**
     * Computes the result of raising an instance of type `T` to the power 
     * specified by the given `ExactNumber`.
@@ -174,7 +175,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     *
     * @return the approximate value as a `Double`.
     */
-  override def toDouble: Double = value
+  override lazy val toDouble: Double = value
 
   /**
     * Determines if the current number is equal to zero.
@@ -182,7 +183,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     * @return true if the number is zero, false otherwise
     */
   def isZero: Boolean =
-    compare(Real.zero) == 0
+    this === Real.zero
 
   /**
     * Represents the additive identity element for the type `T`.
@@ -539,7 +540,15 @@ object Real {
     * @param value the numeric value to be associated with the `Real`
     * @return a `Real` instance initialized with the specified value and default fuzziness
     */
-  def apply(value: Double): Real = apply(value, Some(Fuzziness.doublePrecision))()
+  def apply(value: Double): Real = {
+    val str = value.toString
+    val fuzz: Option[Fuzziness[Double]] = if (str.contains('.')) {
+      val decimalPlaces = str.split('.')(1).length
+      Fuzziness.createAbsFuzz(math.pow(10, -decimalPlaces) / 2.0)
+    } else
+      Some(Fuzziness.createFuzz(0))
+    new Real(value, fuzz)()
+  }
 
   /**
     * Constructs a `Real` instance using the provided value and absolute fuzziness.
@@ -564,19 +573,75 @@ object Real {
     */
   def apply(x: numerical.Real): Real = apply(x.toDouble, x.asNumber.flatMap(_.fuzz))()
 
+  /**
+    * Constructs a `Real` instance with a specified numeric value and optional fuzziness.
+    *
+    * This method creates a `Real` object using the */
   def apply(x: Double, fuzz: Option[Fuzziness[Double]]): Real = new Real(x, fuzz)()
 
   /**
     * Parses a string representation of a number and constructs a `Real` instance.
     * If the input string cannot be parsed into a valid number, a `AlgebraException` is thrown.
     *
+    * NOTE this deprecation is OK--there is no alternative NumberParser
+    *
     * @param w the input string to be parsed and converted into a `Real` instance
     * @return a `Real` instance constructed from the parsed numeric value of the input string
     */
   def apply(w: String): Real = {
-    val z: Try[numerical.Real] = NumberParser.parseNumber(w).map(x => numerical.Real(x))
-    FP.getOrThrow[Real](z.map(x => Real(x)).toOption, AlgebraException(s"Real.apply(String): cannot parse $w"))
+    NumberParser.parseNumber(w).map(x => numerical.Real(x)) match {
+      case Success(f: numerical.Field) =>
+        Eager(f) match {
+          case r@Real(_, Some(_)) =>
+            r
+          case Real(_, None) =>
+            val bd = BigDecimal(w)
+            val value = bd.toDouble
+            val fuzz = if (isExactlyRepresentable(bd)) None else Some(math.ulp(value))
+            new Real(value, fuzz flatMap (x => Fuzziness.createAbsFuzz(x)))()
+          case r: Structure =>
+            r.convert(Real.zero) match {
+              case Some(value) => value
+              case None =>
+                throw AlgebraException(s"temporary problem: cannot convert Structure $r")
+            }
+          case _ =>
+            throw AlgebraException(s"field $f is of unsupported type")
+        }
+      case Failure(_) =>
+        val bd = BigDecimal(w)
+        val value = bd.toDouble
+        val fuzz = if (isExactlyRepresentable(bd)) None else Some(math.ulp(value))
+        new Real(value, fuzz flatMap (x => Fuzziness.createAbsFuzz(x)))()
+    }
+    //    FP.getOrThrow[Real](z.map(x => Real(x)).toOption, AlgebraException(s"Real.apply(String): cannot parse $w"))
   }
+
+  // Check if a BigDecimal can be exactly represented as a Double
+  private def isExactlyRepresentable(bd: BigDecimal): Boolean = {
+    if (!bd.isExactDouble) return false
+
+    // Get numerator and denominator
+    val (numerator, denominator) = if (bd.scale <= 0) {
+      (bd.toBigInt, BigInt(1))
+    } else {
+      val unscaled = bd.underlying.unscaledValue
+      (BigInt(unscaled), BigInt(10).pow(bd.scale))
+    }
+
+    // Reduce to lowest terms
+    val gcd = numerator.gcd(denominator)
+    val reducedDenom = denominator / gcd
+
+    // Check if denominator only has factors of 2 and 5
+    var d = reducedDenom
+    while (d % 2 == 0) d /= 2
+    while (d % 5 == 0) d /= 5
+
+    d == 1
+  }
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   /**
     * Given instance of `Convertible` for converting a value of type `Real` into another value of type `Real`.
@@ -872,11 +937,11 @@ object Real {
         case Success(numerical.FuzzyNumber(v, PureNumber, fo)) =>
           fromFuzzyPureValue(v, fo)
         case Failure(NonFatal(ex)) =>
-          println(ex.getLocalizedMessage); None
+          logger.warn(ex.getLocalizedMessage); None
         case Failure(ex) =>
           throw ex
         case _ =>
-          println(s"Real: cannot parse String as Real: $str"); None
+          logger.warn(s"Real: cannot parse String as Real: $str"); None
       }
 
     /**

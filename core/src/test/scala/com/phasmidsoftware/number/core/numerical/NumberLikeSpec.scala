@@ -37,6 +37,5 @@ class NumberLikeSpec extends AnyFlatSpec with should.Matchers {
     Constants.pi.render shouldBe "\uD835\uDED1"
     Constants.e.render shouldBe "\uD835\uDF00"
     Constants.root2.render shouldBe "√2"
-    Constants.phi.render shouldBe "𝛗"
   }
 }

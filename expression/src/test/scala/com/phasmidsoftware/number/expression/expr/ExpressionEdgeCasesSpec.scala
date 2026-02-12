@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Number, QuadraticSolution}
+import com.phasmidsoftware.number.algebra.eager.{Complex, Eager, QuadraticSolution}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar}
@@ -62,7 +62,7 @@ class ExpressionEdgeCasesSpec extends AnyFlatSpec with Matchers {
     val result = sum.simplify
 
     // Conjugate sum should simplify to -b/a = 1
-    result shouldBe One
+    result.materialize shouldBe Eager.one
   }
 
   it should "simplify conjugate product of quadratic roots" in {
@@ -147,7 +147,7 @@ class ExpressionEdgeCasesSpec extends AnyFlatSpec with Matchers {
     result should not be power
   }
 
-  ignore should "handle Euler's identity with complex cartesian" in {
+  it should "handle Euler's identity with complex cartesian" in {
     // Line 839: case (E, Literal(ComplexCartesian(Number.zero, Number.pi), _))
     val complexNum = ComplexCartesian(numerical.Number.zero, numerical.Number.pi) // 0 + πi
     val power = BiFunction(E, Literal(Complex(complexNum)), Power) // e^(πi)
@@ -156,9 +156,11 @@ class ExpressionEdgeCasesSpec extends AnyFlatSpec with Matchers {
     // Euler's identity: e^(πi) = -1
     result shouldBe MinusOne
   }
-  ignore should "handle Euler's identity with complex polar" in {
+  it should "handle Euler's identity with complex polar" in {
     // Line 839: case (E, Literal(ComplexCartesian(Number.zero, Number.pi), _))
-    val complexNum = ComplexPolar(numerical.Number.pi, numerical.Number.piBy2) // 0 + πi
+    val complexNum: numerical.Complex = ComplexPolar(numerical.Number.pi, numerical.Number.piBy2) // 0 + πi
+    val magnitude = complexNum.modulus
+    println(s"complexNum = $complexNum; magnitude = $magnitude; argument = ${complexNum.argument}; isImaginary = ${complexNum.isImaginary}")
     val power = BiFunction(E, Literal(Complex(complexNum)), Power) // e^(πi)
     val result = power.simplify
 

@@ -17,6 +17,8 @@ import com.phasmidsoftware.number.core.inner.*
   */
 trait Context extends CoreContext {
 
+  self =>
+
   /**
     * Determines whether a given `HasValue` qualifies in the current `Context`.
     *
@@ -32,7 +34,8 @@ trait Context extends CoreContext {
   def valuableQualifies(v: Valuable): Boolean = (this, v) match {
     case (_, nat: Nat) =>
       true
-    case (AnyContext, _) => true
+    case (AnyContext, _) =>
+      true
     case _ =>
       v.maybeFactor(this).exists(factorQualifies)
   }
@@ -63,8 +66,17 @@ trait Context extends CoreContext {
     * @param that the other `Context` to combine with this `Context`.
     * @return a new `Context` that represents the logical OR of the two contexts.
     */
-  override def or(that: CoreContext): Context =
-    (f: Factor) => this.factorQualifies(f) || that.factorQualifies(f)
+  override def or(that: CoreContext): Context = new Context {
+    /**
+      * Determines whether the given factor is acceptable in this `Context`.
+      *
+      * @param f the factor.
+      * @return true if the factor qualifies; false otherwise.
+      */
+    def factorQualifies(f: Factor): Boolean = self.factorQualifies(f) || that.factorQualifies(f)
+
+    override def toString: String = s"Context allowing ($self) or ($that)"
+  }
 
   /**
     * Produces a new context that requires both this context and the provided context to qualify a factor.
@@ -107,6 +119,8 @@ case class RestrictedContext(factor: Factor) extends Context {
     */
   def factorQualifies(f: Factor): Boolean = (f, factor) match {
     case (a, b) if a == b =>
+      true
+    case (PureNumber, Composite) => // Special case to allow PureNumber to be evaluated in Composite context.
       true
     case _ =>
       false

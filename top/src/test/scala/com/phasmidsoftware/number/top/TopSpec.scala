@@ -14,7 +14,6 @@ import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.inner.Rational.infinity
 import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation.goldenRatioEquation
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.{Expression, *}
 import org.scalactic.Equality
@@ -131,10 +130,9 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     math"(2.00 + 1) * (3.00 + ½)" shouldBe Eager(r"21/2")
   }
   it should "distributeProductSum b 2" in {
-    //    val value = lazymath"(2.005 + 1) * (2.995 + ½)"
-    //    value should ===(Real(10.502475, Some(AbsoluteFuzz(0.012835619415020195, Gaussian))))
-    //        math"(2.005 + 1) * (2.995 + ½)" should ===(Real(10.502475, Some(AbsoluteFuzz(0.012835619415020195, Gaussian))))
-    pending
+    val value = lazymath"(2.005 + 1) * (2.995 + ½)"
+    value shouldBe Literal(RationalNumber(420099, 40000))
+    math"(2.005 + 1) * (2.995 + ½)" shouldBe RationalNumber(420099, 40000)
   }
   it should "distributeProductPower on root(3) * root(3)" in {
     val exp = """\sqrt{3}^2"""
@@ -147,7 +145,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
   }
   it should "use multiply instead of addition" in {
     puremath"\pi+𝛑" shouldBe BiFunction(Pi, Pi, Sum)
-    lazymath"\pi+𝛑" shouldBe Literal(Angle(WholeNumber(0)), Some("0𝛑"))
+    lazymath"\pi+𝛑" shouldBe Pi * Two
     math"\pi+𝛑" shouldBe Angle(2)
   }
   it should "work for Negate" in {
@@ -227,11 +225,11 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     math"\sin(0)" shouldBe zero
     lazymath"\sin(\pi)" shouldBe Zero
     math"\sin(\pi)" shouldBe zero
-    lazymath"\cos(𝛑/2)" shouldBe Zero
+    lazymath"\cos(𝛑/2)" shouldBe UniFunction(BiFunction(Pi, Rational.half, Product), Cosine)
     math"\cos(𝛑/2)" shouldBe zero
   }
   it should "work for Sine pi/2, etc." in {
-    lazymath"\sin(𝛑/2)" shouldBe One
+    lazymath"\sin(𝛑/2)" shouldBe UniFunction(BiFunction(Pi, Rational.half, Product), Sine)
     math"\sin(𝛑/2)" shouldBe one
     lazymath"\cos(0)" shouldBe One
     math"\cos(0)" shouldBe one
@@ -253,8 +251,8 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     math"\sqrt{7 ∧ 2}" shouldBe Eager(7)
   }
   it should "simplify phi∧2" in {
-    puremath"\phi ∧ 2" shouldBe BiFunction(QuadraticRoot(goldenRatioEquation, 0), Two, Power)
-    lazymath"\phi ∧ 2" shouldBe BiFunction(QuadraticRoot(goldenRatioEquation, 0), One, Sum)
+    puremath"\phi ∧ 2" shouldBe BiFunction(Root.phi, Two, Power)
+    lazymath"\phi ∧ 2" shouldBe BiFunction(Root.phi, One, Sum)
     math"\phi ∧ 2" === Real("2.618033988749895*")
   }
   it should "cancel 1 + -1" in {
@@ -290,5 +288,18 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     val lazyHalf = One / 2
     val half: Eager = lazyHalf.materialize
     half shouldBe RationalNumber(x)
+  }
+
+  behavior of "Expression parsing"
+
+  it should "parse power with negative exponent (new style)" in {
+    val e: Expression = puremath"2 ∧ -1"
+    e shouldBe Literal(2) ∧ -1
+  }
+
+  it should "parse power with negative exponent (deprecated Expression.parse with chs)" in {
+    val eo: Option[Expression] = Expression.parse("2 ∧ (1 chs)")
+    eo should matchPattern { case Some(_) => }
+    eo.get shouldBe BiFunction(2, BiFunction(1, -1, Product), Power)
   }
 }

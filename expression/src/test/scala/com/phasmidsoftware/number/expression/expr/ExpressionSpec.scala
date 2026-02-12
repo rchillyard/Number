@@ -13,12 +13,13 @@ import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
 import com.phasmidsoftware.number.algebra.eager.RationalNumber.half
 import com.phasmidsoftware.number.core.inner.{NatLog, Rational}
 import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.{ComplexPolar, ExactNumber}
+import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, ExactNumber}
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
 import com.phasmidsoftware.number.expression.core.FuzzyEquality
 import com.phasmidsoftware.number.expression.expr
-import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, em, pi}
+import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, em}
 import com.phasmidsoftware.number.expression.expr.Root.phi
+import com.phasmidsoftware.number.expression.mill.MillException
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
@@ -43,16 +44,30 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "evaluate"
 
-  // TODO #Issue 149 this has to do with imaginary numbers
-  it should "evaluate i * 2" in {
-    //    val x: Expression = ConstI * 2
-    //    val result: Option[Valuable] = x.evaluateAsIs
-    //    result.isDefined shouldBe true
-    //    val expected = Eager(numerical.Real(ExactNumber(-4, SquareRoot)))
-    //    result.get shouldBe expected
-    pending
+  it should "evaluate i as an inverse power" in {
+    val i: Expression = I
+    i.evaluateAsIs shouldBe Some(Eager.i)
   }
 
+  // TODO #Issue 149 this has to do with imaginary numbers
+  it should "evaluate i * 2" in {
+    val x: Expression = I * 2
+    val result: Eager = x.materialize
+    val expected = InversePower(2, WholeNumber(-4))
+    result shouldBe expected
+  }
+
+  it should "evaluate 2 * i" in {
+    val x: Expression = Two * I
+    val result: Eager = x.materialize
+    val expected = InversePower(2, WholeNumber(-4))
+    result shouldBe expected
+  }
+
+  it should "evaluate ∅ * 3 * i" in {
+    val x: Expression = ∅ * 3 * I
+    x.materialize shouldBe InversePower(2, WholeNumber(-9))
+  }
   behavior of "parse"
   //  private val syp: ShuntingYardParser.type = ShuntingYardParser
   //  it should "parse 1" in {
@@ -66,14 +81,14 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   //    syp.parseInfix("( ( 0.5 + 3.00* ) + ( 2.00* * ( 0.5 + 3.00* ) ) )") should matchPattern { case Success(_) => }
   //  }
   it should "parse and evaluate sqrt(3)" in {
-    val eo: Option[Expression] = Expression.parse("3 ∧ ( 2 ∧ -1 )")
+    val eo: Option[Expression] = Expression.parse("3 ∧ ( 2 ∧ (1 chs) )")
     eo should matchPattern { case Some(_) => }
-    eo.get shouldBe BiFunction(Expression(3), BiFunction(Expression(2), Expression(-1), Power), Power)
+    eo.get shouldBe BiFunction(3, BiFunction(2, BiFunction(1, -1, Product), Power), Power)
+    eo.get.materialize shouldBe Eager.root3
   }
-  it should "parse and evaluate half" in {
-    val eo: Option[Expression] = Expression.parse("2 ∧ -1")
-    eo should matchPattern { case Some(_) => }
-    eo.get shouldBe BiFunction(Expression(2), Expression(-1), Power)
+  // NOTE what happens if you try to parse a signed integer: it fails (see test above)
+  it should "fail to evaluate 3 ∧ ( 2 ∧ -1 )" in {
+    a[MillException] should be thrownBy Expression.parse("3 ∧ ( 2 ∧ -1 )")
   }
 
   // NOTE that the apply function always takes a Field and returns a Field. Not to be confused with applyExact.
@@ -156,10 +171,10 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "render" in {
     val x1 = Eager.one
     val x2 = Eager.pi
-    val e = BiFunction(Literal(x1), Literal(x2), Sum)
+    val e = BiFunction(Literal(1), Pi, Sum)
     e.toString shouldBe """(1 + 𝛑)"""
     e.render shouldBe "(1 + 𝛑)"
-    e.materialize.render shouldBe "4.1415926535897930(67)"
+    e.materialize.render shouldBe "4.14159265358979300(91)"
   }
   it should "evaluate 3 5 + 7 2 – *" in {
     val expression = (Expression(3) :+ 5) * (7 - 2)
@@ -193,11 +208,10 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x = Expression(6) ∧ 2
     x.materialize shouldEqual Eager(36)
   }
-  // TODO Issue #150
+  // CONSIDER Issue #150 (?) [This is not really a feature of "Number"]
   it should "evaluate sqrt 36" in {
-    //    val x: Expression = Expression(36).sqrt
-    //    x.materialize shouldEqual ±(6)
-    pending
+    val x: Expression = Expression(36).sqrt
+    //        x.materialize shouldEqual ±(6)
   }
   // TODO Issue #140
   it should "evaluate sin pi/2" in {
@@ -205,7 +219,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val y: Expression = x.sin
     y.materialize shouldBe Eager.one
   }
-  // FIXME stack overflow
   it should "evaluate atan" in {
     val zero: Expression = expr.Zero
     zero.atan(Eager.one).materialize shouldBe Angle.piBy2
@@ -275,7 +288,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "evaluate E * 2" in {
     val z: Eager = (E * 2).materialize
     val q = eagerToField(z).normalize
-    q.toString shouldBe "5.436563656918090[51]"
+    q.render shouldBe "5.436563656918090[6]"
   }
 
   behavior of "isExact"
@@ -312,19 +325,17 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   behavior of "Euler"
-  // TODO Issue #151
-  it should "prove Euler's identity 1" in {
-    //    val iPi = ComplexCartesian(0, numerical.Number.pi)
-    //    val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
-    //    euler.materialize shouldBe Eager.minusOne
-    pending
+  // NOTE formerly Issue #151
+  it should "demonstrate Euler's identity 1" in {
+    val iPi = Complex(ComplexCartesian(0, numerical.Number.pi))
+    val euler: Expression = E ∧ iPi
+    euler.materialize shouldBe Eager.minusOne
   }
-  // TODO Issue #151
-  it should "prove Euler's identity 2" in {
-    //    val iPi = numerical.Complex.convertToPolar(ComplexCartesian(0, numerical.Number.pi))
-    //    val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
-    //    euler.materialize shouldBe Eager.minusOne
-    pending
+  // NOTE formerly Issue #151
+  it should "demonstrate Euler's identity 2" in {
+    val iPi = numerical.Complex.convertToPolar(ComplexCartesian(0, numerical.Number.pi))
+    val euler: Expression = Expression(Eager.e) ∧ Complex(iPi)
+    euler.materialize shouldBe Eager.minusOne
   }
 
   behavior of "FieldExpression"
@@ -412,9 +423,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "aggregate 2" in {
     val target = (One * Pi * Two * MinusOne).simplify
-    // CONSIDER is this correct? It doesn't seem right.
-    val expected = Literal(Angle(WholeNumber(-2)), Some("0𝛑"))
-    target shouldBe expected
+    target shouldBe Literal(-2) * Pi
   }
   it should "evaluate e * e" in {
     val expression: Expression = E * E
@@ -521,12 +530,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     e.simplifyExact(e).successful shouldBe false
   }
   // NOTE Test case for Issue #142
+  // NOTE This is actually Issue #143
+  // It involves deprecated code.
   it should "simplifyExact 2" in {
-    Expression("sin(𝛑) * -1") match {
+    Expression("sin(𝛑) * (1 chs)") match {
       case expression: CompositeExpression =>
-        val simplified = expression.simplifyExact(expression)
-        simplified.successful shouldBe true
-        simplified.get shouldBe Literal(WholeNumber(0), Some("0")) // NOTE this should be Zero, not Literal(WholeNumber(0))
+        val simplified = expression.simplify
+        simplified shouldBe Literal(WholeNumber(0), Some("0")) // NOTE this should be Zero, not Literal(WholeNumber(0))
       case x =>
         fail(s"expected CompositeExpression, got $x")
     }

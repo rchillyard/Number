@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.expression.algebraic
 
-import com.phasmidsoftware.number.algebra.core.Valuable
+import com.phasmidsoftware.number.algebra.core.{Q, Valuable}
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.algebra.eager.RationalNumber.convRationalRationalNumber
 import com.phasmidsoftware.number.algebra.util.FP
@@ -115,7 +115,7 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
           throw ExpressionException(s"QuadraticEquation: cannot evaluate $solution")
       }
     case Complex(c) =>
-      Eager(c.square + p * c + q)
+      Eager(c.square + c * p + q)
     case _ =>
       throw ExpressionException(s"QuadraticEquation: cannot evaluate $solution because it is not a QuadraticSolution")
   }
@@ -189,7 +189,7 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
   lazy val discriminant: Rational =
     p * p - 4 * q
 
-  override def toString: String = s"Quadratic Equation: x∧2 ${QuadraticEquation.termSign(p)}x ${QuadraticEquation.termSign(q)} = 0"
+  def render: String = s"x∧2 ${QuadraticEquation.termSign(p)}x ${QuadraticEquation.termSign(q)} = 0"
 
   /**
     * Determines if the given object can be considered equal to this instance.
@@ -247,8 +247,12 @@ case class LinearEquation(r: Rational) extends Equation {
     *               The branch index identifies specific solutions for equations that may have multiple solutions.
     * @return a `Field`, which is either an `Algebraic` (real-valued) or a `Complex`.
     */
-  def solve(branch: Int): Solution =
-    LinearSolution(RationalNumber(-r))()
+  def solve(branch: Int): Solution = {
+    if (branch == 0)
+      LinearSolution(RationalNumber(-r))()
+    else
+      throw new IllegalArgumentException(s"LinearEquation: coefficient $branch out of range: a linear equation has only 1 branch")
+  }
 
   /**
     * Evaluates the provided `Solution` within the context of this `LinearEquation`.
@@ -267,7 +271,7 @@ case class LinearEquation(r: Rational) extends Equation {
     */
   def evaluate(s: Solution): Eager = s match {
     case LinearSolution(x: Number) =>
-      x + r
+      (x + r).normalize
     case _ =>
       throw ExpressionException(s"LinearEquation: cannot evaluate $s")
   }
@@ -284,7 +288,8 @@ case class LinearEquation(r: Rational) extends Equation {
     * @return a new `Equation` instance that is the result of applying the specified transformations
     *         to the components of the current equation.
     */
-  def transform(fP: (Rational, Rational) => Rational, fQ: (Rational, Rational) => Rational): Equation = ??? // TODO implement me
+  def transform(fP: (Rational, Rational) => Rational, fQ: (Rational, Rational) => Rational): Equation =
+    LinearEquation(fQ(Rational.zero, r))
 
   /**
     * Scales the current instance by the given factor.
@@ -304,7 +309,8 @@ case class LinearEquation(r: Rational) extends Equation {
     *
     * @return a new `Equation` instance representing the inverted form of the current equation.
     */
-  def invert: Equation = ??? // TODO implement me
+  def invert: Equation =
+    LinearEquation(r.invert.negate)
 
   /**
     * Shifts the origin of the given equation by the specified rational value.
@@ -319,7 +325,15 @@ case class LinearEquation(r: Rational) extends Equation {
     * @param c the rational value by which to shift the origin of the equation.
     * @return a new `Equation` instance with its origin shifted by the specified value.
     */
-  def shiftOrigin(c: Rational): LinearEquation = ??? // TODO implement me
+  def shiftOrigin(c: Rational): LinearEquation = LinearEquation(r - c)
+
+  /**
+    * Method to render this `Valuable` for presentation to the user.
+    *
+    * @return a String
+    */
+  def render: String = s"x ${QuadraticEquation.termSign(r)} = 0"
+
 }
 
 /**
@@ -387,21 +401,20 @@ object QuadraticEquation {
     */
   def solveAsComplex(branch: Int, branches: Int, realCoefficient: Rational, imagCoefficient: Monotone, equation: QuadraticEquation): ComplexCartesian = {
     val realPart = Valuable.valuableToMaybeField(RationalNumber(realCoefficient)).flatMap(x => x.asNumber)
+    val coefficient = Solution.quadraticOffsetCoefficient(branch, branches)
     imagCoefficient match {
       case scalar: Scalar =>
-        val x = scalar.scale(Solution.quadraticOffsetCoefficient(branch, branches))
-        val imaginaryPart = Valuable.valuableToMaybeField(x).flatMap(x => x.asNumber)
+        val imaginaryPart = Valuable.valuableToMaybeField(scalar.scale(coefficient)).flatMap(x => x.asNumber)
         FP.recover(
           for (x <- realPart; y <- imaginaryPart) yield ComplexCartesian(x, y))(
           ExpressionException(s"Quadratic equation has bad complex roots: $equation")
         )
-      case i@InversePower(2, RationalNumber(r, _)) =>
-        val imag: numerical.Number = ExactNumber(Value.fromRational(r), SquareRoot)
+      case i@InversePower(2, q: Q) =>
+        val imag = ExactNumber(Value.fromRational(q.toRational), SquareRoot).doMultiple(coefficient)
         FP.recover(
           for (x <- realPart) yield ComplexCartesian(x, imag))(
           ExpressionException(s"Quadratic equation has bad complex roots: $equation")
         )
-
       case x =>
         throw ExpressionException(s"QuadraticEquation: cannot create complex roots: imaginary coefficient is not a scalar: $x")
     }
@@ -419,5 +432,5 @@ object QuadraticEquation {
     *
     * @return a formatted String representation of the Field's sign and absolute value.
     */
-  private def termSign(x: Field, add: Boolean = true): String = (if (add) if (x.signum < 0) "- " else "+ " else "") + x.abs.render
+  private[algebraic] def termSign(x: Field, add: Boolean = true): String = (if (add) if (x.signum < 0) "- " else "+ " else "") + x.abs.render
 }

@@ -15,10 +15,11 @@ import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.*
 import com.phasmidsoftware.number.{algebra, core}
 import org.slf4j.{Logger, LoggerFactory}
+
 import scala.util.{Failure, Success, Try}
 
 /**
-  * This is a placeholder for a Complex number to demonstrate where it should appear in the type hierarchy (it should extend Structure).
+  * This is a wrapper for a Complex number to demonstrate where it should appear in the type hierarchy (it should extend Solution).
   *
   * @see com.phasmidsoftware.number.core.numerical.Complex
   */
@@ -96,6 +97,16 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
   def isZero: Boolean = complex.isZero
 
   /**
+    * Determines if the current `Complex` number is both real and of unity magnitude.
+    *
+    * A `Complex` number is considered to have unity magnitude if its modulus equals one.
+    * Additionally, the number must lie on the real axis to satisfy the condition of being real.
+    *
+    * @return true if the `Complex` number is real and has unity magnitude, false otherwise.
+    */
+  def isUnity: Boolean = complex.isReal && complex.isUnity
+
+  /**
     * Determines the sign of the Monotone value represented by this instance.
     * Returns an integer indicating whether the value is positive, negative, or zero.
     *
@@ -104,15 +115,21 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
   def signum: Int = complex.signum
 
   /**
-    * Normalizes this `Valuable` to its simplest equivalent form.
-    * This may change the type (e.g., RationalNumber → WholeNumber, Complex(5,0) → WholeNumber(5)).
+    * Normalizes the `Complex` instance represented by the current object.
     *
-    * For Expression types, this will attempt to simplify and materialize if the result is exact.
-    * For Eager types, this will reduce to the simplest type representation.
+    * This method computes a normalized form of the underlying complex structure,
+    * converting it to either a `Complex` or `Eager` representation, depending on the resulting value.
+    * If the normalized value is of type `numerical.Complex`, it is converted into a `Complex` instance.
+    * Otherwise, if the normalized value is a `Field`, it is wrapped in an `Eager` instance.
     *
-    * @return the simplest `Valuable` representation of this value
+    * @return an `Eager` instance that encapsulates the normalized value, either as a `Complex` or another `Eager` representation.
     */
-  def normalize: Complex = this // CONSIDER should this be a method on Complex?
+  def normalize: Eager = complex.normalize match {
+    case c: numerical.Complex =>
+      Complex(c)()
+    case x: Field =>
+      Eager(x)
+  }
 
   /**
     * Scales the current Complex instance by a given Rational value.
@@ -234,8 +251,6 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
       val modulus: Number = complex.modulus
       Scalar.createScalar(modulus.nominalValue, modulus.factor, modulus.fuzz).approximation(force)
     }
-
-
 }
 
 /**
@@ -291,6 +306,10 @@ trait Solution extends Eager with Negatable[Solution] {
   def scale(r: Rational): Solution
 }
 
+/**
+  * Object containing functionality related to `Solution`, including mathematical computations
+  * and rendering solutions as LaTeX.
+  */
 object Solution {
 
   /**

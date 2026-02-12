@@ -1,6 +1,8 @@
+import MermaidDiagramGenerator.autoImport.generateMermaidDiagrams
+
 ThisBuild / organization := "com.phasmidsoftware"
 
-ThisBuild / version := "1.6.0"
+ThisBuild / version := "1.6.6"
 
 val scalaVersionNumber = "3.7.3"
 val catsVersion = "2.13.0"
@@ -8,11 +10,13 @@ val scalaTestVersion = "3.2.19"
 val scalaParserCombinatorsVersion = "2.4.0"
 val nScalaTimeVersion = "2.32.0"
 val apacheCommonsVersion = "3.6.1"
-val flogVersion = "1.0.11"
-val logbackClassicVersion = "1.5.25"
+val flogVersion = "1.0.12"
+val logbackClassicVersion = "1.5.29"
+val configVersion = "1.4.5"
 
 ThisBuild / libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
+  "com.typesafe" % "config" % configVersion,
   "ch.qos.logback" % "logback-classic" % logbackClassicVersion % "runtime"
 )
 
@@ -156,6 +160,11 @@ lazy val dimensions = (project in file("dimensions"))
 // ============================================================================
 
 Test / parallelExecution := false
+
+Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports")
+
+// Only enable the task in the root project
+generateMermaidDiagrams / aggregate := false
 
 // ============================================================================
 // USAGE NOTES

@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.core.parse
 
 import com.phasmidsoftware.number.core.mill.{CoreMill, CoreMillItem, Expr, TerminalExpression}
 import com.phasmidsoftware.number.core.numerical.*
+
 import scala.util.Try
 
 /**
@@ -16,6 +17,7 @@ import scala.util.Try
   *
   * CONSIDER using a TokenParser instead of a RegexParser.
   */
+@deprecated("use com.phasmidsoftware.number.expression.parse.BaseMillParser instead", "1.6.5")
 abstract class BaseMillParser extends BaseNumberParser {
 
   /**
@@ -47,7 +49,7 @@ abstract class BaseMillParser extends BaseNumberParser {
     * @param t the defining token.
     */
   case class AnadicTerm(t: Token) extends Term {
-    override def toString: String = t match {
+    override lazy val toString: String = t match {
       case Right(x) => x.toString
       case Left(x) => x
     }
@@ -61,7 +63,7 @@ abstract class BaseMillParser extends BaseNumberParser {
     * @param op an monadic operator, represented by a String.
     */
   case class MonadicTerm(t: Term, os: List[String], op: String) extends Term {
-    override def toString: String = s"$t $os $op"
+    override lazy val toString: String = s"$t $os $op"
   }
 
   /**
@@ -71,7 +73,7 @@ abstract class BaseMillParser extends BaseNumberParser {
     * @param op a MonadicTerm.
     */
   private case class DyadicTerm(t: Term, op: MonadicTerm) extends Term {
-    override def toString: String = s"$t $op"
+    override lazy val toString: String = s"$t $op"
   }
 
   /**

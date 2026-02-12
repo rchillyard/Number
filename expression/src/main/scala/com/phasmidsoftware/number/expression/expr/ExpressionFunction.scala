@@ -8,8 +8,8 @@ import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.core.Context.{AnyLog, AnyRoot, AnyScalar}
 import com.phasmidsoftware.number.algebra.core.{AnyContext, ImpossibleContext, RestrictedContext, *}
 import com.phasmidsoftware.number.algebra.eager
-import com.phasmidsoftware.number.algebra.eager.{Algebraic, Angle, Eager, NatZero, NaturalExponential, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
+import com.phasmidsoftware.number.algebra.eager.{Algebraic, Angle, Eager, NatZero, RationalNumber, Solution, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical.{Real, *}
@@ -289,63 +289,6 @@ sealed abstract class ExpressionBiFunction(
     context.qualifyingEagerValue(eo)
   }
 
-  //    (x.evaluateAsIs, y.evaluateAsIs) match {
-  //    case (Some(a), _) if maybeIdentityL contains a =>
-  //      y.evaluate(context)
-  //    case (_, Some(b)) if maybeIdentityR contains b =>
-  //      x.evaluate(context)
-  //    case (Some(a), Some(b)) if trivialEvaluation(a, b).isDefined =>
-  //      trivialEvaluation(a, b)
-  //    case _ =>
-  //      val xy = doEvaluate(x, y)(context)
-  //      lazy val yx = FP.whenever(commutes)(doEvaluate(y, x)(context))
-  //      context.qualifyingEagerValue(xy orElse yx)
-  //  }
-
-  /**
-    * Evaluates two expressions `x` and `y` using their respective contexts, combines the evaluated results
-    * through an exact binary operation, and returns the output if all operations are successful.
-    *
-    * This method performs a sequential evaluation where:
-    * 1. The `x` expression is evaluated in the left-hand context to produce an intermediate result.
-    * 2. The intermediate result is used to derive a right-hand context, in which the `y` expression is evaluated.
-    * 3. If both expressions are successfully evaluated, their results are combined using a strict binary operation.
-    *
-    * @param x the first expression to be evaluated in the left-hand context.
-    * @param y the second expression to be evaluated in the right-hand context derived from the result of `x`.
-    * @return an `Option[Valuable]` containing the result of the exact binary operation on the evaluated results
-    *         of `x` and `y`, or `None` if any step in the process fails.
-    */
-  //  def doEvaluate(x: Expression, y: Expression)(context: Context): Option[Eager] =
-  //    for
-  //      a <- x.evaluate(leftContext(context))
-  //      f <- a.maybeFactor(AnyContext)
-  //      b <- y.evaluate(rightContext(f)(RestrictedContext(f)))
-  //      z <- applyExact(a, b)
-  //    yield z
-  //
-  //  /**
-  //    * Evaluates two expressions `x` and `y` using their respective contexts, combines the evaluated results
-  //    * through an exact binary operation, and returns the output if all operations are successful.
-  //    *
-  //    * This method performs a sequential evaluation where:
-  //    * 1. The `x` expression is evaluated in the left-hand context to produce an intermediate result.
-  //    * 2. The intermediate result is used to derive a right-hand context, in which the `y` expression is evaluated.
-  //    * 3. If both expressions are successfully evaluated, their results are combined using a strict binary operation.
-  //    *
-  //    * @param x the first expression to be evaluated in the left-hand context.
-  //    * @param y the second expression to be evaluated in the right-hand context derived from the result of `x`.
-  //    * @return an `Option[Valuable]` containing the result of the exact binary operation on the evaluated results
-  //    *         of `x` and `y`, or `None` if any step in the process fails.
-  //    */
-  //  def doEvaluate(x: Expression, y: Expression)(context: Context): Option[Eager] =
-  //    for
-  //      a <- x.evaluate(leftContext(context))
-  //      f <- a.maybeFactor(AnyContext)
-  //      b <- y.evaluate(rightContext(f)(RestrictedContext(f)))
-  //      z <- applyExact(a, b)
-  //    yield z
-
   /**
     * Evaluates two expressions as-is (without any simplification or conversion) and applies the function `f`
     * to the results if both evaluations are successful.
@@ -357,7 +300,7 @@ sealed abstract class ExpressionBiFunction(
     */
   def evaluateAsIs(x: Expression, y: Expression): Option[Eager] =
     for a <- x.evaluateAsIs; b <- y.evaluateAsIs yield f(a, b)
-
+  
   /**
     * Generate helpful debugging information about this ExpressionMonoFunction.
     *
@@ -384,7 +327,7 @@ object ExpressionBiFunction {
     */
   def unapply(f: ExpressionBiFunction): Option[((Eager, Eager) => Eager, String, Option[Eager], Option[Eager])] = f match {
     case e: ExpressionBiFunction =>
-      Some(e.f, e.name, e.maybeIdentityL, e.maybeIdentityR)
+      Some(e.f, e.name, e.maybeIdentityL, e.maybeIdentityR) // TESTME
   }
 }
 
@@ -449,14 +392,14 @@ case object Atan extends ExpressionBiFunction("atan", ExpressionFunction.lift2(R
         Some(Angle.piBy3)
       case (Eager.zero, Eager.one) =>
         Some(Angle.piBy2)
-      case (Real(ExactNumber(x, PureNumber)), Real(ExactNumber(y, PureNumber))) => // TESTME
-        for
-          q <- Value.maybeRational(x)
-          p <- Value.maybeRational(y)
-          r = p / q
-          // TODO test this--I have no idea if this is correct
-          d = if Value.signum(x) == Value.signum(y) then 1 else -1
-          v <- Operations.doTransformValueMonadic(Value.fromRational(r))(MonadicOperationAtan(d).functions)
+      case (Real(ExactNumber(xValue, PureNumber)), Real(ExactNumber(yValue, PureNumber))) =>
+        for // TESTME (this never apparently is called)
+          xRat <- Value.maybeRational(xValue) // a is x-coordinate
+          yRat <- Value.maybeRational(yValue) // b is y-coordinate
+          ratio = yRat / xRat // y/x
+          xSign = Value.signum(xValue)
+          ySign = Value.signum(yValue)
+          v <- Operations.doTransformValueMonadic(Value.fromRational(ratio))(MonadicOperationAtan(xSign, ySign).functions)
         yield Eager(Real(ExactNumber(v, Radian)))
       case _ =>
         None // TESTME
@@ -751,6 +694,11 @@ case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExac
     case (x: CanAdd[eager.Number, eager.Number] @unchecked, y: eager.Number) =>
       import com.phasmidsoftware.number.algebra.eager.Number.NumberIsAdditiveCommutativeMonoid
       Some((x + y).normalize)
+    // TODO need to match the other way, too.
+    case (x: Solution, y: eager.Number) => // CONSIDER having Solution extend CanAdd
+      x.add(y).toOption
+    case (y: eager.Number, x: Solution) =>
+      x.add(y).toOption
     case _ =>
       None
   }
@@ -945,6 +893,8 @@ case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)
     //      Some(b)
     case (x: eager.InversePower, y: eager.ExactNumber) =>
       x.pow(y).asInstanceOf[Option[Eager]]
+    case (x: eager.Number, RationalNumber(Inverse(n), _)) =>
+      Some(eager.InversePower(n, x))
     case (x: CanPower[eager.Structure] @unchecked, y: Q) if x.isExact && y.isExact =>
       for {
         f <- y.maybeFactor(AnyContext) if f == PureNumber
@@ -990,6 +940,8 @@ abstract class SineCos(sine: Boolean) extends ExpressionMonoFunction(if sine the
       Some(if sine then Eager.zero else Eager.one)
     case Angle.piBy2 =>
       Some(if sine then Eager.one else Eager.zero)
+    case Angle.piBy4 =>
+      Some(Eager.rootHalf)
     case Angle.pi =>
       Some(if sine then Eager.zero else Eager.minusOne)
     case Angle.negPi =>

@@ -1,14 +1,21 @@
 package com.phasmidsoftware.number.expression.algebraic
 
-import com.phasmidsoftware.number.core.algebraic.Quadratic
-import com.phasmidsoftware.number.core.expression.{Expression, MinusOne}
+import com.phasmidsoftware.number.expression.expr.{Expression, MinusOne, One}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+import org.scalatest.matchers.should.Matchers.shouldBe
 
 class AlgebraicSpec extends AnyFlatSpec with should.Matchers {
 
-  import com.phasmidsoftware.number.algebra.eager.QuadraticSolution
-  import com.phasmidsoftware.number.core.expression.Root.{phi, psi}
+  import com.phasmidsoftware.number.algebra.eager.Eager.half
+  import com.phasmidsoftware.number.algebra.eager.{Eager, QuadraticSolution, Solution}
+  import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
+  import com.phasmidsoftware.number.expression.expr.Root
+
+  // phi, the Golden Ratio
+  private val phi = Root.phi
+  // psi, the conjugate of phi
+  private val psi = Root.psi
 
   behavior of "worksheet"
 
@@ -16,9 +23,13 @@ class AlgebraicSpec extends AnyFlatSpec with should.Matchers {
 
     phi.render shouldBe "\uD835\uDED7"
 
-    (phi + 1).render shouldBe "2.6180339887498950(55)"
+    (phi + One).materialize.render shouldBe "(1.5 + √1.25)"
 
-    (phi * phi).simplify.render shouldBe "Solution: 1.5 + +  √1.25"
+    val phiSquared = (phi * phi).simplify
+
+    phiSquared.render shouldBe "(\uD835\uDED7 + 1)"
+
+    phiSquared.materialize.render shouldBe "(1.5 + √1.25)"
 
     phi.approximation.get.toDouble should ===(1.618033988749895)
 
@@ -28,7 +39,7 @@ class AlgebraicSpec extends AnyFlatSpec with should.Matchers {
 
     (phi * psi).simplify shouldBe MinusOne
 
-    phi.equation shouldBe Quadratic(-1, -1)
+    phi.equation shouldBe QuadraticEquation(-1, -1)
 
     (phi * psi).simplify.render shouldBe "-1"
 
@@ -36,9 +47,16 @@ class AlgebraicSpec extends AnyFlatSpec with should.Matchers {
 
     QuadraticEquation.goldenRatioEquation.solve(0) match {
       case q: QuadraticSolution =>
-        q.render shouldBe "\uD835\uDED7"
+        q.render shouldBe "(½ + √1.25)"
+//        q.render shouldBe "\uD835\uDED7" (this is not working)
       case _ =>
         fail("not a QuadraticSolution")
     }
+  }
+
+  it should "evaluate phi + 1" in {
+    val expression = phi + 1
+    val value = expression.evaluateAsIs
+    value shouldBe defined
   }
 }

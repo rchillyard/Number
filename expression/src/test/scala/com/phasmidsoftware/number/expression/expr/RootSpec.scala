@@ -343,16 +343,13 @@ class RootSpec extends AnyFlatSpec with Matchers {
 
   // Issue #147
   it should "add two quadratic roots with compatible solutions" in {
-//    val root1 = Root.rootTwo
-//    val root2 = Root.rootTwo
-//    val sum = root1.add(root2) // This throws an exception.
-
-    // √2 + √2 might yield a new root
-//    sum match {
-//      case Some(result) => result shouldBe a[QuadraticRoot]
-//      case None => // Addition might not always be supported
-//    }
-    pending
+    val root1 = Root.rootTwo
+    val root2 = Root.rootTwo
+    val sum = root1.add(root2)
+    sum match {
+      case Some(result) => result shouldBe a[QuadraticRoot]
+      case None => fail("not supported")
+    }
   }
 
   it should "return None for incompatible root addition" in {
@@ -607,6 +604,26 @@ class RootSpec extends AnyFlatSpec with Matchers {
     //    expression.simplify shouldBe One // TODO implement root cancellation in simplify
     val materialized = expression.materialize
     materialized.eqv(Eager.one).get shouldBe true
+  }
+
+  behavior of "Root.simplify"
+  it should "simplify Root.√(3) ∧ 2" in {
+    val root3squared = Root.√(3) ∧ 2
+    val simplify = root3squared.simplify
+    simplify shouldBe Literal(3)
+  }
+  it should "simplify " in {
+    val root3 = Root.√(3)
+    val simplify = root3.simplify
+    simplify shouldBe root3
+    simplify.materialize shouldBe Eager.root3
+    val root3Plus1 = root3 + 1
+    val root3Minus1 = root3 - 1
+    val two = root3Plus1 * root3Minus1
+    val simplified = two.simplify
+    simplified shouldBe Literal(2)
+    two.materialize shouldBe Eager.two
+
   }
 
 }

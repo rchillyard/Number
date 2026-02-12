@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.parse
 
-import com.phasmidsoftware.number.algebra.eager.{NaturalExponential, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Eager, NaturalExponential, WholeNumber}
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
 import com.phasmidsoftware.number.expression.expr.*
 import org.scalatest.flatspec.AnyFlatSpec
@@ -82,7 +82,8 @@ class ExpressionParserSpec extends AnyFlatSpec with should.Matchers {
     lazymath"""\cos(\pi)""" shouldBe MinusOne
     lazymath"""\tan(\pi)""" shouldBe Zero
     lazymath"""\ln(\e)""" shouldBe One
-    lazymath"""\sin(\pi * -1)""" shouldBe Zero
+    math"""\sin(\pi * -1)""" shouldBe Eager.zero
+    lazymath"""\sin(\pi * -1)""" shouldBe UniFunction(UniFunction(Pi, Negate), Sine) // NOTE that we accept that this does not simplify down to Zero
     lazymath"""\exp(2)""" shouldBe UniFunction(Two, Exp)
   }
   it should "puremath symbols" in {

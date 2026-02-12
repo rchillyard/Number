@@ -48,7 +48,7 @@ sealed trait Algebraic extends Solution with Unitary with Scalable[Algebraic] {
   def offset: Monotone
 
   /**
-    * This is the coefficient of the offset (square root term) the the solution of a quadratic equation.
+    * This is the coefficient of the offset (square root term) the solution of a quadratic equation.
     *
     * @return the coefficient.
     */
@@ -155,16 +155,16 @@ sealed trait Algebraic extends Solution with Unitary with Scalable[Algebraic] {
   */
 object Algebraic {
   /**
-    * Creates a `Algebraic` from a given `Rational` value.
+    * Creates an `Algebraic` from a given `Rational` value.
     *
     * @param r the rational value used to construct the solution
-    * @return a `Algebraic` instance constructed from the given rational value
+    * @return an `Algebraic` instance constructed from the given rational value
     */
   def apply(r: Rational): Algebraic =
     LinearSolution(RationalNumber(r))
 
   /**
-    * Constructs a `Algebraic` based on the provided `base` and `offset` monotone values
+    * Constructs an `Algebraic` based on the provided `base` and `offset` monotone values
     * and a specified `coefficient` for the offset. If the `offset` is zero, a `LinearSolution`
     * is returned; otherwise, a `QuadraticSolution` is returned.
     *
@@ -173,7 +173,7 @@ object Algebraic {
     *               is linear or quadratic
     *
     * @param coefficient an integer used in cases where a quadratic solution is required
-    * @return a `Algebraic` instance, which is either a `LinearSolution` or a `QuadraticSolution`
+    * @return an `Algebraic` instance, which is either a `LinearSolution` or a `QuadraticSolution`
     */
   def apply(base: Monotone, offset: Monotone, coefficient: Int): Algebraic =
     if (offset.isZero)
@@ -268,21 +268,15 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
     * @return a String
     */
   def render: String = maybeName getOrElse (this match {
-    case QuadraticSolution.phi =>
-      core.algebraic.Algebraic.phi.render
-    case QuadraticSolution.psi =>
-      core.algebraic.Algebraic.psi.render
     case q@QuadraticSolution(base, offset, coefficient, false) if offset.isZero || base.isZero =>
       q.normalize.render
     case QuadraticSolution(base, offset, coefficient, false) =>
       val offStr = if (offset.isZero || coefficient == 0) "" else s"${offset.render}"
-      s"${base.render} ${if (coefficient == 1) "+ " else "- "}$offStr"
+      s"(${base.render} ${if (coefficient == 1) "+ " else "- "}$offStr)"
     case _ =>
       // TODO this is not correct in the cases where coefficient is not 1 or -1
       s"Complex quadratic solution: ${base.render} ${if (coefficient == -1) "- " else "+ "}${offset.render}"
   })
-
-  override def toString: String = render
 
   /**
     * Computes the conjugate of the current quadratic solution.
@@ -340,7 +334,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
     * @return true if the solution represents unity, otherwise false.
     */
   def isUnity: Boolean =
-    isPureNumber && base == Eager.one
+    isPureNumber && base.isUnity
 
   /**
     * Determines the "sign" of the current quadratic solution.
@@ -561,7 +555,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
       QuadraticSolution(b.scale(r), o.scale(r), coefficient, imaginary)
     case (b: Scalar, o@InversePower(2, x)) =>
       val number = RationalNumber(r)
-      val br: Int = if (number.signum < 0) (1 - coefficient) else coefficient
+      val br: Int = if (number.signum < 0) 1 - coefficient else coefficient
       val offsetValue: Monotone = if (number.isZero) WholeNumber.zero else InversePower(2, x * number * number)
       val value = QuadraticSolution(b.scale(r), offsetValue, br, imaginary)
       value
@@ -587,7 +581,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
     * it delegates the equivalence check to the superclass implementation.
     *
     * @param that the other `Eager` instance to be compared for equivalence
-    * @return a `Try[Boolean]` indicating either the result of the equivalence comparison or an
+    * @return `Try[Boolean]` indicating either the result of the equivalence comparison or an
     *         error if the comparison cannot be performed
     */
   override def eqv(that: Eager): Try[Boolean] = (this, that) match {
@@ -621,8 +615,6 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
       case _ =>
         super.fuzzyEqv(p)(that)
     }
-
-  private def sumBases(m1: Monotone, m2: Monotone): Monotone = ???
 }
 
 /**
@@ -716,9 +708,9 @@ object QuadraticSolution {
       base.toLatex
 
     case q@QuadraticSolution(base, offset, coefficient, false) if base.isZero =>
-      if (coefficient == (1)) {
+      if (coefficient == 1) {
         offset.toLatex
-      } else if (coefficient == (-1)) {
+      } else if (coefficient == -1) {
         s"-${offset.toLatex}"
       } else {
         s"${Rational(coefficient).toLatex} \\cdot ${offset.toLatex}"
@@ -779,7 +771,7 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
     *
     * @return the base value of type Value
     */
-  def base: Monotone = value
+  def base: Monotone = normalize.asMonotone
 
   /**
     * Retrieves the offset value of the solution.
@@ -842,10 +834,7 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
     *
     * @return true if the solution represents unity, false otherwise
     */
-  def isUnity: Boolean = value match {
-    case x: Unitary => x.isUnity
-    case _ => false
-  }
+  override def isUnity: Boolean = value.isUnity
 
   /**
     * Determines the sign of the solution.
@@ -904,16 +893,11 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
     * @param addend the `Rational` value to be added to the current solution
     * @return a new `Algebraic` instance representing the sum of the current solution and the given `addend`
     */
-  def add(addend: Rational): Algebraic = ???
-//  {
-//    val po = PureNumber.add(value, fromRational(addend), PureNumber)
-//    po match {
-//      case Some((v, PureNumber, None)) =>
-//        LinearSolution(v)
-//      case _ =>
-//        throw new Exception("LinearSolution.add: PureNumber.add failed")
-//    }
-//  }
+  def add(addend: Rational): Algebraic =
+    add(RationalNumber(addend)) match {
+      case Success(a) => a
+      case Failure(e) => throw e
+    }
 
   /**
     * Scales the given rational value using the current value to produce an optional solution.

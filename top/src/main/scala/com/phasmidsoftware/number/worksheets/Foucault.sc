@@ -5,7 +5,7 @@
 import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
 import com.phasmidsoftware.number.algebra.core.RestrictedContext
 import com.phasmidsoftware.number.algebra.eager.{Eager, RationalNumber}
-import com.phasmidsoftware.number.core.inner.PureNumber
+import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
 import com.phasmidsoftware.number.expression.expr.{BiFunction, Expression, Literal, Pi, Power}
 import com.phasmidsoftware.number.parse.ExpressionParser.lazymath
 
@@ -17,6 +17,3 @@ val expression = g * ((t / Pi / 2) ∧ 2)
 // TODO But it's not exactly correct.
 // Do we have a way to force the fuzziness to be Gaussian? I think we do.
 val length: Eager = expression.materialize
-length.render
-
-BiFunction(Literal(3), Literal(RationalNumber(1,2)), Power).evaluate(RestrictedContext(PureNumber))

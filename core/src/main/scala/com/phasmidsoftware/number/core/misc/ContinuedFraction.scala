@@ -100,7 +100,7 @@ case class ContinuedFraction(cf: ConFrac, infinite: Boolean = true, markov: Doub
     */
   def toDouble(epsilon: Double): Option[Double] = cf.toDouble(epsilon, markov)
 
-  override def toString: String = s"${cf.render(5)}"
+  override lazy val toString: String = s"${cf.render(5)}"
 }
 
 /**
@@ -417,7 +417,7 @@ class ConFrac(val b: Long, co: => Option[CF]) extends Evaluatable with Takeable 
     *
     * @return the Rational equivalent of this finite continued fraction.
     */
-  def toRational: Rational = {
+  lazy val toRational: Rational = {
     def inner(w: LazyList[Pair]): Rational = w match {
       case LazyList() => Rational.zero
       case p #:: tail => p.a / (p.b + inner(tail))
@@ -477,7 +477,7 @@ class ConFrac(val b: Long, co: => Option[CF]) extends Evaluatable with Takeable 
 
   def renderConvergents(length: Int): String = convergents.take(length).toList.mkString("", ", ", ", ...")
 
-  override def toString: String = render(5)
+  override lazy val toString: String = render(5)
 
 }
 
@@ -698,7 +698,7 @@ case class Pair(b: Long, a: Long) {
     *
     * @return a/b as a Rational.
     */
-  def toRational: Rational = Rational(a, b)
+  lazy val toRational: Rational = Rational(a, b)
 }
 
 /**

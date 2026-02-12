@@ -73,7 +73,25 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
     *
     * @return A function that accepts a `Double` value and returns the computed derivative as a `Double`.
     */
-  val derivativeFunction: Double => Double = x => math.log(base.toDouble) * scaleFunction(x)   
+  val derivativeFunction: Double => Double = x => math.log(base.toDouble) * scaleFunction(x)
+
+  /**
+    * Compares this `Exponential` instance with another `Functional` instance.
+    *
+    * This method compares the `number` values of the current `Exponential` instance
+    * and the specified `Exponential` instance using their natural order.
+    *
+    * NOTE do not promote this into `Transformed` as this applies only to Transformed elements
+    * that do not involve another variable.
+    *
+    * @param that the `Exponential` instance to compare with the current instance
+    * @return an integer value:
+    *         - a negative value if this `Exponential` is less than `that`
+    *         - zero if this `Exponential` is equal to `that`
+    *         - a positive value if this `Exponential` is greater than `that`
+    */
+  def compare(that: Functional): Int =
+    number.compare(that.number) * derivativeFunction(number.toDouble).sign.toInt
 
   /**
     * Normalizes this `Valuable` to its simplest equivalent form.
@@ -117,7 +135,14 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
     *
     * @return true if the number is zero, false otherwise
     */
-  def isZero: Boolean = number.isZero
+  def isZero: Boolean = false
+
+  /**
+    * Determines whether this object represents unity.
+    *
+    * @return true if the object represents unity, false otherwise
+    */
+  def isUnity: Boolean = number.isZero
 
   /**
     * Determines the sign of the scalar value represented by this instance.
@@ -494,7 +519,7 @@ case class BinaryExponential(exponent: Number)(val maybeName: Option[String] = N
     * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
     */
   def fuzz: Option[Fuzziness[Double]] =
-    Eager(Eager.eagerToField(exponent).exp) match { // FIXME we need 2^x
+    Eager(Eager.eagerToField(exponent).exp) match {
       case fuzzy: WithFuzziness =>
         fuzzy.fuzz
       case _ =>
