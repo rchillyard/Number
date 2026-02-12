@@ -102,6 +102,7 @@
         <option value="com.phasmidsoftware.number.algebra.eager.WholeNumberSpec" />
         <option value="com.phasmidsoftware.number.algebra.core.FuzzyNumberIsProbablyZeroSpec" />
         <option value="com.phasmidsoftware.number.algebra.core.MaybeFuzzySpec" />
+        <option value="com.phasmidsoftware.number.core.numerical.BaseComplexSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.ComplexSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.ConstantsSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.ExactNumberSpec" />

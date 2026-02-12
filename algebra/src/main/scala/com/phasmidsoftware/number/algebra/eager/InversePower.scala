@@ -192,7 +192,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *
     * @return a transformation that maps a `Monotone` object to a `Scalar` result
     */
-  def transformation[T: ClassTag]: Option[T] = ??? // TODO Implement this
+  def transformation[T: ClassTag]: Option[T] = None // TODO Implement this
 
   /**
     * Returns a new instance of `Monotone` that is the negation of the current instance.

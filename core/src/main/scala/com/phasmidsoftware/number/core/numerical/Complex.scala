@@ -144,8 +144,11 @@ object Complex {
     * @param c the ComplexPolar.
     * @return the equivalent ComplexCartesian.
     */
-  def convertToCartesian(c: ComplexPolar): BaseComplex =
-    apply(Real(c.r `doMultiply` c.theta.cos), Real(c.r `doMultiply` c.theta.sin), ComplexCartesian.apply, ComplexException(s"logic error: convertToCartesian: $c"))
+  def convertToCartesian(complex: Complex): BaseComplex = complex match {
+    case c: ComplexCartesian => c
+    case c: ComplexPolar => ComplexCartesian(c.r `doMultiply` c.theta.cos, c.r `doMultiply` c.theta.sin)
+  }
+  //    apply(Real(c.r `doMultiply` c.theta.cos), Real(c.r `doMultiply` c.theta.sin), ComplexCartesian.apply, ComplexException(s"logic error: convertToCartesian: $c"))
 
   /**
     * Method to construct a Complex from two fields, a (Number,Number)=>BaseComplex function, and an exception.

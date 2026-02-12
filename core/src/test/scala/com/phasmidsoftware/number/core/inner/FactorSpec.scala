@@ -74,7 +74,8 @@ class FactorSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "convert" in {
     SquareRoot.convert(fromInt(4), CubeRoot) shouldBe Some(fromInt(8))
-
+    Radian.convert(fromInt(1), PureNumber) shouldBe Some(Value.fromDouble(Some(3.141592653589793)))
+    PureNumber.convert(Value.fromDouble(Some(3.141592653589793)), Radian) shouldBe Some(Left(Left(Some(1.0))))
   }
   it should "isAdditive" in {
 

@@ -1447,31 +1447,39 @@ object Number {
     * @param x a Number, typically in Radians, but if not, then will be converted.
     * @return a PureNumber Number which represents the sine of x.
     */
-  def sin(x: Number): Number =
-    // TODO much of the logic here is a repeat of what's in transformMonadic.
-    x.scale(Radian).transformMonadic(Radian)(MonadicOperationModulate(-1, 1, inclusive = true, true)) match {
+  def sin(x: Number): Number = {
+    // TODO much of the logic here is a repeat of what's in transformMonadic. {
+    val maybeModulated = x.scale(Radian).transformMonadic(Radian)(MonadicOperationModulate(-1, 1, inclusive = true, true))
+    maybeModulated match {
       case Some(z) =>
         if (z.signum >= 0) {
-          lazy val oneOverRoot2 = Number(Rational.half, SquareRoot)
-          lazy val rootThreeQuarters = Number(Rational(3, 4), SquareRoot)
-          lazy val rootSix = Number(6, SquareRoot)
-          val z = x.scale(Radian)
-          z.doMultiply(12).toInt match {
-            case Some(3) | Some(9) =>
-              oneOverRoot2  // pi/4 and 3pi/4
-            case Some(4) | Some(8) =>
-              rootThreeQuarters // pi/3 and 2pi/3
-            case Some(1) | Some(11) =>
-              rootSix `doSubtract` root2 `doDivide` 4 // pi/12 and 11pi/12 
-            case Some(5) | Some(7) =>
-              rootSix `doAdd` root2 `doDivide` 4 // 5pi/12 and 7pi/12 ditto // TESTME
-            case _ =>
-              prepareWithSpecialize(z.transformMonadic(PureNumber)(MonadicOperationSin)) // this takes proper care of 0, 2, 6, 10, 12.
+          val y = x.scale(Radian)
+          val q = y.doMultiply(12)
+          if (q.factor == Radian) {
+            lazy val oneOverRoot2 = Number(Rational.half, SquareRoot)
+            lazy val rootThreeQuarters = Number(Rational(3, 4), SquareRoot)
+            lazy val rootSix = Number(6, SquareRoot)
+            q.toInt match {
+              case Some(3) | Some(9) =>
+                oneOverRoot2 // pi/4 and 3pi/4
+              case Some(4) | Some(8) =>
+                rootThreeQuarters // pi/3 and 2pi/3
+              case Some(1) | Some(11) =>
+                rootSix `doSubtract` root2 `doDivide` 4 // pi/12 and 11pi/12
+              case Some(5) | Some(7) =>
+                rootSix `doAdd` root2 `doDivide` 4 // 5pi/12 and 7pi/12 ditto // TESTME
+              case _ =>
+                prepareWithSpecialize(y.transformMonadic(PureNumber)(MonadicOperationSin)) // this takes proper care of 0, 2, 6, 10, 12.
+            }
           }
+          else
+            prepareWithSpecialize(y.transformMonadic(PureNumber)(MonadicOperationSin)) // this takes proper care of 0, 2, 6, 10, 12.
+
         } else negate(sin(negate(x)))
       case None =>
         throw CoreException(s"Number.sin: logic error")
     }
+  }
 
   /**
     * Calculates the arctangent of the angle specified by the ratio of y to x.

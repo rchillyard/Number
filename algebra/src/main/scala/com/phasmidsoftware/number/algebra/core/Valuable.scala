@@ -252,8 +252,6 @@ object Valuable {
     * Extractor method to convert a `Valuable` instance into an `Option` containing its corresponding `Field` representation.
     * This allows for safe pattern matching and handling of `Valuable` objects that may or may not be convertible to a `Field`.
     *
-    * TODO we should move this method to the companion object of `Eager`.
-    *
     * @param v the `Valuable` instance to be converted into an `Option[Field]`
     * @return `Some(Field)` if the conversion is successful, or `None` if it fails
     */
