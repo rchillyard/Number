@@ -118,6 +118,7 @@
         <option value="com.phasmidsoftware.number.core.numerical.NumberLikeSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.NumberSetSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.NumberSpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.NumberTestmeSpec"/>
         <option value="com.phasmidsoftware.number.core.numerical.PolynomialSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.PowerSeriesSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.PrimeSpec" />

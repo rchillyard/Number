@@ -156,8 +156,10 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     case ComplexPolar(re, im, w) if n.isRational =>
       doRationalPowerForComplexPolar(n, re, im, w)
     case ComplexPolar(re, im, w) =>
-      ComplexPolar(re.doPower(n), im.doMultiply(n), w)
+      ComplexPolar(re.doPower(n), im.doMultiply(n).scale(Radian), w)
     case c@ComplexCartesian(_, _) => n match {
+      case Number.zero =>
+        ComplexCartesian(Number.one, Number.zero)
       case Number.one =>
         c
       case Number.negOne =>

@@ -293,7 +293,8 @@ object Value {
     * @param fResult the value of the factor that the result will be associated with.
     * @return a Double which will be paired with fResult.
     */
-  def scaleDouble(x: Double, fThis: Double, fResult: Double): Double = x * fThis / fResult
+  def scaleDouble(x: Double, fThis: Double, fResult: Double): Double =
+    x * fThis / fResult
 
   /**
     * Converts a given `Value` into its string representation, with options to skip certain outputs or use exact formatting.

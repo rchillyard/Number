@@ -156,8 +156,6 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   /**
     * Method to get the value of this Number as an Long.
     *
-    * TESTME
-    *
     * @return an Option of Long. If this Number cannot be converted to a Long, then None will be returned.
     */
   def toLong: Option[Long] =
@@ -273,7 +271,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
         ComplexCartesian.fromImaginary(n) `doAdd` Complex(this)
       case Real(n) =>
         Real(doAdd(n))
-      case c@BaseComplex(_, _) => // TESTME
+      case c@BaseComplex(_, _) =>
         c.add(this.asComplex)
       case _ =>
         throw CoreException(s"logic error: add not supported for this addend: $x")
@@ -334,8 +332,8 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def divide(x: Field): Field = x match {
     case Real(n) =>
       Real(doDivide(n))
-    case c@BaseComplex(_, _) => // TESTME
-      c.divide(x)
+    case c@BaseComplex(_, _) =>
+      this.asComplex.divide(c)
   }
 
   /**
@@ -375,7 +373,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     case Real(n) =>
       Real(doPower(n))
     case ComplexCartesian(x, y) =>
-      ComplexPolar(doPower(x), y) // TESTME
+      ComplexPolar(doPower(x), y)
     case _ =>
       throw CoreException("logic error: power not supported for non-Number powers")
   }
@@ -1151,6 +1149,23 @@ object Number {
     Number(x, factor, None)
 
   /**
+    * Applies the given factor to the specified long x and returns a Number result.
+    *
+    * @param x      the input value as a Long to be processed
+    * @param factor the Factor to be applied to the input value
+    * @return a Number instance derived from the input value and factor
+    */
+  def apply(x: Long, factor: Factor): Number = Number(BigInt(x), factor)
+
+  /**
+    * Constructs a `Number` instance from the given long value.
+    *
+    * @param x the input long value
+    * @return a `Number` instance representing the provided long value
+    */
+  def apply(x: Long): Number = Number(BigInt(x), PureNumber)
+
+  /**
     * Method to construct a Number from a BigDecimal.
     *
     * @param x the BigDecimal value.
@@ -1268,9 +1283,9 @@ object Number {
       if (x == Number.NaN && y == Number.NaN) 0
       else if (x == Number.NaN || y == Number.NaN) throw CoreException("cannot compare NaN with non-NaN")
       else if (x.factor == NatLog && y.factor == NatLog)
-        compare(x.make(PureNumber), y.make(PureNumber)) // TESTME why do we need to convert to PureNumber?
+        compare(x.make(PureNumber), y.make(PureNumber))
       else if (x.factor == Euler && y.factor == Euler)
-        compare(x.make(Radian), y.make(Radian)) // TESTME why do we need to convert to Radian?
+        compare(x.make(Radian), y.make(Radian))
       else {
         // CONSIDER invoking the compare method in GeneralNumber.
         GeneralNumber.plus(x, Number.negate(y)).signum
