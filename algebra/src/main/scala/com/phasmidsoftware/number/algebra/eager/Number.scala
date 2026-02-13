@@ -353,11 +353,11 @@ trait ExactNumber extends Number with Exact with Q with Scalable[ExactNumber] wi
 
   /**
     * Scales the current `WholeNumber` by a given Rational multiplier and returns the result
-    * wrapped as an `Option[Monotone]`.
+    * wrapped as an `Option[Structure]`.
     * CONSIDER renaming as `*`
     *
     * @param scale the Rational multiplier to scale the current `WholeNumber`
-    * @return an `Option[Monotone]` representing the scaled result
+    * @return an `Option[Structure]` representing the scaled result
     */
   def scale(scale: Rational): Number =
     toRationalNumber * scale

@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.matchers.{LogInfo, MatchLogger, ~}
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.{AnyContext, RestrictedContext, Valuable}
-import com.phasmidsoftware.number.algebra.eager.{Angle, Monotone, Number}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Number, Structure}
 import com.phasmidsoftware.number.core.inner.{PureNumber, Radian}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Field
@@ -464,13 +464,12 @@ object ExpressionMatchers {
     * `ExpressionBiFunction`, yield the appropriate identity value (although, in practice, we shortcut that logic a little).
     *
     * This method is designed to identify cases where the resulting `Expression` meets
-    * particular characteristics, such as being a zero-valued `Monotone` or a unit-valued `Unitary`.
+    * particular characteristics, such as being a zero-valued `Structure` or a unit-valued `Unitary`.
     *
     * TODO Move this into ExpressionBiFunction.
     *
     * @param f The binary function (`ExpressionBiFunction`) applied to evaluate the relationship
     *          between the two `Expression` instances.
-    *
     * @param x The first `Expression` operand used in the evaluation.
     * @param y The second `Expression` operand used in the evaluation.
     * @return An `Option[Expression]` containing the complementary result if the specified
@@ -478,8 +477,8 @@ object ExpressionMatchers {
     */
   def complementaryExpressions(f: ExpressionBiFunction, x: Expression, y: Expression): Option[Expression] =
     f.evaluate(x, y)(AnyContext) match {
-      case Some(z: Monotone) if z.isZero && f == Sum =>
-        Some(Literal(z))
+      case Some(z: Structure) if z.isZero && f == Sum =>
+      Some(Literal(z))
       case Some(z: Number) if z.isUnity && f == Product =>
         Some(Literal(z))
       case Some(z) if f.maybeIdentityL.contains(z) => // CONSIDER this case doesn't add anything

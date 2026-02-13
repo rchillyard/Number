@@ -6,14 +6,14 @@ package com.phasmidsoftware.number.algebra.core
 
 import algebra.ring.*
 import com.phasmidsoftware.number.algebra.*
-import com.phasmidsoftware.number.algebra.eager.{ExactNumber, Monotone}
+import com.phasmidsoftware.number.algebra.eager.{ExactNumber, Structure}
 import com.phasmidsoftware.number.algebra.util.AlgebraException
 import com.phasmidsoftware.number.core.inner.Rational
 
 import scala.reflect.ClassTag
 
 /**
-  * Represents a type class for types `T` and `U`, both of which extend `Monotone`, enabling addition operations
+  * Represents a type class for types `T` and `U`, both of which extend `Structure`, enabling addition operations
   * between these types with specific constraints. This trait provides functionality for adding instances
   * of type `T` to each other and for attempting to add instances of type `U` to `T`.
   *
@@ -23,11 +23,11 @@ import scala.reflect.ClassTag
   * CONSIDER could we do without the U type parameter.
   *
   * Type Parameters:
-  * - `T`: A type extending `Monotone` that supports addition operations and satisfies the properties
+  * - `T`: A type extending `Structure` that supports addition operations and satisfies the properties
   *   of an additive commutative monoid.
-  * - `U`: A type extending `Monotone` that is potentially compatible with `T` in certain addition operations.
+  * - `U`: A type extending `Structure` that is potentially compatible with `T` in certain addition operations.
   */
-trait CanAdd[T <: Monotone : ClassTag, U <: Monotone] extends Can[T] {
+trait CanAdd[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
 
   /**
     * Returns the zero value of type T.
@@ -51,17 +51,17 @@ trait CanAdd[T <: Monotone : ClassTag, U <: Monotone] extends Can[T] {
     acm.additive.combine(asT, t)
 
   /**
-    * Computes the addition of this object and the given `Monotone` object using the additive properties
+    * Computes the addition of this object and the given `Structure` object using the additive properties
     * of an `AdditiveCommutativeMonoid`. The operation returns an optional result where the addition
     * succeeds if a valid transformation and combination can be performed.
     *
     * CONSIDER eliminate this method and use with + instead.
     *
-    * @param that the `Monotone` object to be added to this object.
+    * @param that the `Structure` object to be added to this object.
     * @return an `Option` containing the result of the addition if successful, or `None` if the operation
     *         cannot be completed.
     */
-  infix def plus(that: Monotone)(using AdditiveCommutativeMonoid[T]): Option[T] =
+  infix def plus(that: Structure)(using AdditiveCommutativeMonoid[T]): Option[T] =
     that match {
       case t: T => Some(acm.additive.combine(asT, t))
       case u => u.convert(asT).flatMap(x => Some(acm.additive.combine(asT, x)))
@@ -76,7 +76,7 @@ trait CanAdd[T <: Monotone : ClassTag, U <: Monotone] extends Can[T] {
   private def acm(using AdditiveCommutativeMonoid[T]): AdditiveCommutativeMonoid[T] = summon[AdditiveCommutativeMonoid[T]]
 }
 
-trait CanNegate[T <: Monotone] extends Can[T] {
+trait CanNegate[T <: Structure] extends Can[T] {
   /**
     * Computes the additive inverse (negation) of an instance of type `T`.
     *
@@ -94,10 +94,10 @@ trait CanNegate[T <: Monotone] extends Can[T] {
   * to negate instances of type `T` and override the unary negation operator.
   *
   * Type Parameters:
-  * - `T`: A type extending `Monotone` that supports addition, subtraction, and negation operations
+  * - `T`: A type extending `Structure` that supports addition, subtraction, and negation operations
   *   with an implicit `AdditiveCommutativeGroup[T]` evidence.
   */
-trait CanAddAndSubtract[T <: Monotone : ClassTag] extends CanAdd[T, T] with CanNegate[T] {
+trait CanAddAndSubtract[T <: Structure : ClassTag] extends CanAdd[T, T] with CanNegate[T] {
 
   /**
     * Subtracts the given instance of type `T` from the current instance.
@@ -132,10 +132,10 @@ trait CanAddAndSubtract[T <: Monotone : ClassTag] extends CanAdd[T, T] with CanN
   *
   * It's conceivable that some algebraic structures might support multiplication but not addition.
   *
-  * @tparam T the type of structure that supports multiplication, bounded by `Monotone` and requiring a `ClassTag`
-  * @tparam U a secondary structure type used in combinatory operations, also bounded by `Monotone`
+  * @tparam T the type of structure that supports multiplication, bounded by `Structure` and requiring a `ClassTag`
+  * @tparam U a secondary structure type used in combinatory operations, also bounded by `Structure`
   */
-trait CanMultiply[T <: Monotone : ClassTag, U <: Monotone] extends Can[T] {
+trait CanMultiply[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
 
   /**
     * Returns the multiplicative identity element of type `T` in the context
@@ -178,9 +178,9 @@ trait CanMultiply[T <: Monotone : ClassTag, U <: Monotone] extends Can[T] {
   * of the multiplicative identity element for types that support multiplication.
   *
   * @tparam T the primary type of the structure that supports multiplication and division,
-  *           constrained to extend `Monotone` and requiring a `ClassTag` for runtime type resolution
+  *           constrained to extend `Structure` and requiring a `ClassTag` for runtime type resolution
   */
-trait CanMultiplyAndDivide[T <: Monotone : ClassTag] extends CanMultiply[T, T] {
+trait CanMultiplyAndDivide[T <: Structure : ClassTag] extends CanMultiply[T, T] {
 
   /**
     * Calculates the reciprocal of the given value `t` within the context of a multiplicative group.
@@ -283,7 +283,7 @@ trait CanPower[T] {
   *
   * @tparam T the type of the entity that can be normalized
   */
-trait CanNormalize[T <: Monotone] {
+trait CanNormalize[T <: Structure] {
 
   /**
     * Normalizes the current instance according to its specific mathematical or logical definition.
@@ -294,16 +294,16 @@ trait CanNormalize[T <: Monotone] {
 }
 
 /**
-  * Trait `Can` represents an abstraction where a type `T` which extends `Monotone` can cast an instance to itself.
+  * Trait `Can` represents an abstraction where a type `T` which extends `Structure` can cast an instance to itself.
   * It is the base trait for all other traits that extend `Can`.
   *
-  * This trait facilitates type-safe casting of instances to a specific subtype of `Monotone`.
-  * The trait no longer extends Monotone, removing the circular dependency while maintaining type safety
+  * This trait facilitates type-safe casting of instances to a specific subtype of `Structure`.
+  * The trait no longer extends Structure, removing the circular dependency while maintaining type safety
   * through ClassTag-based runtime verification.
   *
-  * @tparam T the type parameter which must be a subtype of `Monotone`
+  * @tparam T the type parameter which must be a subtype of `Structure`
   */
-sealed trait Can[T <: Monotone : ClassTag] {
+sealed trait Can[T <: Structure : ClassTag] {
   /**
     * Casts the current instance to the type parameter `T` of the enclosing `Can` trait.
     *

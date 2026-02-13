@@ -121,16 +121,16 @@ case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeNam
   }
 
   /**
-    * Converts the given instance of type `T` (a subtype of `Monotone`) into an optional transformed instance of the same type.
+    * Converts the given instance of type `T` (a subtype of `Structure`) into an optional transformed instance of the same type.
     *
     * The method attempts to match the input object `t` to specific subtypes (`Real`, `WholeNumber`) and performs
     * a corresponding transformation if possible. If the input `t` does not match any recognized subtype, the result is `None`.
     *
-    * @param t the input object of type `T`, where `T` is a subtype of `Monotone`.
-    * @tparam T the type of the input object, which must be a subtype of `Monotone` and must have an available `ClassTag`.
+    * @param t the input object of type `T`, where `T` is a subtype of `Structure`.
+    * @tparam T the type of the input object, which must be a subtype of `Structure` and must have an available `ClassTag`.
     * @return an `Option` containing the transformed instance of type `T` if the conversion is successful, or `None` if it is not.
     */
-  def convert[T <: Monotone : ClassTag](t: T): Option[T] = t match {
+  def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
     case x if x.getClass == this.getClass =>
       Some(this.asInstanceOf[T])
     case _: Real =>

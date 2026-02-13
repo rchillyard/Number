@@ -25,7 +25,7 @@ import scala.util.{Failure, Success, Try}
 /**
   * Trait `Eager` extends `Valuable` and is used to represent entities that evaluate their values eagerly.
   * That's to say, `Valuable` objects that do not extend `Expression`.
-  * At present, `Eager` is extended by `Monotone, Complex`, and `Nat`.
+  * At present, `Eager` is extended by `Structure, Complex`, and `Nat`.
   * CONSIDER splitting this off into its own file.
   *
   * Unlike lazy evaluation, eager evaluation computes and stores the value immediately when the entity is created
@@ -191,7 +191,7 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     *         or a Failure if the addition cannot be performed.
     */
   private def addEagers(x: Eager, y: Eager): Try[Eager] = (x, y) match
-    case (a: Monotone, b: Monotone) => a.add(b)
+    case (a: Structure, b: Structure) => a.add(b)
     case (a: Solution, b: Solution) => Success(a + b)
     case _ => Failure(AlgebraException(s"Cannot add $x and $y"))
 
@@ -204,7 +204,7 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     *         or a Failure with an AlgebraException if the multiplication cannot be performed
     */
   private def multiplyEagers(x: Eager, y: Eager): Try[Eager] = (x, y) match
-    case (a: Monotone, b: Monotone) =>
+    case (a: Structure, b: Structure) =>
       a.multiply(b)
     case (a: Solution, b: Rational) =>
       Success(a.scale(b))
@@ -215,24 +215,24 @@ trait Eager extends Valuable with Approximate with DyadicOps {
 
   /**
     * Subtracts the `Eager` instance `y` from the `Eager` instance `x`.
-    * This method supports the subtraction operation only for instances of subtype `Monotone`.
-    * If either `x` or `y` is not of type `Monotone`, the method returns a failure containing an `AlgebraException`.
+    * This method supports the subtraction operation only for instances of subtype `Structure`.
+    * If either `x` or `y` is not of type `Structure`, the method returns a failure containing an `AlgebraException`.
     *
     * @param x the minuend, an instance of `Eager`
     * @param y the subtrahend, an instance of `Eager` to subtract from `x`
-    * @return a `Try[Eager]` containing the result of the subtraction if both `x` and `y` are of type `Monotone`,
+    * @return a `Try[Eager]` containing the result of the subtraction if both `x` and `y` are of type `Structure`,
     *         or a failure with an `AlgebraException` if the operation is not supported for the provided inputs
     */
   private def subtractEagers(x: Eager, y: Eager): Try[Eager] = (x, y) match
-    case (a: Monotone, b: Monotone) =>
+    case (a: Structure, b: Structure) =>
       a.subtract(b)
     case _ =>
       Failure(AlgebraException(s"Cannot subtract $y from $x"))
 
   /**
     * Divides two `Eager` instances and returns the result as a `Try[Eager]`.
-    * The division is only supported for instances of the subtype `Monotone`. 
-    * If the provided `Eager` instances cannot be divided (e.g., if one or both are not `Monotone`), 
+    * The division is only supported for instances of the subtype `Structure`. 
+    * If the provided `Eager` instances cannot be divided (e.g., if one or both are not `Structure`), 
     * the method returns a failure containing an `AlgebraException`.
     *
     * @param x the first `Eager` instance, representing the dividend
@@ -241,7 +241,7 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     *         if the operation is not supported for the provided inputs
     */
   private def divideEagers(x: Eager, y: Eager): Try[Eager] = (x, y) match
-    case (a: Monotone, b: Monotone) =>
+    case (a: Structure, b: Structure) =>
       a.divide(b)
     case _ =>
       Failure(AlgebraException(s"Cannot divide $x by $y"))
@@ -504,7 +504,7 @@ object Eager {
     */
   implicit val eagerLatexRenderer: LatexRenderer[Eager] = LatexRenderer.instance {
     case s: Solution => s.toLatex
-    case s: Monotone => s.toLatex
+    case s: Structure => s.toLatex
     case n: Nat => n.render
     case m =>
       throw new IllegalArgumentException(s"No LaTeX renderer for Eager type: ${m.getClass.getName}")
@@ -547,8 +547,8 @@ object Eager {
     @tailrec
     def op[B <: Eager, Z](f: (Eager, B) => Try[Z])(x: Eager, y: B): Try[Z] = (x, y) match {
       // Same-type operations:
-      case (a: Monotone, b: Monotone) =>
-        implicitly[DyadicOperator[Monotone]].op(f)(a, b)
+      case (a: Structure, b: Structure) =>
+        implicitly[DyadicOperator[Structure]].op(f)(a, b)
       case (a: Complex, b: Complex) =>
         implicitly[DyadicOperator[Complex]].op(f)(a, b)
       case (a: Algebraic, b: Algebraic) =>
@@ -557,13 +557,13 @@ object Eager {
         implicitly[DyadicOperator[Nat]].op(f)(a, b)
 
       // Cross-type operations:
-      case (a: Monotone, b: Complex) =>
+      case (a: Structure, b: Complex) =>
         tryConvertAndOp(f)(a, b)
-      case (a: Complex, b: Monotone) =>
+      case (a: Complex, b: Structure) =>
         op(f)(b, a.asInstanceOf[B])
-      case (a: Monotone, b: Nat) =>
+      case (a: Structure, b: Nat) =>
         tryConvertAndOp(f)(a, b)
-      case (a: Nat, b: Monotone) =>
+      case (a: Nat, b: Structure) =>
         op(f)(b, a.asInstanceOf[B])
 
       case _ =>
@@ -599,10 +599,10 @@ object Eager {
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
 
-  private def tryConvertAndOp[T <: Eager, Z](f: (Eager, T) => Try[Z])(s: Monotone, e: T): Try[Z] = e match {
+  private def tryConvertAndOp[T <: Eager, Z](f: (Eager, T) => Try[Z])(s: Structure, e: T): Try[Z] = e match {
     case c: Complex =>
       complexToEager(c) match {
-        case Some(struct: Monotone) =>
+        case Some(struct: Structure) =>
           f(struct, s.asInstanceOf[T])
         case Some(other) =>
           summon[DyadicOperator[Eager]].op(f)(s, other.asInstanceOf[T])

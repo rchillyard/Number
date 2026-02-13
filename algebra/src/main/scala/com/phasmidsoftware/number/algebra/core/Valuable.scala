@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.algebra.core
 
 import com.phasmidsoftware.flog.Loggable
-import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, Monotone, Nat, NaturalExponential, Number, RationalNumber, Real, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, Nat, NaturalExponential, Number, RationalNumber, Real, Structure, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.AlgebraException
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical.{ExactNumber, Field, FuzzyNumber}
@@ -75,16 +75,16 @@ trait Valuable extends Renderable with Numeric with Zeroable with Unitary with E
   def maybeFactor(context: Context): Option[Factor]
 
   /**
-    * Casts this `Valuable` instance into a `Monotone` type if it already is a `Monotone`.
-    * If the instance is not a `Monotone`, an `AlgebraException` is thrown.
-    * CONSIDER returning Option[Monotone] instead.
+    * Casts this `Valuable` instance into a `Structure` type if it already is a `Structure`.
+    * If the instance is not a `Structure`, an `AlgebraException` is thrown.
+    * CONSIDER returning Option[Structure] instead.
     *
-    * @return the current instance as a `Monotone`
-    * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the instance is not of type `Monotone`
+    * @return the current instance as a `Structure`
+    * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the instance is not of type `Structure`
     */
-  lazy val asMonotone: Monotone = this match
-    case m: Monotone => m
-    case _ => throw AlgebraException(s"asMonotone: expected Monotone value but got $this")
+  lazy val asMonotone: Structure = this match
+    case m: Structure => m
+    case _ => throw AlgebraException(s"asMonotone: expected Structure value but got $this")
 
   /**
     * Attempts to cast this instance to a `Number`.

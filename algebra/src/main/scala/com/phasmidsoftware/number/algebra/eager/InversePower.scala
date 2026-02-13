@@ -37,7 +37,7 @@ import scala.util.{Success, Try}
   * @param n      the degree of the root, specified as an integer
   * @param number the base `Number` value on which the root operation is defined
   */
-case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = None) extends Transformed with CanMultiplyAndDivide[Monotone] with Scalable[InversePower] with CanPower[Number] {
+case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = None) extends Transformed with CanMultiplyAndDivide[Structure] with Scalable[InversePower] with CanPower[Number] {
 
   require(n > 0, s"InversePower: n must be positive, but was $n")
   require(!number.isZero, s"InversePower: number must be non-zero, but was $number")
@@ -52,7 +52,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
   /**
     * Represents the derivative function associated with this `Functional` instance.
     * That's to say `d(f(number))` by `d(number)` where `f` is this `Functional`.
-    * For a Monotone, the derivative should be positive, however, it is possible
+    * For a Structure, the derivative should be positive, however, it is possible
     * that it is not positive for certain types of `Functional`.
     *
     * The `derivativeFunction` provides a mathematical operation that computes the derivative
@@ -91,7 +91,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *
     * @return the simplest `Valuable` representation of this value
     */
-  def normalize: Monotone = n match {
+  def normalize: Structure = n match {
     case 1 =>
       number.normalize
 
@@ -185,22 +185,22 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     }
 
   /**
-    * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value.
+    * Defines a transformation that transforms a `Structure` instance into a corresponding `Scalar` value.
     *
-    * The transformation defines how a `Monotone` is interpreted or converted in the context of `Scalar`.
+    * The transformation defines how a `Structure` is interpreted or converted in the context of `Scalar`.
     *
-    * @return a transformation that maps a `Monotone` object to a `Scalar` result
+    * @return a transformation that maps a `Structure` object to a `Scalar` result
     */
   def transformation[T: ClassTag]: Option[T] = None // TODO Implement this
 
   /**
-    * Returns a new instance of `Monotone` that is the negation of the current instance.
-    * CONSIDER sorting out the use of CanNegate so that we can extend that for Monotone.
+    * Returns a new instance of `Structure` that is the negation of the current instance.
+    * CONSIDER sorting out the use of CanNegate so that we can extend that for Structure.
     *
-    * @return a `Monotone` representing the negation of this instance
+    * @return a `Structure` representing the negation of this instance
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the negation operation is not defined for the current instance
     */
-  def negate: Monotone =
+  def negate: Structure =
     throw AlgebraException(s"InversePower.negate: cannot negate $this")
 
   /**
@@ -271,7 +271,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *         `Some(0)` indicates that both roots are equal, `Some(1)` indicates that the current `Root` is greater,
     *         and `None` is returned if the comparison cannot be made
     */
-  def compareExact(that: Monotone): Option[Int] = that match {
+  def compareExact(that: Structure): Option[Int] = that match {
     case InversePower(m, x) if m == n => // TODO - there are other situations where the result should be Some(0) (see Factor class).
       Some(number.compare(x))
     case _ =>
@@ -288,7 +288,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
     */
-  def convert[T <: Monotone : ClassTag](t: T): Option[T] = (normalize, t) match {
+  def convert[T <: Structure : ClassTag](t: T): Option[T] = (normalize, t) match {
     case (x: WholeNumber, _) =>
       x.convert(t)
     case (x: RationalNumber, _) =>
@@ -336,7 +336,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *         `false` if they are not equivalent, or a failure if a comparison cannot be performed.
     */
   override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
-    case (a@InversePower(n1, x1), b: Monotone) =>
+    case (a@InversePower(n1, x1), b: Structure) =>
       for {
         r1 <- FP.toTry(a.convert(Real.zero))(FP.fail(s"InversePower.fuzzyEqv: cannot convert $a to Real"))
         r2 <- FP.toTry(b.convert(Real.zero))(FP.fail(s"InversePower.fuzzyEqv: cannot convert $b to Real"))
@@ -377,10 +377,10 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
       }
 
   /**
-    * Method to determine if this Monotone object is exact.
+    * Method to determine if this Structure object is exact.
     * For instance, `Number.pi` is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
-    * @return true if this Monotone object is exact in the context of No factor, else false.
+    * @return true if this Structure object is exact in the context of No factor, else false.
     */
   def isExact: Boolean = number.isExact // TODO there are some situations where a Root is actually exact.
 

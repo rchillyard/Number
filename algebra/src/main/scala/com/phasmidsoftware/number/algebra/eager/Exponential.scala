@@ -64,7 +64,7 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
   /**
     * Represents the derivative function associated with this `Functional` instance.
     * That's to say `d(f(number))` by `d(number)` where `f` is this `Functional`.
-    * For a Monotone, the derivative should be positive, however, it is possible
+    * For a Structure, the derivative should be positive, however, it is possible
     * that it is not positive for certain types of `Functional`.
     *
     * The `derivativeFunction` provides a mathematical operation that computes the derivative
@@ -137,7 +137,7 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
     *
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
     */
-  def convert[T <: Monotone : ClassTag](t: T): Option[T] = t match {
+  def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
     case x if x.getClass == this.getClass =>
       Some(this.asInstanceOf[T])
     case _: Real =>
@@ -170,10 +170,10 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
   def signum: Int = FP.recover(number.compareExact(WholeNumber.zero))(AlgebraException(s"Exponential.signum: logic error: $this"))
 
   /**
-    * Method to determine if this Monotone object is exact.
+    * Method to determine if this Structure object is exact.
     * For instance, `Number.pi` is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
-    * @return true if this Monotone object is exact in the context of No factor, else false.
+    * @return true if this Structure object is exact in the context of No factor, else false.
     */
   def isExact: Boolean = number.isExact
 
@@ -244,7 +244,7 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
   /**
     * Compares the current `Exponential` instance with another `Eager` instance using a fuzzy equivalence strategy.
     * This method considers two values to be "fuzzy equivalent" if their difference falls within a specified precision margin.
-    * The method handles cases where the `Eager` instance belongs to different subtypes such as `NaturalExponential` or `Monotone`,
+    * The method handles cases where the `Eager` instance belongs to different subtypes such as `NaturalExponential` or `Structure`,
     * applying transformations and delegating to subtype-specific implementations as needed.
     *
     * @param p    the precision margin within which the two instances are considered equal, of type `Double`
@@ -254,7 +254,7 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
   override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (a: NaturalExponential, b: NaturalExponential) =>
       a.exponent.fuzzyEqv(p)(b.exponent)
-    case (a: NaturalExponential, b: Monotone) =>
+    case (a: NaturalExponential, b: Structure) =>
       for {
         aReal <- FP.recoverAsTry(a.transformation[Real])(AlgebraException(s"Cannot transform $a to Real"))
         result <- aReal.fuzzyEqv(p)(b)
@@ -297,11 +297,11 @@ case class NaturalExponential(exponent: Number)(val maybeName: Option[String] = 
   lazy val zero: Exponential = NaturalExponential(WholeNumber.zero)(Some("1"))
 
   /**
-    * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value.
+    * Defines a transformation that transforms a `Structure` instance into a corresponding `Scalar` value.
     *
-    * The transformation defines how a `Monotone` is interpreted or converted in the context of `Scalar`.
+    * The transformation defines how a `Structure` is interpreted or converted in the context of `Scalar`.
     *
-    * @return a transformation that maps a `Monotone` object to a `Scalar` result
+    * @return a transformation that maps a `Structure` object to a `Scalar` result
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input is not a Real number.
     */
   def transformation[T: ClassTag]: Option[T] = {
@@ -325,13 +325,13 @@ case class NaturalExponential(exponent: Number)(val maybeName: Option[String] = 
   }
 
   /**
-    * Returns a new instance of `Monotone` that is the negation of the current instance.
-    * CONSIDER sorting out the use of CanNegate so that we can extend that for Monotone.
+    * Returns a new instance of `Structure` that is the negation of the current instance.
+    * CONSIDER sorting out the use of CanNegate so that we can extend that for Structure.
     *
-    * @return a `Monotone` representing the negation of this instance
+    * @return a `Structure` representing the negation of this instance
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input is not a Real number.
     */
-  def negate: Monotone = throw AlgebraException(s"NaturalExponential.negate: not supported")
+  def negate: Structure = throw AlgebraException(s"NaturalExponential.negate: not supported")
 
   /**
     * Compares the current `Exponential` instance with another `Number` to determine their exact order.
@@ -403,11 +403,11 @@ case class BinaryExponential(exponent: Number)(val maybeName: Option[String] = N
   lazy val zero: Exponential = NaturalExponential(WholeNumber.zero)
 
   /**
-    * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value.
+    * Defines a transformation that transforms a `Structure` instance into a corresponding `Scalar` value.
     *
-    * The transformation defines how a `Monotone` is interpreted or converted in the context of `Scalar`.
+    * The transformation defines how a `Structure` is interpreted or converted in the context of `Scalar`.
     *
-    * @return a transformation that maps a `Monotone` object to a `Scalar` result
+    * @return a transformation that maps a `Structure` object to a `Scalar` result
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input is not a Real number.
     */
   def transformation[T: ClassTag]: Option[T] = {
@@ -431,13 +431,13 @@ case class BinaryExponential(exponent: Number)(val maybeName: Option[String] = N
   }
 
   /**
-    * Returns a new instance of `Monotone` that is the negation of the current instance.
-    * CONSIDER sorting out the use of CanNegate so that we can extend that for Monotone.
+    * Returns a new instance of `Structure` that is the negation of the current instance.
+    * CONSIDER sorting out the use of CanNegate so that we can extend that for Structure.
     * TODO sort this out.
     *
-    * @return a `Monotone` representing the negation of this instance
+    * @return a `Structure` representing the negation of this instance
     */
-  def negate: Monotone = throw AlgebraException(s"BinaryExponential.negate: not supported")
+  def negate: Structure = throw AlgebraException(s"BinaryExponential.negate: not supported")
 
   /**
     * Compares the current `Exponential` instance with another `Number` to determine their exact order.

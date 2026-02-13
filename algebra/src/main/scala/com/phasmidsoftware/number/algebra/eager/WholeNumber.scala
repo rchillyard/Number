@@ -112,17 +112,18 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
   }
 
   /**
-    * Converts the given `Monotone` instance to an optional transformed instance of the same type.
-    * The conversion will vary depending on the specific subclass of `Monotone`.
+    * Converts the given `Structure` instance to an optional transformed instance of the same type.
+    * The conversion will vary depending on the specific subclass of `Structure`.
     * If the input type is unsupported for conversion, `None` is returned.
     *
-    * @param t the input object of type `T`, which must be a subtype of `Monotone`.
+    * @param t the input object of type `T`, which must be a subtype of `Structure`.
     *          The input is expected to be of a type that matches the patterns in the conversion logic.
-    * @tparam T the type parameter constrained to subtypes of `Monotone` with a `ClassTag` evidence.
+    *
+    * @tparam T the type parameter constrained to subtypes of `Structure` with a `ClassTag` evidence.
     * @return an `Option` containing a converted instance of the same type `T`
     *         if the conversion is successful, or `None` otherwise.
     */
-  def convert[T <: Monotone : ClassTag](t: T): Option[T] = t match {
+  def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
     case x if x.getClass == this.getClass =>
       Some(this.asInstanceOf[T])
     case _: RationalNumber =>
@@ -236,11 +237,12 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
     * This method transforms the value `x` into an instance of the `Real` class
     * by converting `x` to a `Double` and setting its optional parameter to `None`.
     *
-    * @tparam T The type of the input structure, which must extend `Monotone`
+    * @tparam T The type of the input structure, which must extend `Structure`
     *           and have an associated `ClassTag`.
+    *
     * @return A `Real` object constructed from the input structure.
     */
-  private def toReal[T <: Monotone : ClassTag] =
+  private def toReal[T <: Structure : ClassTag] =
     Real(x.toDouble, None)
 }
 

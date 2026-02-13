@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
-import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, IsInteger, Monotone, NaturalExponential, QuadraticSolution, RationalNumber, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, IsInteger, NaturalExponential, QuadraticSolution, RationalNumber, Structure, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian, Rational}
 import com.phasmidsoftware.number.core.misc.Bumperator
@@ -64,7 +64,7 @@ sealed trait CompositeExpression extends Expression {
   lazy val isUnity: Boolean = evaluateAsIs.exists(x => x.isUnity)
 
   /**
-    * Determines the sign of the Monotone value represented by this instance.
+    * Determines the sign of the Structure value represented by this instance.
     * Returns an integer indicating whether the value is positive, negative, or zero.
     *
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
@@ -729,7 +729,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *         or failure (Miss with additional debug information)
     */
   private def matchLiteral(l: Expression, x: Expression, f: ExpressionBiFunction): em.MatchResult[Expression] = (l, x, f) match {
-    case (Literal(a: CanPower[Monotone] @unchecked, _), Literal(b: RationalNumber, _), Power) =>
+    case (Literal(a: CanPower[Structure] @unchecked, _), Literal(b: RationalNumber, _), Power) =>
       em.matchIfDefined(a.pow(b).map(x => Literal(x)))(this)
     case (a, b, Power) =>
       val qqq: Option[Expression] = for {

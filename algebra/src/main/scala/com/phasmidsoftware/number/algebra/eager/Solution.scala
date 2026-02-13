@@ -107,7 +107,7 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
   def isUnity: Boolean = complex.isReal && complex.isUnity
 
   /**
-    * Determines the sign of the Monotone value represented by this instance.
+    * Determines the sign of the Structure value represented by this instance.
     * Returns an integer indicating whether the value is positive, negative, or zero.
     *
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
@@ -189,16 +189,15 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
   def maybeFactor(context: Context): Option[Factor] = complex.maybeFactor
 
   /**
-    * If this `Solution` can be represented as a `Monotone`, return it wrapped in `Some`, otherwise return `None`.
+    * If this `Solution` can be represented as a `Structure`, return it wrapped in `Some`, otherwise return `None`.
     * TODO implement imaginary cases.
     *
-    *
-    * @return an `Option[Monotone]`.
+    * @return an `Option[Structure]`.
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the complex number is imaginary.
     */
-  def toMonotone: Option[Monotone] =
+  def toMonotone: Option[Structure] =
     if (complex.isReal) complex.asReal map (x => Eager(x).asMonotone)
-    else if (complex.isImaginary) throw AlgebraException("imaginary to Monotone not yet implemented")
+    else if (complex.isImaginary) throw AlgebraException("imaginary to Structure not yet implemented")
     else None
 
   /**
@@ -256,7 +255,7 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
 /**
   * Represents a `Solution` that is `Eager`, negatable, and branched with monotonic properties.
   * This trait combines the characteristics of eagerly evaluated values, negatable structures,
-  * and entities with multiple branches (or solutions) represented by `Monotone`.
+  * and entities with multiple branches (or solutions) represented by `Structure`.
   */
 trait Solution extends Eager with Negatable[Solution] {
 
@@ -274,18 +273,18 @@ trait Solution extends Eager with Negatable[Solution] {
   def conjugate: Solution
 
   /**
-    * If this `Solution` can be represented as a `Monotone`, return it wrapped in `Some`, otherwise return `None`.
+    * If this `Solution` can be represented as a `Structure`, return it wrapped in `Some`, otherwise return `None`.
     *
-    * @return an `Option[Monotone]`.
+    * @return an `Option[Structure]`.
     */
-  def toMonotone: Option[Monotone]
+  def toMonotone: Option[Structure]
 
   /**
     * Adds another `Solution` instance to the current instance, combining their effects or values
     * based on the implementation of the `+` operation in the `Solution` trait.
     *
     * CONSIDER this should be defined in `CanAdd[Solution]` rather than `Solution`.
-    * Maybe we could achieve that by defining `Can` as a subtype of `Eager`, rather than of `Monotone`.
+    * Maybe we could achieve that by defining `Can` as a subtype of `Eager`, rather than of `Structure`.
     *
     * @param other the `Solution` instance to add to the current instance
     * @return a new `Solution` instance representing the result of the addition

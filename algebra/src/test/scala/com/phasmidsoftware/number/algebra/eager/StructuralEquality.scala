@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.algebra.eager
 
 import cats.kernel.Eq
-import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, Monotone, RationalNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, RationalNumber, Structure}
 import org.scalactic.Equality
 
 trait StructuralEquality {
@@ -57,7 +57,7 @@ trait StructuralEquality {
     * - For a `Field`, it directly delegates to `FieldEquality`.
     * - For a `Number`, it directly delegates to `NumberEquality`.
     */
-  implicit object StructureEquality extends Equality[Monotone] {
+  implicit object StructureEquality extends Equality[Structure] {
 
     /**
       * Compares two objects to determine if they are considered equal.
@@ -66,11 +66,11 @@ trait StructuralEquality {
       * to determine their equality. For other types, it falls back to the default
       * equality operator `==`.
       *
-      * @param a the first object of type `Monotone` to compare.
+      * @param a the first object of type `Structure` to compare.
       * @param b the second object of type `Any` to compare.
       * @return a boolean indicating whether the two objects are considered equal.
       */
-    def areEqual(a: Monotone, b: Any): Boolean = (a, b) match {
+    def areEqual(a: Structure, b: Any): Boolean = (a, b) match {
       case (x: Angle, y: Angle) =>
         summon[Eq[Angle]].eqv(x, y)
       case _ =>

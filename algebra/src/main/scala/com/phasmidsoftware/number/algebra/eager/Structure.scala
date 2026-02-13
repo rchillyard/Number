@@ -22,17 +22,15 @@ import scala.reflect.ClassTag
 import scala.util.{Failure, Try}
 
 /**
-  * Represents a `Monotone`, which is one-dimensional `Monotone` that can be ordered
-  * and supports various mathematical operations and properties. Monotones include both
-  * exact and approximate numerical entities.
+  * Represents a `Structure`, which is one-dimensional `Structure` that
+  * supports various mathematical operations and properties.
+  * Structures include both exact and approximate numerical entities.
   *
-  * Monotone does not support ordering because not all Monotones are comparable.
+  * `Structure` does not support ordering because not all Structures are comparable.
   *
-  * CONSIDER renaming as Functional? because there are some subtypes where dy/dx is not always positive.
-  *
-  * Multidimensional mathematical quantities like `Solution` cannot be represented by a `Monotone` object.
+  * Multidimensional mathematical quantities like `Solution` cannot be represented by a `Structure` object.
   */
-trait Monotone extends Eager with WithFuzziness with Negatable[Monotone] {
+trait Structure extends Eager with WithFuzziness with Negatable[Structure] {
 
   /**
     * Attempts to approximate the current instance to a `Real` value.
@@ -48,30 +46,33 @@ trait Monotone extends Eager with WithFuzziness with Negatable[Monotone] {
     * @return an `Option[Real]` containing the approximated value if successful, or `None` if approximation fails
     */
   def approximation(force: Boolean = false): Option[Real] = this match {
-    case real: Real => Some(real)
-    case _ if force => convert(Real.zero)
-    case _ => None
+    case real: Real =>
+      Some(real)
+    case _ if force =>
+      convert(Real.zero)
+    case _ =>
+      None
   }
 
   /**
-    * Converts the given `Monotone` object to an optional instance of the same type.
+    * Converts the given `Structure` object to an optional instance of the same type.
     *
-    * TODO refactor this method to use a type class instance of `CanConvert[T, Monotone]` instead of ClassTag.
+    * TODO refactor this method to use a type class instance of `CanConvert[T, Structure]` instead of ClassTag.
     *
-    * @param t the input object of type `T` which is a subtype of `Monotone`.
+    * @param t the input object of type `T` which is a subtype of `Structure`.
     * @return an `Option` containing a transformed instance of type `T` if the conversion is successful, or `None` otherwise.
     */
-  def convert[T <: Monotone : ClassTag](t: T): Option[T]
+  def convert[T <: Structure : ClassTag](t: T): Option[T]
 
   /**
-    * Converts this `Monotone` object into an optional `java.lang.Number` provided that the conversion can be
+    * Converts this `Structure` object into an optional `java.lang.Number` provided that the conversion can be
     * performed without loss of precision.
     *
-    * The method determines whether the current `Monotone` object can be represented as a `java.lang.Number`
+    * The method determines whether the current `Structure` object can be represented as a `java.lang.Number`
     * by leveraging the `asNumber` method and further evaluating certain conditions:
-    * - If the `Monotone` object is an `ExactNumber` and its factor is `PureNumber`, the result
+    * - If the `Structure` object is an `ExactNumber` and its factor is `PureNumber`, the result
     *   is converted using `Value.asJavaNumber`.
-    * - If the `Monotone` object is a `Real` with a `wiggle` value below a specified tolerance,
+    * - If the `Structure` object is a `Real` with a `wiggle` value below a specified tolerance,
     *   the result is also converted using `Value.asJavaNumber`.
     * - In all other cases, `None` is returned.
     *
@@ -81,19 +82,19 @@ trait Monotone extends Eager with WithFuzziness with Negatable[Monotone] {
   def asJavaNumber: Option[java.lang.Number] = this match {
     case Real(value, _) =>
       Some(value)
-    case s: Monotone =>
+    case s: Structure =>
       s.convert(Real.zero).flatMap(x => x.asJavaNumber)
   }
 
   /**
-    * Performs a fuzzy equality comparison between the current `Monotone` instance and another `Eager` instance.
+    * Performs a fuzzy equality comparison between the current `Structure` instance and another `Eager` instance.
     * The comparison is based on a specified tolerance level.
     *
-    * If both instances are of type `Monotone`, this method attempts to convert them to `Real`
+    * If both instances are of type `Structure`, this method attempts to convert them to `Real`
     * and performs a fuzzy equality check with the specified tolerance. If the conversion or comparison fails,
     * a failure with an appropriate `AlgebraException` is returned.
     *
-    * If either of the instances is not of type `Monotone`, a failure with an `AlgebraException` is returned.
+    * If either of the instances is not of type `Structure`, a failure with an `AlgebraException` is returned.
     *
     * @param p    the tolerance level (as a `Double`) to be used for the fuzzy equality comparison.
     * @param that the `Eager` instance to compare against the current instance.
@@ -102,76 +103,76 @@ trait Monotone extends Eager with WithFuzziness with Negatable[Monotone] {
     *         or a `Failure(AlgebraException)` if an error occurs.
     */
   override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
-    case (a: Monotone, b: Monotone) =>
+    case (a: Structure, b: Structure) =>
       FP.toTry(for {
         p: Real <- a.convert(Real.one)
         q: Real <- b.convert(Real.one)
         r = p ~= q
-      } yield r)(Failure(AlgebraException("Monotone.fuzzyEqv")))
+      } yield r)(Failure(AlgebraException("Structure.fuzzyEqv")))
     case _ =>
-      Failure(AlgebraException(s"Monotone.fuzzyEqv: unexpected input: $this and $that"))
+      Failure(AlgebraException(s"Structure.fuzzyEqv: unexpected input: $this and $that"))
   }
 
   /**
-    * Adds the specified `Monotone` instance to the current instance, producing a new `Monotone`.
+    * Adds the specified `Structure` instance to the current instance, producing a new `Structure`.
     *
-    * @param y The `Monotone` instance to be added.
-    * @return A `Try` wrapping the resulting `Monotone` instance, or a failure if the operation cannot be completed.
+    * @param y The `Structure` instance to be added.
+    * @return A `Try` wrapping the resulting `Structure` instance, or a failure if the operation cannot be completed.
     */
-  def add(y: Monotone): Try[Monotone] =
-    summon[DyadicOperator[Monotone]].op[Monotone, Monotone](addMonotones)(this, y)
+  def add(y: Structure): Try[Structure] =
+    summon[DyadicOperator[Structure]].op[Structure, Structure](addStructures)(this, y)
 
   /**
-    * Multiplies the current `Monotone` instance by the specified `Monotone` operand.
+    * Multiplies the current `Structure` instance by the specified `Structure` operand.
     * The result of the operation is wrapped in a `Try`, allowing for safe handling of failures.
     *
-    * @param y the `Monotone` operand with which the current instance is multiplied
-    * @return a `Try[Monotone]` containing the result of the multiplication if successful,
+    * @param y the `Structure` operand with which the current instance is multiplied
+    * @return a `Try[Structure]` containing the result of the multiplication if successful,
     *         or a failure if the operation is not valid or cannot be performed
     */
-  def multiply(y: Monotone): Try[Monotone] =
-    summon[DyadicOperator[Monotone]].op[Monotone, Monotone](multiplyMonotones)(this, y)
+  def multiply(y: Structure): Try[Structure] =
+    summon[DyadicOperator[Structure]].op[Structure, Structure](multiplyStructures)(this, y)
 
   /**
-    * Subtracts the given `Monotone` instance (`y`) from the current instance.
+    * Subtracts the given `Structure` instance (`y`) from the current instance.
     * The operation is performed using a dyadic operator that ensures type safety
     * and handles any failures during the subtraction via a `Try`.
     *
-    * @param y the `Monotone` instance to be subtracted from the current instance
-    * @return a `Try[Monotone]` containing the result of the subtraction if successful,
+    * @param y the `Structure` instance to be subtracted from the current instance
+    * @return a `Try[Structure]` containing the result of the subtraction if successful,
     *         or a failure if the subtraction operation cannot be performed
     */
-  def subtract(y: Monotone): Try[Monotone] =
-    summon[DyadicOperator[Monotone]].op[Monotone, Monotone](subtractMonotones)(this, y)
+  def subtract(y: Structure): Try[Structure] =
+    summon[DyadicOperator[Structure]].op[Structure, Structure](subtractStructures)(this, y)
 
   /**
-    * Divides the current `Monotone` instance by another `Monotone` instance.
-    * The operation is performed using the `DyadicOperator` defined for `Monotone`.
+    * Divides the current `Structure` instance by another `Structure` instance.
+    * The operation is performed using the `DyadicOperator` defined for `Structure`.
     * The result is wrapped in a `Try` to handle potential failures during the operation.
     *
-    * @param y the `Monotone` instance to divide the current instance by
-    * @return a `Try[Monotone]` containing the result of the division if successful,
+    * @param y the `Structure` instance to divide the current instance by
+    * @return a `Try[Structure]` containing the result of the division if successful,
     *         or a failure if the operation cannot be performed
     */
-  def divide(y: Monotone): Try[Monotone] =
-    summon[DyadicOperator[Monotone]].op[Monotone, Monotone](divideMonotones)(this, y)
+  def divide(y: Structure): Try[Structure] =
+    summon[DyadicOperator[Structure]].op[Structure, Structure](divideStructures)(this, y)
 
-  private def addMonotones(x: Monotone, y: Monotone): Try[Monotone] = (x, y) match
+  private def addStructures(x: Structure, y: Structure): Try[Structure] = (x, y) match
     case (a: Scalar, b: Scalar) => a.add(b)
     case (a: Functional, b: Functional) => FP.fail(s"Cannot add Functional types: $a and $b")
     case _ => FP.fail(s"Cannot add $x and $y")
 
-  private def multiplyMonotones(x: Monotone, y: Monotone): Try[Monotone] = (x, y) match
+  private def multiplyStructures(x: Structure, y: Structure): Try[Structure] = (x, y) match
     case (a: Scalar, b: Scalar) => a.multiply(b)
     case (a: Functional, b: Functional) => FP.fail(s"Cannot multiply Functional types: $a and $b")
     case _ => FP.fail(s"Cannot multiply $x and $y")
 
-  private def subtractMonotones(x: Monotone, y: Monotone): Try[Monotone] = (x, y) match
+  private def subtractStructures(x: Structure, y: Structure): Try[Structure] = (x, y) match
     case (a: Scalar, b: Scalar) => a.subtract(b)
     case (a: Functional, b: Functional) => FP.fail(s"Cannot subtract Functional types: $a and $b")
     case _ => FP.fail(s"Cannot subtract $y from $x")
 
-  private def divideMonotones(x: Monotone, y: Monotone): Try[Monotone] = (x, y) match
+  private def divideStructures(x: Structure, y: Structure): Try[Structure] = (x, y) match
     case (a: Scalar, b: Scalar) => a.divide(b)
     case (a: Functional, b: Functional) => FP.fail(s"Cannot divide Functional types: $a and $b")
     case _ => FP.fail(s"Cannot divide $x by $y")
@@ -206,7 +207,7 @@ trait Exact extends WithFuzziness {
   * to access and work with numerical values. It is particularly useful in scenarios where mathematical operations
   * or transformations are required on numbers.
   */
-trait Functional extends Monotone with MaybeFuzzy with Ordered[Functional] {
+trait Functional extends Structure with MaybeFuzzy with Ordered[Functional] {
 
   /**
     * Retrieves the value associated with this `Functional` instance.
@@ -229,7 +230,7 @@ trait Functional extends Monotone with MaybeFuzzy with Ordered[Functional] {
   /**
     * Represents the derivative function associated with this `Functional` instance.
     * That's to say `d(f(number))` by `d(number)` where `f` is this `Functional`.
-    * For a Monotone, the derivative should be positive, however, it is possible
+    * For a Structure, the derivative should be positive, however, it is possible
     * that it is not positive for certain types of `Functional`.
     *
     * The `derivativeFunction` provides a mathematical operation that computes the derivative
@@ -270,48 +271,48 @@ trait Functional extends Monotone with MaybeFuzzy with Ordered[Functional] {
 }
 
 /**
-  * Represents a `Monotone`, which is a one-dimensional `Monotone` that can be ordered
-  * and supports various mathematical operations and properties. Monotones include both
+  * Represents a `Structure`, which is a one-dimensional `Structure` that can be ordered
+  * and supports various mathematical operations and properties. Structures include both
   * exact and approximate numerical entities.
   *
-  * Monotone does not support ordering because not all Monotones are comparable.
+  * Structure does not support ordering because not all Structures are comparable.
   *
-  * Multidimensional mathematical quantities such as Complex cannot be represented by a `Monotone` object.
+  * Multidimensional mathematical quantities such as Complex cannot be represented by a `Structure` object.
   */
 trait Transformed extends Functional {
 
   /**
-    * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value.
+    * Defines a transformation that transforms a `Structure` instance into a corresponding `Scalar` value.
     *
-    * The transformation defines how a `Monotone` is interpreted or converted in the context of `Scalar`.
+    * The transformation defines how a `Structure` is interpreted or converted in the context of `Scalar`.
     *
-    * @return a transformation that maps a `Monotone` object to a `Scalar` result
+    * @return a transformation that maps a `Structure` object to a `Scalar` result
     */
   def transformation[T: ClassTag]: Option[T]
 }
 
 /**
-  * The `Monotone` object serves as a companion object for the `Monotone` class, providing
+  * The `Structure` object serves as a companion object for the `Structure` class, providing
   * common operations, typeclass instances, and supplementary functionality.
   *
   * Key responsibilities of this object include:
-  * - Defining typeclass instances for equality (`Eq`) and fuzzy equality (`FuzzyEq`) for `Monotone` types.
+  * - Defining typeclass instances for equality (`Eq`) and fuzzy equality (`FuzzyEq`) for `Structure` types.
   * - Implementing a `DyadicOperator` instance that provides a mechanism for combining 
-  *   two `Monotone` objects, supporting both same-type and cross-type operations.
+  *   two `Structure` objects, supporting both same-type and cross-type operations.
   * - Logging and error handling during certain cross-type comparisons.
   *
-  * The `Monotone` class represents a hierarchy of mathematical structures, including scalars,
+  * The `Structure` class represents a hierarchy of mathematical structures, including scalars,
   * functional values, and other specific instances, and this companion object facilitates their
   * interoperation.
   */
-object Monotone {
+object Structure {
 
   import scala.util.Try
 
 //  private val logger: Logger = LoggerFactory.getLogger(getClass)
 
-  given DyadicOperator[Monotone] = new DyadicOperator[Monotone] {
-    def op[B <: Monotone, Z](f: (Monotone, B) => Try[Z])(x: Monotone, y: B): Try[Z] = (x, y) match {
+  given DyadicOperator[Structure] = new DyadicOperator[Structure] {
+    def op[B <: Structure, Z](f: (Structure, B) => Try[Z])(x: Structure, y: B): Try[Z] = (x, y) match {
       case (a: Scalar, b: Scalar) =>
         implicitly[DyadicOperator[Scalar]].op(f)(a, b)
       case (a: Functional, b: Functional) =>
@@ -327,40 +328,40 @@ object Monotone {
     }
   }
 
-  given Eq[Monotone] = Eq.instance {
+  given Eq[Structure] = Eq.instance {
     (x, y) =>
-      summon[DyadicOperator[Monotone]].op((x: Eager, y: Eager) => x.eqv(y))(x, y).getOrElse(false)
+      summon[DyadicOperator[Structure]].op((x: Eager, y: Eager) => x.eqv(y))(x, y).getOrElse(false)
   }
 
-  given FuzzyEq[Monotone] = FuzzyEq.instance {
+  given FuzzyEq[Structure] = FuzzyEq.instance {
     (x, y, p) =>
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
 
   /**
-    * LatexRenderer for Monotone (general case).
+    * LatexRenderer for Structure (general case).
     *
     * Attempts to render based on the concrete type.
     */
-  implicit val monotoneLatexRenderer: LatexRenderer[Monotone] = LatexRenderer.instance {
+  implicit val monotoneLatexRenderer: LatexRenderer[Structure] = LatexRenderer.instance {
     case s: Scalar => s.toLatex
     case f: Functional => f.toLatex
     case m =>
-      throw new IllegalArgumentException(s"No LaTeX renderer for Monotone type: ${m.getClass.getName}")
+      throw new IllegalArgumentException(s"No LaTeX renderer for Structure type: ${m.getClass.getName}")
   }
 
-  implicit def convRationalToMonotone(r: Rational): Monotone = RationalNumber(r)
+  implicit def convRationalToMonotone(r: Rational): Structure = RationalNumber(r)
 
   /**
-    * Attempts to cast the provided `Monotone` instance to the specified subtype `T`.
+    * Attempts to cast the provided `Structure` instance to the specified subtype `T`.
     * Throws an `AlgebraException` if the provided instance cannot be cast to the target type.
     *
-    * @param x the input instance of `Monotone` to be cast to the desired type `T`.
-    * @tparam T the target subtype of `Monotone` to which the input instance will be cast.
+    * @param x the input instance of `Structure` to be cast to the desired type `T`.
+    * @tparam T the target subtype of `Structure` to which the input instance will be cast.
     * @return the input instance cast to the type `T` if the cast is valid and successful.
     * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input instance cannot be cast to the type `T`.
     */
-  def asT[T <: Monotone : ClassTag](x: Monotone): T = {
+  def asT[T <: Structure : ClassTag](x: Structure): T = {
     val clazz = summon[ClassTag[T]].runtimeClass
     if (clazz.isAssignableFrom(x.getClass))
       x.asInstanceOf[T]
@@ -368,11 +369,11 @@ object Monotone {
       throw AlgebraException(s"Logic error: Can.asT failed to cast ${x.getClass} to $clazz")
   }
 
-  private def tryConvertAndCompareScalar[B <: Monotone, Z](f: (Monotone, B) => Try[Z])(s: Scalar, e: B): Try[Z] = e match {
+  private def tryConvertAndCompareScalar[B <: Structure, Z](f: (Structure, B) => Try[Z])(s: Scalar, e: B): Try[Z] = e match {
     case n: Functional =>
       f(s, n.asInstanceOf[B])
     case _ =>
-      FP.fail(s"tryConvertAndCompareScalar: unexpected Monotone comparison: ${s.getClass.getSimpleName} === ${e.getClass.getSimpleName}")
+      FP.fail(s"tryConvertAndCompareScalar: unexpected Structure comparison: ${s.getClass.getSimpleName} === ${e.getClass.getSimpleName}")
   }
 }
 

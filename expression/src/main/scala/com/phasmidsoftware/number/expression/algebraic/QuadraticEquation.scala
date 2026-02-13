@@ -399,7 +399,7 @@ object QuadraticEquation {
     * @param equation        the quadratic equation for which to compute the complex roots (used only for error reporting).
     * @return a `ComplexCartesian` object representing the complex root in Cartesian form.
     */
-  def solveAsComplex(branch: Int, branches: Int, realCoefficient: Rational, imagCoefficient: Monotone, equation: QuadraticEquation): ComplexCartesian = {
+  def solveAsComplex(branch: Int, branches: Int, realCoefficient: Rational, imagCoefficient: Structure, equation: QuadraticEquation): ComplexCartesian = {
     val realPart = Valuable.valuableToMaybeField(RationalNumber(realCoefficient)).flatMap(x => x.asNumber)
     val coefficient = Solution.quadraticOffsetCoefficient(branch, branches)
     imagCoefficient match {

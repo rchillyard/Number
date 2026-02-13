@@ -126,7 +126,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     *
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
     */
-  def convert[T <: Monotone : ClassTag](t: T): Option[T] = t match {
+  def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
     case x if x.getClass == this.getClass =>
       Some(this.asInstanceOf[T])
     case _: Real =>
@@ -159,10 +159,10 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
   lazy val signum: Int = compareExact(Angle.zero).get
 
   /**
-    * Method to determine if this Monotone object is exact.
+    * Method to determine if this Structure object is exact.
     * For instance, `Number.pi` is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
-    * @return true if this Monotone object is exact in the context of No factor, else false.
+    * @return true if this Structure object is exact in the context of No factor, else false.
     */
   lazy val isExact: Boolean = number.isExact
 
@@ -190,7 +190,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
   /**
     * Represents the derivative function associated with this `Functional` instance.
     * That's to say `d(f(number))` by `d(number)` where `f` is this `Functional`.
-    * For a Monotone, the derivative should be positive, however, it is possible
+    * For a Structure, the derivative should be positive, however, it is possible
     * that it is not positive for certain types of `Functional`.
     *
     * The `derivativeFunction` provides a mathematical operation that computes the derivative
@@ -500,18 +500,19 @@ object Angle {
   def degrees(x: Int): Angle = degrees(Value.fromInt(x))
 
   /**
-    * Creates an `Angle` instance based on the input `Monotone` value.
+    * Creates an `Angle` instance based on the input `Structure` value.
     *
-    * Converts the input `Monotone` into an `Angle`, handling various types of numerical structures.
+    * Converts the input `Structure` into an `Angle`, handling various types of numerical structures.
     * If the input is already an `Angle`, or if the type is unsupported, an exception is thrown.
     *
-    * @param s the input `Monotone` to be converted into an `Angle`; can represent a whole number,
+    * @param s the input `Structure` to be converted into an `Angle`; can represent a whole number,
     *          rational number, or real number. Passing an existing `Angle` or unsupported type
     *          results in an exception.
-    * @return an `Angle` instance corresponding to the input `Monotone` value
+    *
+    * @return an `Angle` instance corresponding to the input `Structure` value
     * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input is already an `Angle` or is of an unsupported type
     */
-  def create(s: Monotone): Angle = s match {
+  def create(s: Structure): Angle = s match {
     case number: WholeNumber =>
       Angle(number)
     case radians: RationalNumber =>
