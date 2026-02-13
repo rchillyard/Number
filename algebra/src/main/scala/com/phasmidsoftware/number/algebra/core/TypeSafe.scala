@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.algebra.core
 
-import com.phasmidsoftware.number.algebra.eager.{Complex, Eager, Nat, Structure}
+import com.phasmidsoftware.number.algebra.eager.{Complex, Eager, Monotone, Nat}
 
 /**
   * The `TypeSafe` trait provides mechanisms for querying the runtime type and 
@@ -25,11 +25,11 @@ trait TypeSafe {
   /**
     * Returns the category of this value in the Valuable type hierarchy.
     *
-    * @return a string indicating the high-level category (e.g., "Expression", "Structure", "Nat", "Complex")
+    * @return a string indicating the high-level category (e.g., "Expression", "Monotone", "Nat", "Complex")
     */
   def category: String = this match {
     case _: Lazy => "Lazy"
-    case _: Structure => "Structure"
+    case _: Monotone => "Monotone"
     case _: Nat => "Nat"
     case _: Complex => "Complex"
     case _: Eager => "Eager"
@@ -40,7 +40,7 @@ trait TypeSafe {
     * Returns a descriptive string combining category and type name.
     * Useful for debugging to understand both the hierarchy level and concrete type.
     *
-    * @return a string in the format "Category.TypeName" (e.g., "Structure.WholeNumber")
+    * @return a string in the format "Category.TypeName" (e.g., "Monotone.WholeNumber")
     */
   def describe: String = s"$category.$typeName"
 }

@@ -126,7 +126,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     *
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
     */
-  def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
+  def convert[T <: Monotone : ClassTag](t: T): Option[T] = t match {
     case x if x.getClass == this.getClass =>
       Some(this.asInstanceOf[T])
     case _: Real =>
@@ -159,10 +159,10 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
   lazy val signum: Int = compareExact(Angle.zero).get
 
   /**
-    * Method to determine if this Structure object is exact.
+    * Method to determine if this Monotone object is exact.
     * For instance, `Number.pi` is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
-    * @return true if this Structure object is exact in the context of No factor, else false.
+    * @return true if this Monotone object is exact in the context of No factor, else false.
     */
   lazy val isExact: Boolean = number.isExact
 

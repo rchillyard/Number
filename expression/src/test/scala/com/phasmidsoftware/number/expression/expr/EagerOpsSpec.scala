@@ -329,20 +329,20 @@ class EagerOpsSpec extends AnyFlatSpec with Matchers {
 
   it should "have correct category after operation" in {
     val result = Eager(2) + 3
-    result.category shouldBe "Structure"
+    result.category shouldBe "Monotone"
   }
 
   it should "have correct describe after operation" in {
     val two: Eager = 2
     val result = two + 3
-    result.describe shouldBe "Structure.WholeNumber"
+    result.describe shouldBe "Monotone.WholeNumber"
   }
 
   it should "show Expression category for fuzzy operations" in {
     val real1: Eager = Real(2.0, 0.1)
     val real2 = Real(3.0, 0.1)
     val result = real1 + real2
-    result.category shouldBe "Structure"  // or "Expression" depending on implementation
+    result.category shouldBe "Monotone" // or "Expression" depending on implementation
   }
 }
 

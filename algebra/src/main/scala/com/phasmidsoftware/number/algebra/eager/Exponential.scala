@@ -137,7 +137,7 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
     *
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
     */
-  def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
+  def convert[T <: Monotone : ClassTag](t: T): Option[T] = t match {
     case x if x.getClass == this.getClass =>
       Some(this.asInstanceOf[T])
     case _: Real =>
@@ -170,10 +170,10 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
   def signum: Int = FP.recover(number.compareExact(WholeNumber.zero))(AlgebraException(s"Exponential.signum: logic error: $this"))
 
   /**
-    * Method to determine if this Structure object is exact.
+    * Method to determine if this Monotone object is exact.
     * For instance, `Number.pi` is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
-    * @return true if this Structure object is exact in the context of No factor, else false.
+    * @return true if this Monotone object is exact in the context of No factor, else false.
     */
   def isExact: Boolean = number.isExact
 
@@ -244,7 +244,7 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
   /**
     * Compares the current `Exponential` instance with another `Eager` instance using a fuzzy equivalence strategy.
     * This method considers two values to be "fuzzy equivalent" if their difference falls within a specified precision margin.
-    * The method handles cases where the `Eager` instance belongs to different subtypes such as `NaturalExponential` or `Structure`,
+    * The method handles cases where the `Eager` instance belongs to different subtypes such as `NaturalExponential` or `Monotone`,
     * applying transformations and delegating to subtype-specific implementations as needed.
     *
     * @param p    the precision margin within which the two instances are considered equal, of type `Double`
@@ -254,7 +254,7 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
   override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (a: NaturalExponential, b: NaturalExponential) =>
       a.exponent.fuzzyEqv(p)(b.exponent)
-    case (a: NaturalExponential, b: Structure) =>
+    case (a: NaturalExponential, b: Monotone) =>
       for {
         aReal <- FP.recoverAsTry(a.transformation[Real])(AlgebraException(s"Cannot transform $a to Real"))
         result <- aReal.fuzzyEqv(p)(b)

@@ -135,7 +135,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     * @param t a prototype of the required output.
     * @return an Option wrapping the input number if the conversion is successful, otherwise None
     */
-  def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
+  def convert[T <: Monotone : ClassTag](t: T): Option[T] = t match {
     case x if x.getClass == this.getClass =>
       Some(this.asInstanceOf[T])
     case _: RationalNumber =>
@@ -599,11 +599,11 @@ object Real {
             val value = bd.toDouble
             val fuzz = if (isExactlyRepresentable(bd)) None else Some(math.ulp(value))
             new Real(value, fuzz flatMap (x => Fuzziness.createAbsFuzz(x)))()
-          case r: Structure =>
+          case r: Monotone =>
             r.convert(Real.zero) match {
               case Some(value) => value
               case None =>
-                throw AlgebraException(s"temporary problem: cannot convert Structure $r")
+                throw AlgebraException(s"temporary problem: cannot convert Monotone $r")
             }
           case _ =>
             throw AlgebraException(s"field $f is of unsupported type")

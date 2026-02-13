@@ -387,12 +387,12 @@ case object NoScalar extends Scalar with Exact {
   def maybeFactor(context: Context): Option[Factor] = None
 
   /**
-    * Converts the given `Structure` object to an optional instance of the same type.
+    * Converts the given `Monotone` object to an optional instance of the same type.
     *
-    * @param t the input object of type `T` which is a subtype of `Structure`.
+    * @param t the input object of type `T` which is a subtype of `Monotone`.
     * @return an `Option` containing a transformed instance of type `T` if the conversion is successful, or `None` otherwise.
     */
-  def convert[T <: Structure : ClassTag](t: T): Option[T] = None
+  def convert[T <: Monotone : ClassTag](t: T): Option[T] = None
 
   /**
     * If this is exact, it returns the exact value as a `Double`.

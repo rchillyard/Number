@@ -288,7 +288,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
     */
-  def convert[T <: Structure : ClassTag](t: T): Option[T] = (normalize, t) match {
+  def convert[T <: Monotone : ClassTag](t: T): Option[T] = (normalize, t) match {
     case (x: WholeNumber, _) =>
       x.convert(t)
     case (x: RationalNumber, _) =>
@@ -336,7 +336,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *         `false` if they are not equivalent, or a failure if a comparison cannot be performed.
     */
   override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
-    case (a@InversePower(n1, x1), b: Structure) =>
+    case (a@InversePower(n1, x1), b: Monotone) =>
       for {
         r1 <- FP.toTry(a.convert(Real.zero))(FP.fail(s"InversePower.fuzzyEqv: cannot convert $a to Real"))
         r2 <- FP.toTry(b.convert(Real.zero))(FP.fail(s"InversePower.fuzzyEqv: cannot convert $b to Real"))
@@ -377,10 +377,10 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
       }
 
   /**
-    * Method to determine if this Structure object is exact.
+    * Method to determine if this Monotone object is exact.
     * For instance, `Number.pi` is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
-    * @return true if this Structure object is exact in the context of No factor, else false.
+    * @return true if this Monotone object is exact in the context of No factor, else false.
     */
   def isExact: Boolean = number.isExact // TODO there are some situations where a Root is actually exact.
 

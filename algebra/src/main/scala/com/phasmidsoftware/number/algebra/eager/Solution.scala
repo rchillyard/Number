@@ -285,7 +285,7 @@ trait Solution extends Eager with Negatable[Solution] {
     * based on the implementation of the `+` operation in the `Solution` trait.
     *
     * CONSIDER this should be defined in `CanAdd[Solution]` rather than `Solution`.
-    * Maybe we could achieve that by defining `Can` as a subtype of `Eager`, rather than of `Structure`.
+    * Maybe we could achieve that by defining `Can` as a subtype of `Eager`, rather than of `Monotone`.
     *
     * @param other the `Solution` instance to add to the current instance
     * @return a new `Solution` instance representing the result of the addition

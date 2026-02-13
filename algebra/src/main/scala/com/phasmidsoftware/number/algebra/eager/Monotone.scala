@@ -9,8 +9,9 @@ import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
+import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
-import com.phasmidsoftware.number.algebra.util.{FP, LatexRenderer}
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
 import org.slf4j.{Logger, LoggerFactory}
@@ -18,10 +19,10 @@ import org.slf4j.{Logger, LoggerFactory}
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
-import scala.util.Try
+import scala.util.{Failure, Try}
 
 /**
-  * Represents a `Monotone`, which is one-dimensional `Structure` that can be ordered
+  * Represents a `Monotone`, which is one-dimensional `Monotone` that can be ordered
   * and supports various mathematical operations and properties. Monotones include both
   * exact and approximate numerical entities.
   *
@@ -31,7 +32,85 @@ import scala.util.Try
   *
   * Multidimensional mathematical quantities like `Solution` cannot be represented by a `Monotone` object.
   */
-trait Monotone extends Structure with WithFuzziness with Negatable[Monotone] {
+trait Monotone extends Eager with WithFuzziness with Negatable[Monotone] {
+
+  /**
+    * Attempts to approximate the current instance to a `Real` value.
+    * If the instance is already of type `Real`, it is simply returned, wrapped inside `Some`.
+    * Otherwise, depending on the value of `force`, it either attempts a conversion
+    * to a default `Real` (if `force` is true), or returns `None`.
+    *
+    * NOTE that this method tries to keep exact quantities exact.
+    *
+    * @param force a boolean flag indicating whether to force the conversion to a default `Real`
+    *              value when the current instance is not of type `Real`
+    *
+    * @return an `Option[Real]` containing the approximated value if successful, or `None` if approximation fails
+    */
+  def approximation(force: Boolean = false): Option[Real] = this match {
+    case real: Real => Some(real)
+    case _ if force => convert(Real.zero)
+    case _ => None
+  }
+
+  /**
+    * Converts the given `Monotone` object to an optional instance of the same type.
+    *
+    * TODO refactor this method to use a type class instance of `CanConvert[T, Monotone]` instead of ClassTag.
+    *
+    * @param t the input object of type `T` which is a subtype of `Monotone`.
+    * @return an `Option` containing a transformed instance of type `T` if the conversion is successful, or `None` otherwise.
+    */
+  def convert[T <: Monotone : ClassTag](t: T): Option[T]
+
+  /**
+    * Converts this `Monotone` object into an optional `java.lang.Number` provided that the conversion can be
+    * performed without loss of precision.
+    *
+    * The method determines whether the current `Monotone` object can be represented as a `java.lang.Number`
+    * by leveraging the `asNumber` method and further evaluating certain conditions:
+    * - If the `Monotone` object is an `ExactNumber` and its factor is `PureNumber`, the result
+    *   is converted using `Value.asJavaNumber`.
+    * - If the `Monotone` object is a `Real` with a `wiggle` value below a specified tolerance,
+    *   the result is also converted using `Value.asJavaNumber`.
+    * - In all other cases, `None` is returned.
+    *
+    * @return an optional `java.lang.Number` representation of this object. The result is `Some(java.lang.Number)`
+    *         if the conversion is successful under the stated conditions; otherwise, `None`.
+    */
+  def asJavaNumber: Option[java.lang.Number] = this match {
+    case Real(value, _) =>
+      Some(value)
+    case s: Monotone =>
+      s.convert(Real.zero).flatMap(x => x.asJavaNumber)
+  }
+
+  /**
+    * Performs a fuzzy equality comparison between the current `Monotone` instance and another `Eager` instance.
+    * The comparison is based on a specified tolerance level.
+    *
+    * If both instances are of type `Monotone`, this method attempts to convert them to `Real`
+    * and performs a fuzzy equality check with the specified tolerance. If the conversion or comparison fails,
+    * a failure with an appropriate `AlgebraException` is returned.
+    *
+    * If either of the instances is not of type `Monotone`, a failure with an `AlgebraException` is returned.
+    *
+    * @param p    the tolerance level (as a `Double`) to be used for the fuzzy equality comparison.
+    * @param that the `Eager` instance to compare against the current instance.
+    * @return a `Try[Boolean]` indicating whether the two instances are fuzzy equal within the specified tolerance.
+    *         Returns a `Success(true)` or `Success(false)` if the comparison completes successfully,
+    *         or a `Failure(AlgebraException)` if an error occurs.
+    */
+  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
+    case (a: Monotone, b: Monotone) =>
+      FP.toTry(for {
+        p: Real <- a.convert(Real.one)
+        q: Real <- b.convert(Real.one)
+        r = p ~= q
+      } yield r)(Failure(AlgebraException("Monotone.fuzzyEqv")))
+    case _ =>
+      Failure(AlgebraException(s"Monotone.fuzzyEqv: unexpected input: $this and $that"))
+  }
 
   /**
     * Adds the specified `Monotone` instance to the current instance, producing a new `Monotone`.
@@ -191,7 +270,7 @@ trait Functional extends Monotone with MaybeFuzzy with Ordered[Functional] {
 }
 
 /**
-  * Represents a `Monotone`, which is a one-dimensional `Structure` that can be ordered
+  * Represents a `Monotone`, which is a one-dimensional `Monotone` that can be ordered
   * and supports various mathematical operations and properties. Monotones include both
   * exact and approximate numerical entities.
   *
@@ -271,6 +350,23 @@ object Monotone {
   }
 
   implicit def convRationalToMonotone(r: Rational): Monotone = RationalNumber(r)
+
+  /**
+    * Attempts to cast the provided `Monotone` instance to the specified subtype `T`.
+    * Throws an `AlgebraException` if the provided instance cannot be cast to the target type.
+    *
+    * @param x the input instance of `Monotone` to be cast to the desired type `T`.
+    * @tparam T the target subtype of `Monotone` to which the input instance will be cast.
+    * @return the input instance cast to the type `T` if the cast is valid and successful.
+    * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input instance cannot be cast to the type `T`.
+    */
+  def asT[T <: Monotone : ClassTag](x: Monotone): T = {
+    val clazz = summon[ClassTag[T]].runtimeClass
+    if (clazz.isAssignableFrom(x.getClass))
+      x.asInstanceOf[T]
+    else
+      throw AlgebraException(s"Logic error: Can.asT failed to cast ${x.getClass} to $clazz")
+  }
 
   private def tryConvertAndCompareScalar[B <: Monotone, Z](f: (Monotone, B) => Try[Z])(s: Scalar, e: B): Try[Z] = e match {
     case n: Functional =>

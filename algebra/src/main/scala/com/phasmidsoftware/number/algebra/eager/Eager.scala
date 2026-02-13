@@ -25,7 +25,7 @@ import scala.util.{Failure, Success, Try}
 /**
   * Trait `Eager` extends `Valuable` and is used to represent entities that evaluate their values eagerly.
   * That's to say, `Valuable` objects that do not extend `Expression`.
-  * At present, `Eager` is extended by `Structure, Complex`, and `Nat`.
+  * At present, `Eager` is extended by `Monotone, Complex`, and `Nat`.
   * CONSIDER splitting this off into its own file.
   *
   * Unlike lazy evaluation, eager evaluation computes and stores the value immediately when the entity is created
@@ -504,7 +504,7 @@ object Eager {
     */
   implicit val eagerLatexRenderer: LatexRenderer[Eager] = LatexRenderer.instance {
     case s: Solution => s.toLatex
-    case s: Structure => s.toLatex
+    case s: Monotone => s.toLatex
     case n: Nat => n.render
     case m =>
       throw new IllegalArgumentException(s"No LaTeX renderer for Eager type: ${m.getClass.getName}")
@@ -547,8 +547,8 @@ object Eager {
     @tailrec
     def op[B <: Eager, Z](f: (Eager, B) => Try[Z])(x: Eager, y: B): Try[Z] = (x, y) match {
       // Same-type operations:
-      case (a: Structure, b: Structure) =>
-        implicitly[DyadicOperator[Structure]].op(f)(a, b)
+      case (a: Monotone, b: Monotone) =>
+        implicitly[DyadicOperator[Monotone]].op(f)(a, b)
       case (a: Complex, b: Complex) =>
         implicitly[DyadicOperator[Complex]].op(f)(a, b)
       case (a: Algebraic, b: Algebraic) =>
@@ -557,13 +557,13 @@ object Eager {
         implicitly[DyadicOperator[Nat]].op(f)(a, b)
 
       // Cross-type operations:
-      case (a: Structure, b: Complex) =>
+      case (a: Monotone, b: Complex) =>
         tryConvertAndOp(f)(a, b)
-      case (a: Complex, b: Structure) =>
+      case (a: Complex, b: Monotone) =>
         op(f)(b, a.asInstanceOf[B])
-      case (a: Structure, b: Nat) =>
+      case (a: Monotone, b: Nat) =>
         tryConvertAndOp(f)(a, b)
-      case (a: Nat, b: Structure) =>
+      case (a: Nat, b: Monotone) =>
         op(f)(b, a.asInstanceOf[B])
 
       case _ =>
@@ -599,10 +599,10 @@ object Eager {
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
 
-  private def tryConvertAndOp[T <: Eager, Z](f: (Eager, T) => Try[Z])(s: Structure, e: T): Try[Z] = e match {
+  private def tryConvertAndOp[T <: Eager, Z](f: (Eager, T) => Try[Z])(s: Monotone, e: T): Try[Z] = e match {
     case c: Complex =>
       complexToEager(c) match {
-        case Some(struct: Structure) =>
+        case Some(struct: Monotone) =>
           f(struct, s.asInstanceOf[T])
         case Some(other) =>
           summon[DyadicOperator[Eager]].op(f)(s, other.asInstanceOf[T])

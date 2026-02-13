@@ -212,13 +212,13 @@ class NormalizeSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "return correct category" in {
-    WholeNumber(5).category shouldBe "Structure"
-    RationalNumber(Rational(2, 3)).category shouldBe "Structure"
+    WholeNumber(5).category shouldBe "Monotone"
+    RationalNumber(Rational(2, 3)).category shouldBe "Monotone"
     // Add more once Lazy/Expression types are available
   }
 
   it should "return correct describe string" in {
-    WholeNumber(5).describe shouldBe "Structure.WholeNumber"
-    RationalNumber(Rational(2, 3)).describe shouldBe "Structure.RationalNumber"
+    WholeNumber(5).describe shouldBe "Monotone.WholeNumber"
+    RationalNumber(Rational(2, 3)).describe shouldBe "Monotone.RationalNumber"
   }
 }

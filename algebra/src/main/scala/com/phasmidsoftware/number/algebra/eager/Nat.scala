@@ -109,7 +109,7 @@ sealed trait Nat extends Eager with N {
   lazy val inc: Nat = Succ(this)
 
   /**
-    * Method to render this Structure for presentation to the user.
+    * Method to render this `Renderable` for presentation to the user.
     *
     * @return a String
     */
