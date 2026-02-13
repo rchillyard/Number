@@ -1573,7 +1573,7 @@ case object SquareRoot extends NthRoot(2) {
       * @return a `Number` instance representing the imaginary number constructed
       *         from the integer.
       */
-    def i: Number = Number().make(-x * x, SquareRoot)
+    lazy val i: Number = Number().make(-x * x, SquareRoot)
   }
 }
 

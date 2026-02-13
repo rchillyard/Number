@@ -9,8 +9,8 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 /**
-  * Test suite for TESTME items in Number.scala.
-  * This spec addresses 6 specific TESTME comments found in the Number trait.
+  * Test suite for testme items in Number.scala.
+  * This spec addresses 6 specific testme comments found in the Number trait.
   */
 class NumberTestmeSpec extends AnyFlatSpec with Matchers {
 
@@ -210,7 +210,7 @@ class NumberTestmeSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "verify conversion to PureNumber maintains ordering for NatLog" in {
-    // The TESTME asks why we need to convert to PureNumber
+    // The testme asks why we need to convert to PureNumber
     // This test verifies that the conversion is necessary for correct comparison
     val x = Number(2, NatLog)
     val y = Number(3, NatLog)
@@ -257,7 +257,7 @@ class NumberTestmeSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "verify conversion to Radian maintains ordering for Euler" in {
-    // The TESTME asks why we need to convert to Radian
+    // The testme asks why we need to convert to Radian
     // This test verifies that the conversion is necessary for correct comparison
     val x = Number(0.25, Euler)
     val y = Number(0.75, Euler)
