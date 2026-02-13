@@ -8,6 +8,7 @@ import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.parse.RationalParser
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
+
 import scala.util.Try
 
 /**
@@ -64,6 +65,7 @@ class RationalParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     ry should matchPattern { case scala.util.Success(_) => }
     ry.get shouldBe Rational.half
   }
+  // NOTE this is surprisingly slow.
   it should "parse 1" in {
     val parser = RationalParser
     val r = parser.parseAll(parser.rationalNumber, "1")

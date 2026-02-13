@@ -29,30 +29,9 @@ import scala.util.Try
   *
   * CONSIDER renaming as Functional? because there are some subtypes where dy/dx is not always positive.
   *
-  * Multidimensional mathematical quantities such as Complex cannot be represented by a `Monotone` object.
+  * Multidimensional mathematical quantities like `Solution` cannot be represented by a `Monotone` object.
   */
 trait Monotone extends Structure with WithFuzziness with Negatable[Monotone] {
-
-  /**
-    * Attempts to approximate the current instance to a `Real` value.
-    * If the instance is already of type `Real`, it is simply returned, wrapped inside `Some`.
-    * Otherwise, depending on the value of `force`, it either attempts a conversion
-    * to a default `Real` (if `force` is true), or returns `None`.
-    *
-    * CONSIDER moving this up into Approximate.
-    *
-    * NOTE that this method tries to keep exact quantities exact.
-    *
-    * @param force a boolean flag indicating whether to force the conversion to a default `Real`
-    *              value when the current instance is not of type `Real`
-    *
-    * @return an `Option[Real]` containing the approximated value if successful, or `None` if approximation fails
-    */
-  def approximation(force: Boolean = false): Option[Real] = this match {
-    case real: Real => Some(real)
-    case _ if force => convert(Real.zero)
-    case _ => None
-  }
 
   /**
     * Adds the specified `Monotone` instance to the current instance, producing a new `Monotone`.

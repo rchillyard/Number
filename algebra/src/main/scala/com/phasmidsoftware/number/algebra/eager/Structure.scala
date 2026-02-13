@@ -24,6 +24,24 @@ import scala.util.{Failure, Try}
 trait Structure extends Eager {
 
   /**
+    * Attempts to approximate the current instance to a `Real` value.
+    * If the instance is already of type `Real`, it is simply returned, wrapped inside `Some`.
+    * Otherwise, depending on the value of `force`, it either attempts a conversion
+    * to a default `Real` (if `force` is true), or returns `None`.
+    *
+    * NOTE that this method tries to keep exact quantities exact.
+    *
+    * @param force a boolean flag indicating whether to force the conversion to a default `Real`
+    *              value when the current instance is not of type `Real`
+    * @return an `Option[Real]` containing the approximated value if successful, or `None` if approximation fails
+    */
+  def approximation(force: Boolean = false): Option[Real] = this match {
+    case real: Real => Some(real)
+    case _ if force => convert(Real.zero)
+    case _ => None
+  }
+
+  /**
     * Converts the given `Structure` object to an optional instance of the same type.
     *
     * TODO refactor this method to use a type class instance of `CanConvert[T, Structure]` instead of ClassTag.

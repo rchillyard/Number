@@ -57,7 +57,7 @@ class EagerOpsSpec extends AnyFlatSpec with Matchers {
     val real1: Eager = Real("2.0*")
     val real2 = Real("3.0*")
     val result = real1 + real2
-    result shouldBe a[Structure]
+    result shouldBe a[Monotone]
     result.isExact shouldBe false
   }
 
@@ -121,7 +121,7 @@ class EagerOpsSpec extends AnyFlatSpec with Matchers {
     val real2 = Real("3.0*")
     val result = real1 * real2
 
-    result shouldBe a[Structure]
+    result shouldBe a[Monotone]
     result.isExact shouldBe false
   }
 
