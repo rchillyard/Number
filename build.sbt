@@ -61,7 +61,7 @@ val scala3TestSettings = Seq(
 
 lazy val root = (project in file("."))
   .enablePlugins(ScalaUnidocPlugin)
-  .aggregate(core, algebra, expression, parse, top)
+  .aggregate(core, algebra, expression, parse, dimensions, top)
   .dependsOn(top)
   .settings(
     name := "number",

@@ -147,46 +147,6 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
   }
 
   /**
-    * Handles the root operation result for negative values.
-    *
-    * @param value      The result of the root operation as a BigInt.
-    * @param n          The degree of the root.
-    * @param isNegative A flag indicating whether the original value was negative.
-    * @return The adjusted root value, negated if the original value 
-    *         was negative and the root degree is odd.
-    */
-  private def handleNegativeRoot(value: BigInt, n: Int, isNegative: Boolean): BigInt =
-    if (isNegative && n % 2 == 1) -value else value
-
-  private lazy val simplified: InversePower = doNormalize match {
-    case Left(number) =>
-      number
-    case Right(number) =>
-      // NOTE this is the best we can do in this situation
-      new InversePower(1, number)()
-  }
-
-  private lazy val doNormalize: Either[InversePower, Number] =
-    number.normalize match {
-      case IsInteger(z) =>
-        val (extracted, remaining) = InversePower.normalizeIntegralRoot(z, n)
-        if (remaining == 1)
-          Right(WholeNumber(extracted))
-        else
-          Left(InversePower(n, WholeNumber(remaining)))
-      case r@IntRational(num, den) =>
-        val (numExtracted, numRemaining) = InversePower.normalizeIntegralRoot(num, n)
-        val (denExtracted, denRemaining) = InversePower.normalizeIntegralRoot(den, n)
-
-        if (numRemaining == 1 && denRemaining == 1)
-          Right(RationalNumber(numExtracted, denExtracted))
-        else
-          Left(InversePower(n, r)) // Also: use IntRational, not `r`
-      case x: Number =>
-        Left(InversePower(n, x))
-    }
-
-  /**
     * Defines a transformation that transforms a `Structure` instance into a corresponding `Scalar` value.
     *
     * The transformation defines how a `Structure` is interpreted or converted in the context of `Scalar`.
@@ -449,22 +409,6 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
   def approximation: Option[Real] = convert(Real.zero)
 
   /**
-    * Retrieves the root value from the provided lookups map based on the given rational number.
-    *
-    * @param r       The Rational number used as a key for the lookup operation.
-    * @param lookups A nested map where the outer key is an integer and the inner map
-    *                maps integers to their associated root values.
-    * @return An Option containing the root value if found, or None if no corresponding
-    *         value exists in the lookups map.
-    */
-  private def getRoot(r: Rational, lookups: Map[Int, Map[Int, Int]]): Option[Int] =
-    for {
-      lookup <- lookups.get(n)
-      y <- toIntOption(r)
-      p <- lookup.get(y)
-    } yield p
-
-  /**
     * Scales the current instance using the provided `Number`.
     *
     * The method performs a scaling operation by applying the given `Number` to the current instance,
@@ -484,6 +428,99 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
       case _ =>
         throw AlgebraException(s"InversePower.doScale: cannot scale $this by $that")
     }
+
+  /**
+    * Handles the root operation result for negative values.
+    *
+    * @param value      The result of the root operation as a BigInt.
+    * @param n          The degree of the root.
+    * @param isNegative A flag indicating whether the original value was negative.
+    * @return The adjusted root value, negated if the original value 
+    *         was negative and the root degree is odd.
+    */
+  private def handleNegativeRoot(value: BigInt, n: Int, isNegative: Boolean): BigInt =
+    if (isNegative && n % 2 == 1) -value else value
+
+  /**
+    * A lazily evaluated value that provides a simplified instance of `InversePower`.
+    * If `doNormalize` results in a `Left`, the contained `number` is used directly.
+    * If `doNormalize` results in a `Right`, an `InversePower` instance is created
+    * with the numerator set to `1` and the denominator as the `number` contained
+    * in the `Right`.
+    *
+    * This serves as an optimization to avoid redundant normalization computations
+    * and ensures a consistent representation of the value.
+    *
+    * NOTE: In the case where `doNormalize` returns a `Right`, this approach provides
+    * the most precise simplification possible under these circumstances.
+    */
+  private lazy val simplified: InversePower = doNormalize match {
+    case Left(number) =>
+      number
+    case Right(number) =>
+      // NOTE this is the best we can do in this situation
+      new InversePower(1, number)()
+  }
+
+  /**
+    * Computes the normalized representation of a number based on its type and
+    * properties, returning either an `InversePower` instance or a `Number`.
+    *
+    * The normalization process involves handling different types of numbers
+    * (integers, rational numbers, or generic numbers) and extracting any
+    * roots of the given number to simplify it. The behavior is as follows:
+    *
+    * - For integers (`IsInteger`), attempts to normalize and extract the root.
+    * If the remaining part is 1, it wraps the extracted value in a
+    * `WholeNumber`. Otherwise, it wraps the remaining and extracted
+    * values in an `InversePower` instance.
+    *
+    * - For rational numbers (`IntRational`), separately normalizes and
+    * extracts the roots of the numerator and denominator. If both parts are
+    * fully extracted, it returns a `RationalNumber`. Otherwise, it returns
+    * an `InversePower` containing the original rational number.
+    *
+    * - For generic numbers (`Number`), it always wraps the number
+    * in an `InversePower`, as no further simplification is performed.
+    *
+    * This lazy value is computed only when accessed for the first time and
+    * reuses the result for subsequent accesses.
+    */
+  private lazy val doNormalize: Either[InversePower, Number] =
+    number.normalize match {
+      case IsInteger(z) =>
+        val (extracted, remaining) = InversePower.normalizeIntegralRoot(z, n)
+        if (remaining == 1)
+          Right(WholeNumber(extracted))
+        else
+          Left(InversePower(n, WholeNumber(remaining)))
+      case r@IntRational(num, den) =>
+        val (numExtracted, numRemaining) = InversePower.normalizeIntegralRoot(num, n)
+        val (denExtracted, denRemaining) = InversePower.normalizeIntegralRoot(den, n)
+
+        if (numRemaining == 1 && denRemaining == 1)
+          Right(RationalNumber(numExtracted, denExtracted))
+        else
+          Left(InversePower(n, r)) // Also: use IntRational, not `r`
+      case x: Number =>
+        Left(InversePower(n, x))
+    }
+
+  /**
+    * Retrieves the root value from the provided lookups map based on the given rational number.
+    *
+    * @param r       The Rational number used as a key for the lookup operation.
+    * @param lookups A nested map where the outer key is an integer and the inner map
+    *                maps integers to their associated root values.
+    * @return An Option containing the root value if found, or None if no corresponding
+    *         value exists in the lookups map.
+    */
+  private def getRoot(r: Rational, lookups: Map[Int, Map[Int, Int]]): Option[Int] =
+    for {
+      lookup <- lookups.get(n)
+      y <- toIntOption(r)
+      p <- lookup.get(y)
+    } yield p
 }
 
 /**
