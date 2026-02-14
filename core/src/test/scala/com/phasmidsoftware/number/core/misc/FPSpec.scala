@@ -25,26 +25,9 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
     identityTry(1) shouldBe Success(1)
   }
 
-  it should "tryMap" in {
-    // TESTME tryMap
-  }
-
   it should "toTry" in {
     toTry(Some(1), failure) shouldBe Success(1)
     toTry(None, failure) shouldBe failure
-  }
-
-  it should "optionMap" in {
-    // TESTME optionMap
-  }
-
-  it should "tryF1" in {
-    // TESTME tryF
-  }
-
-  it should "tryF2" in {
-    // TESTME tryF
-
   }
 
   it should "recover" in {

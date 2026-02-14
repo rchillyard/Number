@@ -97,7 +97,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
     val z: Option[Expression] = value.flatMap(_.evaluate)
     z.isDefined shouldBe true
     z.get.value shouldBe Number.root3
-    // TESTME the result.
   }
   it should "shuntingYard" in {
     p.parseInfix("( 1 + 3 ) + ( 2 * 3 )") should matchPattern { case Success(_) => }

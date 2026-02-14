@@ -95,7 +95,7 @@ sealed abstract class AbstractTranscendental(val name: String, val expression: E
   def isUnity: Boolean = expression.isUnity
 
   /**
-    * Determines the sign of the Monotone value represented by this instance.
+    * Determines the sign of the Structure value represented by this instance.
     * Returns an integer indicating whether the value is positive, negative, or zero.
     *
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero

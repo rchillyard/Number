@@ -34,23 +34,6 @@ trait MaybeFuzzy extends Renderable {
     * @return The nominal value as a `Double`.
     */
   def nominalValue: Double
-
-  /**
-    * Method to render this `Valuable` for presentation to the user.
-    * NOTE to implementors: never ever invoke `this.toString` in your implementation lest you get a StackOverflow.
-    *
-    * TESTME this is never called.
-    *
-    * @return a String
-    */
-  def renderFuzzy: String = maybeFuzz match {
-    case None =>
-      nominalValue.toString
-    case Some(fuzz: AbsoluteFuzz[Double]) =>
-      this.asAbsolute
-    case Some(fuzz: RelativeFuzz[Double]) =>
-      this.asRelative
-  }
 }
 
 /**

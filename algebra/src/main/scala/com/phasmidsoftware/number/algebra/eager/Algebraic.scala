@@ -38,14 +38,14 @@ sealed trait Algebraic extends Solution with Unitary with Scalable[Algebraic] {
     *
     * @return the base value of type Value
     */
-  def base: Monotone
+  def base: Structure
 
   /**
     * Retrieves the offset value of the solution.
     *
     * @return the offset value of type Value
     */
-  def offset: Monotone
+  def offset: Structure
 
   /**
     * This is the coefficient of the offset (square root term) the solution of a quadratic equation.
@@ -175,7 +175,7 @@ object Algebraic {
     * @param coefficient an integer used in cases where a quadratic solution is required
     * @return an `Algebraic` instance, which is either a `LinearSolution` or a `QuadraticSolution`
     */
-  def apply(base: Monotone, offset: Monotone, coefficient: Int): Algebraic =
+  def apply(base: Structure, offset: Structure, coefficient: Int): Algebraic =
     if (offset.isZero)
       LinearSolution(base)
     else
@@ -223,7 +223,7 @@ object Algebraic {
   *               Instances of this class are designed to interact with the `Factor` type in performing various
   *               operations such as evaluating, converting, or rendering the solution accurately in diverse contexts.
   */
-case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int, imaginary: Boolean = false)(val maybeName: Option[String] = None) extends Algebraic {
+case class QuadraticSolution(base: Structure, offset: Structure, coefficient: Int, imaginary: Boolean = false)(val maybeName: Option[String] = None) extends Algebraic {
 
   /**
     * Normalizes this `Valuable` to its simplest equivalent form.
@@ -237,23 +237,23 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
   def normalize: Eager = (base.normalize, offset.normalize) match {
     case (x: eager.Number, y: eager.Number) =>
       x + y.scale(coefficient).asInstanceOf[eager.Number]
-    case (x: Monotone, y: Scalar) if x.isZero =>
+    case (x: Structure, y: Scalar) if x.isZero =>
       y.scale(coefficient)
-    case (x, y: Monotone) if y.isZero =>
+    case (x, y: Structure) if y.isZero =>
       x
-    case (x: Monotone, y) if x.isZero =>
+    case (x: Structure, y) if x.isZero =>
       y
     case _ =>
       this
   }
 
   /**
-    * If this `Solution` can be represented as a `Monotone`, return it wrapped in `Some`, otherwise return `None`.
+    * If this `Solution` can be represented as a `Structure`, return it wrapped in `Some`, otherwise return `None`.
     *
-    * @return an `Option[Monotone]`.
+    * @return an `Option[Structure]`.
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the conversion is not supported.
     */
-  def toMonotone: Option[Monotone] = (base, offset) match {
+  def toMonotone: Option[Structure] = (base, offset) match {
     case (b, o) if o.isZero => Some(b)
     case (b, o) if b.isZero => Some(o)
     case _ if isPureNumber => throw AlgebraException("toMonotone: this case not yet implemented")
@@ -384,11 +384,11 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the addition with the specified solution is unsupported or leads to an error
     */
   def add(addend: Rational): Algebraic = {
-    val zo: Option[Monotone] = for {
+    val zo: Option[Structure] = for {
       case numerical.Real(n) <- Valuable.valuableToMaybeField(base) if n.factor == PureNumber
       value <- doComposeValueDyadic(n.nominalValue, fromRational(addend))(DyadicOperationPlus.functions)
       field = numerical.Real(ExactNumber(value, PureNumber))
-      case m: Monotone <- Some(Eager(field))
+      case m: Structure <- Some(Eager(field))
     } yield m
     FP.recover(zo.map(z => copy(base = z)(None)))(AlgebraException(s"QuadraticSolution: add($addend) not supported"))
   }
@@ -449,42 +449,11 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
       Failure(AlgebraException(s"QuadraticSolution.add($solution)"))
   }
 
-//  def add(solution: Algebraic): Option[Eager] = (value, solution.value) match {
-//    case (v: CanAdd[Number, Number], y: Number) =>
-//      Some(v.+(y))
-//    case _ =>
-//      None
-//  }
-
-//  def add(solution: Algebraic): Option[Algebraic] = {
-//    (isPureNumber, solution.isPureNumber) match {
-//      case (true, true) =>
-//        copy(base = sumBases(base, solution.base))
-//      case _ =>
-//        None
-//    }
-//
-//    // XXX match not exhaustive
-//    solution match {
-//      case q: QuadraticSolution =>
-//        if (maybeFactor(AnyContext.asInstanceOf[Context]) == q.factor) {
-//          // CONSIDER should we be using z here?
-//          val (a, b, z) = (branch, q.branch) match {
-//            case (0, _) => (this, q, branch)
-//            case (_, 0) => (q, this, q.branch)
-//            case _ => (this.conjugate, q.conjugate, 1 - branch)
-//          }
-//          for {
-//            x <- doComposeValueDyadic(a.base, b.base)(DyadicOperationPlus.functions)
-//            (v, f, z) <- factor.add(a.offset, b.offset, factor, b.branch == 1)
-//            if f == factor && z.isEmpty
-//          } yield Algebraic(x, branch = a.branch)
-//        }
-//        else
-//        None  // TESTME
-//    }
-//  }
-
+  /**
+    * Computes the square of the current instance by multiplying it with itself.
+    *
+    * @return The result of squaring the current instance.
+    */
   def square: Eager = this * this
 
   def *(other: QuadraticSolution): Eager = (this, other) match {
@@ -494,7 +463,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
       val ry = RationalNumber(ny)
       val bb = bx * ry + by * rx
       // TODO cast
-      val o: Monotone = if (bb.isZero) eager.Number.zero.asInstanceOf[Monotone] else InversePower(2, bb * bb * px)
+      val o: Structure = if (bb.isZero) eager.Number.zero.asInstanceOf[Structure] else InversePower(2, bb * bb * px)
       val pr = px * rx * ry
       QuadraticSolution(bx * by + pr, o, bb.signum, false).normalize
     case (x@QuadraticSolution(bx: eager.Number, ox: eager.Number, nx, false), y@QuadraticSolution(by: eager.Number, oy: eager.Number, ny, false)) =>
@@ -515,29 +484,10 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
       Some(x * y)
     case (x: QuadraticSolution, y: QuadraticSolution) =>
       Some(x * y)
-    // TODO add more cases (see commented code below)
+    // CONSIDER add more cases
     case _ =>
       None
   }
-    // XXX match not exhaustive
-//    solution match {
-//      case q: QuadraticSolution =>
-//        if (factor == q.factor) {
-//          // CONSIDER should we be using z here?
-//          val (a, b, z) = (branch, q.branch) match {
-//            case (0, _) => (this, q, branch)
-//            case (_, 0) => (q, this, q.branch)
-//            case _ => (this.conjugate, q.conjugate, 1 - branch)
-//          }
-//          for {
-//            x <- doComposeValueDyadic(a.base, b.base)(DyadicOperationTimes.functions)
-//            (v, f, z) <- factor.multiply(a.offset, b.offset, factor)
-//            if f == factor && z.isEmpty
-//          } yield Algebraic(x, branch = a.branch)
-//        }
-//        else
-//        None  // TESTME
-//    }
 
   /**
     * Scales the quadratic solution using a given rational factor.
@@ -556,7 +506,7 @@ case class QuadraticSolution(base: Monotone, offset: Monotone, coefficient: Int,
     case (b: Scalar, o@InversePower(2, x)) =>
       val number = RationalNumber(r)
       val br: Int = if (number.signum < 0) 1 - coefficient else coefficient
-      val offsetValue: Monotone = if (number.isZero) WholeNumber.zero else InversePower(2, x * number * number)
+      val offsetValue: Structure = if (number.isZero) WholeNumber.zero else InversePower(2, x * number * number)
       val value = QuadraticSolution(b.scale(r), offsetValue, br, imaginary)
       value
     case _ =>
@@ -631,12 +581,12 @@ object QuadraticSolution {
     * Creates a new instance of `QuadraticSolution` using the provided base monotone,
     * offset monotone, and coefficient index.
     *
-    * @param base   the base component of the quadratic solution, represented as a `Monotone`
-    * @param offset the offset component of the quadratic solution, represented as a `Monotone`
+    * @param base   the base component of the quadratic solution, represented as a `Structure`
+    * @param offset the offset component of the quadratic solution, represented as a `Structure`
     * @param coefficient an integer specifying the coefficient of the solution
     * @return a new `QuadraticSolution` instance constructed from the provided parameters
     */
-  def apply(base: Monotone, offset: Monotone, coefficient: Int, imaginary: Boolean): QuadraticSolution =
+  def apply(base: Structure, offset: Structure, coefficient: Int, imaginary: Boolean): QuadraticSolution =
     (base.normalize, offset.normalize) match {
       case (b: Scalar, o: Scalar) =>
         new QuadraticSolution(b, o, coefficient, imaginary)(None)
@@ -667,7 +617,7 @@ object QuadraticSolution {
     * @param r the rational number for which the square root is to be computed.
     * @return a monotone representation of the square root of the given rational number.
     */
-  def squareRoot(r: RationalNumber): Monotone =
+  def squareRoot(r: RationalNumber): Structure =
     InversePower(2, r).normalize.asMonotone
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
@@ -735,7 +685,7 @@ object QuadraticSolution {
   *
   * @param value the base value of the solution
   */
-case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None) extends Algebraic {
+case class LinearSolution(value: Structure)(val maybeName: Option[String] = None) extends Algebraic {
   /**
     * Returns the number of branches in `this`.
     *
@@ -771,21 +721,21 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
     *
     * @return the base value of type Value
     */
-  def base: Monotone = normalize.asMonotone
+  def base: Structure = normalize.asMonotone
 
   /**
     * Retrieves the offset value of the solution.
     *
     * @return the offset value of type Value
     */
-  def offset: Monotone = eager.Number.zero
+  def offset: Structure = eager.Number.zero
 
   /**
-    * If this `Solution` can be represented as a `Monotone`, return it wrapped in `Some`, otherwise return `None`.
+    * If this `Solution` can be represented as a `Structure`, return it wrapped in `Some`, otherwise return `None`.
     *
-    * @return an `Option[Monotone]`.
+    * @return an `Option[Structure]`.
     */
-  def toMonotone: Option[Monotone] = Some(value)
+  def toMonotone: Option[Structure] = Some(value)
 
   /**
     * Determines whether the solution is a pure number.
@@ -971,12 +921,12 @@ case class LinearSolution(value: Monotone)(val maybeName: Option[String] = None)
 object LinearSolution {
 
   /**
-    * Constructs a new instance of `LinearSolution` using the provided `Monotone` value.
+    * Constructs a new instance of `LinearSolution` using the provided `Structure` value.
     *
-    * @param value the `Monotone` instance used to initialize the `LinearSolution`
-    * @return a new `LinearSolution` instance corresponding to the given `Monotone`
+    * @param value the `Structure` instance used to initialize the `LinearSolution`
+    * @return a new `LinearSolution` instance corresponding to the given `Structure`
     */
-  def apply(value: Monotone): LinearSolution = new LinearSolution(value)()
+  def apply(value: Structure): LinearSolution = new LinearSolution(value)()
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 

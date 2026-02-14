@@ -45,7 +45,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
   def isZero: Boolean = value.isZero
 
   /**
-    * Determines the sign of the Monotone value represented by this instance.
+    * Determines the sign of the Structure value represented by this instance.
     * Returns an integer indicating whether the value is positive, negative, or zero.
     *
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
@@ -384,7 +384,7 @@ object Literal {
     * @return a Literal instance containing the provided Double value as a Real.
     */
   def apply(x: Double): Literal =
-    Literal(Real(x)) // TESTME
+    Literal(Real(x))
 
   /**
     * Creates a Literal instance from a given number.
@@ -533,7 +533,7 @@ case object Half extends ScalarConstant(RationalNumber.half, "\u00BD") {
     case Reciprocal =>
       Some(Two)
     case _ =>
-      None // TESTME
+      None
   }
 }
 
@@ -563,7 +563,7 @@ case object One extends ScalarConstant(WholeNumber.one, "1") {
     case Ln =>
       Some(Zero)
     case _ =>
-      None // TESTME
+      None
   }
 }
 

@@ -221,7 +221,7 @@ classDiagram
         NO Order (circular)
     }
     
-    %% Transformed (other Monotones)
+    %% Transformed (other Structures)
     class Exponential {
         <<trait>>
         Exponential values

@@ -7,6 +7,7 @@ package com.phasmidsoftware.number.top
 import cats.kernel.Eq
 import com.phasmidsoftware.matchers.*
 import com.phasmidsoftware.number.algebra.*
+import com.phasmidsoftware.number.algebra.core.FuzzyEq
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.algebra.eager.Angle.𝛑
 import com.phasmidsoftware.number.algebra.eager.Eager.{e, half, minusOne, negInfinity, one, pi, two, zero}
@@ -59,6 +60,26 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
         false
     }
   }
+
+
+  /**
+    * Implicit object providing an implementation of the `Equality` type class for the `Eager` type.
+    *
+    * Allows comparison between instances of `Eager` or between an `Eager` instance and another object.
+    *
+    * The equality logic is as follows:
+    * - If both arguments are of type `Eager`, it uses an instance of `Eq[Eager]` to determine equality.
+    * - For any other pair of arguments, it defaults to the standard `==` equality check.
+    */
+  implicit object FuzzyEagerEquality extends Equality[Eager] {
+    def areEqual(a: Eager, b: Any): Boolean = (a, b) match {
+      case (x: Eager, y: Eager) =>
+        summon[FuzzyEq[Eager]].eqv(x, y, 0.5)
+      case _ =>
+        a == b
+    }
+  }
+
 
   val sb = new StringBuilder
   implicit val logger: MatchLogger = MatchLogger(LogDebug, classOf[ExpressionMatchers])
@@ -237,6 +258,11 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
   it should "work for Cosine pi" in {
     lazymath"\cos(𝛑)" shouldBe MinusOne
     math"\cos(𝛑)" shouldBe minusOne
+  }
+  it should "work for sine special cases" in {
+    val expected = (Root.squareRoot(Rational(6)) + Root.rootTwo) / 4
+    val actual = math"\sin(5𝛑/12)"
+    actual should ===(expected.materialize)
   }
   it should "cancel multiplication and division with simplify 2" in {
     lazymath"𝛑*2/2" shouldBe Pi

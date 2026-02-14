@@ -122,25 +122,25 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
   it should "render fuzzy InversePower with absolute fuzz using asAbsolute" in {
     val ip = InversePower(2, Real(2, Some(AbsoluteFuzz(0.001, Gaussian))))
     ip.render shouldBe "√2.000(1)"
-    ip.asAbsolute shouldBe "1.414(1)"
+    ip.asAbsolute shouldBe "1.4142(5)"
   }
 
   it should "render fuzzy InversePower with relative fuzz using asAbsolute" in {
     val ip = InversePower(2, Real(2, Some(RelativeFuzz(0.05, Gaussian))))
     ip.render shouldBe "√2.0±5.0%"
-    ip.asAbsolute shouldBe "1.414(71)"
+    ip.asAbsolute shouldBe "1.414(35)"
   }
 
   it should "render fuzzy InversePower with asRelative" in {
     val ip = InversePower(2, Real(2, Some(RelativeFuzz(0.05, Gaussian))))
     ip.render shouldBe "√2.0±5.0%"
-    ip.asRelative shouldBe "1.4142135623730951±5.0%"
+    ip.asRelative shouldBe "1.4142135623730951±2.5%"
   }
 
   it should "render fuzzy InversePower with asPercentage" in {
     val ip = InversePower(2, Real(2, Some(RelativeFuzz(0.05, Gaussian))))
     ip.asPercentage should include("±")
-    ip.asPercentage should include("5.0%") // Percentage form
+    ip.asPercentage should include("2.5%") // Percentage form
   }
 
   behavior of "MaybeFuzzy extension methods for NaturalExponential"
@@ -149,33 +149,33 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
     val nl = NaturalExponential(Real(1.0, Some(AbsoluteFuzz(0.01, Gaussian))))
     nl.show shouldBe "e^1.00(1)"
     // This creates a fuzzy input, so output will be fuzzy
-    nl.asAbsolute shouldBe "2.71(1)"
+    nl.asAbsolute shouldBe "2.718(27)"
   }
 
   it should "render fuzzy NaturalExponential with absolute fuzz using asAbsolute" in {
     val nl = NaturalExponential(Real(1.0, Some(AbsoluteFuzz(0.01, Gaussian))))
     nl.show shouldBe "e^1.00(1)"
-    nl.asAbsolute shouldBe "2.71(1)"
+    nl.asAbsolute shouldBe "2.718(27)"
   }
 
   it should "render fuzzy NaturalExponential with relative fuzz using asAbsolute" in {
     val nl = NaturalExponential(Real(1, Some(RelativeFuzz(0.03, Gaussian))))
     nl.show shouldBe "e^1.0±3.0%"
     val result = nl.asAbsolute
-    result shouldBe "2.718(82)"
+    result shouldBe "2.71(22)"
   }
 
   it should "render fuzzy NaturalExponential with asRelative" in {
     val nl = NaturalExponential(Real(1, Some(RelativeFuzz(0.03, Gaussian))))
     nl.show shouldBe "e^1.0±3.0%"
-    nl.asRelative shouldBe "2.718281828459045±3.0%"
+    nl.asRelative shouldBe "2.718281828459045±8.2%"
   }
 
   it should "render fuzzy NaturalExponential with asPercentage" in {
     val nl = NaturalExponential(Real(1, Some(RelativeFuzz(0.03, Gaussian))))
     nl.show shouldBe "e^1.0±3.0%"
     nl.asPercentage should include("±")
-    nl.asPercentage should include("3.0%") // Percentage form
+    nl.asPercentage should include("8.2%") // Percentage form
   }
 
   behavior of "MaybeFuzzy extension methods edge cases"

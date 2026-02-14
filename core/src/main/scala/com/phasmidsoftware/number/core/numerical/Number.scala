@@ -154,14 +154,12 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def toInt: Option[Int]
 
   /**
-    * Method to get the value of this Number as an Int.
-    *
-    * TESTME
+    * Method to get the value of this Number as an Long.
     *
     * @return an Option of Long. If this Number cannot be converted to a Long, then None will be returned.
     */
   def toLong: Option[Long] =
-    toNominalRational map (_.toLong)
+    toNominalRational flatMap (_.maybeLong)
 
   /**
     * Method to get the value of this Number as an (optional) BigInt.
@@ -212,7 +210,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * @param n another Number.
     * @return the sum of this and n.
     */
-  def doAdd(n: Number): Number
+  infix def doAdd(n: Number): Number
 
   /**
     * Subtract n from this Number
@@ -273,7 +271,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
         ComplexCartesian.fromImaginary(n) `doAdd` Complex(this)
       case Real(n) =>
         Real(doAdd(n))
-      case c@BaseComplex(_, _) => // TESTME
+      case c@BaseComplex(_, _) =>
         c.add(this.asComplex)
       case _ =>
         throw CoreException(s"logic error: add not supported for this addend: $x")
@@ -334,8 +332,8 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def divide(x: Field): Field = x match {
     case Real(n) =>
       Real(doDivide(n))
-    case c@BaseComplex(_, _) => // TESTME
-      c.divide(x)
+    case c@BaseComplex(_, _) =>
+      this.asComplex.divide(c)
   }
 
   /**
@@ -375,7 +373,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     case Real(n) =>
       Real(doPower(n))
     case ComplexCartesian(x, y) =>
-      ComplexPolar(doPower(x), y) // CONSIDER is this correct? // TESTME
+      ComplexPolar(doPower(x), y)
     case _ =>
       throw CoreException("logic error: power not supported for non-Number powers")
   }
@@ -425,6 +423,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   /**
     * Method to determine the tangent of this Number.
     * The result will be a Number with PureNumber factor.
+    * NOTE that not all cases have been tested.
     *
     * @return the tangent
     */
@@ -434,7 +433,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
         r match {
           case Rational(Rational.bigOne, Rational.bigThree) =>
             Number.root3
-          case Rational(Rational.bigThree, Rational.bigFour) | Rational(Rational.bigSeven, Rational.bigFour) => // TESTME
+          case Rational(Rational.bigThree, Rational.bigFour) | Rational(Rational.bigSeven, Rational.bigFour) =>
             negate(Number.one)
           case Rational(Rational.bigOne, Rational.bigFour) | Rational(Rational.bigFive, Rational.bigFour) =>
             Number.one
@@ -839,7 +838,7 @@ object Number {
 
   /**
     * Implicit class to operate on Numbers introduced as integers.
-    *
+    * CONSIDER reinstating the ∧ operator definitions (but they were never used).
     * CONSIDER generalizing this to inputs of Values (or Rationals, Doubles).
     *
     * @param x an Int to be treated as a Number.
@@ -881,22 +880,6 @@ object Number {
       * @return a Number whose value is x / y.
       */
     def :/(y: Int): Number = /(y)
-
-    /**
-      * Raise x to the power of y (an Int) and yield a Number.
-      *
-      * @param y the exponent, an Int.
-      * @return a Number whose value is x / y.
-      */
-    def ∧(y: Int): Number = x ∧ y // TESTME
-
-    /**
-      * Raise x to the power of y (an Rational) and yield a Number.
-      *
-      * @param y the exponent, a Rational.
-      * @return a Number whose value is x / y.
-      */
-    def ∧(y: Rational): Number = x ∧ y // TESTME
   }
 
   /**
@@ -909,7 +892,6 @@ object Number {
 
   /**
     * Implicit converter from Double to Number.
-    * TESTME
     *
     * @param x the Double to be converted.
     * @return the equivalent Number.
@@ -1167,6 +1149,23 @@ object Number {
     Number(x, factor, None)
 
   /**
+    * Applies the given factor to the specified long x and returns a Number result.
+    *
+    * @param x      the input value as a Long to be processed
+    * @param factor the Factor to be applied to the input value
+    * @return a Number instance derived from the input value and factor
+    */
+  def apply(x: Long, factor: Factor): Number = Number(BigInt(x), factor)
+
+  /**
+    * Constructs a `Number` instance from the given long value.
+    *
+    * @param x the input long value
+    * @return a `Number` instance representing the provided long value
+    */
+  def apply(x: Long): Number = Number(BigInt(x), PureNumber)
+
+  /**
     * Method to construct a Number from a BigDecimal.
     *
     * @param x the BigDecimal value.
@@ -1284,9 +1283,9 @@ object Number {
       if (x == Number.NaN && y == Number.NaN) 0
       else if (x == Number.NaN || y == Number.NaN) throw CoreException("cannot compare NaN with non-NaN")
       else if (x.factor == NatLog && y.factor == NatLog)
-        compare(x.make(PureNumber), y.make(PureNumber)) // TESTME why do we need to convert to PureNumber?
+        compare(x.make(PureNumber), y.make(PureNumber))
       else if (x.factor == Euler && y.factor == Euler)
-        compare(x.make(Radian), y.make(Radian)) // TESTME why do we need to convert to Radian?
+        compare(x.make(Radian), y.make(Radian))
       else {
         // CONSIDER invoking the compare method in GeneralNumber.
         GeneralNumber.plus(x, Number.negate(y)).signum
@@ -1467,7 +1466,7 @@ object Number {
               case Some(1) | Some(11) =>
                 rootSix `doSubtract` root2 `doDivide` 4 // pi/12 and 11pi/12
               case Some(5) | Some(7) =>
-                rootSix `doAdd` root2 `doDivide` 4 // 5pi/12 and 7pi/12 ditto // TESTME
+                rootSix `doAdd` root2 `doDivide` 4 // 5pi/12 and 7pi/12 ditto
               case _ =>
                 prepareWithSpecialize(y.transformMonadic(PureNumber)(MonadicOperationSin)) // this takes proper care of 0, 2, 6, 10, 12.
             }
@@ -1621,7 +1620,7 @@ object Number {
         }
 
       case _ =>
-        throw CoreException(s"atan: factor not matched: ${ratio.factor}") // TESTME
+        throw CoreException(s"atan: factor not matched: ${ratio.factor}")
     }
   }
 
@@ -1707,9 +1706,9 @@ object Number {
     def toLong(x: Number): Long = x match {
       case z: GeneralNumber =>
         z.maybeNominalRational match {
-          case Some(r) =>
+          case Some(r) if r.maybeLong.isDefined =>
             r.toLong
-          case None =>
+          case _ =>
             x.maybeNominalDouble match {
               case Some(z) =>
                 Math.round(z)

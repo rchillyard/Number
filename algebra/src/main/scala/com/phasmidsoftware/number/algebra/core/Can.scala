@@ -57,7 +57,7 @@ trait CanAdd[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
     *
     * CONSIDER eliminate this method and use with + instead.
     *
-    * @param that  the `Structure` object to be added to this object.
+    * @param that the `Structure` object to be added to this object.
     * @return an `Option` containing the result of the addition if successful, or `None` if the operation
     *         cannot be completed.
     */

@@ -28,7 +28,7 @@ public class NumberTest {
     public void stringToNumber2() {
         String pi = "3.1415927";
         Number x = NumberJ.stringToNumber(pi);
-        assertEquals("3.14159270[5]", x.toString());
+        assertEquals("3.1415927", x.toString());
     }
 
     @Test

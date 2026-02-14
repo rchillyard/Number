@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.matchers.{LogInfo, MatchLogger, ~}
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.{AnyContext, RestrictedContext, Valuable}
-import com.phasmidsoftware.number.algebra.eager.{Angle, Monotone, Number}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Number, Structure}
 import com.phasmidsoftware.number.core.inner.{PureNumber, Radian}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Field
@@ -220,9 +220,9 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     case Aggregate(Sum, Nil) =>
       Match(Zero)
     case Aggregate(Product, Nil) =>
-      Match(One) // TESTME
+      Match(One)
     case Aggregate(Power, Nil) =>
-      Miss("simplifyAggregate: cannot simplify Power(0, 0)", Aggregate(Power, Nil)) // TESTME
+      Miss("simplifyAggregate: cannot simplify Power(0, 0)", Aggregate(Power, Nil))
     case Aggregate(_, x :: Nil) =>
       Match(x) // XXX we should not need to simplify x since simplifyOperands should already have done that
     // NOTE it's important that you do not reintroduce a match into a BiFunction!
@@ -252,7 +252,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
         case Success(list) =>
           matchOrMiss(a.function, list)(a)
         case Failure(x) =>
-          Error(x) // XXX the result of an extremely improbable NoSuchElementException // TESTME
+          Error(x) // XXX the result of an extremely improbable NoSuchElementException
       }
   }
 
@@ -382,8 +382,10 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     */
   private def matchNumber(x: Valuable): AutoMatcher[Valuable] =
     Matcher("matchNumber") {
-      case `x` => Match(x) // TESTME
-      case e => Miss("matchNumber", e)
+      case `x` =>
+        Match(x)
+      case e =>
+        Miss("matchNumber", e)
     }
 
   /**
@@ -462,13 +464,12 @@ object ExpressionMatchers {
     * `ExpressionBiFunction`, yield the appropriate identity value (although, in practice, we shortcut that logic a little).
     *
     * This method is designed to identify cases where the resulting `Expression` meets
-    * particular characteristics, such as being a zero-valued `Monotone` or a unit-valued `Unitary`.
+    * particular characteristics, such as being a zero-valued `Structure` or a unit-valued `Unitary`.
     *
     * TODO Move this into ExpressionBiFunction.
     *
     * @param f The binary function (`ExpressionBiFunction`) applied to evaluate the relationship
     *          between the two `Expression` instances.
-    *
     * @param x The first `Expression` operand used in the evaluation.
     * @param y The second `Expression` operand used in the evaluation.
     * @return An `Option[Expression]` containing the complementary result if the specified
@@ -476,8 +477,8 @@ object ExpressionMatchers {
     */
   def complementaryExpressions(f: ExpressionBiFunction, x: Expression, y: Expression): Option[Expression] =
     f.evaluate(x, y)(AnyContext) match {
-      case Some(z: Monotone) if z.isZero && f == Sum =>
-        Some(Literal(z))
+      case Some(z: Structure) if z.isZero && f == Sum =>
+      Some(Literal(z))
       case Some(z: Number) if z.isUnity && f == Product =>
         Some(Literal(z))
       case Some(z) if f.maybeIdentityL.contains(z) => // CONSIDER this case doesn't add anything

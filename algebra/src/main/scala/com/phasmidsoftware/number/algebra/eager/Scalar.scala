@@ -18,7 +18,7 @@ import scala.reflect.ClassTag
 import scala.util.{Failure, Try}
 
 /**
-  * Represents a `Scalar`, which is a `Monotone` that is linear with other scalar quantities and
+  * Represents a `Scalar`, which is a `Structure` that is linear with other scalar quantities and
   * thus has a scale factor defined.
   * Supports various mathematical operations and properties. Scalars include both
   * exact and approximate numerical entities.
@@ -27,12 +27,12 @@ import scala.util.{Failure, Try}
   *
   * Multidimensional mathematical quantities such as Complex cannot be represented by a `Scalar` object.
   */
-trait Scalar extends Monotone {
+trait Scalar extends Structure {
   /**
     * Compares this `Scalar` with another `Scalar` for exact equivalence.
     * This method checks if both instances can be compared exactly.
     *
-    * CONSIDER moving this up into Monotone and having `that` be a `Monotone`
+    * CONSIDER moving this up into Structure and having `that` be a `Structure`
     *
     * @param that the `Scalar` instance to compare against
     * @return an `Option[Int]` value:
@@ -68,12 +68,12 @@ trait Scalar extends Monotone {
   def scale(x: Int): Scalar = scale(Rational(x))
 
   /**
-    * Returns a new instance of `Monotone` that is the negation of the current instance.
-    * CONSIDER sorting out the use of CanNegate so that we can extend that for Monotone.
+    * Returns a new instance of `Structure` that is the negation of the current instance.
+    * CONSIDER sorting out the use of CanNegate so that we can extend that for Structure.
     *
-    * @return a `Monotone` representing the negation of this instance
+    * @return a `Structure` representing the negation of this instance
     */
-  def negate: Monotone = scale(Rational.negOne)
+  def negate: Structure = scale(Rational.negOne)
 
   /**
     * Adds the specified `Scalar` instance to this `Scalar` and returns the result.
@@ -184,16 +184,15 @@ object Scalar {
     * Converts the number into an appropriate scalar representation,
     * either exact or fuzzy, depending on the properties of the input.
     *
-    * CONSIDER moving this up into Monotone.
+    * CONSIDER moving this up into Structure.
     *
     * @param x the `core.Number` to be converted into a `Scalar`.
     *          It can be an `ExactNumber` or a `FuzzyNumber`, each with specific
     *          properties such as value, factor, and optional fuzziness.
-    *
     * @return the resulting `Scalar` based on the input number's properties, which
     *         encapsulates its exact value, factor, and optional fuzziness.
     */
-  def apply(x: numerical.Number): Monotone = x match {
+  def apply(x: numerical.Number): Structure = x match {
     case ExactNumber(value, factor) =>
       createScalar(value, factor, None)
     case FuzzyNumber(value, factor, fuzz) =>
@@ -266,7 +265,7 @@ object Scalar {
     * @return the resulting `Scalar` based on the input values, factor, and optional fuzziness.
     *         @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if called with unsupported factors.
     */
-  def createScalar(value: inner.Value, factor: inner.Factor, fuzz: Option[Fuzziness[Double]]): Monotone = {
+  def createScalar(value: inner.Value, factor: inner.Factor, fuzz: Option[Fuzziness[Double]]): Structure = {
     val number: Number = (value, fuzz) match {
       case (Right(x), None) =>
         WholeNumber(x)
@@ -332,7 +331,7 @@ case object NoScalar extends Scalar with Exact {
     * Compares this `Scalar` with another `Scalar` for exact equivalence.
     * This method checks if both instances can be compared exactly.
     *
-    * CONSIDER moving this up into Monotone and having `that` be a `Monotone`
+    * CONSIDER moving this up into Structure and having `that` be a `Structure`
     *
     * @param that the `Scalar` instance to compare against
     * @return an `Option[Int]` value:
@@ -341,7 +340,6 @@ case object NoScalar extends Scalar with Exact {
     *         - `Some(1)` if this `Scalar` is greater than `that`
     *         - `None` if the exact comparison is not possible
     *         -
-    *
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if called
     */
   def compareExact(that: Scalar): Option[Int] = throw AlgebraException(s"NoScalar.compareExact: unsupported operation")

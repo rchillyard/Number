@@ -103,7 +103,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
   }
 
   /**
-    * Method to get the nominalValue of this Number as an (optional) BigInt.
+    * Method to get the nominalValue of this Number as an (optional) BigDecimal.
     * This will return Some(x) only if this is an Int, or a Rational with unit denominator.
     *
     * TESTME
@@ -639,9 +639,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
   }
 
   /**
-    * TESTME
-    *
-    * @return
+    * @return the hash code based on nominalValue, factor, fuzz.
     */
   override def hashCode(): Int = {
     val state = Seq(nominalValue, factor, fuzz)
@@ -933,7 +931,7 @@ object GeneralNumber {
     case 2 =>
       Some(n.make(SquareRoot))
     case 3 =>
-      Some(n.make(CubeRoot)) // TESTME
+      Some(n.make(CubeRoot))
     case _ =>
       None
   }
