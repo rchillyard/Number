@@ -52,7 +52,7 @@ class UnitsSpec extends AnyFlatSpec with should.Matchers {
     val hectometer = CompositeUnits.Hectometer
     hectometer.toSI shouldBe WholeNumber(100)
     hectometer.symbol shouldBe "hm"
-    hectometer.compositeSymbol shouldBe ("100·m")
+    hectometer.compositeSymbol shouldBe "100·m"
   }
 
   behavior of "Mass Units"
@@ -90,10 +90,6 @@ class UnitsSpec extends AnyFlatSpec with should.Matchers {
     Radian.toSI shouldBe WholeNumber.one
     Radian.symbol shouldBe "rad"
   }
-
-  //  it should "convert degrees to radians" in {
-  //    Degree.toSI.toDouble shouldBe (Math.PI / 180.0) +- 0.000001
-  //  }
 
   behavior of "Derived SI Units"
 
@@ -142,8 +138,7 @@ class UnitsSpec extends AnyFlatSpec with should.Matchers {
     val hectare = CompositeUnits.Hectare
     hectare.toSI shouldBe WholeNumber(10000)
     hectare.symbol shouldBe "ha"
-    hectare.compositeSymbol shouldBe ("100·m·100·m")
-
+    hectare.compositeSymbol shouldBe "100·m·100·m"
   }
 
   behavior of "Type Safety"
@@ -199,7 +194,8 @@ class UnitsSpec extends AnyFlatSpec with should.Matchers {
   behavior of "unitRegistry"
 
   it should "build the unitRegistry correctly" in {
-    unitRegistry.size shouldBe 47
+    //    println(unitRegistry.keySet.toSeq.sorted.mkString("{",",","}"))
+    unitRegistry.size shouldBe 55
     unitRegistry.foreach(
       (s, u) => (u.compositeSymbol == s || u.symbol == s) shouldBe true
     )

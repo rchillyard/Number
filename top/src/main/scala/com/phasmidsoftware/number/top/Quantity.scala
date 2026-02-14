@@ -30,7 +30,8 @@ case class Quantity[D <: Dimension](value: Valuable, unit: PhysicalUnit[D]) exte
     * @return a string consisting of the value's rendered representation followed
     *         by the unit's symbol, separated by a space
     */
-  def render: String = s"${value.render} ${unit.symbol}"
+  def render: String =
+    s"${value.render} ${unit.symbol}"
 
   /**
     * Convenience method for LaTeX rendering.
@@ -93,7 +94,8 @@ case class Quantity[D <: Dimension](value: Valuable, unit: PhysicalUnit[D]) exte
     * @return an `Option` containing the inverted quantity if the operation is valid,
     *         or `None` if the operation cannot be performed.
     */
-  def inverted: Quantity[DivDim[Dimensionless, D]] = Quantity.unity / this
+  def inverted: Quantity[DivDim[Dimensionless, D]] =
+    Quantity.unity / this
 
   /**
     * Adds this quantity to another quantity of the same dimension.
@@ -198,7 +200,8 @@ object Quantity {
     * @param value the numerical value of type `Valuable` to be associated with the `Dimensionless` unit
     * @return a `Quantity[Dimensionless]` instance representing the specified value
     */
-  def apply(value: Valuable): Quantity[Dimensionless] = Quantity(value, Dimensionless)
+  def apply(value: Valuable): Quantity[Dimensionless] = 
+    Quantity(value, Dimensionless)
 
   /**
     * Constructs a `Quantity[Dimensionless]` instance using the provided `Rational` value.
@@ -209,7 +212,8 @@ object Quantity {
     * @param value the numerical value of type `Rational` to be associated with the `Dimensionless` unit
     * @return a `Quantity[Dimensionless]` instance representing the specified value
     */
-  def apply(value: Rational): Quantity[Dimensionless] = Quantity(value, Dimensionless)
+  def apply(value: Rational): Quantity[Dimensionless] = 
+    Quantity(value, Dimensionless)
 
   /**
     * Creates a `Quantity` instance with the specified numerical value and physical unit.
@@ -234,7 +238,8 @@ object Quantity {
     * @param value the integer value to be associated with the `Dimensionless` unit
     * @return a `Quantity[Dimensionless]` instance representing the specified value
     */
-  def apply(value: Int): Quantity[Dimensionless] = Quantity(value, Dimensionless)
+  def apply(value: Int): Quantity[Dimensionless] = 
+    Quantity(value, Dimensionless)
 
   /**
     * Constructs a `Quantity[Dimensionless]` instance from a string representation of a value.
@@ -269,8 +274,10 @@ object Quantity {
     * @return an `Expression` representing the given `Valuable`
     */
   def lazify(valuable: Valuable): Expression = valuable match {
-    case e: Eager => Expression(e)
-    case e: Expression => e
+    case e: Eager => 
+      Expression(e)
+    case e: Expression => 
+      e
   }
 
   /**
@@ -290,8 +297,10 @@ object Quantity {
     */
   def parse(value: Valuable, unit: String): Either[ParseError, Quantity[?]] =
     UnitsParser.parse(unit) match {
-      case Left(s) => Left(s)
-      case Right(u) => Right(Quantity(value, u))
+      case Left(s) => 
+        Left(s)
+      case Right(u) => 
+        Right(Quantity(value, u))
     }
 
   /**
@@ -327,7 +336,8 @@ object Quantity {
         summon[LatexRenderer[Eager]].toLatex(e)
       case l: Lazy =>
         l.materialize match {
-          case e: Eager => summon[LatexRenderer[Eager]].toLatex(e)
+          case e: Eager => 
+            summon[LatexRenderer[Eager]].toLatex(e)
         }
     }
 

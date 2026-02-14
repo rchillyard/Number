@@ -25,6 +25,7 @@ class QuantityWorksheetSpec extends AnyFlatSpec with should.Matchers {
 
     Fortnight.toSI shouldBe WholeNumber(14 * 24 * 60 * 60)
     Furlong.toSI shouldBe RationalNumber(Rational(25146, 125))
+    Firkin.toSI shouldBe RationalNumber(Rational(408233133, 10000000))
 
     // Supposedly, the VAX has a tick value of a microfortnight.
     // Let's see what that would be in seconds.
