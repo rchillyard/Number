@@ -46,7 +46,7 @@
         <option value="com.phasmidsoftware.number.top.QuantitySpec" />
         <option value="com.phasmidsoftware.number.top.QuantityWorksheetSpec" />
         <option value="com.phasmidsoftware.number.top.TopSpec" />
-          <option value="com.phasmidsoftware.number.top.TrigonometryWorksheetSpec"/>
+        <option value="com.phasmidsoftware.number.top.TrigonometryWorksheetSpec" />
         <option value="com.phasmidsoftware.number.expression.algebraic.AlgebraicSpec" />
         <option value="com.phasmidsoftware.number.expression.algebraic.LinearEquationSpec" />
         <option value="com.phasmidsoftware.number.expression.algebraic.QuadraticEquationSpec" />
@@ -90,6 +90,8 @@
         <option value="com.phasmidsoftware.number.algebra.eager.AngleSpec" />
         <option value="com.phasmidsoftware.number.algebra.eager.EagerSpec" />
         <option value="com.phasmidsoftware.number.algebra.eager.EqualityComprehensiveSpec" />
+        <option value="com.phasmidsoftware.number.algebra.eager.ExponentialSpec" />
+        <option value="com.phasmidsoftware.number.algebra.eager.InversePowerAdditionalSpec" />
         <option value="com.phasmidsoftware.number.algebra.eager.InversePowerSpec" />
         <option value="com.phasmidsoftware.number.algebra.eager.NatSpec" />
         <option value="com.phasmidsoftware.number.algebra.eager.NormalizeIntegrationSpec" />
@@ -118,7 +120,7 @@
         <option value="com.phasmidsoftware.number.core.numerical.NumberLikeSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.NumberSetSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.NumberSpec" />
-          <option value="com.phasmidsoftware.number.core.numerical.NumberTestmeSpec"/>
+        <option value="com.phasmidsoftware.number.core.numerical.NumberTestmeSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.PolynomialSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.PowerSeriesSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.PrimeSpec" />

@@ -337,7 +337,7 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
     InversePower(3, 27).maybeFactor(AnyContext) shouldBe Some(CubeRoot)
   }
 
-  ignore should "return PureNumber for n=1" in {
+  it should "return PureNumber for n=1" in {
     InversePower(1, 5).maybeFactor(AnyContext) shouldBe Some(PureNumber)
   }
 
@@ -354,7 +354,7 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
     InversePower(3, 27).toRational shouldBe Some(Rational(3))
   }
 
-  ignore should "convert rational perfect roots" in {
+  it should "convert rational perfect roots" in {
     InversePower(2, RationalNumber(4, 9)).toRational shouldBe Some(Rational(2, 3))
     InversePower(3, RationalNumber(8, 27)).toRational shouldBe Some(Rational(2, 3))
   }
@@ -376,9 +376,9 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
     InversePower(3, 8).render should include("³√")
   }
 
-  ignore should "render fourth and higher roots" in {
+  it should "render fourth and higher roots" in {
     val root4 = InversePower(4, 16)
-    root4.render should include("√")
+    root4.render should include("4th root")
   }
 
   it should "use maybeName when present" in {

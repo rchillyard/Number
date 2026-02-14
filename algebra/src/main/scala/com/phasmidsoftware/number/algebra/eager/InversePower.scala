@@ -398,9 +398,11 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     * @return an `Option[Rational]` containing the `Rational` representation of this `Number`
     *         if it can be converted, or `None` if the conversion is not possible.
     */
-  def toRational: Option[Rational] = number match {
-    case z: Z =>
-      z.toRational.power(Rational(n).invert).toOption
+  def toRational: Option[Rational] = normalize match {
+    case q: Q =>
+      Some(q.toRational)
+    case InversePower(m, z: Q) if z.isExact =>
+      z.toRational.power(Rational(m).invert).toOption
     case _ =>
       None
   }
@@ -427,8 +429,9 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     * @return an `Option` containing a `Factor` if available, otherwise `None`
     */
   def maybeFactor(context: Context): Option[Factor] = n match {
+    case 1 if context.factorQualifies(PureNumber) => Some(PureNumber)
     case 2 if context.factorQualifies(SquareRoot) => Some(SquareRoot)
-    case 3 if context.factorQualifies(SquareRoot) => Some(CubeRoot)
+    case 3 if context.factorQualifies(CubeRoot) => Some(CubeRoot)
     case _ => None
   }
 
