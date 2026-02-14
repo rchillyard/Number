@@ -76,6 +76,34 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
   val derivativeFunction: Double => Double = x => math.log(base.toDouble) * scaleFunction(x)
 
   /**
+    * Defines a transformation that transforms a `Structure` instance into a corresponding `Scalar` value.
+    *
+    * The transformation defines how a `Structure` is interpreted or converted in the context of `Scalar`.
+    *
+    * @return a transformation that maps a `Structure` object to a `Scalar` result
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input is not a Real number.
+    */
+  def transformation[T: ClassTag]: Option[T] =
+    if (implicitly[ClassTag[T]].runtimeClass == classOf[Real]) {
+      val result: Real =
+        number match {
+          case WholeNumber.one | RationalNumber(Rational.one, _) =>
+            Real(base.toDouble)
+          case RationalNumber(Rational.infinity, _) =>
+            Real.∞
+          case q: Q =>
+            Real(scaleFunction(q.toDouble))
+          case Real(value, fuzz) =>
+            Real(scaleFunction(value), fuzz)
+          case _ =>
+            throw AlgebraException(s"NaturalExponential.transformation: $number not supported")
+        }
+      Some(result.asInstanceOf[T])
+    }
+    else
+      None
+
+  /**
     * Retrieves an optional fuzziness value associated with this instance.
     *
     * The fuzziness value, if present, provides information about the level of uncertainty
@@ -108,6 +136,13 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
     */
   def compare(that: Functional): Int =
     number.compare(that.number) * derivativeFunction(number.toDouble).sign.toInt
+
+  /**
+    * Compares this `Exponential` instance with another `Exponential` instance for exact equality.
+    *
+    * This method determines if the two `Exponential` instances represent exactly the same value
+    * */
+  def compareExact(that: Exponential): Option[Int]
 
   /**
     * Normalizes this `Valuable` to its simplest equivalent form.
@@ -207,24 +242,11 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
     *
     * @return the rendered string representation of the base
     */
-  def renderNumber: String =
+  private[eager] def renderNumber: String =
     if (number.normalize == WholeNumber.one)
       ""
     else
       s"^${number.normalize.render}"
-
-  /**
-    * Provides an approximation of this number, if applicable.
-    *
-    * This method attempts to compute an approximate representation of the number
-    * in the form of a `Real`, which encapsulates uncertainty or imprecision
-    * in its value. If no meaningful approximation is possible for the number, it
-    * returns `None`.
-    *
-    * @return an `Option[Real]` containing the approximate representation
-    *         of this `Number`, or `None` if no approximation is available.
-    */
-  def approximation: Option[Real] = convert(Real.zero)
 
   /**
     * Checks for structural equality between this `Eager` instance and the specified `Eager` instance.
@@ -297,34 +319,6 @@ case class NaturalExponential(exponent: Number)(val maybeName: Option[String] = 
   lazy val zero: Exponential = NaturalExponential(WholeNumber.zero)(Some("1"))
 
   /**
-    * Defines a transformation that transforms a `Structure` instance into a corresponding `Scalar` value.
-    *
-    * The transformation defines how a `Structure` is interpreted or converted in the context of `Scalar`.
-    *
-    * @return a transformation that maps a `Structure` object to a `Scalar` result
-    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input is not a Real number.
-    */
-  def transformation[T: ClassTag]: Option[T] = {
-    val c = implicitly[ClassTag[T]]
-    if (c.runtimeClass == classOf[Real]) {
-      val result: Real =
-        exponent match {
-          case WholeNumber.one | RationalNumber(Rational.one, _) =>
-            Real(math.E)
-          case RationalNumber(Rational.infinity, _) =>
-            Real.∞
-          case Real(value, fuzz) =>
-            Real(math.log(value), fuzz) // TODO check this.
-          case _ =>
-            throw AlgebraException(s"NaturalExponential.transformation: $exponent not supported")
-        }
-      Some(result.asInstanceOf[T])
-    }
-    else
-      None
-  }
-
-  /**
     * Returns a new instance of `Structure` that is the negation of the current instance.
     * CONSIDER sorting out the use of CanNegate so that we can extend that for Structure.
     *
@@ -344,7 +338,7 @@ case class NaturalExponential(exponent: Number)(val maybeName: Option[String] = 
     *         `Some(0)` indicates that both Logarithms are equal, `Some(1)` indicates that the current `Exponential` is greater,
     *         and `None` is returned if the comparison cannot be made
     */
-  def compareExact(that: Number): Option[Int] = that match {
+  def compareExact(that: Exponential): Option[Int] = that match {
     case NaturalExponential(r) =>
       Some(exponent.compare(r))
     case _ =>
@@ -383,6 +377,16 @@ case class NaturalExponential(exponent: Number)(val maybeName: Option[String] = 
     Option.when(context.factorQualifies(inner.NatLog))(inner.NatLog)
 }
 
+/**
+  * Represents a binary exponential number structure, extending the `Exponential` class
+  * with operations and transformations specifically relevant to base-2 exponential numbers.
+  *
+  * This class provides methods to manipulate and interact with the exponential representation,
+  * including rendering, comparison, construction of new instances, and providing structural properties.
+  *
+  * @param exponent  the exponent value for the binary exponential
+  * @param maybeName an optional name or label for the instance
+  */
 case class BinaryExponential(exponent: Number)(val maybeName: Option[String] = None) extends Exponential(exponent) {
 
   /**
@@ -401,34 +405,6 @@ case class BinaryExponential(exponent: Number)(val maybeName: Option[String] = N
     * equal `value`.
     */
   lazy val zero: Exponential = NaturalExponential(WholeNumber.zero)
-
-  /**
-    * Defines a transformation that transforms a `Structure` instance into a corresponding `Scalar` value.
-    *
-    * The transformation defines how a `Structure` is interpreted or converted in the context of `Scalar`.
-    *
-    * @return a transformation that maps a `Structure` object to a `Scalar` result
-    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input is not a Real number.
-    */
-  def transformation[T: ClassTag]: Option[T] = {
-    val c = implicitly[ClassTag[T]]
-    if (c.runtimeClass == classOf[Real]) {
-      val result: Real =
-        exponent match {
-          case WholeNumber.one | RationalNumber(Rational.one, _) =>
-            FP.recover(base.convert(Real.zero))(AlgebraException(": BinaryExponential.transformation: base.convert(Real.zero) failed"))
-          case RationalNumber(Rational.infinity, _) =>
-            Real.∞
-          case Real(value, fuzz) =>
-            Real(math.log(value), fuzz)
-          case _ =>
-            throw AlgebraException(s"BinaryExponential.transformation: $exponent not supported")
-        }
-      Some(result.asInstanceOf[T])
-    }
-    else
-      None
-  }
 
   /**
     * Returns a new instance of `Structure` that is the negation of the current instance.
@@ -450,7 +426,7 @@ case class BinaryExponential(exponent: Number)(val maybeName: Option[String] = N
     *         `Some(0)` indicates that both Logarithms are equal, `Some(1)` indicates that the current `Exponential` is greater,
     *         and `None` is returned if the comparison cannot be made
     */
-  def compareExact(that: Number): Option[Int] = that match {
+  def compareExact(that: Exponential): Option[Int] = that match {
     case BinaryExponential(r) =>
       Some(exponent.compare(r))
     case _ =>
@@ -577,8 +553,10 @@ object Exponential {
       * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input types are not compatible.
       */
     def combine(x: Exponential, y: Exponential): Exponential = (x, y) match {
-      case (a, b) if a.getClass == b.getClass =>
-        a + b
+      case (a: NaturalExponential, b: NaturalExponential) =>
+        NaturalExponential(a.exponent + b.exponent) // Add exponents directly
+      case (a: BinaryExponential, b: BinaryExponential) =>
+        BinaryExponential(a.exponent + b.exponent)
       case _ =>
         throw AlgebraException(s"Exponential.combine: $x, $y")
     }

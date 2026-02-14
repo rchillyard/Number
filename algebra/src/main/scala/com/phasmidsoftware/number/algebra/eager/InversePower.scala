@@ -47,7 +47,8 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *
     * @return a function to transform the nominal value into the actual value as it would appear in a PureNumber context.
     */
-  val scaleFunction: Double => Double = math.pow(_, 1.0 / n)
+  val scaleFunction: Double => Double =
+    math.pow(_, 1.0 / n)
 
   /**
     * Represents the derivative function associated with this `Functional` instance.
@@ -61,7 +62,8 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *
     * @return A function that accepts a `Double` value and returns the computed derivative as a `Double`.
     */
-  val derivativeFunction: Double => Double = x => scaleFunction(x) / n / x
+  val derivativeFunction: Double => Double =
+    x => scaleFunction(x) / n / x
 
   /**
     * Computes the result of raising an instance of type `T` to the power
@@ -191,7 +193,11 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *
     * @return a transformation that maps a `Structure` object to a `Scalar` result
     */
-  def transformation[T: ClassTag]: Option[T] = None // TODO Implement this
+  def transformation[T: ClassTag]: Option[T] =
+    if (implicitly[ClassTag[T]].runtimeClass == classOf[Real])
+      number.approximation(true).flatMap(x => x.power(Rational(n).invert)).asInstanceOf[Option[T]]
+    else
+      None
 
   /**
     * Returns a new instance of `Structure` that is the negation of the current instance.
@@ -289,12 +295,14 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
     */
   def convert[T <: Structure : ClassTag](t: T): Option[T] = (normalize, t) match {
+    case (x, y) if x.getClass == y.getClass =>
+      Some(x.asInstanceOf[T])
     case (x: WholeNumber, _) =>
       x.convert(t)
     case (x: RationalNumber, _) =>
       x.convert(t)
-    case (x@InversePower(m, z), r: Real) =>
-      z.approximation(true).flatMap(x => x.power(Rational(m).invert)).asInstanceOf[Option[T]]
+    case (x: InversePower, _: Real) =>
+      x.transformation
     case x =>
       None
   }

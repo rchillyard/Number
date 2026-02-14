@@ -52,8 +52,9 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     *         or `None` if the operation could not be performed
     */
   infix def pow(that: ExactNumber): Option[Number] = {
-    // TODO The following line needs significant checking
-    Some(Real(math.pow(value, that.asDouble), fuzz.map(x => x.transform(y => y * that.asDouble)(value))))
+    val newValue = math.pow(value, that.asDouble)
+    val newFuzz = Fuzziness.map(value, newValue, true, _ => that.asDouble, fuzz)
+    Some(Real(newValue, newFuzz))
   }
 
   /**

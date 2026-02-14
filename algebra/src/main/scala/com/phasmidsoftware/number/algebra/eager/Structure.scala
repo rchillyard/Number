@@ -48,6 +48,8 @@ trait Structure extends Eager with WithFuzziness with Negatable[Structure] {
   def approximation(force: Boolean = false): Option[Real] = this match {
     case real: Real =>
       Some(real)
+    case functional: Functional =>
+      functional.convert(Real.zero)
     case _ if force =>
       convert(Real.zero)
     case _ =>
@@ -246,7 +248,11 @@ trait Functional extends Structure with MaybeFuzzy with Ordered[Functional] {
     *
     * @return An Option containing the fuzziness representation of the number, or None if not available.
     */
-  def maybeFuzz: Option[Fuzziness[Double]] = number.fuzz
+  def maybeFuzz: Option[Fuzziness[Double]] =
+    number.fuzz map {
+      val fuzzFunction: Double => Double = x => derivativeFunction(x) * x / scaleFunction(x)
+      fuzz => fuzz.transform[Double, Double](fuzzFunction)(scaleFunction(number.toDouble))
+    }
 
   /**
     * Retrieves the nominal (non-fuzzy) value associated with the entity.
@@ -267,7 +273,6 @@ trait Functional extends Structure with MaybeFuzzy with Ordered[Functional] {
     */
   override def maybeDouble: Option[Double] =
     Option.when(isExact)(nominalValue)
-
 }
 
 /**
