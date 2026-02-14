@@ -20,8 +20,10 @@ println(w.toLatex) // 128
 
 // Pattern matching still works
 w match
-  case BiFunction(BiFunction(Literal(WholeNumber(x), _), y, Product), z, Sum) => println(s"($x*$y)+$z")
-  case _ => println("Other form")
+  case BiFunction(BiFunction(Literal(WholeNumber(x), _), y, Product), z, Sum) => 
+    println(s"($x*$y)+$z")
+  case _ => 
+    println("Other form")
 
 import com.phasmidsoftware.number.expression.expr.Root.{phi, psi}
 

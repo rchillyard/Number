@@ -30,14 +30,14 @@ case class Quantity[D <: Dimension](value: Valuable, unit: PhysicalUnit[D]) exte
     * @return a string consisting of the value's rendered representation followed
     *         by the unit's symbol, separated by a space
     */
-  def render: String =
+  lazy val render: String =
     s"${value.render} ${unit.symbol}"
 
   /**
     * Convenience method for LaTeX rendering.
     * Delegates to toLatex function in companion object.
     */
-  def renderLaTeX: String = Quantity.toLatex(this)
+  lazy val renderLaTeX: String = Quantity.toLatex(this)
 
   /**
     * Converts this `Quantity` to an equivalent `Quantity` that has a different unit and returns the result as an `Option` of the converted quantity.
@@ -85,7 +85,7 @@ case class Quantity[D <: Dimension](value: Valuable, unit: PhysicalUnit[D]) exte
     *
     * @return an `Option` containing the squared quantity if the operation is valid, or `None` if the operation cannot be performed.
     */
-  def squared: Quantity[MulDim[D, D]] = this * this
+  lazy val squared: Quantity[MulDim[D, D]] = this * this
 
   /**
     * Computes the multiplicative inverse of this quantity, resulting in a quantity
@@ -94,7 +94,7 @@ case class Quantity[D <: Dimension](value: Valuable, unit: PhysicalUnit[D]) exte
     * @return an `Option` containing the inverted quantity if the operation is valid,
     *         or `None` if the operation cannot be performed.
     */
-  def inverted: Quantity[DivDim[Dimensionless, D]] =
+  lazy val inverted: Quantity[DivDim[Dimensionless, D]] =
     Quantity.unity / this
 
   /**

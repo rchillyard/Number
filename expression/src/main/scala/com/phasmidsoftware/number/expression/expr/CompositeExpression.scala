@@ -126,25 +126,6 @@ sealed trait CompositeExpression extends Expression {
   def identitiesMatcher: em.AutoMatcher[Expression]
 
   /**
-    * Simplifies an `Expression` by checking if its value can be directly evaluated into a constant.
-    * If the `Expression` can be evaluated as a `Field`, it is replaced with a `Literal` containing that value.
-    * Otherwise, no simplification is performed, and the match operation indicates a miss.
-    *
-    * @return an `em.AutoMatcher[Expression]` that matches `Expression` instances which can be directly
-    *         evaluated into constants, and simplifies them by replacing with a `Literal`. If simplification
-    *         is not possible, it returns a miss state with the original `Expression`.
-    */
-  lazy val simplifyConstant: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyConstant") {
-    expr =>
-      expr.evaluateAsIs match {
-        case Some(f) =>
-          em.MatchCheck(Expression(f))(expr).map(_.simplify)
-        case _ =>
-          em.Miss("matchSimpler: cannot be simplified", expr)
-      }
-  }
-
-  /**
     * Attempts to simplify this `CompositeExpression` by applying pattern-based rewrites.
     * It delegates the simplification logic to the defined matchers that aim to reduce the expression
     * into its simpler or optimized form, if possible.
@@ -579,22 +560,19 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     // NOTE these first two cases are kind of strange! CONSIDER removing them.
     // In any case, they don't belong in structuralMatcher because they depend on specific values.
     // TODO use a commutative extractor
+//    case ProductExpression(ExpressionComplementaryCommutative(a, b)) if a == b =>
+//      minusXSquared(a)
     case BiFunction(a, UniFunction(b, Negate), Product) if a == b =>
       minusXSquared(a)
     case BiFunction(UniFunction(b, Negate), a, Product) if b == a =>
       minusXSquared(a)
     case b@BiFunction(r1: Root, r2: Root, Sum) =>
       em.matchIfDefined(r1 add r2)(b)
-    // TODO: Concern - identity patterns might be missed if aggregation happens before they're caught
+    // CONSIDER: identity patterns might be missed if aggregation happens before they're caught
     case x@BiFunction(_, _, _) =>
       x.genericStructuralSimplification
     case x =>
       em.Miss("structuralMatcher", x)
-  }
-
-  private def minusXSquared(x: Expression) = {
-    val xSq = Expression.simplifyExact(BiFunction(x, Two, Power)).getOrElse(BiFunction(x, Two, Power)) // x²
-    em.Match(-xSq)
   }
 
   /**
@@ -673,6 +651,11 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       f == g && (operandsMatch(c, d) || f.commutes && operandsMatch(d, c))
     case _ =>
       false
+  }
+
+  private def minusXSquared(x: Expression) = {
+    val xSq = Expression.simplifyExact(BiFunction(x, Two, Power)).getOrElse(BiFunction(x, Two, Power)) // x²
+    em.Match(-xSq)
   }
 
   /**
@@ -824,11 +807,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(Literal(NaturalExponential(v)))
       case (x, BiFunction(y, z, Log)) if x == y =>
         em.Match(z)
-      // TODO CHECK if this is correct: we should be checking more generally
       case (r@Literal(QuadraticSolution.phi, _), IsIntegral(w)) if w >= 1 =>
         em.Match((r + One) ∧ (w - 1))
-      // NOTE Match either named constants like Two or Literal whole numbers
-      // CONSIDER do we really need this?
       case (r@QuadraticRoot(algebraic.QuadraticEquation(p, q), branch, _), exp) if p.negate.isUnity =>
         exp.evaluate(RestrictedContext(PureNumber)) match {
           case Some(rn: Q) =>
@@ -847,13 +827,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       // CONSIDER generalizing this later but beware the general case breaks a lot of tests.
       case (Two, Literal(RationalNumber(r, _), _)) if r == Rational.half =>
         em.Match(Root.squareRoot(Rational(2), 0))
-      // TODO this is a temporary suppression
-      //      case (ValueExpression(x: ExactNumber,_), ValueExpression(RationalNumber(r: Rational, _), _)) if r==Rational.half =>
-      //        em.Match(Root.squareRoot(x.toRational,0)) // NOTE we arbitrarily choose the positive branch here.
       case (E, BiFunction(I, Pi, Product)) | (E, BiFunction(Pi, I, Product)) =>
         em.Match(MinusOne)
       case (E, Literal(ComplexPolar(Number.pi, Number.piBy2, _), _)) =>
-        em.Match(MinusOne) // NOTE Also Euler's identity
+        em.Match(MinusOne) // TESTME
       case (x, BiFunction(y, z, Log)) if x == z =>
         em.Match(y)
       case _ =>
@@ -1315,6 +1292,21 @@ object Aggregate {
     }
 }
 
+object ProductExpression {
+  /**
+    * Extractor method to match an `Expression` that evaluates to zero.
+    * If the given `Expression` has a zero value, the method returns `Some(expr)`;
+    * otherwise, it returns `None`.
+    *
+    * @param expr the `Expression` to check for a zero value
+    * @return an `Option[Expression]` containing the input `expr` if it evaluates to zero, or `None` otherwise
+    */
+  def unapply(expr: Expression): Option[(Expression,Expression)] =
+    expr match {
+      case BiFunction(a, b, Product) => Some((a, b))
+    }
+}
+
 /**
   * An object that extracts and matches expressions based on the commutative property
   * of multiplication with the identity element (unity).
@@ -1378,7 +1370,27 @@ object ExpressionNegationCommutative extends CommutativeExtractor[Expression, Ex
   }
 
   protected def extractRight(e: Expression): Option[Expression] = e match {
-    case x@ValueExpression(Eager.minusOne, _) => Some(x)
+    case IsMinusOne(x) => Some(x)
+    case _ => None
+  }
+}
+
+
+/**
+  * Extractor object for handling negation expressions in a commutative manner.
+  * Matches pairs of expressions where one is an `Expression` and the other is
+  * a negated `ValueExpression(-1)`.
+  *
+  * This object extends the `CommutativeExtractor` to allow the extraction
+  * of operands in any order (i.e., it supports both (A, B) and (B, A) configurations).
+  */
+object ExpressionComplementaryCommutative extends CommutativeExtractor[Expression, Expression] {
+  protected def extractLeft(e: Expression): Option[Expression] = e match {
+    case x: Expression => Some(x)
+  }
+
+  protected def extractRight(e: Expression): Option[Expression] = e match {
+    case y@UniFunction(x, Negate) => Some(x)
     case _ => None
   }
 }

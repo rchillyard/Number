@@ -33,8 +33,10 @@ class ErrorCommutativeMonoidFuncSpec extends AnyFlatSpec with Matchers {
 
     val actualNominal = accumulated.toNominalDouble.getOrElse(Double.NaN)
     val actualAbs = accumulated match {
-      case f: FuzzyNumber => f.fuzz.collect { case AbsoluteFuzz(m: Double, Gaussian) => m }.getOrElse(Double.NaN)
-      case _ => Double.NaN
+      case f: FuzzyNumber => 
+        f.fuzz.collect { case AbsoluteFuzz(m: Double, Gaussian) => m }.getOrElse(Double.NaN)
+      case _ => 
+        Double.NaN
     }
 
     // 2) Decoupled parallel: nominal sum and sigma folding run independently
@@ -44,8 +46,10 @@ class ErrorCommutativeMonoidFuncSpec extends AnyFlatSpec with Matchers {
       }
       val fSigma: Future[Double] = Future {
         val sigmas = terms.map {
-          case f: FuzzyNumber => f.fuzz.collect { case AbsoluteFuzz(m: Double, Gaussian) => m }.getOrElse(0.0)
-          case _ => 0.0
+          case f: FuzzyNumber => 
+            f.fuzz.collect { case AbsoluteFuzz(m: Double, Gaussian) => m }.getOrElse(0.0)
+          case _ => 
+            0.0
         }
         sigmas.foldLeft(AbsSigma.zero)(_ |+| AbsSigma(_)).value
       }
@@ -57,8 +61,10 @@ class ErrorCommutativeMonoidFuncSpec extends AnyFlatSpec with Matchers {
     val decoupled: Number = FuzzyNumber(Value.fromDouble(Some(decoupledNominal)), PureNumber, Some(AbsoluteFuzz(decoupledSigma, Gaussian)))
 
     val decoupledAbs = decoupled match {
-      case f: FuzzyNumber => f.fuzz.collect { case AbsoluteFuzz(m: Double, Gaussian) => m }.getOrElse(Double.NaN)
-      case _ => Double.NaN
+      case f: FuzzyNumber => 
+        f.fuzz.collect { case AbsoluteFuzz(m: Double, Gaussian) => m }.getOrElse(Double.NaN)
+      case _ => 
+        Double.NaN
     }
 
     // Compare nominal and absolute sigma
@@ -88,8 +94,10 @@ class ErrorCommutativeMonoidFuncSpec extends AnyFlatSpec with Matchers {
 
     val actualNominal = accumulated.toNominalDouble.getOrElse(Double.NaN)
     val actualRel = accumulated match {
-      case f: FuzzyNumber => f.fuzz.collect { case RelativeFuzz(m: Double, Gaussian) => m }.getOrElse(Double.NaN)
-      case _ => Double.NaN
+      case f: FuzzyNumber => 
+        f.fuzz.collect { case RelativeFuzz(m: Double, Gaussian) => m }.getOrElse(Double.NaN)
+      case _ => 
+        Double.NaN
     }
 
     // 2) Decoupled parallel: nominal product and sigma folding run independently
@@ -108,8 +116,10 @@ class ErrorCommutativeMonoidFuncSpec extends AnyFlatSpec with Matchers {
         }
 
         val sigmas = terms.map {
-          case f: FuzzyNumber => f.fuzz.collect { case RelativeFuzz(m: Double, Gaussian) => m }.getOrElse(0.0)
-          case _ => 0.0
+          case f: FuzzyNumber => 
+            f.fuzz.collect { case RelativeFuzz(m: Double, Gaussian) => m }.getOrElse(0.0)
+          case _ => 
+            0.0
         }
         sigmas.foldLeft(0.0)(combineRel)
       }
@@ -121,8 +131,10 @@ class ErrorCommutativeMonoidFuncSpec extends AnyFlatSpec with Matchers {
     val decoupled: Number = FuzzyNumber(Value.fromDouble(Some(decoupledNominal)), PureNumber, Some(RelativeFuzz(decoupledSigma, Gaussian)))
 
     val decoupledRel = decoupled match {
-      case f: FuzzyNumber => f.fuzz.collect { case RelativeFuzz(m: Double, Gaussian) => m }.getOrElse(Double.NaN)
-      case _ => Double.NaN
+      case f: FuzzyNumber =>
+        f.fuzz.collect { case RelativeFuzz(m: Double, Gaussian) => m }.getOrElse(Double.NaN)
+      case _ =>
+        Double.NaN
     }
 
     // Compare nominal and relative sigma

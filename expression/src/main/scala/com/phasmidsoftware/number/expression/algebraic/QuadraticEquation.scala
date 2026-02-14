@@ -189,7 +189,7 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
   lazy val discriminant: Rational =
     p * p - 4 * q
 
-  def render: String = s"x∧2 ${QuadraticEquation.termSign(p)}x ${QuadraticEquation.termSign(q)} = 0"
+  lazy val render: String = s"x∧2 ${QuadraticEquation.termSign(p)}x ${QuadraticEquation.termSign(q)} = 0"
 
   /**
     * Determines if the given object can be considered equal to this instance.
@@ -332,7 +332,7 @@ case class LinearEquation(r: Rational) extends Equation {
     *
     * @return a String
     */
-  def render: String = s"x ${QuadraticEquation.termSign(r)} = 0"
+  lazy val render: String = s"x ${QuadraticEquation.termSign(r)} = 0"
 
 }
 

@@ -174,7 +174,7 @@ case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeNam
     *
     * @return the string representation of this `RationalNumber`.
     */
-  def render: String = maybeName getOrElse (
+  lazy val render: String = maybeName getOrElse (
       if (percentage)
         s"${(r * 100).render}%" // CHECK that this never gives a ratio.
       else

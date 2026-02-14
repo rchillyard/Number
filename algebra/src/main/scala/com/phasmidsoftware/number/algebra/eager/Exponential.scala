@@ -363,7 +363,7 @@ case class NaturalExponential(exponent: Number)(val maybeName: Option[String] = 
     *
     * @return a string representation of the `Exponential` in terms of π
     */
-  def render: String = maybeName getOrElse {
+  lazy val render: String = maybeName getOrElse {
     val numberStr = exponent.render
     "e" + (if (numberStr == "1") "" else s"^$numberStr")
   }
@@ -451,7 +451,7 @@ case class BinaryExponential(exponent: Number)(val maybeName: Option[String] = N
     *
     * @return a string representation of the `Exponential` in terms of π
     */
-  def render: String = maybeName getOrElse {
+  lazy val render: String = maybeName getOrElse {
     val numberStr = exponent.render
     "2" + (if (numberStr == "1") "" else s"^$numberStr")
   }

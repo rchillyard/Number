@@ -930,7 +930,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     *
     * @return a String representing the value of this object.
     */
-  def render: String = (r, theta, n) match {
+  lazy val render: String = (r, theta, n) match {
     case (Number.one, Number.zero, 1) => "1"
     case (Number.one, Number.pi, 1) => "-1"
     case (Number.one, Number.minusPi, 1) => "-1"

@@ -29,14 +29,16 @@ object Dyadic {
     * @param arg a Dyadic operator.
     * @return an Option of (Int, Boolean).
     */
-  def unapply(arg: Dyadic): Option[(Int, Boolean)] = Some(arg.precedence -> arg.leftAssociativity)
+  def unapply(arg: Dyadic): Option[(Int, Boolean)] = 
+    Some(arg.precedence -> arg.leftAssociativity)
 
   /**
     * Ordering for a Dyadic operator.
     *
     */
   implicit object DyadicOrdering extends Ordering[Dyadic] {
-    def compare(x: Dyadic, y: Dyadic): Int = if ((x.leftAssociativity && x.precedence <= y.precedence) || (!x.leftAssociativity && x.precedence < y.precedence)) -1 else 0
+    def compare(x: Dyadic, y: Dyadic): Int = 
+      if ((x.leftAssociativity && x.precedence <= y.precedence) || (!x.leftAssociativity && x.precedence < y.precedence)) -1 else 0
   }
 }
 

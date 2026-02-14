@@ -140,7 +140,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     *
     * @return a String
     */
-  def render: String = maybeName getOrElse value.render
+  lazy val render: String = maybeName getOrElse value.render
 
   /**
     * Generate a String for debugging purposes.
@@ -293,15 +293,8 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
       em.Match(Pi)
     case Literal(Eager.e, _) =>
       em.Match(E)
-    //    case Literal(QuadraticSolution.phi, _) =>
-    //      em.Match(QuadraticRoot.phi)
-    //    case Literal(QuadraticSolution.psi, _) =>
-    //      em.Match(QuadraticRoot.psi)
     case Literal(RationalNumber(r, _), _) if r.isWhole =>
       em.Match(Literal(WholeNumber(r.toBigInt)))
-    // TODO reinstate this match...
-    //    case Literal(Eager.i, _) =>
-    //      em.Match(I)
     case Literal(Eager.infinity, _) =>
       em.Match(Infinity)
     case x =>
