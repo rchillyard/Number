@@ -221,6 +221,7 @@ object Solution {
   *               Instances of this class are designed to interact with the `Factor` type in performing various
   *               operations such as evaluating, converting, or rendering the solution accurately in diverse contexts.
   */
+@deprecated("use com.phasmidsoftware.number.algebra.eager.QuadraticSolution instead", "1.6.7")
 case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch: Int) extends Solution {
 
   /**
@@ -351,7 +352,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
 
       if (offsetNumber.isImaginary) { // XXX offset is negative and factor is SquareRoot
         val imaginaryPart = {
-          if (branch == 0) // TESTME
+          if (branch == 0)
             ExactNumber(Value.negate(offset), factor)
           else
             offsetToNumber.get // TODO convert to a proper exception
@@ -403,7 +404,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
           } yield Solution(x, v, factor, branch = a.branch)
         }
         else
-          None  // TESTME
+          None
     }
 
   // TODO this needs more work and testing. For example, factors don't have to be the same.
@@ -424,7 +425,7 @@ case class QuadraticSolution(base: Value, offset: Value, factor: Factor, branch:
           } yield Solution(x, v, factor, branch = a.branch)
         }
         else
-          None  // TESTME
+          None
     }
 
 

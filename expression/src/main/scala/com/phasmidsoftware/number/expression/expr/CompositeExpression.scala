@@ -64,7 +64,7 @@ sealed trait CompositeExpression extends Expression {
   lazy val isUnity: Boolean = evaluateAsIs.exists(x => x.isUnity)
 
   /**
-    * Determines the sign of the Monotone value represented by this instance.
+    * Determines the sign of the Structure value represented by this instance.
     * Returns an integer indicating whether the value is positive, negative, or zero.
     *
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
@@ -589,7 +589,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case x@BiFunction(_, _, _) =>
       x.genericStructuralSimplification
     case x =>
-      em.Miss("structuralMatcher", x) // TESTME
+      em.Miss("structuralMatcher", x)
   }
 
   private def minusXSquared(x: Expression) = {
@@ -721,7 +721,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * Otherwise, returns a Miss indicating the match was unsuccessful.
     *
     * CONSIDER 1st and 2nd params should probably by ValueExpression
-    * TESTME this method is never called
     *
     * @param l the literal expression used as the matching base
     * @param x the expression to match against the literal
@@ -730,17 +729,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *         or failure (Miss with additional debug information)
     */
   private def matchLiteral(l: Expression, x: Expression, f: ExpressionBiFunction): em.MatchResult[Expression] = (l, x, f) match {
-    //    case (Literal(a@QuadraticSolution(_, _, _), _), q@QuadraticRoot(_, _), Sum) =>
-    //      em.Match(Literal(a add q.algebraic))
-//    case (Literal(Algebraic_Quadratic(_, e1, b1), _), Literal(Algebraic_Quadratic(_, e2, b2), _), f) if e1 == e2 =>
-//      f match {
-//        case Sum if b1 != b2 =>
-//          em.Match(e1.conjugateSum)
-//        case Product if b1 != b2 =>
-//          em.Match(e1.conjugateProduct)
-//        case _ =>
-//          em.Miss[Expression, Expression](s"BiFunction: matchLiteral: no trivial simplification for Algebraics and $f", this) // TESTME
-//      }
     case (Literal(a: CanPower[Structure] @unchecked, _), Literal(b: RationalNumber, _), Power) =>
       em.matchIfDefined(a.pow(b).map(x => Literal(x)))(this)
     case (a, b, Power) =>
@@ -848,7 +836,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
               case rat if rat != Rational.one =>
                 em.Match(r.power(rat))
               case _ =>
-                em.Miss("phi identity: exponent is unity or not rational", this) // TESTME
+                em.Miss("phi identity: exponent is unity or not rational", this)
             }
           case _ =>
             em.Miss("phi identity: exponent not suitable", this)
@@ -864,12 +852,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       //        em.Match(Root.squareRoot(x.toRational,0)) // NOTE we arbitrarily choose the positive branch here.
       case (E, BiFunction(I, Pi, Product)) | (E, BiFunction(Pi, I, Product)) =>
         em.Match(MinusOne)
-      //      case (E, Literal(ComplexCartesian(numerical.Number.zero, numerical.Number.pi))) =>
-      //        em.Match(MinusOne) // TESTME NOTE Euler's identity
       case (E, Literal(ComplexPolar(Number.pi, Number.piBy2, _), _)) =>
         em.Match(MinusOne) // NOTE Also Euler's identity
       case (x, BiFunction(y, z, Log)) if x == z =>
-        em.Match(y) // TESTME
+        em.Match(y)
       case _ =>
         em.Miss[Expression, Expression]("BiFunction: matchBiFunctionPower: no trivial simplifications for Power", this)
     }
@@ -1093,7 +1079,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
   lazy val structuralMatcher: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: structuralMatcher") {
     case t: Aggregate =>
       em.simplifyAggregate(t)
-    case x: Expression => // TESTME
+    case x: Expression =>
       em.Miss[Expression, Expression]("Aggregate.structuralMatcher: not aggregate", x)
   }
 

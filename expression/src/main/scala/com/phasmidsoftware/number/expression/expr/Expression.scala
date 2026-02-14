@@ -11,7 +11,7 @@ import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, Functional, InversePower, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.FP.recover
 import com.phasmidsoftware.number.algebra.util.LatexRenderer
-import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
+import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.*
 import com.phasmidsoftware.number.core.numerical.Number.convertInt
@@ -198,34 +198,6 @@ trait Expression extends Lazy with Approximate {
   // NOTE This can be useful for debugging: it allows you to see the value of this Expression.
   // However, it can also cause a stack overflow so use it sparingly!
   //  val approx = simplify.approximation getOrElse Real.NaN
-}
-
-/**
-  * Provides utility methods for working with mathematical and logical expressions represented as strings.
-  * The methods are designed to process, normalize, and evaluate expressions, as well as perform operations on them.
-  */
-object ExpressionHelper {
-
-  /**
-    * Adds utility methods for evaluating and materializing expressions from a String.
-    * These methods allow parsing and processing of a string as a mathematical or logical expression.
-    * NOTE that this doesn't get used so it could be removed.
-    */
-  extension (x: String) // TESTME
-    def evaluateAsIs: Option[Valuable] =
-      Expression.parse(x).flatMap(_.evaluateAsIs)
-    def evaluate(context: Context = RestrictedContext(PureNumber)): Option[Valuable] =
-      Expression.parse(x).flatMap(_.evaluate(context))
-    def materialize: Option[Valuable] =
-      Expression.parse(x).map(_.materialize)
-    def normalize: Option[Valuable] =
-      Expression.parse(x).map(x => x.normalize)
-    def render: String =
-      Expression.parse(x).map(_.render).getOrElse("???")
-    def plus(y: Valuable): Option[Valuable] =
-      Expression.parse(s"$x + $y").flatMap(_.evaluateAsIs)
-    def times(y: Valuable): Option[Valuable] =
-      Expression.parse(s"$x * $y").flatMap(_.evaluateAsIs)
 }
 
 /**
@@ -432,7 +404,7 @@ object Expression {
             x ∧ Eager.half
         }
       case _ =>
-        x ∧ Eager.half // TESTME
+        x ∧ Eager.half
     }
 
     /**
@@ -454,12 +426,10 @@ object Expression {
     /**
       * Method to lazily get the tangent of x.
       *
-      * TESTME
-      *
       * @return an Expression representing the tan(x).
       */
     def tan: Expression =
-      sin :* cos.reciprocal // TESTME
+      sin :* cos.reciprocal
 
     /**
       * Method to lazily get the natural log of x.
@@ -694,7 +664,7 @@ object Expression {
             em.eitherOr(simplifyExact,
               simplifyByEvaluation))))(x)
     case x =>
-      em.Error(ExpressionException(s"matchSimpler unsupported expression type: $x")) // TESTME
+      em.Error(ExpressionException(s"matchSimpler unsupported expression type: $x"))
   }
 
   /**
@@ -710,7 +680,7 @@ object Expression {
     case c: CompositeExpression =>
       c.operandsMatcher(c)
     case x =>
-      em.Miss("simplifyOperands: not a Composite expression type", x) // TESTME
+      em.Miss("simplifyOperands: not a Composite expression type", x)
   }
 
   /**
@@ -855,7 +825,6 @@ object Expression {
 
 /**
   * A custom exception that represents errors related to expressions.
-  * TESTME (unused)
   *
   * @param str The error message providing details about the expression error.
   */

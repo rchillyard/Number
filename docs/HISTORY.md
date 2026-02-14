@@ -2,6 +2,9 @@
 
 ## Versions
 
+* Version 1.6.8: Added CONTRIBUTING.md; more cleanup.
+* Version 1.6.7: Resolved issue of non-published root module.
+* Version 1.6.6: Implemented trig functions for Complex, thus removing all unimplemented code.
 * Version 1.6.5: Cleaned up all of the core code that is superseded in algebra, etc.
 * Version 1.6.2: Use of configuration to control matcher logging.
 * Version 1.6.1: Cosmetics (removal of nulls), also better logging (instead of using println).

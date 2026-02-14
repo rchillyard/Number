@@ -109,7 +109,7 @@ sealed trait Nat extends Eager with N {
   lazy val inc: Nat = Succ(this)
 
   /**
-    * Method to render this Structure for presentation to the user.
+    * Method to render this `Renderable` for presentation to the user.
     *
     * @return a String
     */
@@ -199,7 +199,7 @@ case object NatZero extends Nat {
   def isUnity: Boolean = false
 
   /**
-    * Determines the sign of the Monotone value represented by this instance.
+    * Determines the sign of the Structure value represented by this instance.
     * Returns an integer indicating whether the value is positive, negative, or zero.
     *
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
@@ -234,7 +234,7 @@ case class Succ(pred: Nat) extends Nat {
   override def isUnity: Boolean = pred.isZero
 
   /**
-    * Determines the sign of the Monotone value represented by this instance.
+    * Determines the sign of the Structure value represented by this instance.
     * Returns an integer indicating whether the value is positive, negative, or zero.
     *
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero

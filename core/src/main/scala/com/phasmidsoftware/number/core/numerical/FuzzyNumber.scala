@@ -113,7 +113,6 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
 
   /**
     * Method to compare this FuzzyNumber with another Number.
-    * TESTME (partial)
     *
     * NOTE it appears that this method can be eliminated but the unit tests would not work without it.
     * Presumably, this is because the implicit equality checks in ScalaTest invoke compare. (?)

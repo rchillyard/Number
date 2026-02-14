@@ -164,7 +164,6 @@ object Complex {
 
   /**
     * Method to construct a Complex from a Field, a Number, a (Number,Number)=>BaseComplex function, and an exception.
-    * TESTME
     *
     * @param a the field.
     * @param b the number.
@@ -177,7 +176,6 @@ object Complex {
 
   /**
     * Method to construct a Complex from a Field, a Number, a (Number,Number)=>BaseComplex function, and an exception.
-    * TESTME
     *
     * @param a the number.
     * @param b the field.

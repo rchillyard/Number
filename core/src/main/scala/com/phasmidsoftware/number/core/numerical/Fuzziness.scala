@@ -857,7 +857,7 @@ trait Fuzz[T] extends WithFuzziness {
     * @param f the fuzziness to add, represented as a Fuzziness[T].
     * @return a Number that represents the result of adding the provided fuzziness.
     */
-  def addFuzz(f: Fuzziness[T]): Number
+  def addFuzz(f: Fuzziness[T]): Fuzz[Double]
 
   /**
     * Creates a fuzziness value with zero magnitude and a Gaussian distribution.
@@ -914,21 +914,7 @@ trait HasValue[T] extends Fractional[T] {
     * @return the value, without any sign.
     */
   def normalize(x: T): T
-
-  /**
-    * Method to yield the ratio of two T values.
-    *
-    * This is essentially the inverse of the scale method.
-    *
-    * TESTME
-    *
-    * @param t1 a T value.
-    * @param t2 a T value.
-    * @return t1/t2 as a Double.
-    */
-  def ratio(t1: T, t2: T): Double =
-    toDouble(t1) / toDouble(t2)
-
+  
   /**
     * Method to multiply a `U` by a `V`, resulting in a `T`.
     *
@@ -940,20 +926,6 @@ trait HasValue[T] extends Fractional[T] {
     */
   def multiply[U: HasValue, V: HasValue](u: U, v: V): T =
     fromDouble(implicitly[HasValue[U]].toDouble(u) * implicitly[HasValue[V]].toDouble(v))
-
-  /**
-    * Method to divide a U by a V, resulting in a T.
-    *
-    * TESTME
-    *
-    * @param u a value of U.
-    * @param v a value of V.
-    * @tparam U the type of u.
-    * @tparam V the type of v.
-    * @return a T whose value is u / v.
-    */
-  def divide[U: HasValue, V: HasValue](u: U, v: V): T =
-    fromDouble(implicitly[HasValue[U]].toDouble(u) / implicitly[HasValue[V]].toDouble(v))
 }
 
 /**

@@ -322,12 +322,19 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     }
 
   /**
-    * Method to convert `this` `Rational` into a `Long`.
-    * It is better to use `Rational.toLong`.
+    * Method to optionally convert `this` `Rational` into an `Option[Long]`.
     *
+    * @return an `Option[Long]`.
+    */
+  lazy val maybeLong: Option[Long] =
+    Rational.toLong(this).toOption
+
+  /**
+    * Converts the current instance of `Rational` to its `Long` representation.
+    * If the conversion is not possible, it attempts to recover from the failure.
     * NOTE this will throw an exception if `this` `Rational` is not whole or its numerator is too large for a `Long`.
     *
-    * @return a `Long`.
+    * @return the long representation of the `Rational` value.
     */
   lazy val toLong: Long =
     recover(Rational.toLong(this))

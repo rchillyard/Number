@@ -187,7 +187,7 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int, maybeName: Option
   def isZero: Boolean = solution.isZero
 
   /**
-    * Determines the sign of the Monotone value represented by this instance.
+    * Determines the sign of the Structure value represented by this instance.
     * Returns an integer indicating whether the value is positive, negative, or zero.
     *
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
@@ -651,9 +651,9 @@ case class LinearRoot(equ: Equation) extends AbstractRoot(equ, 0, None) {
     * @return an `Option[Root]` containing the resulting `Root` if the addition
     *         is successful, or `None` if the addition is not valid.
     */
-  def add(other: Root): Option[Root] = other match {
-    case l: LinearRoot =>
-      ??? // TODO Implement this properly.
+  def add(other: Root): Option[Root] = (this, other) match {
+    case (LinearRoot(e@LinearEquation(r)), LinearRoot(LinearEquation(s))) =>
+      Some(copy(equ = e.copy(r = r + s)))
     case _ =>
       None
   }
@@ -758,7 +758,7 @@ object Root {
     *               0 gives the positive root, 1 gives the negative root.
     * @return a `QuadraticRoot` instance representing the square root computation and branch selection.
     */
-  def squareRoot(r: Rational, branch: Int): Root = QuadraticRoot(squareRootEquation(r), branch, Some(s"√$r"))
+  def squareRoot(r: Rational, branch: Int = 0): Root = QuadraticRoot(squareRootEquation(r), branch, Some(s"√$r"))
 
   /**
     * Computes the square root of a given integer and returns the corresponding `Root`.

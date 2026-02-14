@@ -9,7 +9,7 @@ import com.phasmidsoftware.number.algebra.core.Context.{AnyLog, AnyRoot, AnyScal
 import com.phasmidsoftware.number.algebra.core.{AnyContext, ImpossibleContext, RestrictedContext, *}
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
-import com.phasmidsoftware.number.algebra.eager.{Algebraic, Angle, Eager, NatZero, RationalNumber, Solution, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Algebraic, Angle, Eager, RationalNumber, Solution}
 import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical.{Real, *}
@@ -148,13 +148,12 @@ sealed abstract class ExpressionMonoFunction(val name: String, val f: Eager => E
 object ExpressionMonoFunction {
   /**
     * Extractor method for `ExpressionMonoFunction`, enabling pattern matching.
-    * TESTME ?
     *
     * @param arg the `ExpressionMonoFunction` instance from which components are extracted.
     * @return an `Option` containing a tuple of the function `Number => Number` and the name `String` of the `ExpressionMonoFunction`, or `None` if the input is null.
     */
   def unapply(arg: ExpressionMonoFunction): Option[(String, Eager => Eager)] =
-    Some(arg.name, arg.f) // TESTME
+    Some(arg.name, arg.f)
 }
 
 /**
@@ -188,17 +187,6 @@ sealed abstract class ExpressionBiFunction(
     * This is determined based on the absence of a right-hand identity (`maybeIdentityR`).
     */
   lazy val commutes: Boolean = maybeIdentityL.isDefined && maybeIdentityR.isEmpty
-
-  /**
-    * Applies a trivial binary function to the provided `Valuable` elements `a` and `b`.
-    * Typically, returns a default or neutral result without performing any meaningful operation.
-    *
-    * @param a the first operand, a `Valuable` instance.
-    * @param b the second operand, a `Valuable` instance.
-    * @return an `Option[Valuable]` containing the result of the trivial operation,
-    *         or `None` to signify no computation or transformation.
-    */
-  def trivialEvaluation(a: Eager, b: Eager): Option[Eager] = None
 
   /**
     * Evaluate this function on x.
@@ -318,7 +306,6 @@ sealed abstract class ExpressionBiFunction(
 object ExpressionBiFunction {
   /**
     * Extracts the components of an `ExpressionBiFunction` instance.
-    * TESTME ?? Not currently used.
     * CONSIDER returning other Valuables.
     *
     * @param f the binary function of type `((Valuable, Valuable)) => Valuable` to be matched and deconstructed.
@@ -327,7 +314,7 @@ object ExpressionBiFunction {
     */
   def unapply(f: ExpressionBiFunction): Option[((Eager, Eager) => Eager, String, Option[Eager], Option[Eager])] = f match {
     case e: ExpressionBiFunction =>
-      Some(e.f, e.name, e.maybeIdentityL, e.maybeIdentityR) // TESTME
+      Some(e.f, e.name, e.maybeIdentityL, e.maybeIdentityR)
   }
 }
 
@@ -385,7 +372,7 @@ case object Atan extends ExpressionBiFunction("atan", ExpressionFunction.lift2(R
       case (x: eager.Scalar, Eager.zero) if x.signum > 0 =>
         Some(Angle.zero)
       case (x: eager.Scalar, Eager.zero) if x.signum < 0 =>
-        Some(Angle.pi) // TESTME
+        Some(Angle.pi)
       case (Eager.one, Eager.one) =>
         Some(Angle.piBy4)
       case (Eager.one, Eager.root3) =>
@@ -393,7 +380,7 @@ case object Atan extends ExpressionBiFunction("atan", ExpressionFunction.lift2(R
       case (Eager.zero, Eager.one) =>
         Some(Angle.piBy2)
       case (Real(ExactNumber(xValue, PureNumber)), Real(ExactNumber(yValue, PureNumber))) =>
-        for // TESTME (this never apparently is called)
+        for // TESTME (this is never called apparently)
           xRat <- Value.maybeRational(xValue) // a is x-coordinate
           yRat <- Value.maybeRational(yValue) // b is y-coordinate
           ratio = yRat / xRat // y/x
@@ -402,7 +389,7 @@ case object Atan extends ExpressionBiFunction("atan", ExpressionFunction.lift2(R
           v <- Operations.doTransformValueMonadic(Value.fromRational(ratio))(MonadicOperationAtan(xSign, ySign).functions)
         yield Eager(Real(ExactNumber(v, Radian)))
       case _ =>
-        None // TESTME
+        None
     }
 }
 
@@ -486,7 +473,7 @@ case object Ln extends ExpressionMonoFunction("ln", lift1(x => x.ln)) {
     * @return a new `Context` object, which is a restricted version of the provided `context`.
     */
   def paramContext(context: Context): Context =
-    AnyScalar `or` AnyLog // CONSIDER should we be allowing Log2 and Log10?  // TESTME
+    AnyScalar `or` AnyLog // CONSIDER should we be allowing Log2 and Log10?
 
   /**
     * Applies an exact mapping transformation on the given `Valuable`.
@@ -526,7 +513,7 @@ case object Exp extends ExpressionMonoFunction("exp", lift1(x => x.exp)) {
     * @return a new or modified `Context` after applying the associated operation
     */
   def paramContext(context: Context): Context =
-    AnyScalar // TESTME
+    AnyScalar
 
   /**
     * Computes the result of applying the exponential function to a specific `Valuable` value.
@@ -567,7 +554,7 @@ case object Negate extends ExpressionMonoFunction("-", lift1(x => -x)) {
     * @param context ignored.
     * @return a `Context` object derived from or related to the provided `context`.
     */
-  def paramContext(context: Context): Context = AnyScalar // TESTME
+  def paramContext(context: Context): Context = AnyScalar
 
   /**
     * Applies an exact mathematical operation to negate certain types of exact numeric Valuables.
@@ -617,7 +604,7 @@ case object Reciprocal extends ExpressionMonoFunction("rec", lift1(x => x.invert
         Eager(real)
       )
     case Valuable(Real(ExactNumber(v, f@inner.Logarithmic(_)))) =>
-      Some(Eager(Real(ExactNumber(Value.negate(v), f)))) // TESTME
+      Some(Eager(Real(ExactNumber(Value.negate(v), f))))
     case Valuable(Real(ExactNumber(v, f@inner.NthRoot(_)))) =>
       Value.inverse(v).map(x =>
         Eager(Real(ExactNumber(x, f))))
@@ -633,7 +620,7 @@ case object Reciprocal extends ExpressionMonoFunction("rec", lift1(x => x.invert
     *         and the `AnyLog` condition using the logical "or" operation.
     */
   def paramContext(context: Context): Context =
-    RestrictedContext(PureNumber) `or` AnyLog // TESTME
+    RestrictedContext(PureNumber) `or` AnyLog
 }
 
 /**
@@ -714,23 +701,6 @@ case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExac
   * - It inherits the commutative property from `ExpressionBiFunction`, as multiplication is commutative.
   */
 case object Product extends ExpressionBiFunction("*", lift2((x, y) => x `multiply` y), isExact = true, Some(Eager.one), maybeIdentityR = None) {
-  /**
-    * Evaluates two `Valuable` instances under certain trivial conditions and determines the result.
-    *
-    * This method returns `Some(Eager.zero)` if either of the input `Valuable` instances is
-    * equal to `Eager.zero`. Otherwise, it returns `None`.
-    *
-    * @param a the first `Valuable` instance to evaluate.
-    * @param b the second `Valuable` instance to evaluate.
-    * @return an `Option[Valuable]` containing `Eager.zero` if trivial conditions are met;
-    *         otherwise, `None`.
-    */
-  override def trivialEvaluation(a: Eager, b: Eager): Option[Eager] = (a, b) match {
-    case (Eager.zero, _) | (_, Eager.zero) =>
-      Some(Eager.zero)
-    case _ =>
-      None
-  }
 
   /**
     * Retrieves the left-hand evaluation context associated with this function.
@@ -755,9 +725,9 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x `multipl
     case AnyScalar | AnyContext =>
       context `or` RestrictedContext(PureNumber)
     case AnyLog =>
-      context // TESTME
+      context
     case AnyRoot =>
-      context `or` RestrictedContext(PureNumber) // TESTME
+      context `or` RestrictedContext(PureNumber)
     case r@RestrictedContext(SquareRoot) =>
       r `or` RestrictedContext(PureNumber)
     case r@RestrictedContext(Radian) =>
@@ -829,28 +799,6 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x `multipl
   * using the `power` method from the `Valuable` class.
   */
 case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)), isExact = false, None, Some(Eager.one)) {
-  /**
-    * Evaluates two `Valuable` instances and determines a trivial result based on predefined conditions.
-    * Specifically, it checks if the first `Valuable` instance is equivalent to the constant `zero`.
-    *
-    * @param a the first operand, a `Valuable` instance, which is evaluated to see if it's `zero`.
-    * @param b the second operand, a `Valuable` instance, which is ignored in this implementation.
-    * @return an `Option[Valuable]`, where `Some(a)` is returned if `a` is `zero`; otherwise, `None`.
-    */
-  override def trivialEvaluation(a: Eager, b: Eager): Option[Eager] = (a, b) match {
-    case (Eager.zero | RationalNumber.zero | NatZero, _) =>
-      Some(a) // TESTME
-    case (_, Eager.zero | RationalNumber.zero | eager.NatZero) =>
-      Some(Eager.one) // TESTME
-    case (_, Eager.one | RationalNumber.one) =>
-      Some(a) // TESTME
-    case (p: WholeNumber, q: Q) =>
-      p.asInstanceOf[CanPower[WholeNumber]].pow(RationalNumber(q.toRational)).asInstanceOf[Option[Eager]]
-    case (p: RationalNumber, q: Q) =>
-      p.asInstanceOf[CanPower[RationalNumber]].pow(RationalNumber(q.toRational)).asInstanceOf[Option[Eager]]
-    case _ =>
-      None
-  }
 
   /**
     * Determines the left-hand evaluation context for a given input context.
@@ -925,7 +873,7 @@ abstract class SineCos(sine: Boolean) extends ExpressionMonoFunction(if sine the
     * @return a new `RestrictedContext` instance configured with the `Radian` factor.
     */
   def paramContext(context: Context): Context =
-    RestrictedContext(Radian) // TESTME
+    RestrictedContext(Radian)
 
   /**
     * Applies the sine or cosine function to a given `Valuable` value if the value matches specific constants.

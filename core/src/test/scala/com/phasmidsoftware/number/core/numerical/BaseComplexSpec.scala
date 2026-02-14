@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.inner.{NatLog, Radian, Rational}
+import com.phasmidsoftware.number.core.numerical.Number.negate
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -58,14 +59,8 @@ class BaseComplexSpec extends AnyFlatSpec with Matchers {
 
   it should "handle this simple test" in {
     val z = ComplexCartesian(Number.zero, Number.one) // just i
-    println(s"z.imag = ${z.imag}")
-    println(s"z.imag.factor = ${z.imag.factor}")
     val angle = z.imag.make(Radian)
-    println(s"angle = $angle")
-    println(s"angle.nominalValue = ${angle.nominalValue}")
-    println(s"angle.factor = ${angle.factor}")
     val result = z.exp // should be e^(i) = cos(1) + i*sin(1)
-    println(s"result = $result")
     result match {
       case c: Complex =>
         val cartesian = Complex.convertToCartesian(c)
@@ -341,6 +336,11 @@ class BaseComplexSpec extends AnyFlatSpec with Matchers {
     val mod = z.modulus
     mod.toNominalDouble.get should be(5.0 +- 1e-10)
   }
+  it should "compute abs of complex number" in {
+    val z = ComplexCartesian(Number(3), Number(4))
+    val mod = z.abs
+    mod.asNumber.flatMap(_.toNominalDouble).get should be(5.0 +- 1e-10)
+  }
 
   it should "compute conjugate correctly" in {
     val z = ComplexCartesian(Number(3), Number(4))
@@ -361,6 +361,16 @@ class BaseComplexSpec extends AnyFlatSpec with Matchers {
         val cartesian = Complex.convertToCartesian(c)
         cartesian.real.toNominalDouble.get should be(3.0 / 25.0 +- 1e-10)
         cartesian.imag.toNominalDouble.get should be(-4.0 / 25.0 +- 1e-10)
+    }
+  }
+
+  it should "compute inverse correctly for polar" in {
+    val z = ComplexPolar(Number(2), Number.piBy2)
+    val inv = z.invert
+    inv match {
+      case ComplexPolar(r, theta, 1) =>
+        r shouldBe Number.half
+        theta shouldBe negate(Number.piBy2)
     }
   }
 
@@ -401,6 +411,11 @@ class BaseComplexSpec extends AnyFlatSpec with Matchers {
         x.toNominalDouble.get should be(1.0 +- 1e-10)
         y.toNominalDouble.get should be(1.0 +- 1e-10)
     }
+  }
+  it should "compute abs of complex number" in {
+    val z = ComplexPolar(Number(3), Number.zeroR)
+    val mod = z.abs
+    mod.asNumber.flatMap(_.toNominalDouble).get should be(3.0 +- 1e-10)
   }
 
   it should "multiply in polar form correctly" in {

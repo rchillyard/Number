@@ -56,6 +56,21 @@ class RootSpec extends AnyFlatSpec with Matchers {
     root2.branch shouldBe 0
   }
 
+  it should "add linear equations" in {
+    val equation: LinearEquation = LinearEquation(-3)
+    val solution = equation.solve(0).normalize
+    solution shouldBe WholeNumber(3)
+    val root: LinearRoot = LinearRoot(equation)
+    val sumOfRoots = root.add(LinearRoot(LinearEquation(2)))
+    sumOfRoots match {
+      case Some(LinearRoot(equ)) =>
+        equ shouldBe LinearEquation(-1)
+        equ.solve(0).normalize shouldBe Eager.one
+      case _ =>
+        fail("not supported")
+    }
+  }
+
   behavior of "QuadraticRoot construction"
 
   it should "create root from equation and branch" in {

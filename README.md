@@ -1,4 +1,4 @@
-![Sonatype Central](https://maven-badges.sml.io/sonatype-central/com.phasmidsoftware/number_2.13/badge.svg?color=blue)
+![Sonatype Central](https://maven-badges.sml.io/sonatype-central/com.phasmidsoftware/number_3/badge.svg?color=blue)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/bb7de1b3ea4e4256997e6b1fac66281b)](https://app.codacy.com/gh/rchillyard/Number?utm_source=github.com&utm_medium=referral&utm_content=rchillyard/Number&utm_campaign=Badge_Grade)
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/rchillyard/Number/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/gh/rchillyard/Number/tree/main)
 ![GitHub Top Languages](https://img.shields.io/github/languages/top/rchillyard/Number)
@@ -39,7 +39,27 @@ Number is organized into multiple modules:
 * **`top`** - Top level example code
 
 #### Current Version
-The current version is 1.6.5.
+
+The current version is 1.6.8.
+
+To use Number in your project, add the following dependency:
+
+**SBT (Scala 3):**
+
+```scala
+libraryDependencies += "com.phasmidsoftware" %% "number" % "1.6.7"
+```
+
+**Maven:**
+
+```xml
+
+<dependency>
+    <groupId>com.phasmidsoftware</groupId>
+    <artifactId>number_3</artifactId>
+    <version>1.6.7</version>
+</dependency>
+```
 
 **Migration Note**: The `algebra` module is replacing `core.Number` and `core.Field` with a cleaner type hierarchy based on algebraic structures.
 **Migration Note**: For version history and more detail regarding migration, see the [HISTORY](docs/HISTORY.md).
@@ -256,8 +276,8 @@ val FurlongPerFortnight: Unit[Velocity] = Furlong / Fortnight
 
 Quantity(1, C).in(FurlongPerFortnight) match {
   case Some(q@Quantity[Velocity] (RationalNumber (x, false), units) ) =>
-    println (q.renderLaTeX) // the value cannot be rendered exactly using decimal notation.
-    println (x.toDouble) // should be approximately 1.8026E12 according to Wikipedia
+println (q.renderLaTeX) // the value cannot be rendered exactly using decimal notation.
+println (x.toDouble) // should be approximately 1.8026E12 according to Wikipedia
   case _ =>
     println("No speed of light found.")
 }
@@ -646,14 +666,14 @@ The hierarchy of _Factor_ is as follows:
     * _Scalar_ (trait: the domain of ordinary numbers)
         * _PureNumber_ (object: the domain of pure numbers)
         * _Radian_ (object: the domain of radians)
-  * _Exponential_ (trait: the domain of exponential quantities where the corresponding value is a logarithm)
-      * _NaturalExponential_
-      * _BinaryExponential_
-    * _InversePower_ (trait: all the roots)
-        * _NthRoot_ (abstract class)
-            * _SquareRoot_ (object: the domain of square roots)
-            * _CubeRoot_ (object: the domain of cube roots)
-        * _AnyRoot_ (case class: a generalized root based on a _Rational_)
+    * _Exponential_ (trait: the domain of exponential quantities where the corresponding value is a logarithm)
+        * _NaturalExponential_
+        * _BinaryExponential_
+        * _InversePower_ (trait: all the roots)
+            * _NthRoot_ (abstract class)
+                * _SquareRoot_ (object: the domain of square roots)
+                * _CubeRoot_ (object: the domain of cube roots)
+            * _AnyRoot_ (case class: a generalized root based on a _Rational_)
 
 As of V 1.0.2, _NthRoot_ is a subclass of _InversePower_.
 The inverse power (which root) is a _Rational_ in the case of _InversePower_ but an _Int_ in the case of _NthRoot_.

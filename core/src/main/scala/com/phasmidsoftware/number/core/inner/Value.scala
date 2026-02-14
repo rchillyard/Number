@@ -75,11 +75,11 @@ object Value {
   /**
     * Convert nothing to an invalid Value.
     *
-    * TESTME
+    * NOTE in practice this is never called.
     *
     * @return a Value.
     */
-  private def fromNothing(): Value = Left(Left(None))
+  private def fromNothing: Value = Left(Left(None))
 
   /**
     * Method to (optionally) convert a Value into a Double.
@@ -208,7 +208,7 @@ object Value {
     case Left(Left(Some(x))) =>
       Left(Left(Some(math.abs(x))))
     case _ =>
-      fromNothing()
+      fromNothing
   }
 
   /**
@@ -223,7 +223,7 @@ object Value {
     * @return a `Value` representing the sum of `v1` and `v2`
     */
   def add(v1: Value, v2: Value): Value =
-    doComposeValueDyadic(v1, v2)(DyadicOperationPlus.functions) getOrElse fromNothing()
+    doComposeValueDyadic(v1, v2)(DyadicOperationPlus.functions) getOrElse fromNothing
 
   /**
     * Multiplies two `Value` instances and returns the result.
@@ -237,7 +237,7 @@ object Value {
     * @return a `Value` representing the product of `v1` and `v2`
     */
   def multiply(v1: Value, v2: Value): Value =
-    doComposeValueDyadic(v1, v2)(DyadicOperationTimes.functions) getOrElse fromNothing()
+    doComposeValueDyadic(v1, v2)(DyadicOperationTimes.functions) getOrElse fromNothing
 
   /**
     * Negates the given Value.
@@ -251,7 +251,7 @@ object Value {
     case Right(x) => Right(-x)
     case Left(Right(x)) => Left(Right(-x))
     case Left(Left(Some(x))) => Left(Left(Some(-x)))
-    case _ => fromNothing()
+    case _ => fromNothing
   }
 
   /**
@@ -293,7 +293,8 @@ object Value {
     * @param fResult the value of the factor that the result will be associated with.
     * @return a Double which will be paired with fResult.
     */
-  def scaleDouble(x: Double, fThis: Double, fResult: Double): Double = x * fThis / fResult
+  def scaleDouble(x: Double, fThis: Double, fResult: Double): Double =
+    x * fThis / fResult
 
   /**
     * Converts a given `Value` into its string representation, with options to skip certain outputs or use exact formatting.

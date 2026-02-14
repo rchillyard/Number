@@ -191,7 +191,7 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     *         or a Failure if the addition cannot be performed.
     */
   private def addEagers(x: Eager, y: Eager): Try[Eager] = (x, y) match
-    case (a: Monotone, b: Monotone) => a.add(b)
+    case (a: Structure, b: Structure) => a.add(b)
     case (a: Solution, b: Solution) => Success(a + b)
     case _ => Failure(AlgebraException(s"Cannot add $x and $y"))
 
@@ -204,7 +204,7 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     *         or a Failure with an AlgebraException if the multiplication cannot be performed
     */
   private def multiplyEagers(x: Eager, y: Eager): Try[Eager] = (x, y) match
-    case (a: Monotone, b: Monotone) =>
+    case (a: Structure, b: Structure) =>
       a.multiply(b)
     case (a: Solution, b: Rational) =>
       Success(a.scale(b))
@@ -215,24 +215,24 @@ trait Eager extends Valuable with Approximate with DyadicOps {
 
   /**
     * Subtracts the `Eager` instance `y` from the `Eager` instance `x`.
-    * This method supports the subtraction operation only for instances of subtype `Monotone`.
-    * If either `x` or `y` is not of type `Monotone`, the method returns a failure containing an `AlgebraException`.
+    * This method supports the subtraction operation only for instances of subtype `Structure`.
+    * If either `x` or `y` is not of type `Structure`, the method returns a failure containing an `AlgebraException`.
     *
     * @param x the minuend, an instance of `Eager`
     * @param y the subtrahend, an instance of `Eager` to subtract from `x`
-    * @return a `Try[Eager]` containing the result of the subtraction if both `x` and `y` are of type `Monotone`,
+    * @return a `Try[Eager]` containing the result of the subtraction if both `x` and `y` are of type `Structure`,
     *         or a failure with an `AlgebraException` if the operation is not supported for the provided inputs
     */
   private def subtractEagers(x: Eager, y: Eager): Try[Eager] = (x, y) match
-    case (a: Monotone, b: Monotone) =>
+    case (a: Structure, b: Structure) =>
       a.subtract(b)
     case _ =>
       Failure(AlgebraException(s"Cannot subtract $y from $x"))
 
   /**
     * Divides two `Eager` instances and returns the result as a `Try[Eager]`.
-    * The division is only supported for instances of the subtype `Monotone`. 
-    * If the provided `Eager` instances cannot be divided (e.g., if one or both are not `Monotone`), 
+    * The division is only supported for instances of the subtype `Structure`. 
+    * If the provided `Eager` instances cannot be divided (e.g., if one or both are not `Structure`), 
     * the method returns a failure containing an `AlgebraException`.
     *
     * @param x the first `Eager` instance, representing the dividend
@@ -241,7 +241,7 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     *         if the operation is not supported for the provided inputs
     */
   private def divideEagers(x: Eager, y: Eager): Try[Eager] = (x, y) match
-    case (a: Monotone, b: Monotone) =>
+    case (a: Structure, b: Structure) =>
       a.divide(b)
     case _ =>
       Failure(AlgebraException(s"Cannot divide $x by $y"))

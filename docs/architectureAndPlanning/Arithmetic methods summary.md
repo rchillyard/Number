@@ -21,7 +21,7 @@ Each with corresponding helper methods (`addEagers`, `multiplyEagers`, etc.) tha
 - `Monotone` operations (delegates to Monotone methods)
 - `Solution` operations (uses `+` operator and `scale` method)
 
-### 2. **Monotone.scala** ✓
+### 2. **Structure.scala** ✓
 
 Added four arithmetic methods with `DyadicOperator` delegation:
 

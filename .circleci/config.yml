@@ -43,5 +43,13 @@ jobs:
           name: Run tests
           command: cat /dev/null | sbt "testOnly * -- -l Slow"
 
+      # Collect test results from all modules
+      - run:
+          name: Aggregate test results
+          command: |
+            mkdir -p target/test-reports
+            find . -path '*/target/test-reports/*' -name '*.xml' -exec cp {} target/test-reports/ \;
+          when: always
+
       - store_test_results:
           path: target/test-reports

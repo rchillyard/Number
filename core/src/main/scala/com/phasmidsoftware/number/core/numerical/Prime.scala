@@ -344,12 +344,10 @@ object Prime {
     * Carmichael's totient function for a prime power.
     * NOTE: often, this will be the same as Euler's totient function, but sometimes it will be one half.
     *
-    * TESTME
-    *
     * @param factor a tuple of Prime and exponent.
     * @return Carmichael's totient function for this Prime power.
     */
-  def reducedTotient(factor: (Prime, Int)): BigInt = factor match {
+  private def reducedTotient(factor: (Prime, Int)): BigInt = factor match {
     case (p, r) =>
       val phi = totient(factor)
       if (p.n == 2 && r >= 3) phi / 2 else phi

@@ -9,7 +9,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 /**
-  * Test suite for previously untested (TESTME) cases in CompositeExpression.
+  * Test suite for previously untested cases in CompositeExpression.
   * These tests cover edge cases and patterns that weren't exercised by existing tests.
   *
   * Note: Tests use symbolic constants (Pi, E, sqrt, phi) rather than simple integers

@@ -64,7 +64,7 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
   /**
     * Represents the derivative function associated with this `Functional` instance.
     * That's to say `d(f(number))` by `d(number)` where `f` is this `Functional`.
-    * For a Monotone, the derivative should be positive, however, it is possible
+    * For a Structure, the derivative should be positive, however, it is possible
     * that it is not positive for certain types of `Functional`.
     *
     * The `derivativeFunction` provides a mathematical operation that computes the derivative
@@ -74,6 +74,50 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
     * @return A function that accepts a `Double` value and returns the computed derivative as a `Double`.
     */
   val derivativeFunction: Double => Double = x => math.log(base.toDouble) * scaleFunction(x)
+
+  /**
+    * Defines a transformation that transforms a `Structure` instance into a corresponding `Scalar` value.
+    *
+    * The transformation defines how a `Structure` is interpreted or converted in the context of `Scalar`.
+    *
+    * @return a transformation that maps a `Structure` object to a `Scalar` result
+    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input is not a Real number.
+    */
+  def transformation[T: ClassTag]: Option[T] =
+    if (implicitly[ClassTag[T]].runtimeClass == classOf[Real]) {
+      val result: Real =
+        number match {
+          case WholeNumber.one | RationalNumber(Rational.one, _) =>
+            Real(base.toDouble)
+          case RationalNumber(Rational.infinity, _) =>
+            Real.∞
+          case q: Q =>
+            Real(scaleFunction(q.toDouble))
+          case Real(value, fuzz) =>
+            Real(scaleFunction(value), fuzz)
+          case _ =>
+            throw AlgebraException(s"NaturalExponential.transformation: $number not supported")
+        }
+      Some(result.asInstanceOf[T])
+    }
+    else
+      None
+
+  /**
+    * Retrieves an optional fuzziness value associated with this instance.
+    *
+    * The fuzziness value, if present, provides information about the level of uncertainty
+    * or imprecision, modeled as a `Fuzziness[Double]`.
+    *
+    * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
+    */
+  def fuzz: Option[Fuzziness[Double]] =
+    Eager(Eager.eagerToField(number).exp) match {
+      case fuzzy: WithFuzziness =>
+        fuzzy.fuzz
+      case _ =>
+        None // CONSIDER should this throw an exception?
+    }
 
   /**
     * Compares this `Exponential` instance with another `Functional` instance.
@@ -92,6 +136,13 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
     */
   def compare(that: Functional): Int =
     number.compare(that.number) * derivativeFunction(number.toDouble).sign.toInt
+
+  /**
+    * Compares this `Exponential` instance with another `Exponential` instance for exact equality.
+    *
+    * This method determines if the two `Exponential` instances represent exactly the same value
+    * */
+  def compareExact(that: Exponential): Option[Int]
 
   /**
     * Normalizes this `Valuable` to its simplest equivalent form.
@@ -162,16 +213,6 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
   def isExact: Boolean = number.isExact
 
   /**
-    * If this `Valuable` is exact, it returns the exact value as a `Double`.
-    * Otherwise, it returns `None`.
-    * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
-    *
-    * @return Some(value) where value is a Double if this is exact, else None.
-    */
-//  def maybeDouble: Option[Double] =
-//    FP.whenever(isExact)(convert(Real.zero) map (_.value))
-
-  /**
     * Computes the additive inverse of the current `Exponential` instance.
     *
     * This method negates the current Exponential, returning a new `Exponential` instance
@@ -201,25 +242,20 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
     *
     * @return the rendered string representation of the base
     */
-  def renderNumber: String =
+  private[eager] def renderNumber: String =
     if (number.normalize == WholeNumber.one)
       ""
     else
       s"^${number.normalize.render}"
 
   /**
-    * Provides an approximation of this number, if applicable.
+    * Checks for structural equality between this `Eager` instance and the specified `Eager` instance.
+    * The method is overridden to provide specific equivalence logic for `NaturalExponential`.
+    * For other cases, it delegates to the superclass implementation.
     *
-    * This method attempts to compute an approximate representation of the number
-    * in the form of a `Real`, which encapsulates uncertainty or imprecision
-    * in its value. If no meaningful approximation is possible for the number, it
-    * returns `None`.
-    *
-    * @return an `Option[Real]` containing the approximate representation
-    *         of this `Number`, or `None` if no approximation is available.
+    * @param that the `Eager` instance to compare with this instance
+    * @return a `Try[Boolean]` indicating whether the two instances are equivalent
     */
-  def approximation: Option[Real] = convert(Real.zero)
-
   override def eqv(that: Eager): Try[Boolean] = (this, that) match {
     case (a: NaturalExponential, b: NaturalExponential) =>
       a.exponent.eqv(b.exponent)
@@ -241,7 +277,6 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
     case (a: NaturalExponential, b: NaturalExponential) =>
       a.exponent.fuzzyEqv(p)(b.exponent)
     case (a: NaturalExponential, b: Structure) =>
-      // Transform NaturalExponential to Real and compare
       for {
         aReal <- FP.recoverAsTry(a.transformation[Real])(AlgebraException(s"Cannot transform $a to Real"))
         result <- aReal.fuzzyEqv(p)(b)
@@ -284,41 +319,13 @@ case class NaturalExponential(exponent: Number)(val maybeName: Option[String] = 
   lazy val zero: Exponential = NaturalExponential(WholeNumber.zero)(Some("1"))
 
   /**
-    * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value.
+    * Returns a new instance of `Structure` that is the negation of the current instance.
+    * CONSIDER sorting out the use of CanNegate so that we can extend that for Structure.
     *
-    * The transformation defines how a `Monotone` is interpreted or converted in the context of `Scalar`.
-    *
-    * @return a transformation that maps a `Monotone` object to a `Scalar` result
+    * @return a `Structure` representing the negation of this instance
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input is not a Real number.
     */
-  def transformation[T: ClassTag]: Option[T] = {
-    val c = implicitly[ClassTag[T]]
-    if (c.runtimeClass == classOf[Real]) {
-      val result: Real =
-        exponent match {
-          case WholeNumber.one | RationalNumber(Rational.one, _) =>
-            Real(math.E)
-          case RationalNumber(Rational.infinity, _) =>
-            Real.∞
-          case Real(value, fuzz) =>
-            Real(math.log(value), fuzz) // TODO check this.
-          case _ =>
-            throw AlgebraException(s"NaturalExponential.transformation: $exponent not supported")
-        }
-      Some(result.asInstanceOf[T])
-    }
-    else
-      None
-  }
-
-  /**
-    * Returns a new instance of `Monotone` that is the negation of the current instance.
-    * CONSIDER sorting out the use of CanNegate so that we can extend that for Monotone.
-    *
-    * @return a `Monotone` representing the negation of this instance
-    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input is not a Real number.
-    */
-  def negate: Monotone = throw AlgebraException(s"NaturalExponential.negate: not supported")
+  def negate: Structure = throw AlgebraException(s"NaturalExponential.negate: not supported")
 
   /**
     * Compares the current `Exponential` instance with another `Number` to determine their exact order.
@@ -331,7 +338,7 @@ case class NaturalExponential(exponent: Number)(val maybeName: Option[String] = 
     *         `Some(0)` indicates that both Logarithms are equal, `Some(1)` indicates that the current `Exponential` is greater,
     *         and `None` is returned if the comparison cannot be made
     */
-  def compareExact(that: Number): Option[Int] = that match {
+  def compareExact(that: Exponential): Option[Int] = that match {
     case NaturalExponential(r) =>
       Some(exponent.compare(r))
     case _ =>
@@ -348,22 +355,6 @@ case class NaturalExponential(exponent: Number)(val maybeName: Option[String] = 
     * @return a `Exponential` instance representing the natural logarithm of the input `Number`
     */
   def unit(x: Number): Exponential = NaturalExponential(x)
-
-  /**
-    * Retrieves an optional fuzziness value associated with this instance.
-    *
-    * The fuzziness value, if present, provides information about the level of uncertainty
-    * or imprecision, modeled as a `Fuzziness[Double]`.
-    *
-    * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
-    */
-  def fuzz: Option[Fuzziness[Double]] =
-    Eager(Eager.eagerToField(exponent).exp) match {
-      case fuzzy: WithFuzziness =>
-        fuzzy.fuzz
-      case _ =>
-        None // CONSIDER should this throw an exception?
-    }
 
   /**
     * Renders this `Exponential` instance as a string representation of value in terms of π.
@@ -384,47 +375,18 @@ case class NaturalExponential(exponent: Number)(val maybeName: Option[String] = 
     */
   def maybeFactor(context: Context): Option[Factor] =
     Option.when(context.factorQualifies(inner.NatLog))(inner.NatLog)
-
-  /**
-    * Returns the multiplicative identity element of type `T` in the context
-    * of a structure that supports multiplication.
-    *
-    * @return the instance of type `T` that acts as the identity element for multiplication
-    */
-  def one: Exponential = NaturalExponential(WholeNumber.zero)(Some("1"))
-
-  /**
-    * Scales the current instance of type `T` by the specified `Double` value.
-    *
-    * This method applies a scaling factor to the instance, returning an `Option`
-    * that contains the scaled instance if the operation is valid. If the scaling
-    * operation is not valid or feasible, `None` is returned.
-    *
-    * @param that the `Double` value to scale the instance by
-    * @return an `Option` containing the scaled instance of type `T`, or `None`
-    *         if scaling is not possible
-    */
-  def doScaleDouble(that: Double): Option[Monotone] =
-    None // TODO implement me as appropriate
-
-//  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
-//    case (a: NaturalExponential, b: Structure) =>
-//      for {
-//        z <- FP.recoverAsTry(a.transformation[Real])(AlgebraException(s"NaturalExponential.fuzzyEqv: logic transformation error $this $that"))
-//        q <- FP.recoverAsTry(b.convert(Real.zero))(AlgebraException(s"NaturalExponential.fuzzyEqv: logic conversion error $this $that"))
-//        w <- z.fuzzyEqv(p)(z)
-//      } yield w
-//    case (a: Real, b: Structure) =>
-//      for {
-//        q <- FP.recoverAsTry(b.convert(Real.zero))(AlgebraException(s"NaturalExponential.fuzzyEqv: logic conversion error $this $that"))
-//        w <- a.fuzzyEqv(p)(a)
-//      } yield w
-//
-//    case (a, b) =>
-//      Failure(AlgebraException(s"NaturalExponential.fuzzyEqv: logic conversion error $this $that"))
-//  }
 }
 
+/**
+  * Represents a binary exponential number structure, extending the `Exponential` class
+  * with operations and transformations specifically relevant to base-2 exponential numbers.
+  *
+  * This class provides methods to manipulate and interact with the exponential representation,
+  * including rendering, comparison, construction of new instances, and providing structural properties.
+  *
+  * @param exponent  the exponent value for the binary exponential
+  * @param maybeName an optional name or label for the instance
+  */
 case class BinaryExponential(exponent: Number)(val maybeName: Option[String] = None) extends Exponential(exponent) {
 
   /**
@@ -445,41 +407,13 @@ case class BinaryExponential(exponent: Number)(val maybeName: Option[String] = N
   lazy val zero: Exponential = NaturalExponential(WholeNumber.zero)
 
   /**
-    * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value.
-    *
-    * The transformation defines how a `Monotone` is interpreted or converted in the context of `Scalar`.
-    *
-    * @return a transformation that maps a `Monotone` object to a `Scalar` result
-    * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input is not a Real number.
-    */
-  def transformation[T: ClassTag]: Option[T] = {
-    val c = implicitly[ClassTag[T]]
-    if (c.runtimeClass == classOf[Real]) {
-      val result: Real =
-        exponent match {
-          case WholeNumber.one | RationalNumber(Rational.one, _) =>
-            FP.recover(base.convert(Real.zero))(AlgebraException(": BinaryExponential.transformation: base.convert(Real.zero) failed"))
-          case RationalNumber(Rational.infinity, _) =>
-            Real.∞
-          case Real(value, fuzz) =>
-            Real(math.log(value), fuzz)
-          case _ =>
-            throw AlgebraException(s"BinaryExponential.transformation: $exponent not supported")
-        }
-      Some(result.asInstanceOf[T])
-    }
-    else
-      None
-  }
-
-  /**
-    * Returns a new instance of `Monotone` that is the negation of the current instance.
-    * CONSIDER sorting out the use of CanNegate so that we can extend that for Monotone.
+    * Returns a new instance of `Structure` that is the negation of the current instance.
+    * CONSIDER sorting out the use of CanNegate so that we can extend that for Structure.
     * TODO sort this out.
     *
-    * @return a `Monotone` representing the negation of this instance
+    * @return a `Structure` representing the negation of this instance
     */
-  def negate: Monotone = throw AlgebraException(s"BinaryExponential.negate: not supported")
+  def negate: Structure = throw AlgebraException(s"BinaryExponential.negate: not supported")
 
   /**
     * Compares the current `Exponential` instance with another `Number` to determine their exact order.
@@ -492,7 +426,7 @@ case class BinaryExponential(exponent: Number)(val maybeName: Option[String] = N
     *         `Some(0)` indicates that both Logarithms are equal, `Some(1)` indicates that the current `Exponential` is greater,
     *         and `None` is returned if the comparison cannot be made
     */
-  def compareExact(that: Number): Option[Int] = that match {
+  def compareExact(that: Exponential): Option[Int] = that match {
     case BinaryExponential(r) =>
       Some(exponent.compare(r))
     case _ =>
@@ -509,22 +443,6 @@ case class BinaryExponential(exponent: Number)(val maybeName: Option[String] = N
     * @return a `Exponential` instance representing the natural logarithm of the input `Number`
     */
   def unit(x: Number): Exponential = BinaryExponential(x)
-
-  /**
-    * Retrieves an optional fuzziness value associated with this instance.
-    *
-    * The fuzziness value, if present, provides information about the level of uncertainty
-    * or imprecision, modeled as a `Fuzziness[Double]`.
-    *
-    * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
-    */
-  def fuzz: Option[Fuzziness[Double]] =
-    Eager(Eager.eagerToField(exponent).exp) match {
-      case fuzzy: WithFuzziness =>
-        fuzzy.fuzz
-      case _ =>
-        None // CONSIDER should this throw an exception?
-    }
 
   /**
     * Renders this `Exponential` instance as a string representation of value in terms of π.
@@ -545,49 +463,19 @@ case class BinaryExponential(exponent: Number)(val maybeName: Option[String] = N
     */
   def maybeFactor(context: Context): Option[Factor] =
     Some(PureNumber)
-
-  /**
-    * Returns the multiplicative identity element of type `T` in the context
-    * of a structure that supports multiplication.
-    *
-    * @return the instance of type `T` that acts as the identity element for multiplication
-    */
-  def one: Exponential = NaturalExponential(WholeNumber.zero)
-
-  /**
-    * Scales the current instance of type `T` by the specified `Double` value.
-    *
-    * This method applies a scaling factor to the instance, returning an `Option`
-    * that contains the scaled instance if the operation is valid. If the scaling
-    * operation is not valid or feasible, `None` is returned.
-    *
-    * @param that the `Double` value to scale the instance by
-    * @return an `Option` containing the scaled instance of type `T`, or `None`
-    *         if scaling is not possible
-    */
-  def doScaleDouble(that: Double): Option[Monotone] =
-    None // TODO implement me as appropriate
-
-  //  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
-  //    case (a: NaturalExponential, b: Structure) =>
-  //      for {
-  //        z <- FP.recoverAsTry(a.transformation[Real])(AlgebraException(s"NaturalExponential.fuzzyEqv: logic transformation error $this $that"))
-  //        q <- FP.recoverAsTry(b.convert(Real.zero))(AlgebraException(s"NaturalExponential.fuzzyEqv: logic conversion error $this $that"))
-  //        w <- z.fuzzyEqv(p)(z)
-  //      } yield w
-  //    case (a: Real, b: Structure) =>
-  //      for {
-  //        q <- FP.recoverAsTry(b.convert(Real.zero))(AlgebraException(s"NaturalExponential.fuzzyEqv: logic conversion error $this $that"))
-  //        w <- a.fuzzyEqv(p)(a)
-  //      } yield w
-  //
-  //    case (a, b) =>
-  //      Failure(AlgebraException(s"NaturalExponential.fuzzyEqv: logic conversion error $this $that"))
-  //  }
-
 }
 
+/**
+  * Represents a binary exponential number structure, which provides
+  * specialized operations and transformations for exponential numbers.
+  */
 object BinaryExponential {
+  /**
+    * Creates an instance of Exponential based on the given number input.
+    *
+    * @param x the input number used to initialize the exponential value
+    * @return a new Exponential instance constructed using the provided input
+    */
   def apply(x: Number): Exponential = new BinaryExponential(x)()
 }
 /**
@@ -665,8 +553,10 @@ object Exponential {
       * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input types are not compatible.
       */
     def combine(x: Exponential, y: Exponential): Exponential = (x, y) match {
-      case (a, b) if a.getClass == b.getClass =>
-        a + b
+      case (a: NaturalExponential, b: NaturalExponential) =>
+        NaturalExponential(a.exponent + b.exponent) // Add exponents directly
+      case (a: BinaryExponential, b: BinaryExponential) =>
+        BinaryExponential(a.exponent + b.exponent)
       case _ =>
         throw AlgebraException(s"Exponential.combine: $x, $y")
     }

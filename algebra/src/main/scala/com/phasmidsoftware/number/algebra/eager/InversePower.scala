@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.number.algebra.eager
 
-import algebra.CommutativeGroup
 import cats.Show
 import cats.implicits.catsSyntaxEq
 import cats.kernel.Eq
@@ -38,7 +37,7 @@ import scala.util.{Success, Try}
   * @param n      the degree of the root, specified as an integer
   * @param number the base `Number` value on which the root operation is defined
   */
-case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = None) extends Transformed with CanMultiplyAndDivide[Monotone] with Scalable[InversePower] with CanPower[Number] {
+case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = None) extends Transformed with CanMultiplyAndDivide[Structure] with Scalable[InversePower] with CanPower[Number] {
 
   require(n > 0, s"InversePower: n must be positive, but was $n")
   require(!number.isZero, s"InversePower: number must be non-zero, but was $number")
@@ -48,12 +47,13 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *
     * @return a function to transform the nominal value into the actual value as it would appear in a PureNumber context.
     */
-  val scaleFunction: Double => Double = math.pow(_, 1.0 / n)
+  val scaleFunction: Double => Double =
+    math.pow(_, 1.0 / n)
 
   /**
     * Represents the derivative function associated with this `Functional` instance.
     * That's to say `d(f(number))` by `d(number)` where `f` is this `Functional`.
-    * For a Monotone, the derivative should be positive, however, it is possible
+    * For a Structure, the derivative should be positive, however, it is possible
     * that it is not positive for certain types of `Functional`.
     *
     * The `derivativeFunction` provides a mathematical operation that computes the derivative
@@ -62,7 +62,8 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *
     * @return A function that accepts a `Double` value and returns the computed derivative as a `Double`.
     */
-  val derivativeFunction: Double => Double = x => scaleFunction(x) / n / x
+  val derivativeFunction: Double => Double =
+    x => scaleFunction(x) / n / x
 
   /**
     * Computes the result of raising an instance of type `T` to the power
@@ -92,7 +93,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *
     * @return the simplest `Valuable` representation of this value
     */
-  def normalize: Monotone = n match {
+  def normalize: Structure = n match {
     case 1 =>
       number.normalize
 
@@ -146,62 +147,26 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
   }
 
   /**
-    * Handles the root operation result for negative values.
+    * Defines a transformation that transforms a `Structure` instance into a corresponding `Scalar` value.
     *
-    * @param value      The result of the root operation as a BigInt.
-    * @param n          The degree of the root.
-    * @param isNegative A flag indicating whether the original value was negative.
-    * @return The adjusted root value, negated if the original value 
-    *         was negative and the root degree is odd.
+    * The transformation defines how a `Structure` is interpreted or converted in the context of `Scalar`.
+    *
+    * @return a transformation that maps a `Structure` object to a `Scalar` result
     */
-  private def handleNegativeRoot(value: BigInt, n: Int, isNegative: Boolean): BigInt =
-    if (isNegative && n % 2 == 1) -value else value
-
-  private lazy val simplified: InversePower = doNormalize match {
-    case Left(number) =>
-      number
-    case Right(number) =>
-      // NOTE this is the best we can do in this situation
-      new InversePower(1, number)()
-  }
-
-  private lazy val doNormalize: Either[InversePower, Number] =
-    number.normalize match {
-      case IsInteger(z) =>
-        val (extracted, remaining) = InversePower.normalizeIntegralRoot(z, n)
-        if (remaining == 1)
-          Right(WholeNumber(extracted))
-        else
-          Left(InversePower(n, WholeNumber(remaining)))
-      case r@IntRational(num, den) =>
-        val (numExtracted, numRemaining) = InversePower.normalizeIntegralRoot(num, n)
-        val (denExtracted, denRemaining) = InversePower.normalizeIntegralRoot(den, n)
-
-        if (numRemaining == 1 && denRemaining == 1)
-          Right(RationalNumber(numExtracted, denExtracted))
-        else
-          Left(InversePower(n, r)) // Also: use IntRational, not `r`
-      case x: Number =>
-        Left(InversePower(n, x))
-    }
+  def transformation[T: ClassTag]: Option[T] =
+    if (implicitly[ClassTag[T]].runtimeClass == classOf[Real])
+      number.approximation(true).flatMap(x => x.power(Rational(n).invert)).asInstanceOf[Option[T]]
+    else
+      None
 
   /**
-    * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value.
+    * Returns a new instance of `Structure` that is the negation of the current instance.
+    * CONSIDER sorting out the use of CanNegate so that we can extend that for Structure.
     *
-    * The transformation defines how a `Monotone` is interpreted or converted in the context of `Scalar`.
-    *
-    * @return a transformation that maps a `Monotone` object to a `Scalar` result
-    */
-  def transformation[T: ClassTag]: Option[T] = None // TODO Implement this
-
-  /**
-    * Returns a new instance of `Monotone` that is the negation of the current instance.
-    * CONSIDER sorting out the use of CanNegate so that we can extend that for Monotone.
-    *
-    * @return a `Monotone` representing the negation of this instance
+    * @return a `Structure` representing the negation of this instance
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the negation operation is not defined for the current instance
     */
-  def negate: Monotone =
+  def negate: Structure =
     throw AlgebraException(s"InversePower.negate: cannot negate $this")
 
   /**
@@ -272,7 +237,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *         `Some(0)` indicates that both roots are equal, `Some(1)` indicates that the current `Root` is greater,
     *         and `None` is returned if the comparison cannot be made
     */
-  def compareExact(that: Monotone): Option[Int] = that match {
+  def compareExact(that: Structure): Option[Int] = that match {
     case InversePower(m, x) if m == n => // TODO - there are other situations where the result should be Some(0) (see Factor class).
       Some(number.compare(x))
     case _ =>
@@ -290,12 +255,14 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
     */
   def convert[T <: Structure : ClassTag](t: T): Option[T] = (normalize, t) match {
+    case (x, y) if x.getClass == y.getClass =>
+      Some(x.asInstanceOf[T])
     case (x: WholeNumber, _) =>
       x.convert(t)
     case (x: RationalNumber, _) =>
       x.convert(t)
-    case (x@InversePower(m, z), r: Real) =>
-      z.approximation(true).flatMap(x => x.power(Rational(m).invert)).asInstanceOf[Option[T]]
+    case (x: InversePower, _: Real) =>
+      x.transformation
     case x =>
       None
   }
@@ -391,9 +358,11 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     * @return an `Option[Rational]` containing the `Rational` representation of this `Number`
     *         if it can be converted, or `None` if the conversion is not possible.
     */
-  def toRational: Option[Rational] = number match {
-    case z: Z =>
-      z.toRational.power(Rational(n).invert).toOption
+  def toRational: Option[Rational] = normalize match {
+    case q: Q =>
+      Some(q.toRational)
+    case InversePower(m, z: Q) if z.isExact =>
+      z.toRational.power(Rational(m).invert).toOption
     case _ =>
       None
   }
@@ -420,8 +389,9 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     * @return an `Option` containing a `Factor` if available, otherwise `None`
     */
   def maybeFactor(context: Context): Option[Factor] = n match {
+    case 1 if context.factorQualifies(PureNumber) => Some(PureNumber)
     case 2 if context.factorQualifies(SquareRoot) => Some(SquareRoot)
-    case 3 if context.factorQualifies(SquareRoot) => Some(CubeRoot)
+    case 3 if context.factorQualifies(CubeRoot) => Some(CubeRoot)
     case _ => None
   }
 
@@ -437,22 +407,6 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *         of this `Number`, or `None` if no approximation is available.
     */
   def approximation: Option[Real] = convert(Real.zero)
-
-  /**
-    * Retrieves the root value from the provided lookups map based on the given rational number.
-    *
-    * @param r       The Rational number used as a key for the lookup operation.
-    * @param lookups A nested map where the outer key is an integer and the inner map
-    *                maps integers to their associated root values.
-    * @return An Option containing the root value if found, or None if no corresponding
-    *         value exists in the lookups map.
-    */
-  private def getRoot(r: Rational, lookups: Map[Int, Map[Int, Int]]): Option[Int] =
-    for {
-      lookup <- lookups.get(n)
-      y <- toIntOption(r)
-      p <- lookup.get(y)
-    } yield p
 
   /**
     * Scales the current instance using the provided `Number`.
@@ -474,6 +428,99 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
       case _ =>
         throw AlgebraException(s"InversePower.doScale: cannot scale $this by $that")
     }
+
+  /**
+    * Handles the root operation result for negative values.
+    *
+    * @param value      The result of the root operation as a BigInt.
+    * @param n          The degree of the root.
+    * @param isNegative A flag indicating whether the original value was negative.
+    * @return The adjusted root value, negated if the original value 
+    *         was negative and the root degree is odd.
+    */
+  private def handleNegativeRoot(value: BigInt, n: Int, isNegative: Boolean): BigInt =
+    if (isNegative && n % 2 == 1) -value else value
+
+  /**
+    * A lazily evaluated value that provides a simplified instance of `InversePower`.
+    * If `doNormalize` results in a `Left`, the contained `number` is used directly.
+    * If `doNormalize` results in a `Right`, an `InversePower` instance is created
+    * with the numerator set to `1` and the denominator as the `number` contained
+    * in the `Right`.
+    *
+    * This serves as an optimization to avoid redundant normalization computations
+    * and ensures a consistent representation of the value.
+    *
+    * NOTE: In the case where `doNormalize` returns a `Right`, this approach provides
+    * the most precise simplification possible under these circumstances.
+    */
+  private lazy val simplified: InversePower = doNormalize match {
+    case Left(number) =>
+      number
+    case Right(number) =>
+      // NOTE this is the best we can do in this situation
+      new InversePower(1, number)()
+  }
+
+  /**
+    * Computes the normalized representation of a number based on its type and
+    * properties, returning either an `InversePower` instance or a `Number`.
+    *
+    * The normalization process involves handling different types of numbers
+    * (integers, rational numbers, or generic numbers) and extracting any
+    * roots of the given number to simplify it. The behavior is as follows:
+    *
+    * - For integers (`IsInteger`), attempts to normalize and extract the root.
+    * If the remaining part is 1, it wraps the extracted value in a
+    * `WholeNumber`. Otherwise, it wraps the remaining and extracted
+    * values in an `InversePower` instance.
+    *
+    * - For rational numbers (`IntRational`), separately normalizes and
+    * extracts the roots of the numerator and denominator. If both parts are
+    * fully extracted, it returns a `RationalNumber`. Otherwise, it returns
+    * an `InversePower` containing the original rational number.
+    *
+    * - For generic numbers (`Number`), it always wraps the number
+    * in an `InversePower`, as no further simplification is performed.
+    *
+    * This lazy value is computed only when accessed for the first time and
+    * reuses the result for subsequent accesses.
+    */
+  private lazy val doNormalize: Either[InversePower, Number] =
+    number.normalize match {
+      case IsInteger(z) =>
+        val (extracted, remaining) = InversePower.normalizeIntegralRoot(z, n)
+        if (remaining == 1)
+          Right(WholeNumber(extracted))
+        else
+          Left(InversePower(n, WholeNumber(remaining)))
+      case r@IntRational(num, den) =>
+        val (numExtracted, numRemaining) = InversePower.normalizeIntegralRoot(num, n)
+        val (denExtracted, denRemaining) = InversePower.normalizeIntegralRoot(den, n)
+
+        if (numRemaining == 1 && denRemaining == 1)
+          Right(RationalNumber(numExtracted, denExtracted))
+        else
+          Left(InversePower(n, r)) // Also: use IntRational, not `r`
+      case x: Number =>
+        Left(InversePower(n, x))
+    }
+
+  /**
+    * Retrieves the root value from the provided lookups map based on the given rational number.
+    *
+    * @param r       The Rational number used as a key for the lookup operation.
+    * @param lookups A nested map where the outer key is an integer and the inner map
+    *                maps integers to their associated root values.
+    * @return An Option containing the root value if found, or None if no corresponding
+    *         value exists in the lookups map.
+    */
+  private def getRoot(r: Rational, lookups: Map[Int, Map[Int, Int]]): Option[Int] =
+    for {
+      lookup <- lookups.get(n)
+      y <- toIntOption(r)
+      p <- lookup.get(y)
+    } yield p
 }
 
 /**
@@ -638,51 +685,4 @@ object InversePower {
     * requiring a `Show` typeclass instance for displaying or logging purposes.
     */
   implicit val showInversePower: Show[InversePower] = Show.show(_.render)
-
-  /**
-    * Provides an implicit implementation of a commutative group for the `Root` type, supporting
-    * group operations such as identity, combination, and inversion.
-    * 
-    * TESTME
-    *
-    * This allows `Root` objects to adhere to the algebraic structure of a commutative group, where
-    * the `combine` operation is associative and commutative, an identity element exists, and
-    * each element has a multiplicative inverse.
-    */
-  implicit object rootIsCommutativeGroup extends CommutativeGroup[InversePower] {
-    /**
-      * Provides the identity element for the `Root` group, representing a root of one.
-      *
-      * @return a `Root` instance with zero base, acting as the identity element in the group structure.
-      */
-    def empty: InversePower = InversePower.one
-
-    /**
-      * Combines two `Root` instances by adding their respective base.
-      * TODO implement this method for InversePower (or eliminate it).
-      *
-      * @param x the first `Root` to combine
-      * @param y the second `Root` to combine
-      * @return a new `Root` representing the sum of the base of the two provided `Root` instances
-      * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the provided `Root` instances are not of the same type.
-      */
-    def combine(x: InversePower, y: InversePower): InversePower = (x, y) match {
-      case (InversePower(n1, x1: Number), InversePower(n2, x2: Number)) =>
-        throw AlgebraException(s"InversePower.combine: cannot combine $x and $y")
-    }
-
-    /**
-      * Computes the additive inverse of the given `Root`.
-      * TODO eliminate this method.
-      *
-      * This method inverts the input root, returning a `Root` instance
-      * that represents its multiplicative inverse, relative to `Root.one`.
-      *
-      * @param a the `Root` instance to be inverted
-      * @return a new `Root` instance representing the multiplicative inverse of the input
-      * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the provided `Root` instance is not invertible.
-      */
-    def inverse(a: InversePower): InversePower =
-      throw AlgebraException(s"InversePower.inverse: cannot invert $a")
-  }
 }

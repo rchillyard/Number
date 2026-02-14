@@ -43,8 +43,6 @@ object Divides {
     /**
       * Method to test if x does not divide y.
       *
-      * TESTME and all other not methods.
-      *
       * @param y an Int.
       * @return false if x divides y.toLong.
       */
