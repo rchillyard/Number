@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical.Number
+import com.phasmidsoftware.number.core.numerical.WithFuzziness.Asterisk
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -302,7 +303,7 @@ class FuzzyNumberSpec2 extends AnyFlatSpec with Matchers {
     val fn = FuzzyNumber(Value.fromDouble(Some(100.0)), PureNumber, Some(AbsoluteFuzz[Double](0.5, Box)))
     val str = fn.render
 
-    str should include("*")
+    str should include(Asterisk)
   }
 
   it should "render fuzzy number with relative fuzz as percentage" in {
@@ -316,7 +317,7 @@ class FuzzyNumberSpec2 extends AnyFlatSpec with Matchers {
     val fn = FuzzyNumber(Value.fromDouble(Some(100.0)), PureNumber, Some(AbsoluteFuzz[Double](1e-20, Gaussian)))
     val str = fn.render
 
-    str should include("*")
+    str should include(Asterisk)
   }
 
   behavior of "FuzzyNumber with different factors"

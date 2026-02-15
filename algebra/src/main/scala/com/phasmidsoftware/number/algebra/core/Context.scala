@@ -112,8 +112,6 @@ case class RestrictedContext(factor: Factor) extends Context {
   /**
     * Determines whether the given factor qualifies for this `Context`.
     *
-    * TODO this needs to be checked!
-    *
     * @param f the factor.
     * @return true if the factor qualifies; false otherwise.
     */

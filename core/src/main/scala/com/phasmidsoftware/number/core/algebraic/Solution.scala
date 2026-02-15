@@ -487,6 +487,7 @@ object QuadraticSolution {
   *
   * @param value the base value of the solution
   */
+@deprecated("use com.phasmidsoftware.number.algebra.eager.LinearSolution instead", "1.6.5")
 case class LinearSolution(value: Value) extends Solution {
   /**
     * Retrieves the base value of the solution.

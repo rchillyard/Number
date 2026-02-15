@@ -12,6 +12,7 @@ import org.apache.commons.math3.special.Erf.{erf, erfInv}
 
 import scala.math.Numeric.DoubleIsFractional
 import scala.util.Try
+import scala.util.matching.Regex
 
 /**
   * This trait models the behavior of fuzziness.
@@ -838,6 +839,33 @@ trait WithFuzziness {
     * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
     */
   def fuzz: Option[Fuzziness[Double]]
+}
+
+/**
+  * Companion object for the `WithFuzziness` trait.
+  *
+  * This object provides utility constants or values related to fuzziness.
+  * It serves as a container for any shared definitions or configuration
+  * that may support implementations of the `WithFuzziness` trait.
+  *
+  * @define Ellipsis A constant string value representing an ellipsis ("...").
+  *                  This might be used as a placeholder or to indicate omissions in certain contexts.
+  */
+object WithFuzziness {
+  val Ellipsis: String = "..."
+  val Asterisk: String = "*"
+  val GaussianOpen: String = "("
+  val GaussianClose: String = ")"
+  val BoxOpen: String = "["
+  val BoxClose: String = "]"
+
+  // Or for the bracket patterns
+  val GaussianPattern: Regex = """\((\d{1,2})\)""".r
+  val BoxPattern: Regex = """\[(\d{1,2})]""".r
+
+  // And for repeating sequences
+  val RepeatOpen: String = "<"
+  val RepeatClose: String = ">"
 }
 
 /**

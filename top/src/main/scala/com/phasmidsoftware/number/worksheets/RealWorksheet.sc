@@ -3,9 +3,9 @@
   * NOTE that Number is deprecated for application use -- it's designed for internal use.
   */
 
+import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import com.phasmidsoftware.number.core.numerical.Constants.one
 import com.phasmidsoftware.number.core.numerical.Real.RealOps
-import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
 import com.phasmidsoftware.number.core.numerical.{Constants, Field, Fuzzy, Number, Real}
 
 val three: Field = 2 + one
@@ -34,10 +34,11 @@ Real("1.0") // fewer than 15 decimal places
 Real("0.57721566490153") // ditto
 
 // Parsing from Strings: Fuzzy
-Real("1.100*").render // ends in "*"
-Real("1.100...").render // ends in "..."
+Real("1.100*").render // ends in Asterisk
+Real("1.100...").render // ends in Ellipsis
 Real("1.1000[1]").render // has explicit (box) error bounds
 Real("1.1000[5]").render // has explicit (box) error bounds
 Real("1.1000(5)").render // has explicit (Gaussian) error bounds
 Real("0.577215664901533").render // 15 or more decimal places
+Real("1.<3>").render // 4/3
 

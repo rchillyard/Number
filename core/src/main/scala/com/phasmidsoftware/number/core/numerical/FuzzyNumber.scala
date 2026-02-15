@@ -5,8 +5,9 @@
 package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.inner.*
-import com.phasmidsoftware.number.core.numerical.FuzzyNumber.{Ellipsis, withinWiggleRoom}
+import com.phasmidsoftware.number.core.numerical.FuzzyNumber.withinWiggleRoom
 import com.phasmidsoftware.number.core.numerical.Number.prepareWithSpecialize
+import com.phasmidsoftware.number.core.numerical.WithFuzziness.{Asterisk, Ellipsis}
 
 import scala.collection.mutable
 
@@ -191,7 +192,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
       case Some(f) if f.wiggle(0.5) > 1E-16 =>
         f.getQualifiedString(toNominalDouble.getOrElse(0.0))
       case Some(_) =>
-        true -> (valueAsString.replace(Ellipsis, "") + "*")
+        true -> (valueAsString.replace(Ellipsis, "") + Asterisk)
       case None =>
         true -> valueAsString
     }
@@ -203,7 +204,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     }
     // TODO Improve this.
     //  Currently, this is a hack but other places essentially do this same thing but I'm having a hard time merging the appropriate code.
-    val w = ww.replaceAll("""0\[5]""", "*")
+    val w = ww.replaceAll("""0\[5]""", Asterisk)
 
     factor match {
       case Logarithmic(_) =>
@@ -263,8 +264,6 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
   * methods for comparison, arithmetic, and adding fuzziness to numbers.
   */
 object FuzzyNumber {
-
-  val Ellipsis = "..."
 
   /**
     * Definition of concrete (implicit) type class object for FuzzyNumber being Fuzzy.

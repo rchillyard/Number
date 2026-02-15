@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.core.parse
 
 import com.phasmidsoftware.number.core.inner.Rational
+
 import scala.util.Try
 
 trait ValuableNumber {
@@ -15,6 +16,52 @@ trait ValuableNumber {
     * @return a Try[Rational]
     */
   def value: Try[Rational]
+}
+
+/**
+  * Represents a repeating decimal number, including its sign, integer part,
+  * non-repeating fractional part (if any), and repeating fractional part.
+  *
+  * This class models numbers that can be expressed as decimals with repeating
+  * cycles, providing functionality to compute their exact rational representation.
+  *
+  * @constructor Creates a new instance of the RepeatingDecimal.
+  * @param sign             Specifies the sign of the number (true for positive, false for negative).
+  * @param integerPart      The integer portion of the decimal number.
+  * @param nonRepeatingPart The non-repeating fractional part of the decimal (optional).
+  * @param repeatingPart    The repeating fractional part of the decimal.
+  */
+case class RepeatingDecimal(sign: Boolean, integerPart: String, nonRepeatingPart: Option[String], repeatingPart: String) extends ValuableNumber {
+  /**
+    * Computes the rational value represented by the repeating decimal, including:
+    * - the integer part,
+    * - the non-repeating fractional part (if present),
+    * - the repeating fractional part.
+    *
+    * The result is a signed `Rational` that combines all parts based on the properties
+    * of the repeating decimal.
+    *
+    * @return `Try` containing the computed `Rational` representation of the repeating decimal,
+    *         or a failure if any error occurs during computation.
+    */
+  def value: Try[Rational] = Try {
+    val intPortion = Rational(BigInt(integerPart))
+
+    val nonRepLength = nonRepeatingPart.map(_.length).getOrElse(0)
+    val nonRepPortion = nonRepeatingPart.map { nr =>
+      Rational(BigInt(nr)).applyExponent(-nr.length)
+    }.getOrElse(Rational.zero)
+
+    // Repeating part: e.g., "3" repeating = 3/9
+    // Position: starts after non-repeating part
+    val repNumerator = BigInt(repeatingPart)
+    val repDenominator = BigInt("9" * repeatingPart.length)
+    val repFraction = Rational(repNumerator, repDenominator)
+    // Apply exponent for position: -nonRepLength (not -nonRepLength - repeatingPart.length)
+    val repPortion = repFraction.applyExponent(-nonRepLength)
+
+    (intPortion + nonRepPortion + repPortion).applySign(sign)
+  }
 }
 
 /**
@@ -54,7 +101,13 @@ abstract class BaseRationalParser extends SignificantSpaceParsers {
     def components: (Boolean, String, Option[String], Option[String]) = (sign, integerPart, maybeFractionalPart, exponent)
   }
 
-  def rationalNumber: Parser[ValuableNumber] = (realNumber | ratioNumber) :| "rationalNumber"
+  def rationalNumber: Parser[ValuableNumber] = (repeatingDecimal | realNumber | ratioNumber) :| "rationalNumber"
+
+  def repeatingDecimal: Parser[RepeatingDecimal] =
+    (opt("-") ~ unsignedWholeNumber ~ "." ~ opt(unsignedWholeNumber) ~ ("<" ~> (unsignedWholeNumber <~ ">"))) :| "repeatingDecimal" ^^ {
+      case so ~ intPart ~ _ ~ nonRepOpt ~ repPart =>
+        RepeatingDecimal(so.isDefined, intPart, nonRepOpt, repPart)
+    }
 
   def ratioNumber: Parser[RatioNumber] = (simpleNumber ~ opt("/" ~> simpleNumber)) :| "ratioNumber" ^^ {
     case n ~ maybeD => RatioNumber(n, maybeD.getOrElse(WholeNumber.one))
@@ -75,8 +128,19 @@ abstract class BaseRationalParser extends SignificantSpaceParsers {
 
 }
 
+/**
+  * The `RationalParser` object provides functionality to parse strings into `Rational` objects.
+  * It extends the `BaseRationalParser` and implements parsing logic for rational numbers,
+  * including components such as sign, integer part, fractional part, and exponent.
+  */
 @deprecated("use com.phasmidsoftware.number.expression.parse.RationalParser instead", "1.6.5")
 object RationalParser extends BaseRationalParser {
+  /**
+    * Parses the given string into a `Rational` object, if possible.
+    *
+    * @param s the input string to parse, representing a rational number.
+    * @return a `Try[Rational]` that contains the parsed `Rational` if successful, or a failure if parsing fails.
+    */
   def parse(s: String): Try[Rational] = stringParser(rationalNumber, s).flatMap(_.value)
 
 
@@ -94,4 +158,11 @@ object RationalParser extends BaseRationalParser {
 
 }
 
+/**
+  * Represents an exception used specifically for handling errors related to parsing rational expressions.
+  *
+  * It extends the `Exception` class, allowing it to contain an error message describing the parsing issue.
+  *
+  * @param m The error message that provides details about the parsing error.
+  */
 case class RationalParserException(m: String) extends Exception(m)

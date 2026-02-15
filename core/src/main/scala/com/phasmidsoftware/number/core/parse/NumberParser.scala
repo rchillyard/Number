@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.core.parse
 
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical.*
-import com.phasmidsoftware.number.core.numerical.FuzzyNumber.Ellipsis
+import com.phasmidsoftware.number.core.numerical.WithFuzziness.{Asterisk, Ellipsis}
 
 import scala.util.Try
 
@@ -44,15 +44,16 @@ abstract class BaseNumberParser extends BaseRationalParser {
       realNumber.value.map(r => r.applyExponent(getExponent))
 
     def fuzz: Option[Fuzziness[Double]] = fuzziness match {
-      // XXX: first we deal with the "None" case
-      case None => calculateFuzz(getExponent, realNumber.fractionalPart.length)
+      case None => None // No fuzz marker = exact number
+      case Some(Asterisk) => calculateFuzz(getExponent, realNumber.fractionalPart.length) // Asterisk = box fuzz
+      case Some(Ellipsis) => None // Ellipsis = truncated but exact, no fuzziness
       case Some(z) =>
         val gaussian = """\((\d*)\)""".r
         val box = """\[(\d*)]""".r
         val (shape, w) = z match {
           case gaussian(f) => (Gaussian, f)
           case box(f) => (Box, f)
-          case _ => throw SignificantSpaceParserException(s"fuzziness does not match either (xx) or [xx]: $z")
+          case _ => throw SignificantSpaceParserException(s"fuzziness does not match expected patterns: $z")
         }
         val zo: Option[Int] = w match {
           case s if s.length >= 2 => s.substring(0, 2).toIntOption
@@ -63,6 +64,8 @@ abstract class BaseNumberParser extends BaseRationalParser {
           AbsoluteFuzz[Double](Rational(x).applyExponent(i).toDouble, shape)
         })
     }
+
+    def isEllipsis: Boolean = fuzziness.contains(Ellipsis)
 
     // CONSIDER making this a method and having two places call it
     private def getExponent =
@@ -102,12 +105,10 @@ abstract class BaseNumberParser extends BaseRationalParser {
     *         If the String is None, then it is general fuzz (* or ...) otherwise Some(digits).
     */
   def fuzz: Parser[Option[String]] = {
-    // NOTE don't take the Analyzer's suggestion to remove escapes.
     val fuzzyDigits = """[\(\[]\d{1,2}[\)\]]""".r
     ("""\*""".r | """\.\.\.""".r | fuzzyDigits) :| "fuzz" ^^ {
-      case "*" => None
-      // NOTE Ellipsis should indicate a quasi-exact rational number that could not be expressed exactly in decimal form.
-      case Ellipsis => None
+      case w@Asterisk => Some(w) // Changed: return Some("*") to distinguish from ellipsis
+      case w@Ellipsis => Some(w) // Changed: return Some("...") to mark as ellipsis
       case w => Some(w)
     }
   }

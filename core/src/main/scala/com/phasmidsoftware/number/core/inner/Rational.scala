@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.inner.Rational.{MAX_PRIME_FACTORS, NaN, bigNegOne, bigOne, bigZero, half, minus, one, rootOfBigInt, times, toInts}
 import com.phasmidsoftware.number.core.misc.ContinuedFraction
 import com.phasmidsoftware.number.core.misc.FP.*
-import com.phasmidsoftware.number.core.numerical.FuzzyNumber.Ellipsis
+import com.phasmidsoftware.number.core.numerical.WithFuzziness.{Ellipsis, RepeatClose, RepeatOpen}
 import com.phasmidsoftware.number.core.numerical.{BigNumber, Number, NumberLike, Prime}
 import com.phasmidsoftware.number.core.parse.RationalParser
 
@@ -692,7 +692,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * @return A string representation of the value, either as a rational string or a BigDecimal string with an ellipsis.
     */
   private lazy val asString: String = d match {
-    case x if x <= 100000L => // XXX arbitrary limit of one hundred thousand.
+    case x if x <= 100_000L => // XXX arbitrary limit of one hundred thousand.
       toRationalString
     case _ =>
       // NOTE this case represents a Rational that cannot easily be rendered in decimal form.
@@ -1460,7 +1460,7 @@ object Rational {
         case h :: t =>
           findRepeatingPattern(bigNumber, h) match {
             case Some(z) if z + h < l =>
-              Success(bigNumber.substring(0, z) + "<" + bigNumber.substring(z, z + h) + ">")
+              Success(bigNumber.substring(0, z) + RepeatOpen + bigNumber.substring(z, z + h) + RepeatClose)
             case Some(z) =>
               Failure[String](RationalException(s"Rational.findRepeatingSequence: logic error: pattern exhausts bigNumber: ${z + h} > $l"))
             case None =>

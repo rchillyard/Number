@@ -318,25 +318,20 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     */
   lazy val identitiesMatcher: em.AutoMatcher[Expression] =
     em.Matcher("UniFunction: identitiesMatcher") {
-      case uni@UniFunction(e, f) =>
-        // TODO sort this out
-        uni match {
-          // XXX Take care of the cases whereby the inverse of a log expression is a log expression with operand and base swapped.
-          case UniFunction(UniFunction(x, Ln), Reciprocal) =>
-            em.Match(BiFunction(E, x, Log))
-          case UniFunction(BiFunction(x, b, Log), Reciprocal) =>
-            em.Match(BiFunction(b, x, Log))
-          // XXX we check for certain exact literal function results
-          case UniFunction(e: ValueExpression, f) if e.monadicFunction(f).isDefined =>
-            val result = e.monadicFunction(f)
-            em.matchIfDefined(result)(e)
-          case UniFunction(r: Root, Reciprocal) =>
-            em.Match(r.reciprocal)
-          case UniFunction(r: Root, Negate) =>
-            em.Match(r.negate)
-          case expr =>
-            em.Miss("UniFunction: identitiesMatcher: no trivial simplifications", expr)
-        }
+      // XXX Take care of the cases whereby the inverse of a log expression is a log expression with operand and base swapped.
+      case UniFunction(UniFunction(x, Ln), Reciprocal) =>
+        em.Match(BiFunction(E, x, Log))
+      case UniFunction(BiFunction(x, b, Log), Reciprocal) =>
+        em.Match(BiFunction(b, x, Log))
+      // XXX we check for certain exact literal function results
+      case UniFunction(e: ValueExpression, f) if e.monadicFunction(f).isDefined =>
+        em.matchIfDefined(e.monadicFunction(f))(e)
+      case UniFunction(r: Root, Reciprocal) =>
+        em.Match(r.reciprocal)
+      case UniFunction(r: Root, Negate) =>
+        em.Match(r.negate)
+      case expr =>
+        em.Miss("UniFunction: identitiesMatcher: no trivial simplifications", expr)
     }
 
   /**
@@ -557,9 +552,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     // In structuralMatcher - truly structural
     case BiFunction(NthRoot(radicand, n, _), IsIntegral(exp), Power) if n == exp =>
       em.Match(Literal(radicand, None))
-    // NOTE these first two cases are kind of strange! CONSIDER removing them.
-    // In any case, they don't belong in structuralMatcher because they depend on specific values.
-    // TODO use a commutative extractor
+    // TODO the following attempt to use a commutative extractor (as a substitute for the following two cases) fails miserably.
+    //  But I can't figure out why.
 //    case ProductExpression(ExpressionComplementaryCommutative(a, b)) if a == b =>
 //      minusXSquared(a)
     case BiFunction(a, UniFunction(b, Negate), Product) if a == b =>
