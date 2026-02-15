@@ -43,8 +43,7 @@ abstract class BaseNumberParser extends BaseRationalParser {
 
     def fuzz: Option[Fuzziness[Double]] = fuzziness match {
       case None => None // No fuzz marker = exact number
-      case Some(Asterisk) => calculateFuzz(getExponent, realNumber.fractionalPart.length) // Asterisk = box fuzz
-      case Some(Ellipsis) => None // Ellipsis = truncated but exact, no fuzziness
+      case Some(Asterisk | Ellipsis) => calculateFuzz(getExponent, realNumber.fractionalPart.length) // Asterisk = box fuzz
       case Some(z) =>
         val gaussian = """\((\d*)\)""".r
         val box = """\[(\d*)]""".r
@@ -62,8 +61,6 @@ abstract class BaseNumberParser extends BaseRationalParser {
           AbsoluteFuzz[Double](Rational(x).applyExponent(i).toDouble, shape)
         })
     }
-
-    def isEllipsis: Boolean = fuzziness.contains(Ellipsis)
 
     // CONSIDER making this a method and having two places call it
     private def getExponent = maybeExponent.getOrElse("0").toInt
