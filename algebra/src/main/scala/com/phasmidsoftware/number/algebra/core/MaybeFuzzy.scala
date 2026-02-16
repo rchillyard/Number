@@ -88,6 +88,18 @@ object MaybeFuzzy:
               else s"${m.nominalValue}±$str" // Show as decimal
             case None => m.render
 
+    /**
+      * Converts the value of the current instance into a percentage-based `String` representation.
+      *
+      * This method evaluates the optional fuzziness associated with the instance.
+      * If fuzziness is present, it normalizes it to a relative representation and retrieves the qualified string.
+      * When the fuzziness is embedded in the resulting string, the method directly returns the embedded representation.
+      * Otherwise, it combines the nominal value and the relative fuzziness percentage into a formatted string.
+      * If no fuzziness exists, the nominal value is returned as rendered by `m.render`.
+      *
+      * @return A string representing the nominal value along with its relative fuzziness as a percentage (if present),
+      *         or the nominal value alone if no fuzziness is associated.
+      */
     def asPercentage: String =
       m.maybeFuzz match
         case None => m.render

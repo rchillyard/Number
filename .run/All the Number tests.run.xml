@@ -57,6 +57,7 @@
         <option value="com.phasmidsoftware.number.expression.parse.ExpressionParserSpec" />
         <option value="com.phasmidsoftware.number.expression.parse.FuzzyParserSpec" />
         <option value="com.phasmidsoftware.number.expression.parse.MillParserSpec" />
+          <option value="com.phasmidsoftware.number.expression.parse.NumberNotationRoundTripSpec"/>
         <option value="com.phasmidsoftware.number.expression.parse.NumberParserSpec" />
         <option value="com.phasmidsoftware.number.expression.parse.RationalParserSpec" />
         <option value="com.phasmidsoftware.number.expression.parse.ShuntingYardParserSpec" />

@@ -1,10 +1,10 @@
-package /*
+/*
  * Copyright (c) 2025. Phasmid Software
  */
 
-com.phasmidsoftware.number.expression.parse
+package com.phasmidsoftware.number.expression.parse
 
-import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.core.inner.{Rational, VulgarFraction}
 
 import scala.util.Try
 
@@ -69,6 +69,25 @@ case class RepeatingDecimal(sign: Boolean, integerPart: String, nonRepeatingPart
 }
 
 /**
+  * Represents a vulgar (Unicode) fraction such as ⅓, ½, ¼, etc.
+  * These are single Unicode characters that represent common fractions.
+  *
+  * @param fraction the Unicode fraction character as a string
+  */
+case class VulgarFractionNumber(fraction: String) extends ValuableNumber {
+  /**
+    * Converts the vulgar fraction Unicode character to its rational representation.
+    *
+    * @return `Try` containing the `Rational` equivalent of the vulgar fraction,
+    *         or a failure if the character is not a recognized vulgar fraction.
+    */
+  def value: Try[Rational] = VulgarFraction(fraction) match {
+    case Some(r) => scala.util.Success(r)
+    case None => scala.util.Failure(RationalParserException(s"Unknown vulgar fraction: $fraction"))
+  }
+}
+
+/**
   * A parser of Rational objects.
   */
 abstract class BaseRationalParser extends SignificantSpaceParsers {
@@ -104,7 +123,18 @@ abstract class BaseRationalParser extends SignificantSpaceParsers {
     def components: (Boolean, String, Option[String], Option[String]) = (sign, integerPart, maybeFractionalPart, exponent)
   }
 
-  def rationalNumber: Parser[ValuableNumber] = (repeatingDecimal | realNumber | ratioNumber) :| "rationalNumber"
+  def rationalNumber: Parser[ValuableNumber] = (vulgarFraction | repeatingDecimal | realNumber | ratioNumber) :| "rationalNumber"
+
+  /**
+    * Parser for vulgar (Unicode) fractions like ⅓, ½, ¼, etc.
+    * Matches any single Unicode character that represents a fraction.
+    */
+  def vulgarFraction: Parser[VulgarFractionNumber] = {
+    // Create a regex that matches any of the vulgar fraction characters
+    val fractionChars = VulgarFraction.reverseMapping.keys.mkString("|")
+    val fractionRegex = s"($fractionChars)".r
+    fractionRegex :| "vulgarFraction" ^^ { f => VulgarFractionNumber(f) }
+  }
 
   def repeatingDecimal: Parser[RepeatingDecimal] =
     (opt("-") ~ unsignedWholeNumber ~ "." ~ opt(unsignedWholeNumber) ~ ("<" ~> (unsignedWholeNumber <~ ">"))) :| "repeatingDecimal" ^^ {

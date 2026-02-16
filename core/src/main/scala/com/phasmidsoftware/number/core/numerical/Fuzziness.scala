@@ -373,29 +373,39 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
     * @return a tuple of a Boolean (indicating if the value is embedded in the result) and a String which is the textual rendering of t with this Fuzziness applied.
     */
   def getQualifiedString(t: T): (Boolean, String) = {
-    val eString = tv.render(t) match {
+    val tDouble = tv.toDouble(t)
+
+    // Always use scientific notation for internal calculations
+    val scientificFormat = f"$tDouble%.20E"
+    val eString = scientificFormat match {
       case AbsoluteFuzz.numberR(e) => e
       case _ => noExponent
     }
+
     val exponent = Integer.parseInt(eString)
+
+    // Use the original logic: include suffix whenever there's a non-zero exponent
     val scientificSuffix = eString match {
       case `noExponent` => ""
       case x => s"E$x"
     }
+
     val scaledM = toDecimalPower(tv.toDouble(magnitude), -exponent)
     val d = math.log10(scaledM).toInt
     val roundedM = round(scaledM, 2 - d)
-    //      if (scaledM > 0.01) // TODO let's do this unusual adjustment later
+
+    // Always scale (like original)
     val scaledT = tv.scale(t, toDecimalPower(1, -exponent))
-    val q = f"$roundedM%.99f".substring(2) // XXX drop the "0."
+
+    val q = f"$roundedM%.99f".substring(2)
     val (qPrefix, qSuffix) = q.toCharArray.span(_ == '0')
     val (qPreSuffix, _) = qSuffix.span(_ != '0')
     val adjust = qPreSuffix.length - 2
     val mScaledAndRounded = toDecimalPower(round(scaledM, qPrefix.length + 2 + adjust), qPrefix.length)
     val yq = mScaledAndRounded.toString.substring(2).padTo(2 + adjust, '0').substring(0, 2 + adjust)
     val brackets = if (shape == Gaussian) "()" else "[]"
-    // CONSIDER changing the padding "0" value to be "5".
     val mask = new String(qPrefix) + "0" * (2 + adjust) + brackets.head + yq + brackets.tail.head
+
     val (zPrefix, zSuffix) = tv.render(scaledT).toCharArray.span(_ != '.')
     true -> (new String(zPrefix) + "." + zipStrings(new String(zSuffix).substring(1), mask) + scientificSuffix)
   }
@@ -977,13 +987,22 @@ trait HasValueDouble extends HasValue[Double] with DoubleIsFractional with Order
     *         fixed-point or scientific notation format.
     */
   def render(t: Double): String = {
-    lazy val asScientific: String = f"$t%.20E"
-    val z = f"$t%.99f"
-    val (prefix, suffix) = z.toCharArray.span(x => x != '.')
-    val sevenZeroes = "0000000".toCharArray
-    if (prefix.endsWith(sevenZeroes)) asScientific
-    else if (suffix.tail.startsWith(sevenZeroes)) asScientific
-    else z
+    val absValue = math.abs(t)
+
+    // Use scientific notation for numbers outside the range [0.01, 10)
+    // This ensures fuzzy number rendering works correctly
+    if (absValue != 0.0 && (absValue >= 10000.0 || absValue < 0.001)) {
+      f"$t%.20E"
+    } else {
+      // For small numbers [0.01, 10), use the detailed .99f format
+      // which is needed by the fuzzy number rendering logic
+      val z = f"$t%.99f"
+      val (prefix, suffix) = z.toCharArray.span(x => x != '.')
+      val sevenZeroes = "0000000".toCharArray
+      if (prefix.endsWith(sevenZeroes)) f"$t%.20E"
+      else if (suffix.tail.startsWith(sevenZeroes)) f"$t%.20E"
+      else z
+    }
   }
 
   /**

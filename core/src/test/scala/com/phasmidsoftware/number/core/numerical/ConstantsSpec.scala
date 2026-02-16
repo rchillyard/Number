@@ -2,7 +2,6 @@ package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.inner.{Log2, Rational}
 import com.phasmidsoftware.number.core.numerical.Constants.sGamma
-import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -97,7 +96,7 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     val target = Constants.mu
     target.isExact shouldBe false
     target shouldBe Real(1836.15267343 ~ 11)
-    target.render shouldBe sMu
+    target.render shouldBe "1.83615267343(11)E+03"
   }
 //  it should "have phi" in {
 //    val target = Constants.phi
