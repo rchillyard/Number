@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number.top
 
+import com.phasmidsoftware.number.top.Natural.MaxRoman
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -90,6 +91,7 @@ class NaturalSpec extends AnyFlatSpec with Matchers {
     Natural.fromInt(49).toString should be("XLIX")
     Natural.fromInt(50).toString should be("L")
     Natural.fromInt(99).toString should be("XCIX")
+    MaxRoman.toString should be("MMMCMXCIX")
   }
 
   behavior of "RomanParser"
@@ -196,7 +198,7 @@ class NaturalSpec extends AnyFlatSpec with Matchers {
   behavior of "Round-trip conversion"
 
   it should "round-trip through Roman numerals correctly" in {
-    val testValues = List(1, 4, 5, 9, 10, 25, 49, 50, 99, 100, 500, 1000, 1994, 2023)
+    val testValues = List(1, 4, 5, 9, 10, 25, 49, 50, 99, 100, 500, 1_000, 1_994, 2_023, 3_999)
 
     testValues.foreach { n =>
       val natural = Natural.fromInt(n)

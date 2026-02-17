@@ -113,13 +113,13 @@ case class Successor(natural: Natural) extends Natural:
 
   override def toString: String = {
     @tailrec
-    def toRoman(acc: String, remaining: Natural, values: List[(Natural, String)]): String =
+    def toRoman(acc: String, remaining: Natural, values: List[(String, Natural)]): String =
       (remaining, values) match {
         case (Zero, _) =>
           acc
         case (_, Nil) =>
           acc
-        case (n, (value, symbol) :: rest) =>
+        case (n, (symbol: String, value: Natural) :: rest) =>
           n subtract value match {
             case Some(diff) =>
               toRoman(acc + symbol, diff, values)
@@ -128,16 +128,7 @@ case class Successor(natural: Natural) extends Natural:
           }
       }
 
-    import com.phasmidsoftware.number.top.Natural.*
-
-    val romanValues: List[(Natural, String)] = List(
-      (Thousand, "M"), (NineHundred, "CM"), (FiveHundred, "D"), (FourHundred, "CD"),
-      (Hundred, "C"), (Ninety, "XC"), (Fifty, "L"), (Forty, "XL"),
-      (Ten, "X"), (Nine, "IX"), (Five, "V"), (Four, "IV"),
-      (One, "I")
-    )
-
-    toRoman("", this, romanValues)
+    toRoman("", this, Natural.romanValues)
   }
 
 /**
@@ -163,14 +154,59 @@ object Natural:
   val Eight: Natural = Successor(Seven)
   val Nine: Natural = Successor(Eight)
   val Ten: Natural = Successor(Nine)
-  val Forty: Natural = Ten.multiply(Four)
-  val Ninety: Natural = Ten.multiply(Nine)
-  val Fifty: Natural = Five.multiply(Ten)
-  val Hundred: Natural = Ten.multiply(Ten)
-  val FourHundred: Natural = Forty.multiply(Ten)
-  val FiveHundred: Natural = Fifty.multiply(Ten)
-  val NineHundred: Natural = Ninety.multiply(Ten)
-  val Thousand: Natural = Hundred.multiply(Ten)
+  val Forty: Natural = Ten multiply Four
+  val Ninety: Natural = Ten multiply Nine
+  val Fifty: Natural = Five multiply Ten
+  val Hundred: Natural = Ten multiply Ten
+  val FourHundred: Natural = Forty multiply Ten
+  val FiveHundred: Natural = Fifty multiply Ten
+  val NineHundred: Natural = Ninety multiply Ten
+  val Thousand: Natural = Hundred multiply Ten
+  // NOTE the following represents the largest possible Roman numeral (but not the largest Natural, of course).
+  val MaxRoman: Natural = Thousand multiply Three add NineHundred add Ninety add Nine
+
+  /**
+    * A list of tuples associating Roman numeral symbols with their corresponding `Natural` values.
+    * NOTE: this list must not change its order since it is used in `toString`.
+    *
+    * The Roman numeral system is represented as pairs of strings (symbols) and their `Natural` value equivalents.
+    * The list is structured to facilitate conversion between Roman numerals and natural numbers.
+    *
+    * Roman numeral symbols included:
+    * - "M" represents 1000 (`Thousand`)
+    * - "CM" represents 900 (`NineHundred`)
+    * - "D" represents 500 (`FiveHundred`)
+    * - "CD" represents 400 (`FourHundred`)
+    * - "C" represents 100 (`Hundred`)
+    * - "XC" represents 90 (`Ninety`)
+    * - "L" represents 50 (`Fifty`)
+    * - "XL" represents 40 (`Forty`)
+    * - "X" represents 10 (`Ten`)
+    * - "IX" represents 9 (`Nine`)
+    * - "V" represents 5 (`Five`)
+    * - "IV" represents 4 (`Four`)
+    * - "I" represents 1 (`One`)
+    */
+  val romanValues: List[(String, Natural)] = List(
+    ("M", Thousand), ("CM", NineHundred), ("D", FiveHundred), ("CD", FourHundred),
+    ("C", Hundred), ("XC", Ninety), ("L", Fifty), ("XL", Forty),
+    ("X", Ten), ("IX", Nine), ("V", Five), ("IV", Four),
+    ("I", One)
+  )
+
+  /**
+    * A mapping of Roman numeral symbols (represented as strings) to their corresponding `Natural` values.
+    *
+    * This map is constructed using the `romanValues` sequence, which contains tuples of Roman numeral strings
+    * and their associated `Natural` values. The additional entry `("", Zero)` is appended to ensure a mapping
+    * for the empty string to the `Zero` natural number.
+    *
+    * Roman numeral keys in this map adhere to the conventional Roman numeral format (e.g., "I", "V", "X").
+    *
+    * The map can be used for parsing or validating Roman numeral strings by retrieving the `Natural` value
+    * associated with a particular Roman numeral key.
+    */
+  val romanSymbolMap: Map[String, Natural] = (romanValues :+ ("" -> Zero)).toMap
 
   // Add the Show instance using given
   given Show[Natural] = Show.show(_.toString)
@@ -185,9 +221,12 @@ object Natural:
     * @throws IllegalArgumentException if the input integer is negative
     */
   def fromInt(n: Int): Natural = n match {
-    case 0 => Zero
-    case n if n > 0 => Successor(fromInt(n - 1))
-    case _ => throw new IllegalArgumentException("Natural numbers must be non-negative")
+    case 0 =>
+      Zero
+    case n if n > 0 =>
+      Successor(fromInt(n - 1))
+    case _ =>
+      throw new IllegalArgumentException("Natural numbers must be non-negative")
   }
 
 /**
@@ -199,8 +238,6 @@ object Natural:
   * The parser respects the rules of Roman numeral construction, including subtractive combinations like `IV` and `IX`.
   */
 class RomanParser extends JavaTokenParsers:
-
-  import com.phasmidsoftware.number.top.Natural.*
 
   /**
     * Parses a given Roman numeral string and converts it to an instance of `Natural` if valid.
@@ -225,44 +262,32 @@ class RomanParser extends JavaTokenParsers:
         t.getOrElse(Zero) add h.getOrElse(Zero) add te.getOrElse(Zero) add u.getOrElse(Zero)
     }
 
+  import Natural.{Thousand, Hundred, Ten, One, romanSymbolMap}
+
   private lazy val thousands: Parser[Natural] = "M{0,3}".r ^^ {
-    s => s.foldLeft[Natural](Zero)((acc, _) => acc.add(Thousand))
+    m => decodeRepeated(m, Zero, Thousand)
   }
   private lazy val hundreds: Parser[Natural] = ("CM" | "CD" | "D?".r ~ "C{0,3}".r | failure("hundreds")) ^^ {
-    case "CD" =>
-      Hundred.multiply(Four)
-    case "CM" =>
-      Hundred.multiply(Nine)
-    case "D" ~ c =>
-      decodeRepeated(c, FiveHundred, Hundred)
-    case "" ~ c =>
-      decodeRepeated(c, Zero, Hundred)
-    case _ =>
-      throw new IllegalArgumentException("Invalid Roman numeral: hundreds")
+    case symbol: String =>
+      romanSymbolMap(symbol)
+    case symbol ~ c =>
+      decodeRepeated(c, romanSymbolMap(symbol), Hundred)
   }
   private lazy val tens: Parser[Natural] = ("XC" | "XL" | "L?".r ~ "X{0,3}".r | failure("tens")) ^^ {
-    case "XL" => Ten.multiply(Four)
-    case "XC" => Ten.multiply(Nine)
-    case "L" ~ x =>
-      decodeRepeated(x, Fifty, Ten)
-    case "" ~ x =>
-      decodeRepeated(x, Zero, Ten)
-    case _ =>
-      throw new IllegalArgumentException("Invalid Roman numeral: tens")
+    case symbol: String =>
+      romanSymbolMap(symbol)
+    case symbol ~ x =>
+      decodeRepeated(x, romanSymbolMap(symbol), Ten)
   }
   private lazy val units: Parser[Natural] = ("IX" | "IV" | "V?".r ~ "I{0,3}".r | failure("units")) ^^ {
-    case "IX" => Nine
-    case "IV" => Four
-    case "V" ~ i =>
-      decodeRepeated(i, Five, One)
-    case "" ~ i =>
-      decodeRepeated(i, Zero, One)
-    case _ =>
-      throw new IllegalArgumentException("Invalid Roman numeral: units")
+    case symbol: String =>
+      romanSymbolMap(symbol)
+    case symbol ~ i =>
+      decodeRepeated(i, romanSymbolMap(symbol), One)
   }
 
-private def decodeRepeated(x: String, identity: Natural, value: Natural): Natural =
-  x.foldLeft[Natural](identity)((acc, _) => acc.add(value))
+  private def decodeRepeated(x: String, identity: Natural, value: Natural): Natural =
+    x.foldLeft[Natural](identity)((acc, _) => acc.add(value))
 
 // Custom extractor for pattern matching
 object Roman:
