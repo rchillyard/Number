@@ -39,6 +39,7 @@
         <option value="com.phasmidsoftware.number.cats.laws.RealAlgebraicInstancesLawSpec" />
         <option value="com.phasmidsoftware.number.top.FoucaultSpec" />
         <option value="com.phasmidsoftware.number.top.FunctionalSpec" />
+        <option value="com.phasmidsoftware.number.top.NaturalSpec" />
         <option value="com.phasmidsoftware.number.top.NumberUpdatedSpec" />
         <option value="com.phasmidsoftware.number.top.PhysicalConstantsSpec" />
         <option value="com.phasmidsoftware.number.top.QuantityLaTeXSpec" />
@@ -57,7 +58,7 @@
         <option value="com.phasmidsoftware.number.expression.parse.ExpressionParserSpec" />
         <option value="com.phasmidsoftware.number.expression.parse.FuzzyParserSpec" />
         <option value="com.phasmidsoftware.number.expression.parse.MillParserSpec" />
-          <option value="com.phasmidsoftware.number.expression.parse.NumberNotationRoundTripSpec"/>
+        <option value="com.phasmidsoftware.number.expression.parse.NumberNotationRoundTripSpec" />
         <option value="com.phasmidsoftware.number.expression.parse.NumberParserSpec" />
         <option value="com.phasmidsoftware.number.expression.parse.RationalParserSpec" />
         <option value="com.phasmidsoftware.number.expression.parse.ShuntingYardParserSpec" />
@@ -120,6 +121,7 @@
         <option value="com.phasmidsoftware.number.core.numerical.InfiniteSeriesSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.NumberLikeSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.NumberSetSpec" />
+        <option value="com.phasmidsoftware.number.core.numerical.NumberShowSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.NumberSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.NumberTestmeSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.PolynomialSpec" />
