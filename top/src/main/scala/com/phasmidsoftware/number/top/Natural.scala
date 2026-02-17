@@ -128,9 +128,14 @@ case class Successor(natural: Natural) extends Natural:
           }
       }
 
-    import com.phasmidsoftware.number.top.Natural.{Five, Four, Nine, One, Ten}
+    import com.phasmidsoftware.number.top.Natural.*
 
-    val romanValues: List[(Natural, String)] = List((Ten, "X"), (Nine, "IX"), (Five, "V"), (Four, "IV"), (One, "I"))
+    val romanValues: List[(Natural, String)] = List(
+      (Thousand, "M"), (NineHundred, "CM"), (FiveHundred, "D"), (FourHundred, "CD"),
+      (Hundred, "C"), (Ninety, "XC"), (Fifty, "L"), (Forty, "XL"),
+      (Ten, "X"), (Nine, "IX"), (Five, "V"), (Four, "IV"),
+      (One, "I")
+    )
 
     toRoman("", this, romanValues)
   }
@@ -158,6 +163,14 @@ object Natural:
   val Eight: Natural = Successor(Seven)
   val Nine: Natural = Successor(Eight)
   val Ten: Natural = Successor(Nine)
+  val Forty: Natural = Ten.multiply(Four)
+  val Ninety: Natural = Ten.multiply(Nine)
+  val Fifty: Natural = Five.multiply(Ten)
+  val Hundred: Natural = Ten.multiply(Ten)
+  val FourHundred: Natural = Forty.multiply(Ten)
+  val FiveHundred: Natural = Fifty.multiply(Ten)
+  val NineHundred: Natural = Ninety.multiply(Ten)
+  val Thousand: Natural = Hundred.multiply(Ten)
 
   // Add the Show instance using given
   given Show[Natural] = Show.show(_.toString)
@@ -165,6 +178,7 @@ object Natural:
   /**
     * Constructs a `Natural` number from the given integer using the Peano arithmetic system.
     * The method recursively converts a non-negative integer into its corresponding `Natural` representation.
+    * NOTE the purpose of this method is to make testing easier. It is not really part of the Natural API.
     *
     * @param n the integer to convert to a `Natural` number; must be non-negative
     * @return a `Natural` representation of the given integer
@@ -176,7 +190,18 @@ object Natural:
     case _ => throw new IllegalArgumentException("Natural numbers must be non-negative")
   }
 
+/**
+  * The `RomanParser` class provides functionality for parsing Roman numerals and converting them
+  * into their respective natural number representations using the `Natural` type system.
+  *
+  * The class uses combinator parsers to validate and parse the Roman numeral strings.
+  * Supported Roman numeral characters are `M`, `D`, `C`, `L`, `X`, `V`, and `I`.
+  * The parser respects the rules of Roman numeral construction, including subtractive combinations like `IV` and `IX`.
+  */
 class RomanParser extends JavaTokenParsers:
+
+  import com.phasmidsoftware.number.top.Natural.*
+
   /**
     * Parses a given Roman numeral string and converts it to an instance of `Natural` if valid.
     *
@@ -187,50 +212,57 @@ class RomanParser extends JavaTokenParsers:
     *         or `None` if the input is not a valid Roman numeral
     */
   def parseRoman(w: String): Option[Natural] = parseAll(romanNumeral, w) match {
-    case Success(result, _) => Some(result)
-    case failure: NoSuccess => None
+    case Success(result, _) =>
+      Some(result)
+    case failure: NoSuccess =>
+      println(failure.msg)
+      None
   }
 
-  /**
-    * Parser for Roman numerals represented as a combination of thousands, hundreds, tens, and units.
-    *
-    * This lazy value utilizes optional sub-parsers (`thousands`, `hundreds`, `tens`, and `units`) to interpret specific parts
-    * of a Roman numeral. The combined results are summed up to produce the final value as a `Natural` number.
-    *
-    * The parser handles partial Roman numeral strings by treating each component (thousands, hundreds, tens, and units) as optional,
-    * replacing missing components with a default value of zero.
-    *
-    * The transformation is performed using the `^^` operator, which maps the parsed values into a `Natural` number
-    * by summing up their integer equivalents and converting the total.
-    *
-    * @return a `Parser[Natural]` that parses a Roman numeral string and computes its corresponding `Natural` value.
-    *         If no valid Roman numeral parts are found, the result defaults to zero.
-    */
-  lazy val romanNumeral: Parser[Natural] =
+  private lazy val romanNumeral: Parser[Natural] =
     opt(thousands) ~ opt(hundreds) ~ opt(tens) ~ opt(units) ^^ {
       case t ~ h ~ te ~ u =>
-        val total = t.getOrElse(0) + h.getOrElse(0) + te.getOrElse(0) + u.getOrElse(0)
-        Natural.fromInt(total)
+        t.getOrElse(Zero) add h.getOrElse(Zero) add te.getOrElse(Zero) add u.getOrElse(Zero)
     }
 
-  // Thousands place
-  lazy val thousands: Parser[Int] =
-    "MMM" ^^^ 3000 | "MM" ^^^ 2000 | "M" ^^^ 1000
+  private lazy val thousands: Parser[Natural] = "M{0,3}".r ^^ {
+    s => s.foldLeft[Natural](Zero)((acc, _) => acc.add(Thousand))
+  }
+  private lazy val hundreds: Parser[Natural] = ("CM" | "CD" | "D?".r ~ "C{0,3}".r | failure("hundreds")) ^^ {
+    case "CD" =>
+      Hundred.multiply(Four)
+    case "CM" =>
+      Hundred.multiply(Nine)
+    case "D" ~ c =>
+      decodeRepeated(c, FiveHundred, Hundred)
+    case "" ~ c =>
+      decodeRepeated(c, Zero, Hundred)
+    case _ =>
+      throw new IllegalArgumentException("Invalid Roman numeral: hundreds")
+  }
+  private lazy val tens: Parser[Natural] = ("XC" | "XL" | "L?".r ~ "X{0,3}".r | failure("tens")) ^^ {
+    case "XL" => Ten.multiply(Four)
+    case "XC" => Ten.multiply(Nine)
+    case "L" ~ x =>
+      decodeRepeated(x, Fifty, Ten)
+    case "" ~ x =>
+      decodeRepeated(x, Zero, Ten)
+    case _ =>
+      throw new IllegalArgumentException("Invalid Roman numeral: tens")
+  }
+  private lazy val units: Parser[Natural] = ("IX" | "IV" | "V?".r ~ "I{0,3}".r | failure("units")) ^^ {
+    case "IX" => Nine
+    case "IV" => Four
+    case "V" ~ i =>
+      decodeRepeated(i, Five, One)
+    case "" ~ i =>
+      decodeRepeated(i, Zero, One)
+    case _ =>
+      throw new IllegalArgumentException("Invalid Roman numeral: units")
+  }
 
-  // Hundreds place
-  lazy val hundreds: Parser[Int] =
-    "CM" ^^^ 900 | "DCCC" ^^^ 800 | "DCC" ^^^ 700 | "DC" ^^^ 600 |
-      "D" ^^^ 500 | "CD" ^^^ 400 | "CCC" ^^^ 300 | "CC" ^^^ 200 | "C" ^^^ 100
-
-  // Tens place
-  lazy val tens: Parser[Int] =
-    "XC" ^^^ 90 | "LXXX" ^^^ 80 | "LXX" ^^^ 70 | "LX" ^^^ 60 |
-      "L" ^^^ 50 | "XL" ^^^ 40 | "XXX" ^^^ 30 | "XX" ^^^ 20 | "X" ^^^ 10
-
-  // Units place
-  lazy val units: Parser[Int] =
-    "IX" ^^^ 9 | "VIII" ^^^ 8 | "VII" ^^^ 7 | "VI" ^^^ 6 |
-      "V" ^^^ 5 | "IV" ^^^ 4 | "III" ^^^ 3 | "II" ^^^ 2 | "I" ^^^ 1
+private def decodeRepeated(x: String, identity: Natural, value: Natural): Natural =
+  x.foldLeft[Natural](identity)((acc, _) => acc.add(value))
 
 // Custom extractor for pattern matching
 object Roman:
