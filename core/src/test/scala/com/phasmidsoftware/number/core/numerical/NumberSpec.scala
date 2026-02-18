@@ -423,7 +423,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     import Number.FuzzOps
     val x = 1836.15267343 ~ 11
     x.isExact shouldBe false
-    x.render shouldBe "1.83615267343(11)E+03"
+    x.render shouldBe "1836.15267343(11)"
     Real(x) shouldEqual Constants.mu
   }
   it should "get G using FuzzStringOps" in {

@@ -58,7 +58,7 @@ These goals conflict, resulting in:
 **Implementation**:
 ```scala
 trait Number {
-  def render: String  // Canonical form for round-trips
+   def render: String // Canonical form for round-trips
 }
 ```
 
@@ -78,11 +78,11 @@ trait Number {
 **Implementation**:
 ```scala
 trait Number {
-  def show: String  // Friendly display
+   def show: String // Friendly display
 }
 
 object Number {
-  implicit val showNumber: Show[Number] = Show.show(_.show)
+   implicit val showNumber: Show[Number] = Show.show(_.show)
 }
 ```
 
@@ -102,9 +102,9 @@ object Number {
 ```scala
 // Already exists in MaybeFuzzy.scala
 extension (m: MaybeFuzzy)
-  def asAbsolute: String   // Scientific notation with absolute uncertainty
-  def asRelative: String   // Decimal notation with relative uncertainty
-  def asPercentage: String // Percentage notation
+def asAbsolute: String // Scientific notation with absolute uncertainty
+def asRelative: String // Decimal notation with relative uncertainty
+def asPercentage: String // Percentage notation
 ```
 
 ---
@@ -116,8 +116,9 @@ extension (m: MaybeFuzzy)
 **Step 1.1**: Add `show` method to `Number` trait
 ```scala
 trait Number {
-  def render: String  // Existing - canonical form
-  def show: String    // New - display form
+   def render: String // Existing - canonical form
+
+   def show: String // New - display form
 }
 ```
 
@@ -137,10 +138,10 @@ trait Number {
 ```scala
 // In FuzzyNumber.render or similar
 def render: String = {
-  val precision = calculateRequiredPrecision(value, fuzziness)
-  val formatted = formatWithPrecision(value, precision)
-  val fuzzNotation = formatFuzziness(fuzziness, precision)
-  s"$formatted$fuzzNotation"
+   val precision = calculateRequiredPrecision(value, fuzziness)
+   val formatted = formatWithPrecision(value, precision)
+   val fuzzNotation = formatFuzziness(fuzziness, precision)
+   s"$formatted$fuzzNotation"
 }
 ```
 
@@ -151,12 +152,12 @@ def render: String = {
 **Step 2.3**: Comprehensive round-trip testing
 ```scala
 property("parse-render round-trips preserve value") {
-  forAll(numberGen) { n =>
-    val rendered = n.render
-    val reparsed = Number.parse(rendered).get
-    reparsed.materialize shouldBe n.materialize
-    reparsed.fuzz.map(_.wiggle(0.5)) shouldBe n.fuzz.map(_.wiggle(0.5)) +- epsilon
-  }
+   forAll(numberGen) { n =>
+      val rendered = n.render
+      val reparsed = Number.parse(rendered).get
+      reparsed.materialize shouldBe n.materialize
+      reparsed.fuzz.map(_.wiggle(0.5)) shouldBe n.fuzz.map(_.wiggle(0.5)) +- epsilon
+   }
 }
 ```
 
@@ -165,18 +166,19 @@ property("parse-render round-trips preserve value") {
 **Step 3.1**: Smart simplification
 ```scala
 def show: String = (value, fuzz) match {
-  case (r: Rational, None) if isVulgarFraction(r) => toVulgarFraction(r)
-  case (r: Rational, None) if r.isWhole => r.toBigInt.toString
-  case (_, Some(f)) => friendlyFuzzyFormat(value, f)
-  case _ => render  // Fall back to canonical
+   case (r: Rational, None) if isVulgarFraction(r) => toVulgarFraction(r)
+   case (r: Rational, None) if r.isWhole => r.toBigInt.toString
+   case (_, Some(f)) => friendlyFuzzyFormat(value, f)
+   case _ => render // Fall back to canonical
 }
 ```
 
 **Step 3.2**: Percentage display for relative fuzz
 ```scala
 // For relative fuzz, automatically show as percentage
-case Some(RelativeFuzz(tolerance, _)) => 
-  s"${value}±${(tolerance * 100).round}%"
+case Some(RelativeFuzz(tolerance, _))
+=>
+s"${value}±${(tolerance * 100).round}%"
 ```
 
 **Step 3.3**: Locale/context awareness (future)
@@ -189,13 +191,13 @@ case Some(RelativeFuzz(tolerance, _)) =>
 **Step 4.1**: Fix `asAbsolute` to always use scientific notation
 ```scala
 def asAbsolute: String = {
-  fuzz.normalize(value, relative = false) match {
-    case Some(absFuzz) =>
-      // Force scientific notation for consistency
-      formatScientificWithUncertainty(value, absFuzz)
-    case None => 
-      formatScientific(value)
-  }
+   fuzz.normalize(value, relative = false) match {
+      case Some(absFuzz) =>
+         // Force scientific notation for consistency
+         formatScientificWithUncertainty(value, absFuzz)
+      case None =>
+         formatScientific(value)
+   }
 }
 ```
 
@@ -218,22 +220,22 @@ The key to `render` working correctly:
 
 ```scala
 def calculateRequiredPrecision(value: Double, fuzz: Option[Fuzziness[Double]]): Int = {
-  fuzz match {
-    case None => 
-      // For exact values, show precision of the Double representation
-      val bd = BigDecimal(value)
-      bd.scale
-      
-    case Some(f) =>
-      // For fuzzy values, show enough places for the uncertainty
-      val uncertainty = f.wiggle(0.5)
-      val uncertaintyExp = if (uncertainty > 0) {
-        math.floor(math.log10(uncertainty)).toInt
-      } else -15  // Default to high precision
-      
-      // Show at least to the position where uncertainty matters
-      math.max(1, -uncertaintyExp + 1)
-  }
+   fuzz match {
+      case None =>
+         // For exact values, show precision of the Double representation
+         val bd = BigDecimal(value)
+         bd.scale
+
+      case Some(f) =>
+         // For fuzzy values, show enough places for the uncertainty
+         val uncertainty = f.wiggle(0.5)
+         val uncertaintyExp = if (uncertainty > 0) {
+            math.floor(math.log10(uncertainty)).toInt
+         } else -15 // Default to high precision
+
+         // Show at least to the position where uncertainty matters
+         math.max(1, -uncertaintyExp + 1)
+   }
 }
 ```
 
@@ -262,7 +264,7 @@ Keep the current settings:
 ```scala
 // In HasValueDouble.render
 if (absValue >= 10000.0 || absValue < 0.001) {
-  f"$t%.20E"
+   f"$t%.20E"
 }
 ```
 
@@ -271,16 +273,21 @@ This provides:
 - Scientific for very small: `< 0.001`
 - Decimal for normal range: `[0.001, 10,000)`
 
-### Format Examples
+### Examples
 
-| Value | Fuzziness | `render` (canonical) | `show` (display) | `asAbsolute` (scientific) |
-|-------|-----------|---------------------|------------------|--------------------------|
-| 2.5 | ±0.05 (Box) | `"2.50*"` | `"2.5*"` | `"2.50[5]"` |
-| 100.0 | ±1.0 (1% rel) | `"100.0*"` | `"100±1%"` | `"1.00(1)E+02"` |
-| 1836.15267343 | ±0.00000011 | `"1836.15267343(11)"` | `"1836.153(11)"` | `"1.83615267343(11)E+03"` |
-| 1/3 | None | `"0.<3>"` | `"⅓"` | `"3.333...E-01"` |
-| π | None | `"π"` | `"π"` | `"3.14159265359E+00"` |
-| 0.0001 | ±0.00001 | `"0.0001*"` | `"1×10⁻⁴*"` | `"1.0[1]E-04"` |
+| Declared value      | Fuzziness              | `render` (canonical)  | `show` (display) | `asAbsolute` (scientific) |
+|---------------------|------------------------|-----------------------|------------------|---------------------------|
+| 2.5                 | ±0.05 (Box)            | `"2.50[5]"`           | `"2.5*"`         | `"2.50[5]"`               |
+| "2.5"               | None                   | `"2.5"`               | `"2.5"`          | `"2.5"`                   |
+| "9.81*"             | ±0.005 (Box)           | `"9.810[5]"`          | `"9.810[5]"`     | `"9.810[5]"`              |
+| "9.81\[1]"          | ±0.01 (Box)            | `"9.81[1]"`           | `"9.81[1]"`      | `"9.81[1]"`               |
+| 100.0   †           | ±0.5 (0.5% rel)        | `"100.*"`             | `"100±0.5%"`     | `"1.000[5]E+02"`          |
+| "1836.15267343(11)" | ±0.00000011 (Gaussian) | `"1836.15267343(11)"` | `"1836.153(11)"` | `"1.83615267343(11)E+03"` |
+| 1:/3                | None                   | `"0.<3>"`             | `"⅓"`            | `"3.333...E-01"`          |
+| π                   | None                   | `"π"`                 | `"π"`            | `"3.14159265359E+00"`     |
+| 0.0001              | ±0.00005               | `"0.0001*"`           | `"1×10⁻⁴*"`      | `"1.0[5]E-04"`            |
+
+† 100.0 cannot be distinguished from 100 after the compiler has parsed this value.
 
 ---
 
@@ -298,23 +305,23 @@ NumberQualifiedSpec.scala    // Tests for asAbsolute/asRelative/asPercentage
 
 ```scala
 class NumberRenderSpec {
-  property("exact numbers round-trip perfectly") {
-    forAll(exactNumberGen) { n =>
-      val rendered = n.render
-      val reparsed = Number.parse(rendered).get
-      reparsed shouldBe n
-    }
-  }
-  
-  property("fuzzy numbers preserve value and fuzziness") {
-    forAll(fuzzyNumberGen) { n =>
-      val rendered = n.render
-      val reparsed = Number.parse(rendered).get
-      reparsed.materialize shouldBe n.materialize
-      reparsed.fuzz.map(_.wiggle(0.5)) shouldBe 
-        n.fuzz.map(_.wiggle(0.5)) +- 1e-10
-    }
-  }
+   property("exact numbers round-trip perfectly") {
+      forAll(exactNumberGen) { n =>
+         val rendered = n.render
+         val reparsed = Number.parse(rendered).get
+         reparsed shouldBe n
+      }
+   }
+
+   property("fuzzy numbers preserve value and fuzziness") {
+      forAll(fuzzyNumberGen) { n =>
+         val rendered = n.render
+         val reparsed = Number.parse(rendered).get
+         reparsed.materialize shouldBe n.materialize
+         reparsed.fuzz.map(_.wiggle(0.5)) shouldBe
+                 n.fuzz.map(_.wiggle(0.5)) +- 1e-10
+      }
+   }
 }
 ```
 
@@ -322,20 +329,15 @@ class NumberRenderSpec {
 
 ```scala
 class NumberShowSpec {
-  it should "use vulgar fractions for common rationals" in {
-    Number(Rational(1, 3)).show shouldBe "⅓"
-    Number(Rational(1, 2)).show shouldBe "½"
-  }
-  
-  it should "drop trailing zeros for fuzzy numbers" in {
-    val n = Number.parse("0.10*").get
-    n.show shouldBe "0.1*"
-  }
-  
-  it should "use percentage notation for relative fuzz" in {
-    val n = Real(100, Some(RelativeFuzz(0.01, Gaussian)))
-    n.show shouldBe "100±1%"
-  }
+   it should "use vulgar fractions for common rationals" in {
+      Number(Rational(1, 3)).show shouldBe "⅓"
+      Number(Rational(1, 2)).show shouldBe "½"
+   }
+
+   it should "use percentage notation for relative fuzz" in {
+      val n = Real(100, Some(RelativeFuzz(0.01, Box)))
+      n.show shouldBe "100±1%"
+   }
 }
 ```
 
@@ -415,16 +417,18 @@ class NumberShowSpec {
 
 **Recommendation**: Always for available vulgar fractions (more readable)
 
-### 4. Repeating Decimal Rendering in `render` vs `show`
+### 4. Repeating Decimal Rendering of Rationals in `render` vs `show`
 
 **Question**: Should both use `<>` notation or should `show` prefer vulgar fractions?
 
 **Decision Matrix**:
-| Rational | `render` | `show` | Notes |
-|----------|----------|--------|-------|
-| 1/3 | `"0.<3>"` | `"⅓"` | Vulgar available |
-| 1/7 | `"0.<142857>"` | `"0.<142857>"` | No vulgar, show pattern |
-| 1/37 | `"0.<027>"` | `"0.027..."` | Long pattern, truncate |
+
+| Rational | `render`         | `show`         | Notes                                |
+|----------|------------------|----------------|--------------------------------------|
+| 1/3      | `"0.<3>"`        | `"⅓"`          | Vulgar available                     |
+| 1/7      | `"0.<142857>"`   | `"0.<142857>"` | No vulgar, small prime, show pattern |
+| 1/37     | `"0.<027>"`      | `"0.<027>"`    | No vulgar, show (short) pattern      |
+| 1/137    | `"0.00<729927>"` | `"0.00730..."` | Long pattern, large prime, truncate? |
 
 **Recommendation**: `render` uses `<>` when detected, `show` prefers vulgar fractions
 
@@ -462,16 +466,16 @@ class NumberShowSpec {
 ### Key Methods to Refactor
 
 1. **`FuzzyNumber.render`** (core/numerical/FuzzyNumber.scala ~line 187)
-    - Current: Mixed goals (canonical + display)
-    - After: Pure canonical form with precision preservation
+   - Current: Mixed goals (canonical + display)
+   - After: Pure canonical form with precision preservation
 
 2. **`AbsoluteFuzz.getQualifiedString`** (core/numerical/Fuzziness.scala ~line 375)
-    - Current: Complex mask calculation with precision bugs
-    - After: Simplified logic that respects value precision
+   - Current: Complex mask calculation with precision bugs
+   - After: Simplified logic that respects value precision
 
 3. **`HasValueDouble.render`** (core/numerical/Fuzziness.scala ~line 991)
-    - Current: Used by everything, mixed purposes
-    - After: Internal helper, not directly user-facing
+   - Current: Used by everything, mixed purposes
+   - After: Internal helper, not directly user-facing
 
 ---
 

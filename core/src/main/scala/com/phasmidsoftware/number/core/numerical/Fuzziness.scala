@@ -374,8 +374,16 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
     */
   def getQualifiedString(t: T): (Boolean, String) = {
     val tDouble = tv.toDouble(t)
+    val absValue = math.abs(tDouble)
 
-    // Always use scientific notation for internal calculations
+    // Use scientific notation for values outside [0.001, 10000), OR when the
+    // magnitude of the fuzz is >= 1 (uncertainty at or above the units position).
+    // In the latter case the mask mechanism requires scientific form to work correctly,
+    // since it can only express uncertainty digits after a decimal point.
+    val magnitudeDouble = tv.toDouble(magnitude)
+    val magnitudeExp = if (magnitudeDouble > 0) math.floor(math.log10(magnitudeDouble)).toInt else 0
+    val useScientific = (absValue != 0.0 && (absValue >= 10000.0 || absValue < 0.001)) || magnitudeExp >= 0
+
     val scientificFormat = f"$tDouble%.20E"
     val eString = scientificFormat match {
       case AbsoluteFuzz.numberR(e) => e
@@ -384,18 +392,17 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
 
     val exponent = Integer.parseInt(eString)
 
-    // Use the original logic: include suffix whenever there's a non-zero exponent
-    val scientificSuffix = eString match {
-      case `noExponent` => ""
-      case x => s"E$x"
-    }
+    // Only append E-suffix when we actually want scientific notation
+    val scientificSuffix = if (useScientific) s"E$eString" else ""
 
-    val scaledM = toDecimalPower(tv.toDouble(magnitude), -exponent)
+    // Only scale when using scientific notation; otherwise work in natural decimal
+    val effectiveExponent = if (useScientific) exponent else 0
+
+    val scaledM = toDecimalPower(tv.toDouble(magnitude), -effectiveExponent)
     val d = math.log10(scaledM).toInt
     val roundedM = round(scaledM, 2 - d)
 
-    // Always scale (like original)
-    val scaledT = tv.scale(t, toDecimalPower(1, -exponent))
+    val scaledT = tv.scale(t, toDecimalPower(1, -effectiveExponent))
 
     val q = f"$roundedM%.99f".substring(2)
     val (qPrefix, qSuffix) = q.toCharArray.span(_ == '0')
@@ -732,9 +739,9 @@ case object Box extends Shape {
     case 1.0 =>
       0
     case _ =>
-    // NOTE: This implementation is approximate and only accurate for p ≈ 0.5
-    // In practice, Box distributions are normalized to Gaussian before wiggle is called
-    l / 2 // CONSIDER something like (1 - p) * l
+      // NOTE: This implementation is approximate and only accurate for p ≈ 0.5
+      // In practice, Box distributions are normalized to Gaussian before wiggle is called
+      l / 2 // CONSIDER something like (1 - p) * l
   }
 
   /**
@@ -952,7 +959,7 @@ trait HasValue[T] extends Fractional[T] {
     * @return the value, without any sign.
     */
   def normalize(x: T): T
-  
+
   /**
     * Method to multiply a `U` by a `V`, resulting in a `T`.
     *
@@ -989,19 +996,13 @@ trait HasValueDouble extends HasValue[Double] with DoubleIsFractional with Order
   def render(t: Double): String = {
     val absValue = math.abs(t)
 
-    // Use scientific notation for numbers outside the range [0.01, 10)
-    // This ensures fuzzy number rendering works correctly
+    // Use scientific notation only for values outside [0.001, 10000).
+    // Within that range always stay decimal, even if the fractional part is all zeros
+    // (e.g. 100.0 must not be scaled to 1.0E+02 during mask calculation).
     if (absValue != 0.0 && (absValue >= 10000.0 || absValue < 0.001)) {
       f"$t%.20E"
     } else {
-      // For small numbers [0.01, 10), use the detailed .99f format
-      // which is needed by the fuzzy number rendering logic
-      val z = f"$t%.99f"
-      val (prefix, suffix) = z.toCharArray.span(x => x != '.')
-      val sevenZeroes = "0000000".toCharArray
-      if (prefix.endsWith(sevenZeroes)) f"$t%.20E"
-      else if (suffix.tail.startsWith(sevenZeroes)) f"$t%.20E"
-      else z
+      f"$t%.99f"
     }
   }
 

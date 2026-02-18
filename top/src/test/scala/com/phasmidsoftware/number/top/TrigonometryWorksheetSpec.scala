@@ -27,8 +27,8 @@ class TrigonometryWorksheetSpec extends AnyFlatSpec with should.Matchers {
 
     // You should see
     (piBy2 / 2).cos.materialize.render shouldBe "√½"
-    (piBy2 / 3).cos.materialize.render should startWith("8.6602540378")
-    (Pi / 3).sin.materialize.render should startWith("8.6602540378")
+    (piBy2 / 3).cos.materialize.render should startWith("0.86602540378")
+    (Pi / 3).sin.materialize.render should startWith("0.86602540378")
 
   }
 }

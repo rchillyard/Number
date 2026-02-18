@@ -96,7 +96,7 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     val target = Constants.mu
     target.isExact shouldBe false
     target shouldBe Real(1836.15267343 ~ 11)
-    target.render shouldBe "1.83615267343(11)E+03"
+    target.render shouldBe "1836.15267343(11)"
   }
 //  it should "have phi" in {
 //    val target = Constants.phi

@@ -201,7 +201,7 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
     val (embedded, str) = absoluteFuzz.getQualifiedString(100.0)
 
     embedded shouldBe true
-    str shouldBe "1.000(5)E+02"
+    str shouldBe "100.0(5)"
   }
 
   behavior of "Fuzziness.normalize"

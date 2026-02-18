@@ -49,7 +49,7 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
 
   it should "render fuzzy Real with absolute fuzz using asAbsolute" in {
     val r = Real(100, Some(AbsoluteFuzz(0.5, Gaussian)))
-    r.show shouldBe "1.000(5)E+02"
+    r.show shouldBe "100.0(5)"
     //    r.asAbsolute shouldBe "100.0(5)" // Already absolute, toString embeds it
   }
 
@@ -67,7 +67,7 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
 
   it should "render fuzzy Real with absolute fuzz using asRelative" in {
     val r = Real(100.0, Some(AbsoluteFuzz(1.0, Gaussian)))
-    r.show shouldBe "1.00(1)E+02"
+    r.render shouldBe "1.00(1)E+02"
     //    r.asRelative shouldBe "100.0±1.0%" // Converts to relative decimal (1.0/100.0 = 0.01)
   }
 
@@ -93,13 +93,13 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
 
   it should "render fuzzy Angle with relative fuzz using asAbsolute" in {
     val a = Angle(Real(0.25, Some(RelativeFuzz(0.02, Gaussian))))
-    a.show shouldBe "2.5*E-01\uD835\uDED1"
+    a.show shouldBe "0.25*\uD835\uDED1"
     //    a.asAbsolute shouldBe "0.785(16)"
   }
 
   it should "render fuzzy Angle with asRelative" in {
     val a = Angle(Real(1.0 / 4, Some(RelativeFuzz(0.02, Gaussian))))
-    a.show shouldBe "2.5*E-01\uD835\uDED1"
+    a.show shouldBe "0.25*\uD835\uDED1"
     // TODO this is not correct: there's far too much precision in the output.
     //    a.asRelative shouldBe "0.7853981633974483±2.0%"
   }

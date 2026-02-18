@@ -120,6 +120,7 @@
         <option value="com.phasmidsoftware.number.core.numerical.GoldbachSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.InfiniteSeriesSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.NumberLikeSpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.NumberRenderSpec"/>
         <option value="com.phasmidsoftware.number.core.numerical.NumberSetSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.NumberShowSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.NumberSpec" />
