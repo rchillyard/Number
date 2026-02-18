@@ -627,7 +627,17 @@ object Fuzziness {
     */
   def toDecimalPower(x: Double, n: Int): Double = x * math.pow(10, n)
 
-  private def doNormalize[T](t: T, relative: Boolean, f: Fuzziness[T]) =
+  /**
+    * Normalizes a given Fuzziness instance based on whether the fuzziness 
+    * should be relative or absolute.
+    *
+    * @param t        the reference value that the fuzziness may be relative to.
+    * @param relative a flag indicating whether to produce a relative or absolute fuzziness.
+    * @param f        the Fuzziness instance to normalize.
+    * @tparam T the underlying type of the Fuzziness instance.
+    * @return the normalized Fuzziness instance, adjusted based on the `relative` flag.
+    */
+  def doNormalize[T](t: T, relative: Boolean, f: Fuzziness[T]) =
     f match {
       case a@AbsoluteFuzz(_, _) =>
         if (relative) a.relative(t) else Some(f)

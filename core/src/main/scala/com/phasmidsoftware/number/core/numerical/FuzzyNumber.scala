@@ -222,26 +222,21 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
 
   /**
     * Show this FuzzyNumber in a human-friendly manner.
-    * Drops trailing zeros from the numeric part before the uncertainty suffix
-    * (e.g. "0.10*" -> "0.1*", "2.50*" -> "2.5*", "100.000(5)" -> "100(5)").
+    * Converts fuzziness to relative (percentage) form where possible.
     * Falls back to render if no simplification applies.
     *
     * @return a String
     */
-  override lazy val show: String = render
-  //    val s = render
-  //    // Find the first uncertainty marker: *, [, (, or ±
-  //    val markerIdx = s.indexWhere(c => c == '*' || c == '[' || c == '(' || c == '\u00B1')
-  //    if markerIdx > 0 then
-  //      val valuePart  = s.substring(0, markerIdx)
-  //      val suffixPart = s.substring(markerIdx)
-  //      if valuePart.contains('.') then
-  //        val stripped = valuePart.reverse.dropWhile(_ == '0').reverse
-  //        // Avoid leaving a bare decimal point: "2." -> "2"
-  //        val cleaned = if stripped.endsWith(".") then stripped.dropRight(1) else stripped
-  //        cleaned + suffixPart
-  //      else s
-  //    else s
+  override lazy val show: String = fuzz match
+    case None =>
+      render
+    case Some(f) =>
+      val valueStr = Value.valueToString(nominalValue, skipOne = false)
+      val percentage = f.normalize(toNominalDouble.getOrElse(0.0), relative = true)
+        .map(_.asPercentage)
+      percentage match
+        case Some(p) => s"$valueStr\u00B1$p"
+        case None => render
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.

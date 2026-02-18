@@ -159,7 +159,7 @@ class NumberShowSpec extends AnyFlatSpec with Matchers {
 
   it should "delegate to the underlying Number for a fuzzy value" in {
     val r = Real(Number.parse("1.10*").get)
-    r.show shouldBe "1.10*"
+    r.show shouldBe "1.1±0.45%"
   }
 
   // ---------------------------------------------------------------------------

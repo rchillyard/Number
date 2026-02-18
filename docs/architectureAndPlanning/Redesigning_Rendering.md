@@ -102,9 +102,9 @@ object Number {
 ```scala
 // Already exists in MaybeFuzzy.scala
 extension (m: MaybeFuzzy)
-def asAbsolute: String // Scientific notation with absolute uncertainty
-def asRelative: String // Decimal notation with relative uncertainty
-def asPercentage: String // Percentage notation
+  def asAbsolute: String   // Scientific notation with absolute uncertainty
+  def asRelative: String   // Decimal notation with relative uncertainty
+  def asPercentage: String // Percentage notation
 ```
 
 ---
@@ -116,9 +116,8 @@ def asPercentage: String // Percentage notation
 **Step 1.1**: Add `show` method to `Number` trait
 ```scala
 trait Number {
-   def render: String // Existing - canonical form
-
-   def show: String // New - display form
+  def render: String  // Existing - canonical form
+  def show: String    // New - display form
 }
 ```
 
@@ -138,10 +137,10 @@ trait Number {
 ```scala
 // In FuzzyNumber.render or similar
 def render: String = {
-   val precision = calculateRequiredPrecision(value, fuzziness)
-   val formatted = formatWithPrecision(value, precision)
-   val fuzzNotation = formatFuzziness(fuzziness, precision)
-   s"$formatted$fuzzNotation"
+  val precision = calculateRequiredPrecision(value, fuzziness)
+  val formatted = formatWithPrecision(value, precision)
+  val fuzzNotation = formatFuzziness(fuzziness, precision)
+  s"$formatted$fuzzNotation"
 }
 ```
 
@@ -152,12 +151,12 @@ def render: String = {
 **Step 2.3**: Comprehensive round-trip testing
 ```scala
 property("parse-render round-trips preserve value") {
-   forAll(numberGen) { n =>
-      val rendered = n.render
-      val reparsed = Number.parse(rendered).get
-      reparsed.materialize shouldBe n.materialize
-      reparsed.fuzz.map(_.wiggle(0.5)) shouldBe n.fuzz.map(_.wiggle(0.5)) +- epsilon
-   }
+  forAll(numberGen) { n =>
+    val rendered = n.render
+    val reparsed = Number.parse(rendered).get
+    reparsed.materialize shouldBe n.materialize
+    reparsed.fuzz.map(_.wiggle(0.5)) shouldBe n.fuzz.map(_.wiggle(0.5)) +- epsilon
+  }
 }
 ```
 
@@ -166,19 +165,18 @@ property("parse-render round-trips preserve value") {
 **Step 3.1**: Smart simplification
 ```scala
 def show: String = (value, fuzz) match {
-   case (r: Rational, None) if isVulgarFraction(r) => toVulgarFraction(r)
-   case (r: Rational, None) if r.isWhole => r.toBigInt.toString
-   case (_, Some(f)) => friendlyFuzzyFormat(value, f)
-   case _ => render // Fall back to canonical
+  case (r: Rational, None) if isVulgarFraction(r) => toVulgarFraction(r)
+  case (r: Rational, None) if r.isWhole => r.toBigInt.toString
+  case (_, Some(f)) => friendlyFuzzyFormat(value, f)
+  case _ => render  // Fall back to canonical
 }
 ```
 
 **Step 3.2**: Percentage display for relative fuzz
 ```scala
 // For relative fuzz, automatically show as percentage
-case Some(RelativeFuzz(tolerance, _))
-=>
-s"${value}±${(tolerance * 100).round}%"
+case Some(RelativeFuzz(tolerance, _)) => 
+  s"${value}±${(tolerance * 100).round}%"
 ```
 
 **Step 3.3**: Locale/context awareness (future)
@@ -191,13 +189,13 @@ s"${value}±${(tolerance * 100).round}%"
 **Step 4.1**: Fix `asAbsolute` to always use scientific notation
 ```scala
 def asAbsolute: String = {
-   fuzz.normalize(value, relative = false) match {
-      case Some(absFuzz) =>
-         // Force scientific notation for consistency
-         formatScientificWithUncertainty(value, absFuzz)
-      case None =>
-         formatScientific(value)
-   }
+  fuzz.normalize(value, relative = false) match {
+    case Some(absFuzz) =>
+      // Force scientific notation for consistency
+      formatScientificWithUncertainty(value, absFuzz)
+    case None => 
+      formatScientific(value)
+  }
 }
 ```
 
@@ -220,22 +218,22 @@ The key to `render` working correctly:
 
 ```scala
 def calculateRequiredPrecision(value: Double, fuzz: Option[Fuzziness[Double]]): Int = {
-   fuzz match {
-      case None =>
-         // For exact values, show precision of the Double representation
-         val bd = BigDecimal(value)
-         bd.scale
-
-      case Some(f) =>
-         // For fuzzy values, show enough places for the uncertainty
-         val uncertainty = f.wiggle(0.5)
-         val uncertaintyExp = if (uncertainty > 0) {
-            math.floor(math.log10(uncertainty)).toInt
-         } else -15 // Default to high precision
-
-         // Show at least to the position where uncertainty matters
-         math.max(1, -uncertaintyExp + 1)
-   }
+  fuzz match {
+    case None => 
+      // For exact values, show precision of the Double representation
+      val bd = BigDecimal(value)
+      bd.scale
+      
+    case Some(f) =>
+      // For fuzzy values, show enough places for the uncertainty
+      val uncertainty = f.wiggle(0.5)
+      val uncertaintyExp = if (uncertainty > 0) {
+        math.floor(math.log10(uncertainty)).toInt
+      } else -15  // Default to high precision
+      
+      // Show at least to the position where uncertainty matters
+      math.max(1, -uncertaintyExp + 1)
+  }
 }
 ```
 
@@ -264,7 +262,7 @@ Keep the current settings:
 ```scala
 // In HasValueDouble.render
 if (absValue >= 10000.0 || absValue < 0.001) {
-   f"$t%.20E"
+  f"$t%.20E"
 }
 ```
 
@@ -305,23 +303,23 @@ NumberQualifiedSpec.scala    // Tests for asAbsolute/asRelative/asPercentage
 
 ```scala
 class NumberRenderSpec {
-   property("exact numbers round-trip perfectly") {
-      forAll(exactNumberGen) { n =>
-         val rendered = n.render
-         val reparsed = Number.parse(rendered).get
-         reparsed shouldBe n
-      }
-   }
-
-   property("fuzzy numbers preserve value and fuzziness") {
-      forAll(fuzzyNumberGen) { n =>
-         val rendered = n.render
-         val reparsed = Number.parse(rendered).get
-         reparsed.materialize shouldBe n.materialize
-         reparsed.fuzz.map(_.wiggle(0.5)) shouldBe
-                 n.fuzz.map(_.wiggle(0.5)) +- 1e-10
-      }
-   }
+  property("exact numbers round-trip perfectly") {
+    forAll(exactNumberGen) { n =>
+      val rendered = n.render
+      val reparsed = Number.parse(rendered).get
+      reparsed shouldBe n
+    }
+  }
+  
+  property("fuzzy numbers preserve value and fuzziness") {
+    forAll(fuzzyNumberGen) { n =>
+      val rendered = n.render
+      val reparsed = Number.parse(rendered).get
+      reparsed.materialize shouldBe n.materialize
+      reparsed.fuzz.map(_.wiggle(0.5)) shouldBe 
+        n.fuzz.map(_.wiggle(0.5)) +- 1e-10
+    }
+  }
 }
 ```
 
@@ -329,15 +327,15 @@ class NumberRenderSpec {
 
 ```scala
 class NumberShowSpec {
-   it should "use vulgar fractions for common rationals" in {
-      Number(Rational(1, 3)).show shouldBe "⅓"
-      Number(Rational(1, 2)).show shouldBe "½"
-   }
-
-   it should "use percentage notation for relative fuzz" in {
-      val n = Real(100, Some(RelativeFuzz(0.01, Box)))
-      n.show shouldBe "100±1%"
-   }
+  it should "use vulgar fractions for common rationals" in {
+    Number(Rational(1, 3)).show shouldBe "⅓"
+    Number(Rational(1, 2)).show shouldBe "½"
+  }
+  
+  it should "use percentage notation for relative fuzz" in {
+    val n = Real(100, Some(RelativeFuzz(0.01, Box)))
+    n.show shouldBe "100±1%"
+  }
 }
 ```
 
@@ -423,16 +421,32 @@ class NumberShowSpec {
 
 **Decision Matrix**:
 
-| Rational | `render`         | `show`         | Notes                                |
-|----------|------------------|----------------|--------------------------------------|
-| 1/3      | `"0.<3>"`        | `"⅓"`          | Vulgar available                     |
-| 1/7      | `"0.<142857>"`   | `"0.<142857>"` | No vulgar, small prime, show pattern |
-| 1/37     | `"0.<027>"`      | `"0.<027>"`    | No vulgar, show (short) pattern      |
-| 1/137    | `"0.00<729927>"` | `"0.00730..."` | Long pattern, large prime, truncate? |
+| Rational | `render`           | `show`           | Notes                                |
+|----------|--------------------|------------------|--------------------------------------|
+| 1/3      | `"0.<3>"`          | `"⅓"`            | Vulgar available                     |
+| 1/7      | `"0.<142857>"`     | `"0.<142857>"`   | No vulgar, small prime, show pattern |
+| 1/37     | `"0.<027>"`        | `"0.<027>"`      | No vulgar, show (short) pattern      |
+| 1/137    | `"0.00<729927>"`   | `"0.00730..."`   | Long pattern, large prime, truncate? |
 
 **Recommendation**: `render` uses `<>` when detected, `show` prefers vulgar fractions
 
-### 5. Zero Handling
+### 5. Relative vs. Absolute Fuzz
+
+**Key principle**: The parser always produces `AbsoluteFuzz`. The bracket/paren/asterisk notations
+are inherently positional (tied to a specific decimal place), so they are absolute by definition.
+There is no surface syntax for relative fuzz — it is an internal/computational representation.
+
+`RelativeFuzz` arises from arithmetic operations: when multiplying two fuzzy numbers, both fuzz
+values are converted to relative form so that tolerances can be combined by simple addition
+(or root-sum-squares for Gaussian). This follows the standard error propagation rule:
+for `z = x * y`, `δz/z = δx/x + δy/y`.
+
+Consequently:
+- `render` always produces absolute fuzz notation (`[n]`, `(n)`, `*`)
+- `show` may display relative fuzz as a percentage: `"100±1%"`
+- `asRelative` (Tier 3) explicitly converts to relative form for display
+
+### 6. Zero Handling
 
 **Question**: How should exact zero vs fuzzy zero render?
 
