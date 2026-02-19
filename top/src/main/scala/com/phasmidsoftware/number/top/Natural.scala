@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.top
 
 import scala.annotation.tailrec
-import scala.util.parsing.combinator.JavaTokenParsers
 
 /**
   * A sealed trait representing natural numbers (non-negative integers).
@@ -220,7 +219,7 @@ object Natural:
     * @return a `Natural` representation of the given integer
     * @throws IllegalArgumentException if the input integer is negative
     */
-  def fromInt(n: Int): Natural = n match {
+  private[top] def fromInt(n: Int): Natural = n match {
     case 0 =>
       Zero
     case n if n > 0 =>
@@ -228,6 +227,8 @@ object Natural:
     case _ =>
       throw new IllegalArgumentException("Natural numbers must be non-negative")
   }
+
+import scala.util.parsing.combinator.JavaTokenParsers
 
 /**
   * The `RomanParser` class provides functionality for parsing Roman numerals and converting them
@@ -262,7 +263,7 @@ class RomanParser extends JavaTokenParsers:
         t.getOrElse(Zero) add h.getOrElse(Zero) add te.getOrElse(Zero) add u.getOrElse(Zero)
     }
 
-  import Natural.{Thousand, Hundred, Ten, One, romanSymbolMap}
+  import Natural.{Hundred, One, Ten, Thousand, romanSymbolMap}
 
   private lazy val thousands: Parser[Natural] = "M{0,3}".r ^^ {
     m => decodeRepeated(m, Zero, Thousand)

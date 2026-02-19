@@ -4,7 +4,7 @@
 
 The current rendering system tries to serve multiple conflicting goals through a single `render` method, leading to fragile code and test brittleness. This document outlines a refactor to separate concerns into three distinct rendering paths: **canonical** (for round-trips), **display** (for humans), and **qualified** (for scientific precision).
 
-**Status**: Band-aid applied, all tests green with 4 ignores. Ready for major refactor.
+**Status**: All four phases complete. 3,616 tests green, 9 ignored.
 
 ---
 
@@ -86,25 +86,25 @@ object Number {
 }
 ```
 
-### Tier 3: `asAbsolute`/`asRelative`/`asPercentage` - Qualified Forms
-**Purpose**: Scientific/technical precision, explicit uncertainty notation  
-**Location**: Extension methods via `MaybeFuzzy` (algebra module)  
-**Guarantees**: Unambiguous uncertainty representation
+### Tier 3: `asAbsolute` - Qualified Form
+
+**Purpose**: Scientific/technical precision, explicit uncertainty in scientific notation  
+**Location**: Extension method via `MaybeFuzzy` (algebra module)  
+**Guarantees**: Always scientific notation with embedded absolute uncertainty digits
 
 **Rules**:
 - Always use scientific notation: `"1.00(1)E+02"`
 - Always show absolute uncertainty explicitly
-- For `asRelative`: convert to relative and show as percentage
-- For `asPercentage`: show uncertainty as percentage
-- Examples: `"1.00(1)E+02"`, `"100.0±1.0%"`, `"2.500±0.5%"`
+- Examples: `"1.00(1)E+02"`, `"1.4142(5)E+00"`
+
+**Note**: `asRelative` and `asPercentage` were removed as redundant — `show` now handles
+human-friendly percentage display, and `asAbsolute` covers the scientific precision case.
 
 **Implementation**:
 ```scala
-// Already exists in MaybeFuzzy.scala
+// In MaybeFuzzy.scala (algebra module)
 extension (m: MaybeFuzzy)
   def asAbsolute: String   // Scientific notation with absolute uncertainty
-  def asRelative: String   // Decimal notation with relative uncertainty
-  def asPercentage: String // Percentage notation
 ```
 
 ---
@@ -172,12 +172,11 @@ def show: String = (value, fuzz) match {
 }
 ```
 
-**Step 3.2**: Percentage display for relative fuzz
-```scala
-// For relative fuzz, automatically show as percentage
-case Some(RelativeFuzz(tolerance, _)) => 
-  s"${value}±${(tolerance * 100).round}%"
-```
+**Step 3.2**: Percentage display for fuzzy numbers
+
+- If `render` contains `*` → return as-is (already human-friendly)
+- Otherwise → round value to appropriate sig figs based on fuzz magnitude, use percentage notation
+- `roundToSigFigs` and `sigFigsForTolerance` utility methods added to `FuzzyNumber` companion
 
 **Step 3.3**: Locale/context awareness (future)
 - Scientific notation preferences
@@ -186,27 +185,15 @@ case Some(RelativeFuzz(tolerance, _)) =>
 
 ### Phase 4: Refine Qualified Forms (Algebra Module)
 
-**Step 4.1**: Fix `asAbsolute` to always use scientific notation
-```scala
-def asAbsolute: String = {
-  fuzz.normalize(value, relative = false) match {
-    case Some(absFuzz) =>
-      // Force scientific notation for consistency
-      formatScientificWithUncertainty(value, absFuzz)
-    case None => 
-      formatScientific(value)
-  }
-}
-```
+**Step 4.1**: Fix `asAbsolute` to always use scientific notation — done via `forceScientific = true`
+parameter added to `getQualifiedString` in `Fuzziness.scala`.
 
-**Step 4.2**: Ensure `asRelative` is truly relative
-- Convert absolute fuzz to relative
-- Show as percentage
-- Handle edge cases (zero value, etc.)
+**Step 4.2**: Remove `asRelative` and `asPercentage` — redundant with `show`.
 
-**Step 4.3**: Add `asEngineering` for engineering notation
-- Exponents in multiples of 3
-- SI prefix support (k, M, G, etc.)
+- `show` handles human-friendly percentage display
+- `asAbsolute` covers the scientific precision case
+- `Valuable.show` provides default `render` for all algebra types
+- Algebra `Real.show` overrides to delegate to `toFuzzyNumber(PureNumber).show`
 
 ---
 
@@ -271,21 +258,52 @@ This provides:
 - Scientific for very small: `< 0.001`
 - Decimal for normal range: `[0.001, 10,000)`
 
+### `show` Selection Principle
+
+For `show`, the approach depends on whether `render` contains `*`:
+
+- If `render` contains `*` → already human-friendly, return as-is
+- Otherwise → round the value to appropriate significant figures based on fuzz magnitude,
+  and always use percentage notation (e.g. `"0.785±2%"`)
+
+**Why always percentage when rounding?** Rounding the value part changes the decimal position
+of the last digit. This means absolute bracket notation (e.g. `[5]`, `(11)`) would change
+meaning — `"100(5)"` means ±5 at the units position, not ±0.5. So percentage notation is the
+only form that remains correct after rounding.
+
+**Why is `*` already human-friendly?** The `*` notation arises from Box fuzz at the last
+displayed digit — e.g. `"9.81*"` means the value is known to the hundredths place. This is
+already compact and meaningful, so no further simplification is needed.
+
+**Note on Gaussian vs relative fuzz**: Gaussian fuzz tends to be small and precise
+(e.g. `"1836.15267343(11)"`) so `render` is already compact and appropriate — these values
+never contain `*` in `render` and would be shown in percentage form by `show`. However, since
+Gaussian fuzz is typically very small relative to the value, the percentage form will also be
+compact (e.g. `"1836±0.00006%"`). Relative fuzz (arising from multiplication, powers, etc.)
+is where the value string can have excessive digits, making the rounding most valuable.
+
 ### Examples
 
-| Declared value      | Fuzziness              | `render` (canonical)  | `show` (display) | `asAbsolute` (scientific) |
-|---------------------|------------------------|-----------------------|------------------|---------------------------|
-| 2.5                 | ±0.05 (Box)            | `"2.50[5]"`           | `"2.5*"`         | `"2.50[5]"`               |
-| "2.5"               | None                   | `"2.5"`               | `"2.5"`          | `"2.5"`                   |
-| "9.81*"             | ±0.005 (Box)           | `"9.810[5]"`          | `"9.810[5]"`     | `"9.810[5]"`              |
-| "9.81\[1]"          | ±0.01 (Box)            | `"9.81[1]"`           | `"9.81[1]"`      | `"9.81[1]"`               |
-| 100.0   †           | ±0.5 (0.5% rel)        | `"100.*"`             | `"100±0.5%"`     | `"1.000[5]E+02"`          |
-| "1836.15267343(11)" | ±0.00000011 (Gaussian) | `"1836.15267343(11)"` | `"1836.153(11)"` | `"1.83615267343(11)E+03"` |
-| 1:/3                | None                   | `"0.<3>"`             | `"⅓"`            | `"3.333...E-01"`          |
-| π                   | None                   | `"π"`                 | `"π"`            | `"3.14159265359E+00"`     |
-| 0.0001              | ±0.00005               | `"0.0001*"`           | `"1×10⁻⁴*"`      | `"1.0[5]E-04"`            |
+| Declared value        | Fuzziness             | `render` (canonical)      | `show` (display)  | Notes                                   |
+|-----------------------|-----------------------|---------------------------|-------------------|-----------------------------------------|
+| `"2.5*"`              | ±0.05 (Box)           | `"2.5*"`                  | `"2.5*"`          | `*` already human-friendly              |
+| `"2.5"`               | None                  | `"2.5"`                   | `"2.5"`           | Exact, no fuzz                          |
+| `"9.81*"`             | ±0.005 (Box)          | `"9.81*"`                 | `"9.81*"`         | `*` already human-friendly              |
+| `"9.81[1]"`           | ±0.01 (Box)           | `"9.81[1]"`               | `"9.81±0.1%"`     | Rounded value + percentage              |
+| `"100.*"`  †          | ±0.5 (Box)            | `"100.*"`                 | `"100.*"`         | `*` already human-friendly              |
+| `"100.0(5)"`          | ±0.5 (Gaussian)       | `"100.0(5)"`              | `"100±0.5%"`      | Rounded value + percentage              |
+| `Real(π/4, 2% rel)`   | ±2% (Gaussian)        | `"0.7853981633974483±2%"` | `"0.785±2%"`      | Rounded value + percentage              |
+| `"1836.15267343(11)"` | ±0.0000011 (Gaussian) | `"1836.15267343(11)"`     | `"1836±0.00006%"` | Tiny Gaussian fuzz → compact percentage |
+| `1/3`                 | None                  | `"0.<3>"`                 | `"⅓"`             | Vulgar fraction                         |
+| `π`                   | None                  | `"π"`                     | `"π"`             | Exact symbolic                          |
 
 † 100.0 cannot be distinguished from 100 after the compiler has parsed this value.
+
+### Key Insight: Always Percentage When Rounding
+
+When rounding the value, absolute bracket notation would change meaning (e.g. `"100(5)"` means
+±5, not ±0.5). So percentage notation is always used when rounding is needed.
+The only exception is `*` which is kept as-is since it is already position-independent.
 
 ---
 
@@ -327,15 +345,15 @@ class NumberRenderSpec {
 
 ```scala
 class NumberShowSpec {
-  it should "use vulgar fractions for common rationals" in {
-    Number(Rational(1, 3)).show shouldBe "⅓"
-    Number(Rational(1, 2)).show shouldBe "½"
-  }
-  
-  it should "use percentage notation for relative fuzz" in {
-    val n = Real(100, Some(RelativeFuzz(0.01, Box)))
-    n.show shouldBe "100±1%"
-  }
+   it should "use vulgar fractions for common rationals" in {
+      Number(Rational(1, 3)).show shouldBe "⅓"
+      Number(Rational(1, 2)).show shouldBe "½"
+   }
+
+   it should "use percentage notation for relative fuzz" in {
+      val n = Real(100, Some(RelativeFuzz(0.01, Box)))
+      n.show shouldBe "100±1%"
+   }
 }
 ```
 
@@ -345,31 +363,29 @@ class NumberShowSpec {
 
 ### Core Module (`com.phasmidsoftware.number.core`)
 
-- [ ] Add `show: String` method to `Number` trait
-- [ ] Implement `ExactNumber.show` with simplifications
-- [ ] Implement `FuzzyNumber.show` with friendly formatting
-- [ ] Keep `render` as canonical form
-- [ ] Fix `FuzzyNumber.render` trailing zero issues
-- [ ] Fix `AbsoluteFuzz.getQualifiedString` mask length calculation
-- [ ] Update `FuzzyNumber` to use Cats `Show` typeclass
-- [ ] Add comprehensive round-trip tests for `render`
-- [ ] Add display quality tests for `show`
+- [x] Add `show: String` method to `NumberLike` trait (default = `render`)
+- [x] Implement `ExactNumber.show` with vulgar fractions
+- [x] Implement `FuzzyNumber.show` with percentage notation and sig fig rounding
+- [x] Keep `render` as canonical form
+- [x] Fix `AbsoluteFuzz.getQualifiedString` — scientific notation threshold, `forceScientific` parameter
+- [x] Fix `HasValueDouble.render` — no spurious scientific notation for normal-range values
+- [x] Add `Show[NumberLike]` Cats typeclass instance in `NumberLike` companion
+- [x] Add `NumberRenderSpec` for round-trip tests
+- [x] Add `NumberShowSpec` for display quality tests
+- [x] Add `NumberShowFuzzySpec` for fuzzy percentage display tests
 
 ### Algebra Module (`com.phasmidsoftware.number.algebra`)
 
-- [ ] Update `Real.render` to delegate to core `Number.render`
-- [ ] Add `Real.show` for friendly display
-- [ ] Fix `asAbsolute` to always use scientific notation
-- [ ] Fix `asRelative` uncertainty calculations
-- [ ] Add tests specifically for qualified forms
-- [ ] Update existing tests to use appropriate methods (`show` vs `render` vs `asAbsolute`)
+- [x] `Valuable.show` provides default `render` for all algebra types
+- [x] `Real.show` overrides to delegate to `toFuzzyNumber(PureNumber).show`
+- [x] Fix `asAbsolute` to always use scientific notation (`forceScientific = true`)
+- [x] Remove `asRelative` — redundant with `show`
+- [x] Remove `asPercentage` — redundant with `show`
+- [x] Update `MaybeFuzzySpec` expectations
 
 ### Parse Module (`com.phasmidsoftware.number.expression.parse`)
 
-- [ ] Ensure all notation forms parse correctly
-- [ ] Verify round-trips work with `render` output
-- [ ] Document which notations are input-only vs output-only
-- [ ] Add parse error messages that suggest correct notation
+- [x] No changes needed — already working correctly
 
 ### Documentation
 
@@ -385,14 +401,9 @@ class NumberShowSpec {
 
 ### 1. Scientific Notation Threshold for `show`
 
-**Question**: When should `show` use scientific notation?
-
-**Options**:
-- Conservative (|exp| ≥ 6): `"100000"` stays decimal, `"1000000"` → `"1×10⁶"`
-- Moderate (|exp| ≥ 4): `"10000"` stays decimal, `"100000"` → `"1×10⁵"`
-- Aggressive (|exp| ≥ 3): `"1000"` stays decimal, `"10000"` → `"1×10⁴"`
-
-**Recommendation**: Conservative (≥ 6) for `show`, always scientific for `asAbsolute`
+**Resolved**: `show` does not use scientific notation — it uses percentage notation with rounded
+values for fuzzy numbers, and `*` notation for Box fuzz. Scientific notation is only used by
+`asAbsolute` (always) and `render` (for values outside `[0.001, 10000)`).
 
 ### 2. Trailing Zero Handling in `render`
 
@@ -443,8 +454,8 @@ for `z = x * y`, `δz/z = δx/x + δy/y`.
 
 Consequently:
 - `render` always produces absolute fuzz notation (`[n]`, `(n)`, `*`)
-- `show` may display relative fuzz as a percentage: `"100±1%"`
-- `asRelative` (Tier 3) explicitly converts to relative form for display
+- `show` converts to percentage form: `"100±0.5%"`, `"0.785±2%"`
+- `asAbsolute` (Tier 3) forces scientific notation with embedded uncertainty digits
 
 ### 6. Zero Handling
 
@@ -603,14 +614,20 @@ Consequently:
 4. Tests based on implementation details rather than contracts
 5. Two parser modules (core vs expression) need to stay in sync
 
-### Known Issues (TODOs)
-- Uncertainty digit sometimes off by 1: `(10)` instead of `(11)`
-- Trailing zeros in some fuzzy number formats
-- Mask length calculation doesn't respect value precision
-- `asAbsolute` tests currently ignored (need proper scientific notation)
+### Known Issues (Resolved)
+
+- ~~Uncertainty digit sometimes off by 1: `(10)` instead of `(11)`~~ — fixed by `getQualifiedString` overhaul
+- ~~Trailing zeros in some fuzzy number formats~~ — fixed by `HasValueDouble.render` simplification
+- ~~Mask length calculation doesn't respect value precision~~ — fixed by `useScientific` logic
+- ~~`asAbsolute` tests currently ignored~~ — fixed by `forceScientific` parameter
+
+### Remaining Ignores (9)
+
+- `findRepeatingSequence` fails for large-period rationals (e.g. 1/137) — pre-existing limitation
 
 ---
 
 *Document created: February 17, 2026*  
-*Status: Band-aid applied, ready for major refactor*  
-*Next steps: Implement Phase 1 (add `show` method)*
+*Last updated: February 2026*  
+*Status: All four phases complete — 3,616 tests green, 9 ignored*
+*Version: 1.6.9

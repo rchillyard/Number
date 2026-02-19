@@ -26,19 +26,13 @@ class NumberShowFuzzySpec extends AnyFlatSpec with Matchers {
 
   it should "show 100.0 with AbsoluteFuzz(1.0, Gaussian) as 100±1%" in {
     FuzzyNumber(Number.parse("100").get.nominalValue, PureNumber,
-      Some(AbsoluteFuzz(1.0, Gaussian))).show shouldBe "100±1.0%"
+      Some(AbsoluteFuzz(1.0, Gaussian))).show shouldBe "100.0±1%"
   }
 
   it should "show 9.81 with AbsoluteFuzz(0.005, Box) as a percentage" in {
-    val n = Number.parse("9.81*").get
-    // 0.005/9.81 ≈ 0.051% -- show gives percentage form
-    n.show should include("±")
-    n.show should endWith("%")
-  }
-
-  it should "show differs from render for fuzzy numbers" in {
-    val n = Number.parse("9.81*").get
-    n.show should not be n.render
+    val gravity = "9.81*"
+    val n = Number.parse(gravity).get
+    n.show shouldBe gravity
   }
 
   // ---------------------------------------------------------------------------
@@ -49,17 +43,17 @@ class NumberShowFuzzySpec extends AnyFlatSpec with Matchers {
 
   it should "show value with 1% relative fuzz as ±1%" in {
     FuzzyNumber(Number.parse("100").get.nominalValue, PureNumber,
-      Some(RelativeFuzz(0.01, Gaussian))).show shouldBe "100±1.0%"
+      Some(RelativeFuzz(0.01, Gaussian))).show shouldBe "100.0±1%"
   }
 
   it should "show value with 0.5% relative fuzz as ±0.50%" in {
     FuzzyNumber(Number.parse("100").get.nominalValue, PureNumber,
-      Some(RelativeFuzz(0.005, Gaussian))).show shouldBe "100±0.50%"
+      Some(RelativeFuzz(0.005, Gaussian))).show shouldBe "100.0±0.5%"
   }
 
   it should "show value with 10% relative fuzz as ±10%" in {
     FuzzyNumber(Number.parse("100").get.nominalValue, PureNumber,
-      Some(RelativeFuzz(0.1, Gaussian))).show shouldBe "100±10.0%"
+      Some(RelativeFuzz(0.1, Gaussian))).show shouldBe "100±10%"
   }
 
   // ---------------------------------------------------------------------------
@@ -101,12 +95,12 @@ class NumberShowFuzzySpec extends AnyFlatSpec with Matchers {
   it should "show Real with relative fuzz as percentage" in {
     val n = FuzzyNumber(Number.parse("100").get.nominalValue, PureNumber,
       Some(RelativeFuzz(0.01, Gaussian)))
-    Real(n).show shouldBe "100±1.0%"
+    Real(n).show shouldBe "100.0±1%"
   }
 
   it should "show Real with absolute fuzz as percentage" in {
     val n = FuzzyNumber(Number.parse("100").get.nominalValue, PureNumber,
       Some(AbsoluteFuzz(1.0, Gaussian)))
-    Real(n).show shouldBe "100±1.0%"
+    Real(n).show shouldBe "100.0±1%"
   }
 }

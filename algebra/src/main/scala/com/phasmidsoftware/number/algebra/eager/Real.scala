@@ -280,6 +280,9 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
   lazy val render: String =
     maybeName getOrElse toFuzzyNumber(PureNumber).render
 
+  override lazy val show: String = // CONSIDER isn't this just the same as in supertype?
+    maybeName getOrElse toFuzzyNumber(PureNumber).show
+
   /**
     * Subtracts the specified `Real` value from this `Real` value.
     *
@@ -439,7 +442,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     * @return a new `Real` instance with its value scaled by π
     */
   lazy val scaleByPi: Real =
-    Real(value * Real.pi.value, Some(Fuzziness.doublePrecision))(None)
+    multiply(Real.pi).getOrElse(throw AlgebraException(s"scaleByPi: logic error: cannot multiply $this by π"))
 
   /**
     * Computes the power of the current value raised to the provided `Rational` exponent.
@@ -506,7 +509,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     *
     * @return A FuzzyNumber representation of the current value.
     */
-  private def toFuzzyNumber(factor: Factor): FuzzyNumber =
+  def toFuzzyNumber(factor: Factor): FuzzyNumber =
     new FuzzyNumber(Value.fromDouble(Some(value)), factor, fuzz)
 }
 

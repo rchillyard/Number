@@ -78,10 +78,11 @@ sealed trait Fuzziness[T] {
     * Method to yield a String to render the given T value.
     * The result is qualified by a Boolean indicating if the value is embedded in the result.
     *
-    * @param t a T value.
+    * @param t               a T value.
+    * @param forceScientific if true, always use scientific notation regardless of value magnitude.
     * @return a tuple of a Boolean and a String that is the textual rendering of t with this Fuzziness applied.
     */
-  def getQualifiedString(t: T): (Boolean, String)
+  def getQualifiedString(t: T, forceScientific: Boolean = false): (Boolean, String)
 
   /**
     * A variation on toString where we render this Fuzziness as a percentage.
@@ -229,23 +230,24 @@ case class RelativeFuzz[T: HasValue](tolerance: Double, shape: Shape) extends Fu
     * @param t the T value.
     * @return a String which is the textual rendering of t with this Fuzziness applied.
     */
-  def getQualifiedString(t: T): (Boolean, String) =
+  def getQualifiedString(t: T, forceScientific: Boolean = false): (Boolean, String) =
   {
     lazy val absoluteFuzz = absolute(t)
     lazy val tuple = false -> asPercentage
-    lazy val maybeAbsTuple = absoluteFuzz.map(_.getQualifiedString(t))
+    lazy val maybeAbsTuple = absoluteFuzz.map(_.getQualifiedString(t, forceScientific))
     (Option.when(tolerance > 0.0001)(tuple) orElse maybeAbsTuple).getOrElse(tuple)
   }
 
   /**
     * A variation on toString where we render this relative Fuzziness as a percentage.
+    * Trailing zeros are stripped (e.g. "0.5%" not "0.50%", "2%" not "2.0%").
     *
     * @return a String which ends with the '%' character.
     */
   def asPercentage: String = {
     val percentage = tolerance * 100
 
-    if (percentage == 0.0) return "0.0%"
+    if (percentage == 0.0) return "0%"
 
     val absPercentage = math.abs(percentage)
 
@@ -253,7 +255,11 @@ case class RelativeFuzz[T: HasValue](tolerance: Double, shape: Shape) extends Fu
     val decimals = if (absPercentage >= 1) 1
     else math.max(1, -math.floor(math.log10(absPercentage)).toInt + 1)
 
-    BigDecimal(percentage).setScale(decimals, BigDecimal.RoundingMode.HALF_UP).toString + "%"
+    BigDecimal(percentage)
+      .setScale(decimals, BigDecimal.RoundingMode.HALF_UP)
+      .underlying
+      .stripTrailingZeros
+      .toPlainString + "%"
   }
 
   /**
@@ -369,20 +375,20 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
     *
     * CONSIDER cleaning this method up a bit.
     *
-    * @param t a T value.
+    * @param t               a T value.
+    * @param forceScientific if true, always use scientific notation regardless of value magnitude.
     * @return a tuple of a Boolean (indicating if the value is embedded in the result) and a String which is the textual rendering of t with this Fuzziness applied.
     */
-  def getQualifiedString(t: T): (Boolean, String) = {
+  def getQualifiedString(t: T, forceScientific: Boolean = false): (Boolean, String) = {
     val tDouble = tv.toDouble(t)
     val absValue = math.abs(tDouble)
 
     // Use scientific notation for values outside [0.001, 10000), OR when the
-    // magnitude of the fuzz is >= 1 (uncertainty at or above the units position).
-    // In the latter case the mask mechanism requires scientific form to work correctly,
-    // since it can only express uncertainty digits after a decimal point.
+    // magnitude of the fuzz is >= 1 (uncertainty at or above the units position),
+    // OR when forceScientific is explicitly requested (e.g. for asAbsolute).
     val magnitudeDouble = tv.toDouble(magnitude)
     val magnitudeExp = if (magnitudeDouble > 0) math.floor(math.log10(magnitudeDouble)).toInt else 0
-    val useScientific = (absValue != 0.0 && (absValue >= 10000.0 || absValue < 0.001)) || magnitudeExp >= 0
+    val useScientific = forceScientific || (absValue != 0.0 && (absValue >= 10000.0 || absValue < 0.001)) || magnitudeExp >= 0
 
     val scientificFormat = f"$tDouble%.20E"
     val eString = scientificFormat match {
@@ -393,7 +399,7 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
     val exponent = Integer.parseInt(eString)
 
     // Only append E-suffix when we actually want scientific notation
-    val scientificSuffix = if (useScientific) s"E$eString" else ""
+    val scientificSuffix = if (useScientific && eString != noExponent) s"E$eString" else ""
 
     // Only scale when using scientific notation; otherwise work in natural decimal
     val effectiveExponent = if (useScientific) exponent else 0
@@ -627,17 +633,7 @@ object Fuzziness {
     */
   def toDecimalPower(x: Double, n: Int): Double = x * math.pow(10, n)
 
-  /**
-    * Normalizes a given Fuzziness instance based on whether the fuzziness 
-    * should be relative or absolute.
-    *
-    * @param t        the reference value that the fuzziness may be relative to.
-    * @param relative a flag indicating whether to produce a relative or absolute fuzziness.
-    * @param f        the Fuzziness instance to normalize.
-    * @tparam T the underlying type of the Fuzziness instance.
-    * @return the normalized Fuzziness instance, adjusted based on the `relative` flag.
-    */
-  def doNormalize[T](t: T, relative: Boolean, f: Fuzziness[T]) =
+  private def doNormalize[T](t: T, relative: Boolean, f: Fuzziness[T]) =
     f match {
       case a@AbsoluteFuzz(_, _) =>
         if (relative) a.relative(t) else Some(f)
@@ -1054,7 +1050,6 @@ trait HasValueDouble extends HasValue[Double] with DoubleIsFractional with Order
   * with fractional operations, scaling, normalization, and rendering to a string.
   */
 object HasValue {
-
   /**
     * An implicit object extending `HasValueDouble`, providing functionality for
     * working with `Double` values within the `HasValue` type class.

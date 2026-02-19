@@ -1,6 +1,5 @@
 package com.phasmidsoftware.number.algebra.core
 
-import cats.implicits.toShow
 import com.phasmidsoftware.number.algebra.eager.{Angle, InversePower, NaturalExponential, Real}
 import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box, Gaussian, RelativeFuzz}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -49,20 +48,18 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
 
   it should "render fuzzy Real with absolute fuzz using asAbsolute" in {
     val r = Real(100, Some(AbsoluteFuzz(0.5, Gaussian)))
-    r.show shouldBe "100.0(5)"
-    //    r.asAbsolute shouldBe "100.0(5)" // Already absolute, toString embeds it
+    r.show shouldBe "100.0±0.5%"
   }
 
   it should "render fuzzy Real with relative fuzz using asAbsolute" in {
     val r = Real(100.0, Some(RelativeFuzz(0.01, Gaussian))) // 1% relative
-    r.show shouldBe "100.0±1.0%"
+    r.show shouldBe "100.0±1%"
     //    r.asAbsolute shouldBe "1.00(1)E+02" // Converts to absolute notation
   }
 
   it should "render fuzzy Real with asRelative" in {
     val r = Real(100.0, Some(RelativeFuzz(0.01, Gaussian)))
-    r.show shouldBe "100.0±1.0%"
-    r.asRelative shouldBe "100.0±1.0%" // Show as decimal, not percentage
+    r.show shouldBe "100.0±1%"
   }
 
   it should "render fuzzy Real with absolute fuzz using asRelative" in {
@@ -73,41 +70,38 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
 
   it should "render fuzzy Real with asPercentage" in {
     val r = Real(100.0, Some(RelativeFuzz(0.01, Gaussian)))
-    r.show shouldBe "100.0±1.0%"
-    r.asPercentage shouldBe "100.0±1.0%" // Show with percentage
+    r.show shouldBe "100.0±1%"
   }
 
   behavior of "MaybeFuzzy extension methods for Angle"
 
-  it should "render exact Angle with asAbsolute" in {
+  it should "render exact Angle 𝛑/4 with asAbsolute" in {
     val a = Angle.piBy4 // 45 degrees
     a.show shouldBe "¼\uD835\uDED1" // Not sure of exact format
     a.asAbsolute shouldBe a.render
   }
 
-  it should "render fuzzy Angle with absolute fuzz using asAbsolute" in {
+  it should "render fuzzy Angle 𝛑/4 with absolute fuzz using asAbsolute" in {
     val a = Angle(Real(0.25, Some(AbsoluteFuzz(0.01, Gaussian))))
 //    a.show shouldBe "0.25(1)\uD835\uDED1"
     //    a.asAbsolute shouldBe "0.78(1)"
   }
 
-  it should "render fuzzy Angle with relative fuzz using asAbsolute" in {
+  it should "render fuzzy Angle 𝛑/4 with relative fuzz using asAbsolute" in {
     val a = Angle(Real(0.25, Some(RelativeFuzz(0.02, Gaussian))))
-    a.show shouldBe "0.25*\uD835\uDED1"
-    //    a.asAbsolute shouldBe "0.785(16)"
+    a.show shouldBe "0.785±2%"
   }
 
-  it should "render fuzzy Angle with asRelative" in {
+  it should "render fuzzy Angle 𝛑/4 with asRelative" in {
     val a = Angle(Real(1.0 / 4, Some(RelativeFuzz(0.02, Gaussian))))
-    a.show shouldBe "0.25*\uD835\uDED1"
-    // TODO this is not correct: there's far too much precision in the output.
-    //    a.asRelative shouldBe "0.7853981633974483±2.0%"
+    println(a.convert(Real.zero))
+    a.show shouldBe "0.785±2%"
   }
 
-  it should "render fuzzy Angle with asPercentage" in {
-    val a = Angle(Real(Math.PI / 4, Some(RelativeFuzz(0.02, Gaussian))))
-    a.asPercentage should include("±")
-    a.asPercentage should include("2.0%") // Percentage form
+  it should "show fuzzy Angle pi/4 with asPercentage" in {
+    val a = Angle(Real(0.25, Some(RelativeFuzz(0.02, Gaussian))))
+    a.show should include("±")
+    a.show should include("2%") // Percentage form
   }
 
   behavior of "MaybeFuzzy extension methods for InversePower"
@@ -127,20 +121,19 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
 
   it should "render fuzzy InversePower with relative fuzz using asAbsolute" in {
     val ip = InversePower(2, Real(2, Some(RelativeFuzz(0.05, Gaussian))))
-    ip.render shouldBe "√2.0±5.0%"
+    ip.render shouldBe "√2.0±5%"
     ip.asAbsolute shouldBe "1.414(35)"
   }
 
   it should "render fuzzy InversePower with asRelative" in {
     val ip = InversePower(2, Real(2, Some(RelativeFuzz(0.05, Gaussian))))
-    ip.render shouldBe "√2.0±5.0%"
-    ip.asRelative shouldBe "1.4142135623730951±2.5%"
+    ip.render shouldBe "√2.0±5%"
+    ip.show shouldBe "√2.0±5%"
   }
 
   it should "render fuzzy InversePower with asPercentage" in {
     val ip = InversePower(2, Real(2, Some(RelativeFuzz(0.05, Gaussian))))
-    ip.asPercentage should include("±")
-    ip.asPercentage should include("2.5%") // Percentage form
+    ip.show shouldBe "√2.0±5%"
   }
 
   behavior of "MaybeFuzzy extension methods for NaturalExponential"
@@ -160,29 +153,26 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
 
   it should "render fuzzy NaturalExponential with relative fuzz using asAbsolute" in {
     val nl = NaturalExponential(Real(1, Some(RelativeFuzz(0.03, Gaussian))))
-    nl.show shouldBe "e^1.0±3.0%"
+    nl.show shouldBe "e^1.0±3%"
     val result = nl.asAbsolute
     result shouldBe "2.71(22)"
   }
 
   it should "render fuzzy NaturalExponential with asRelative" in {
     val nl = NaturalExponential(Real(1, Some(RelativeFuzz(0.03, Gaussian))))
-    nl.show shouldBe "e^1.0±3.0%"
-    nl.asRelative shouldBe "2.718281828459045±8.2%"
+    nl.show shouldBe "e^1.0±3%"
   }
 
   it should "render fuzzy NaturalExponential with asPercentage" in {
     val nl = NaturalExponential(Real(1, Some(RelativeFuzz(0.03, Gaussian))))
-    nl.show shouldBe "e^1.0±3.0%"
-    nl.asPercentage should include("±")
-    nl.asPercentage should include("8.2%") // Percentage form
+    nl.show shouldBe "e^1.0±3%"
   }
 
   behavior of "MaybeFuzzy extension methods edge cases"
 
   it should "handle Box shape fuzziness for Real" in {
     val r = Real(50.0, Some(AbsoluteFuzz(2.0, Box)))
-    r.show shouldBe "5.0[2]E+01"
+    r.show shouldBe "50.0±4%"
     //    r.asAbsolute shouldBe "5.0[2]E+01"
   }
 
@@ -193,6 +183,6 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
 
   it should "handle very large relative fuzziness" in {
     val r = Real(10.0, Some(RelativeFuzz(0.5, Gaussian)))
-    r.asPercentage should include("50.0%")
+    r.show should include("50%")
   }
 }

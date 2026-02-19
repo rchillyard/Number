@@ -28,6 +28,14 @@ import scala.util.Try
 trait Valuable extends Renderable with Numeric with Zeroable with Unitary with Exactitude with Normalizable[Valuable] with TypeSafe {
 
   /**
+    * Renders and returns a string representation of the object.
+    * By default, this is the same as `render` but it can be overridden in subclasses.
+    *
+    * @return a string representing the object
+    */
+  def show: String = render
+
+  /**
     * Converts the current `Lazy` instance into an `Eager` instance by forcing
     * the resolution or evaluation of its underlying value.
     *

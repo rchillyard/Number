@@ -37,21 +37,22 @@ trait MaybeFuzzy extends Renderable {
 
 /**
   * Provides extension methods for the `MaybeFuzzy` trait to render its properties
-  * in various formats, including absolute, relative, and percentage representations.
+  * in absolute (scientific) form.
   */
 object MaybeFuzzy:
   /**
-    * Extension methods for the `MaybeFuzzy` trait to render its properties in various formats.
+    * Extension methods for the `MaybeFuzzy` trait.
     */
   extension (m: MaybeFuzzy)
     /**
-      * Converts the value of the current instance into its (absolute) `String` representation.
+      * Converts the value of the current instance into its absolute `String` representation,
+      * always using scientific notation (e.g. "1.00(1)E+02").
       *
-      * This method takes into account the presence of fuzziness associated with the value.
-      * If fuzziness is present, it normalizes it to an absolute representation and formats
-      * it accordingly. If no fuzziness is present, the nominal value is returned as rendered by `m.render`.
+      * If fuzziness is present, it normalizes it to absolute form and formats it in scientific
+      * notation with embedded uncertainty digits.
+      * If no fuzziness is present, the nominal value is returned as rendered by `m.render`.
       *
-      * @return A string representing the absolute value and its associated fuzziness (if any),
+      * @return A string in scientific notation with absolute uncertainty,
       *         or the nominal value if no fuzziness is associated.
       */
     def asAbsolute: String =
@@ -60,53 +61,7 @@ object MaybeFuzzy:
         case Some(fuzz) =>
           fuzz.normalize(m.nominalValue, relative = false) match
             case Some(absFuzz) =>
-              val (embedded, str) = absFuzz.getQualifiedString(m.nominalValue)
-              if embedded then str // AbsoluteFuzz embeds the value
-              else s"${m.nominalValue} ± $str" // Just in case
-            case None => m.render
-
-    /**
-      * Converts the value of the current instance into its (relative) `String` representation.
-      *
-      * This method takes into account the presence of fuzziness associated with the value. If fuzziness is present,
-      * it normalizes it to a relative representation and formats it accordingly. When the fuzziness is embedded
-      * in the result, the method returns the embedded representation as a string. Otherwise, it combines the nominal
-      * value and the fuzziness as a formatted string. If no fuzziness is present, the nominal value is returned as
-      * rendered by `m.render`.
-      *
-      * @return A string representing the relative value and its associated fuzziness (if any), or the nominal value
-      *         if no fuzziness is associated.
-      */
-    def asRelative: String =
-      m.maybeFuzz match
-        case None => m.render
-        case Some(fuzz) =>
-          fuzz.normalize(m.nominalValue, relative = true) match
-            case Some(relFuzz) =>
-              val (embedded, str) = relFuzz.getQualifiedString(m.nominalValue)
+              val (embedded, str) = absFuzz.getQualifiedString(m.nominalValue, forceScientific = true)
               if embedded then str
-              else s"${m.nominalValue}±$str" // Show as decimal
-            case None => m.render
-
-    /**
-      * Converts the value of the current instance into a percentage-based `String` representation.
-      *
-      * This method evaluates the optional fuzziness associated with the instance.
-      * If fuzziness is present, it normalizes it to a relative representation and retrieves the qualified string.
-      * When the fuzziness is embedded in the resulting string, the method directly returns the embedded representation.
-      * Otherwise, it combines the nominal value and the relative fuzziness percentage into a formatted string.
-      * If no fuzziness exists, the nominal value is returned as rendered by `m.render`.
-      *
-      * @return A string representing the nominal value along with its relative fuzziness as a percentage (if present),
-      *         or the nominal value alone if no fuzziness is associated.
-      */
-    def asPercentage: String =
-      m.maybeFuzz match
-        case None => m.render
-        case Some(fuzz) =>
-          fuzz.normalize(m.nominalValue, relative = true) match
-            case Some(relFuzz) =>
-              val (embedded, str) = relFuzz.getQualifiedString(m.nominalValue)
-              if embedded then str
-              else s"${m.nominalValue}±${relFuzz.asPercentage}"
+              else s"${m.nominalValue} ± $str"
             case None => m.render

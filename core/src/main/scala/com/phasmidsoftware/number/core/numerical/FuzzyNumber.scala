@@ -222,8 +222,13 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
 
   /**
     * Show this FuzzyNumber in a human-friendly manner.
-    * Converts fuzziness to relative (percentage) form where possible.
-    * Falls back to render if no simplification applies.
+    * If render produces a `*`-style result (e.g. "9.81*"), that is already
+    * human-friendly and is returned as-is.
+    * Otherwise, rounds the value to appropriate significant figures based on fuzz
+    * magnitude and always uses percentage notation (e.g. "0.785±2.0%", "100±0.50%").
+    * Note: absolute bracket notation is not used after rounding since rounding changes
+    * the decimal position, which would alter the meaning of bracket digits.
+    * Falls back to render if percentage conversion is not possible.
     *
     * @return a String
     */
@@ -231,12 +236,18 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     case None =>
       render
     case Some(f) =>
-      val valueStr = Value.valueToString(nominalValue, skipOne = false)
-      val percentage = f.normalize(toNominalDouble.getOrElse(0.0), relative = true)
-        .map(_.asPercentage)
-      percentage match
-        case Some(p) => s"$valueStr\u00B1$p"
-        case None => render
+      val rendered = render
+      if rendered.contains('*') then
+        rendered
+      else
+        val v = toNominalDouble.getOrElse(0.0)
+        f.normalize(v, relative = true) match
+          case Some(relFuzz) =>
+            val tolerance = relFuzz.wiggle(0.5)
+            val valueStr = FuzzyNumber.roundToSigFigs(v, FuzzyNumber.sigFigsForTolerance(tolerance))
+            s"$valueStr\u00B1${relFuzz.asPercentage}"
+          case None =>
+            rendered
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -282,6 +293,33 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
   * methods for comparison, arithmetic, and adding fuzziness to numbers.
   */
 object FuzzyNumber {
+
+  /**
+    * Round a Double value to the given number of significant figures, returning a String.
+    *
+    * @param value   the value to round.
+    * @param sigFigs the number of significant figures.
+    * @return a String representation rounded to sigFigs significant figures.
+    */
+  def roundToSigFigs(value: Double, sigFigs: Int): String =
+    if value == 0.0 then "0"
+    else
+      val magnitude = math.floor(math.log10(math.abs(value))).toInt
+      val scale = math.pow(10, sigFigs - 1 - magnitude)
+      val rounded = math.round(value * scale).toDouble / scale
+      val decimals = math.max(0, sigFigs - 1 - magnitude)
+      s"%.${decimals}f".format(rounded)
+
+  /**
+    * Calculate the appropriate number of significant figures to display given a relative tolerance.
+    * We show enough figures so the last digit is uncertain — i.e. 1 extra sig fig beyond the uncertainty.
+    *
+    * @param tolerance the relative tolerance (e.g. 0.02 for 2%).
+    * @return the number of significant figures to display (minimum 1).
+    */
+  def sigFigsForTolerance(tolerance: Double): Int =
+    if tolerance <= 0 then 6 // fallback for zero or negative tolerance
+    else math.max(1, -math.floor(math.log10(tolerance)).toInt + 1)
 
   /**
     * Definition of concrete (implicit) type class object for FuzzyNumber being Fuzzy.
