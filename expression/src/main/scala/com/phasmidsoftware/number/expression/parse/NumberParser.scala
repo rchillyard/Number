@@ -43,7 +43,7 @@ abstract class BaseNumberParser extends BaseRationalParser {
 
     def fuzz: Option[Fuzziness[Double]] = fuzziness match {
       case None => None // No fuzz marker = exact number
-      case Some(Asterisk | Ellipsis) => calculateFuzz(getExponent, realNumber.fractionalPart.length) // Asterisk = box fuzz
+      case Some(Asterisk | Ellipsis) => calculateFuzz(getExponent + realNumber.exponent.map(_.toInt).getOrElse(0), realNumber.fractionalPart.length)
       case Some(z) =>
         val gaussian = """\((\d*)\)""".r
         val box = """\[(\d*)]""".r

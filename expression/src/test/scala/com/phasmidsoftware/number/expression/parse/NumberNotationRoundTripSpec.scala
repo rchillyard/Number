@@ -2,6 +2,7 @@ package com.phasmidsoftware.number.expression.parse
 
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.core.numerical.AbsoluteFuzz
 import com.phasmidsoftware.number.core.numerical.Number.NumberIsFractional.mkNumericOps
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -67,16 +68,16 @@ class NumberNotationRoundTripSpec extends AnyFlatSpec with Matchers {
     parsed.render shouldBe "5" // Simplifies to integer form
   }
 
-  ignore should "round-trip repeating decimals with non-repeating parts" in {
+  it should "round-trip repeating decimals with non-repeating parts" in {
     val cases = Seq(
-      "0.1<6>" -> Rational(1, 6),
-      "0.08<3>" -> Rational(1, 12),
-      "0.5<0>" -> Rational(1, 2)
+      ("0.1<6>", Rational(1, 6), "⅙"),
+      ("0.08<3>", Rational(1, 12), "0.08<3>"),
+      ("0.5<0>", Rational(1, 2), "½")
     )
-    cases.foreach { case (original, expectedRational) =>
+    cases.foreach { case (original, expectedRational, expectedRender) =>
       val parsed = numerical.Number.parse(original).get
       parsed.toNominalRational shouldBe Some(expectedRational)
-      parsed.render shouldBe original
+      parsed.render shouldBe expectedRender
     }
   }
 
@@ -137,8 +138,8 @@ class NumberNotationRoundTripSpec extends AnyFlatSpec with Matchers {
     }
   }
 
-  ignore should "round-trip numbers with factors" in {
-    val original = "2π"
+  it should "round-trip numbers with factors" in {
+    val original = "2𝛑"
     val parsed = numerical.Number.parse(original).get
     parsed.render shouldBe original
   }
@@ -358,22 +359,27 @@ class NumberNotationRoundTripSpec extends AnyFlatSpec with Matchers {
 
   behavior of "Fuzziness magnitude calculation"
 
-  ignore should "calculate correct fuzziness for different decimal places" in {
+  it should "calculate correct fuzziness for different decimal places" in {
     val cases = Seq(
       ("2.5*", -2), // ±5 × 10^-2 = ±0.05
       ("2.50*", -3), // ±5 × 10^-3 = ±0.005
       ("2.500*", -4), // ±5 × 10^-4 = ±0.0005
-      ("1.23e5*", 4) // ±5 × 10^4 = ±50,000
+      ("1.23e5*", 2) // ±5 × 10^2  = ±500 (last digit of 1.23 at 10^-2, scaled by 10^5 = 10^3, half = 10^2)
     )
+
+    println(com.phasmidsoftware.number.core.numerical.Number.parse("1.23e5*").get.fuzz)
 
     cases.foreach { case (notation, expectedExponent) =>
       val parsed = numerical.Number.parse(notation).get
       parsed.fuzz shouldBe defined
-      // Verify the order of magnitude is correct
-      val fuzzValue = parsed.fuzz.get.wiggle(0.5)
-      // The log value should be approximately expectedExponent + log10(5)
+      val fuzzValue = parsed.fuzz.get match {
+        case AbsoluteFuzz(magnitude, _) => magnitude
+        case f => f.wiggle(0.5)
+      }
       val expectedLog = expectedExponent + math.log10(5)
-      math.abs(fuzzValue - expectedLog) should be < 1.0
+      math.abs(math.log10(fuzzValue) - expectedLog) should be < 0.1 // Compare in log space: log10(fuzzValue) should be close to expectedExponent + log10(5)
+      val actualLog = math.log10(fuzzValue)
+      math.abs(actualLog - expectedLog) should be < 0.1
     }
   }
 

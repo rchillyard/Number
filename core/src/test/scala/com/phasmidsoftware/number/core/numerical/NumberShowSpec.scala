@@ -137,9 +137,9 @@ class NumberShowSpec extends AnyFlatSpec with Matchers {
 
   behavior of "FuzzyNumber.show (no uncertainty marker)"
 
-  ignore should "fall back to render when there is no uncertainty marker" in {
+  it should "fall back to render when there is no uncertainty marker" in {
     // A FuzzyNumber with None fuzz renders like an ExactNumber
-    val n = FuzzyNumber(Number.parse("3*").get.nominalValue, PureNumber, None)
+    val n = FuzzyNumber(Number.parse("3.*").get.nominalValue, PureNumber, None)
     n.show shouldBe n.render
   }
 

@@ -271,4 +271,12 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     ry.get shouldBe Rational(BigDecimal.valueOf(299792458))
   }
 
+  behavior of "exponent"
+  it should "parse E-1" in {
+    p.parseAll(p.exponent, "E-1") should matchPattern { case p.Success(_, _) => }
+  }
+  it should "parse E+1" in {
+    p.parseAll(p.exponent, "E+1") should matchPattern { case p.Success(_, _) => }
+  }
+
 }

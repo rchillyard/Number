@@ -150,7 +150,9 @@ abstract class BaseRationalParser extends SignificantSpaceParsers {
     case so ~ n => WholeNumber(so.isDefined, n)
   }
 
-  def realNumber: Parser[RealNumber] = (opt("-") ~ unsignedWholeNumber ~ ("." ~> opt(unsignedWholeNumber)) ~ opt(E ~> wholeNumber)) :| "realNumber" ^^ {
+  //  def realNumber: Parser[RealNumber] = (opt("-") ~ unsignedWholeNumber ~ ("." ~> opt(unsignedWholeNumber)) ~ opt(E ~> wholeNumber)) :| "realNumber" ^^ {
+
+  def realNumber: Parser[RealNumber] = (opt("-") ~ unsignedWholeNumber ~ ("." ~> opt(unsignedWholeNumber)) ~ opt(E ~> ("""\+?""".r ~> wholeNumber))) :| "realNumber" ^^ {
     case so ~ integerPart ~ fractionalPart ~ expo => RealNumber(so.isDefined, integerPart, fractionalPart, expo)
   }
 

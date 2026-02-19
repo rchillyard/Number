@@ -8,6 +8,10 @@ import com.phasmidsoftware.number.core.inner.{Rational, VulgarFraction}
 
 import scala.util.Try
 
+/**
+  * Represents a numerical value that can be evaluated as a `Rational` number
+  * wrapped in a `Try`, indicating possible failure during parsing.
+  */
 trait ValuableNumber {
 
   /**
@@ -147,9 +151,12 @@ abstract class BaseRationalParser extends SignificantSpaceParsers {
     case so ~ n => WholeNumber(so.isDefined, n)
   }
 
-  def realNumber: Parser[RealNumber] = (opt("-") ~ unsignedWholeNumber ~ ("." ~> opt(unsignedWholeNumber)) ~ opt(E ~> wholeNumber)) :| "realNumber" ^^ {
+  //  def realNumber: Parser[RealNumber] = (opt("-") ~ unsignedWholeNumber ~ ("." ~> opt(unsignedWholeNumber)) ~ opt(E ~> wholeNumber)) :| "realNumber" ^^ {
+
+  def realNumber: Parser[RealNumber] = (opt("-") ~ unsignedWholeNumber ~ ("." ~> opt(unsignedWholeNumber)) ~ opt(E ~> ("""\+?""".r ~> wholeNumber))) :| "realNumber" ^^ {
     case so ~ integerPart ~ fractionalPart ~ expo => RealNumber(so.isDefined, integerPart, fractionalPart, expo)
   }
+
 
   /** An integer, without sign. */
   def unsignedWholeNumber: Parser[String] = logit("""\d+""".r)("unsignedWholeNumber") //^^ (x => debug(s"unsignedWholeNumber",x))

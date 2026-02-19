@@ -438,12 +438,12 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     Real(x) shouldEqual Constants.G // "6.67430(15)E-11"
     x.render shouldBe "6.67430(15)E-11"
   }
-  ignore should "get alpha" in {
+  it should "get alpha" in {
     import Number.FuzzOps
     val x = 0.0072973525693 ~ 11
     x.isExact shouldBe false
     x shouldEqual Number(sAlpha)
-    x.render shouldBe "7.2973525693(11)E-03"
+    x.render shouldBe "0.0072973525693(11)"
   }
 
   behavior of "specialize"

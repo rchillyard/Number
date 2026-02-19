@@ -153,4 +153,15 @@ class NumberRenderSpec extends AnyFlatSpec with Matchers {
   it should "render pi as pi symbol" in {
     Number.pi.render shouldBe Number.pi.render // stable, whatever canonical form it takes
   }
+
+  behavior of "parsing issues"
+  it should "use scientific notation for very large values" in {
+    val n = Number.parse("1.0E+06*").get
+    n.render should include("E")
+  }
+
+  it should "use scientific notation for very small values" in {
+    val n = Number.parse("1.0E-04*").get
+    n.render should include("E")
+  }
 }
