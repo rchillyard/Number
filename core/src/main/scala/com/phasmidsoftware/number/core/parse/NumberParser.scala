@@ -141,8 +141,11 @@ abstract class BaseNumberParser extends BaseRationalParser {
 
   // NOTE: if you copy numbers from HTML, you may end up with an illegal "-" character.
   // Error message will be something like: string matching regex '-?\d+' expected but '−' found
+  //  def exponent: Parser[String] =
+  //    (rE ~> """\+?""".r ~> wholeNumber) :| "exponent"
+
   def exponent: Parser[String] =
-    (rE ~> wholeNumber) :| "exponent"
+    (rE ~> """\+?-?\d+""".r) :| "exponent"
 
   private val rE = "[eE]".r
 
