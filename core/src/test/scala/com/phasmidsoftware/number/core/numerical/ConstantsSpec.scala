@@ -98,6 +98,18 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     target shouldBe Real(1836.15267343 ~ 11)
     target.render shouldBe "1836.15267343(11)"
   }
+  it should "show proton/electron ratio with appropriate precision" in {
+    val n = Number.parse("1836.15267343(11)").get
+    n.fuzz.foreach { f =>
+      val v = n.toNominalDouble.getOrElse(0.0)
+      f.normalize(v, relative = true).foreach { relFuzz =>
+        val tolerance = relFuzz.wiggle(0.5)
+        println(s"wiggle=$tolerance sigFigs=${FuzzyNumber.sigFigsForTolerance(tolerance)}")
+      }
+    }
+    println(n.show)
+    n.show should include("1836.15")
+  }
 //  it should "have phi" in {
 //    val target = Constants.phi
 //    target.isExact shouldBe true

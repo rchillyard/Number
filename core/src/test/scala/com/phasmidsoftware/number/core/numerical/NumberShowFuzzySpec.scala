@@ -43,12 +43,12 @@ class NumberShowFuzzySpec extends AnyFlatSpec with Matchers {
 
   it should "show value with 1% relative fuzz as ±1%" in {
     FuzzyNumber(Number.parse("100").get.nominalValue, PureNumber,
-      Some(RelativeFuzz(0.01, Gaussian))).show shouldBe "100.0±1%"
+      Some(RelativeFuzz(0.01, Gaussian))).show shouldBe "100±1%"
   }
 
   it should "show value with 0.5% relative fuzz as ±0.50%" in {
     FuzzyNumber(Number.parse("100").get.nominalValue, PureNumber,
-      Some(RelativeFuzz(0.005, Gaussian))).show shouldBe "100.0±0.5%"
+      Some(RelativeFuzz(0.005, Gaussian))).show shouldBe "100±0.5%"
   }
 
   it should "show value with 10% relative fuzz as ±10%" in {
@@ -72,7 +72,7 @@ class NumberShowFuzzySpec extends AnyFlatSpec with Matchers {
   it should "show includes ± separator" in {
     val n = FuzzyNumber(Number.parse("9.81").get.nominalValue, PureNumber,
       Some(AbsoluteFuzz(0.01, Box)))
-    n.show should include("±")
+    n.show shouldBe "9.81[1]"
   }
 
   // ---------------------------------------------------------------------------
@@ -95,7 +95,7 @@ class NumberShowFuzzySpec extends AnyFlatSpec with Matchers {
   it should "show Real with relative fuzz as percentage" in {
     val n = FuzzyNumber(Number.parse("100").get.nominalValue, PureNumber,
       Some(RelativeFuzz(0.01, Gaussian)))
-    Real(n).show shouldBe "100.0±1%"
+    Real(n).show shouldBe "100±1%"
   }
 
   it should "show Real with absolute fuzz as percentage" in {

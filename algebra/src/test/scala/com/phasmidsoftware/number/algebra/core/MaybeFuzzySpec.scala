@@ -48,7 +48,7 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
 
   it should "render fuzzy Real with absolute fuzz using asAbsolute" in {
     val r = Real(100, Some(AbsoluteFuzz(0.5, Gaussian)))
-    r.show shouldBe "100.0±0.5%"
+    r.show shouldBe "100.0(5)"
   }
 
   it should "render fuzzy Real with relative fuzz using asAbsolute" in {

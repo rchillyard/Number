@@ -224,10 +224,11 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     * Show this FuzzyNumber in a human-friendly manner.
     * If render produces a `*`-style result (e.g. "9.81*"), that is already
     * human-friendly and is returned as-is.
-    * Otherwise, rounds the value to appropriate significant figures based on fuzz
-    * magnitude and always uses percentage notation (e.g. "0.785±2.0%", "100±0.50%").
-    * Note: absolute bracket notation is not used after rounding since rounding changes
-    * the decimal position, which would alter the meaning of bracket digits.
+    * Otherwise, computes a percentage form with the value rounded to appropriate
+    * significant figures (e.g. "0.785±2%"). Returns whichever of render or
+    * percentage form is shorter — this favours precise Gaussian notation
+    * (e.g. "1836.15267343(11)") over a verbose percentage equivalent, while
+    * still preferring percentage for values with excessive double-precision digits.
     * Falls back to render if percentage conversion is not possible.
     *
     * @return a String
@@ -245,7 +246,9 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
           case Some(relFuzz) =>
             val tolerance = relFuzz.wiggle(0.5)
             val valueStr = FuzzyNumber.roundToSigFigs(v, FuzzyNumber.sigFigsForTolerance(tolerance))
-            s"$valueStr\u00B1${relFuzz.asPercentage}"
+            val percentageForm = s"$valueStr\u00B1${relFuzz.asPercentage}"
+            if percentageForm.length < rendered.length then percentageForm
+            else rendered
           case None =>
             rendered
 

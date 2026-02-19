@@ -284,18 +284,18 @@ is where the value string can have excessive digits, making the rounding most va
 
 ### Examples
 
-| Declared value        | Fuzziness             | `render` (canonical)      | `show` (display)  | Notes                                   |
-|-----------------------|-----------------------|---------------------------|-------------------|-----------------------------------------|
-| `"2.5*"`              | ±0.05 (Box)           | `"2.5*"`                  | `"2.5*"`          | `*` already human-friendly              |
-| `"2.5"`               | None                  | `"2.5"`                   | `"2.5"`           | Exact, no fuzz                          |
-| `"9.81*"`             | ±0.005 (Box)          | `"9.81*"`                 | `"9.81*"`         | `*` already human-friendly              |
-| `"9.81[1]"`           | ±0.01 (Box)           | `"9.81[1]"`               | `"9.81±0.1%"`     | Rounded value + percentage              |
-| `"100.*"`  †          | ±0.5 (Box)            | `"100.*"`                 | `"100.*"`         | `*` already human-friendly              |
-| `"100.0(5)"`          | ±0.5 (Gaussian)       | `"100.0(5)"`              | `"100±0.5%"`      | Rounded value + percentage              |
-| `Real(π/4, 2% rel)`   | ±2% (Gaussian)        | `"0.7853981633974483±2%"` | `"0.785±2%"`      | Rounded value + percentage              |
-| `"1836.15267343(11)"` | ±0.0000011 (Gaussian) | `"1836.15267343(11)"`     | `"1836±0.00006%"` | Tiny Gaussian fuzz → compact percentage |
-| `1/3`                 | None                  | `"0.<3>"`                 | `"⅓"`             | Vulgar fraction                         |
-| `π`                   | None                  | `"π"`                     | `"π"`             | Exact symbolic                          |
+| Declared value        | Fuzziness             | `render` (canonical)      | `show` (display)      | Notes                             |
+|-----------------------|-----------------------|---------------------------|-----------------------|-----------------------------------|
+| `"2.5*"`              | ±0.05 (Box)           | `"2.5*"`                  | `"2.5*"`              | `*` already human-friendly        |
+| `"2.5"`               | None                  | `"2.5"`                   | `"2.5"`               | Exact, no fuzz                    |
+| `"9.81*"`             | ±0.005 (Box)          | `"9.81*"`                 | `"9.81*"`             | `*` already human-friendly        |
+| `"9.81[1]"`           | ±0.01 (Box)           | `"9.81[1]"`               | `"9.81±0.1%"`         | Rounded value + percentage        |
+| `"100.*"`  †          | ±0.5 (Box)            | `"100.*"`                 | `"100.*"`             | `*` already human-friendly        |
+| `"100.0(5)"`          | ±0.5 (Gaussian)       | `"100.0(5)"`              | `"100±0.5%"`          | Rounded value + percentage        |
+| `Real(π/4, 2% rel)`   | ±2% (Gaussian)        | `"0.7853981633974483±2%"` | `"0.785±2%"`          | Rounded value + percentage        |
+| `"1836.15267343(11)"` | ±0.0000011 (Gaussian) | `"1836.15267343(11)"`     | `"1836.15267343(11)"` | Gaussian fuzz more human-friendly |
+| `1/3`                 | None                  | `"0.<3>"`                 | `"⅓"`                 | Vulgar fraction                   |
+| `π`                   | None                  | `"π"`                     | `"π"`                 | Exact symbolic                    |
 
 † 100.0 cannot be distinguished from 100 after the compiler has parsed this value.
 
