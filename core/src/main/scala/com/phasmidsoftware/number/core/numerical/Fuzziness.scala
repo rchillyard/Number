@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.inner.MonadicOperation
+import com.phasmidsoftware.number.core.inner.{MonadicOperation, Percent}
 import com.phasmidsoftware.number.core.misc.Variance.{convolution, rootSumSquares}
 import com.phasmidsoftware.number.core.numerical.Fuzziness.{toDecimalPower, zipStrings}
 import com.phasmidsoftware.number.core.numerical.HasValue.HasValueDouble$
@@ -247,7 +247,7 @@ case class RelativeFuzz[T: HasValue](tolerance: Double, shape: Shape) extends Fu
   def asPercentage: String = {
     val percentage = tolerance * 100
 
-    if (percentage == 0.0) return "0%"
+    if (percentage == 0.0) return s"0$Percent"
 
     val absPercentage = math.abs(percentage)
 
@@ -259,7 +259,7 @@ case class RelativeFuzz[T: HasValue](tolerance: Double, shape: Shape) extends Fu
       .setScale(decimals, BigDecimal.RoundingMode.HALF_UP)
       .underlying
       .stripTrailingZeros
-      .toPlainString + "%"
+      .toPlainString + Percent
   }
 
   /**

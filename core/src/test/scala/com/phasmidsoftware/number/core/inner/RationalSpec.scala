@@ -1137,8 +1137,9 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "invert 37 and render as ..." in {
     Rational(37).invert.renderExact shouldBe "0.<027>"
   }
-  // TODO Issue #184
+  // XXX FIXED Issue #184
   it should "invert 137 and render as 0.<00729927>" in {
+    Rational(137).invert.render shouldBe "0.<00729927>"
     Rational(137).invert.findRepeatingSequence shouldBe Success("0.<00729927>")
   }
 }

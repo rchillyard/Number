@@ -650,7 +650,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * @return A string representation of the number as a percentage with the specified number of decimal places.
     */
   def renderAsPercent(places: Int): String =
-    (this * 100).renderApproximate(4 + places, Some(places)) + "%"
+    (this * 100).renderApproximate(4 + places, Some(places)) + Percent
 
   /**
     * Multiplies this Rational number by a given Long value and returns the result as a new Rational number.

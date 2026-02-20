@@ -1836,7 +1836,7 @@ object Factor {
     * This field is used within the `Factor` class to identify specific behavior
     * or matching criteria, potentially related to percentages or division operations.
     */
-  val sPercent = "%"
+  lazy val sPercent: String = Percent.toString
   /**
     * Represents the degree symbol ("°") used to denote angular measurement.
     */

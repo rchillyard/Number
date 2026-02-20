@@ -12,7 +12,7 @@ import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.RationalNumber.rationalNumberIsField
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.{LatexRendererOps, frac}
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
-import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.core.inner.{Percent, Rational}
 
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
@@ -176,7 +176,7 @@ case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeNam
     */
   lazy val render: String = maybeName getOrElse (
       if (percentage)
-        s"${(r * 100).render}%" // CHECK that this never gives a ratio.
+        s"${(r * 100).render}$Percent" // CHECK that this never gives a ratio.
       else
         r.render
       )
@@ -449,7 +449,7 @@ object RationalNumber {
     */
   implicit val rationalNumberLatexRenderer: LatexRenderer[RationalNumber] = LatexRenderer.instance {
     case RationalNumber(r, false) => r.toLatex
-    case RationalNumber(r, _) => s"${r.value}\\%"
+    case RationalNumber(r, _) => s"${r.value}$Percent"
   }
 
   /**
