@@ -1526,6 +1526,11 @@ object Rational {
         getCandidates(Seq(d.toInt - 1))
       case None =>
         Failure(RationalException(s"Rational.getPeriods: no suitable candidates for repeating sequence length"))
+      case Some(Nil) if d < BigNumber.MAXDECIMALDIGITS =>
+        // primeFactors were found but all had period 0 (factors of 2 or 5 only),
+        // OR primeFactors were not found due to search limit being too small.
+        // Fall back to d-1 as the candidate period (correct for prime d).
+        getCandidates(Seq(d.toInt - 1))
       case Some(xs) =>
         getCandidates(xs)
     }
