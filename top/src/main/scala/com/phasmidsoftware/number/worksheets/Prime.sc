@@ -1,5 +1,11 @@
-import com.phasmidsoftware.number.core.Primes
+import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.core.numerical.{Prime, Primes}
+
 import scala.math.BigInt.int2bigInt
+
+val p137 = Prime(137)
+p137.validated
+Rational(1, p137.toBigInt).findRepeatingSequence
 
 Primes.allPrimes.take(20).toList
 

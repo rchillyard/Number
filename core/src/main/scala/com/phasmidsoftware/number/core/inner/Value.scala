@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Render.renderValue
 import com.phasmidsoftware.number.core.misc.FP.*
-import com.phasmidsoftware.number.core.numerical.CoreException
+import com.phasmidsoftware.number.core.numerical.{CoreException, WithFuzziness}
 
 import java.lang
 import scala.util.*
@@ -314,7 +314,7 @@ object Value {
     case ((x, _), false) =>
       x
     case ((x, _), _) =>
-      x + "*"
+      x + WithFuzziness.Asterisk
   }
 
   /**

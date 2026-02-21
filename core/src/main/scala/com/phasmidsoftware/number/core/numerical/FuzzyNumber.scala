@@ -5,8 +5,9 @@
 package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.inner.*
-import com.phasmidsoftware.number.core.numerical.FuzzyNumber.{Ellipsis, withinWiggleRoom}
+import com.phasmidsoftware.number.core.numerical.FuzzyNumber.withinWiggleRoom
 import com.phasmidsoftware.number.core.numerical.Number.prepareWithSpecialize
+import com.phasmidsoftware.number.core.numerical.WithFuzziness.{Asterisk, Ellipsis}
 
 import scala.collection.mutable
 
@@ -191,7 +192,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
       case Some(f) if f.wiggle(0.5) > 1E-16 =>
         f.getQualifiedString(toNominalDouble.getOrElse(0.0))
       case Some(_) =>
-        true -> (valueAsString.replace(Ellipsis, "") + "*")
+        true -> (valueAsString.replace(Ellipsis, "") + Asterisk)
       case None =>
         true -> valueAsString
     }
@@ -203,7 +204,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     }
     // TODO Improve this.
     //  Currently, this is a hack but other places essentially do this same thing but I'm having a hard time merging the appropriate code.
-    val w = ww.replaceAll("""0\[5]""", "*")
+    val w = ww.replaceAll("""0\[5]""", Asterisk)
 
     factor match {
       case Logarithmic(_) =>
@@ -218,6 +219,38 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     }
     sb.toString
   }
+
+  /**
+    * Show this FuzzyNumber in a human-friendly manner.
+    * If render produces a `*`-style result (e.g. "9.81*"), that is already
+    * human-friendly and is returned as-is.
+    * Otherwise, computes a percentage form with the value rounded to appropriate
+    * significant figures (e.g. "0.785±2%"). Returns whichever of render or
+    * percentage form is shorter — this favours precise Gaussian notation
+    * (e.g. "1836.15267343(11)") over a verbose percentage equivalent, while
+    * still preferring percentage for values with excessive double-precision digits.
+    * Falls back to render if percentage conversion is not possible.
+    *
+    * @return a String
+    */
+  override lazy val show: String = fuzz match
+    case None =>
+      render
+    case Some(f) =>
+      val rendered = render
+      if rendered.contains('*') then
+        rendered
+      else
+        val v = toNominalDouble.getOrElse(0.0)
+        f.normalize(v, relative = true) match
+          case Some(relFuzz) =>
+            val tolerance = relFuzz.wiggle(0.5)
+            val valueStr = FuzzyNumber.roundToSigFigs(v, FuzzyNumber.sigFigsForTolerance(tolerance))
+            val percentageForm = s"$valueStr\u00B1${relFuzz.asPercentage}"
+            if percentageForm.length < rendered.length then percentageForm
+            else rendered
+          case None =>
+            rendered
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -264,7 +297,32 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
   */
 object FuzzyNumber {
 
-  val Ellipsis = "..."
+  /**
+    * Round a Double value to the given number of significant figures, returning a String.
+    *
+    * @param value   the value to round.
+    * @param sigFigs the number of significant figures.
+    * @return a String representation rounded to sigFigs significant figures.
+    */
+  def roundToSigFigs(value: Double, sigFigs: Int): String =
+    if value == 0.0 then "0"
+    else
+      val magnitude = math.floor(math.log10(math.abs(value))).toInt
+      val scale = math.pow(10, sigFigs - 1 - magnitude)
+      val rounded = math.round(value * scale).toDouble / scale
+      val decimals = math.max(0, sigFigs - 1 - magnitude)
+      s"%.${decimals}f".format(rounded)
+
+  /**
+    * Calculate the appropriate number of significant figures to display given a relative tolerance.
+    * We show enough figures so the last digit is uncertain — i.e. 1 extra sig fig beyond the uncertainty.
+    *
+    * @param tolerance the relative tolerance (e.g. 0.02 for 2%).
+    * @return the number of significant figures to display (minimum 1).
+    */
+  def sigFigsForTolerance(tolerance: Double): Int =
+    if tolerance <= 0 then 6 // fallback for zero or negative tolerance
+    else math.max(1, -math.floor(math.log10(tolerance)).toInt + 1)
 
   /**
     * Definition of concrete (implicit) type class object for FuzzyNumber being Fuzzy.

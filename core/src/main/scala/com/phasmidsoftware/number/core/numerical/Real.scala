@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.algebraic.{Solution}
+import com.phasmidsoftware.number.core.algebraic.Solution
 import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
 import com.phasmidsoftware.number.core.misc.FP.recover
 import com.phasmidsoftware.number.core.numerical.Number.{NumberIsFractional, NumberIsOrdering}
@@ -309,6 +309,13 @@ case class Real(x: Number) extends Field {
     */
   lazy val render: String = x.render
 
+  /**
+    * Show this Real in a human-friendly manner, delegating to the underlying Number.
+    *
+    * @return a String
+    */
+  override lazy val show: String = x.show
+
   override lazy val toString: String = x.toString
 
   /**
@@ -440,7 +447,7 @@ object Real {
   def log(x: Field, y: Field): Real =
     (for (a <- x.asNumber; b <- y.asNumber) yield Real(a `log` b)).getOrElse(Real(Number.NaN))
 
-//  val atanFunction: (Field, Field) => Real = atan
+  //  val atanFunction: (Field, Field) => Real = atan
 
   /**
     * Creates a Real instance from a given Field if it can be represented as a real number.

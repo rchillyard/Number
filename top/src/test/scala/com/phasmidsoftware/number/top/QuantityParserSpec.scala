@@ -203,6 +203,7 @@ class QuantityParserSpec extends AnyFlatSpec with Matchers {
     QuantityParser.parse("5 m//s") match {
       case Right(_) => fail("Should not have parsed invalid syntax")
       case Left(com.phasmidsoftware.number.parse.UnitError(err)) => err.length should be > 0
+      case _ => fail("Should have thrown UnitError")
     }
   }
 
@@ -210,6 +211,7 @@ class QuantityParserSpec extends AnyFlatSpec with Matchers {
     QuantityParser.parse("abc m") match {
       case Right(_) => fail("Should not have parsed invalid number")
       case Left(com.phasmidsoftware.number.parse.UnitError(err)) => err.length should be > 0
+      case _ => fail("Should have thrown UnitError")
     }
   }
 

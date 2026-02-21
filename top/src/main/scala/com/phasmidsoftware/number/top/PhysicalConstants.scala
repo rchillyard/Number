@@ -21,7 +21,7 @@ object PhysicalConstants {
   // ============================================================================
 
   /**
-    * Represents the speed of light in vacuum, defined as an immutable quantity
+    * Represents the speed of light `in vacuo`, defined as an immutable quantity
     * with a value of 299,792,458 meters per second.
     *
     * This value is a physical constant used in various scientific calculations,
@@ -42,9 +42,14 @@ object PhysicalConstants {
     * This constant is expressed as a `Quantity` with the dimension of energy multiplied by time (`EnergyTime`).
     * It is utilized in calculations involving energy, frequency, and photon behavior.
     */
-  lazy val h: Quantity[EnergyTime] = Quantity("6.6260701500E-34", JouleSecond) // NOTE trailing "00" is to force exactitude
+  lazy val h: Quantity[EnergyTime] = Quantity("6.62607015E-34", JouleSecond)
 
-  /** Reduced Planck constant: ℏ = h/(2π) (exact, derived from h) */
+  /** Reduced Planck constant: `ℏ = h/(2π)` (exact, derived from h).
+    * In theory, this is exact, but in practice, we can't divide a number
+    * by π and still have an exact result.
+    * Now, if they had made `h-bar` exact, we could have made
+    * `h` exact simply by representing it in radians.
+    * */
   lazy val HBar: Quantity[EnergyTime] = h / Quantity(Angle.twoPi)
 
   /**

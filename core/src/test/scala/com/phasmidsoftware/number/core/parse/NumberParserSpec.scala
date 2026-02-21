@@ -7,6 +7,7 @@ package com.phasmidsoftware.number.core.parse
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.*
+import com.phasmidsoftware.number.core.numerical.WithFuzziness.Asterisk
 import com.phasmidsoftware.number.core.parse.{NumberParser, ValuableNumber}
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
@@ -101,15 +102,15 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     ry.get shouldBe Rational(BigDecimal.valueOf(3.1415927))
   }
   it should "parse 3.1415927*E1" in {
-    val np: p.ParseResult[p.NumberWithFuzziness] = p.parseAll(p.numberWithFuzziness, "3.1415927*E1")
+    val np: p.ParseResult[p.NumberWithFuzziness] = p.parseAll(p.numberWithFuzziness, s"3.1415927${Asterisk}E1")
     np should matchPattern { case p.Success(_, _) => }
     val n: p.NumberWithFuzziness = np.get
-    n should matchPattern { case p.NumberWithFuzziness(p.RealNumber(false, "3", Some("1415927"), None), None, Some("1")) => }
+    n should matchPattern { case p.NumberWithFuzziness(p.RealNumber(false, "3", Some("1415927"), None), Some(Asterisk), Some("1")) => }
     n.value.get shouldBe Rational.createExact(31.415927).get
     n.fuzz should matchPattern { case Some(AbsoluteFuzz(_, Box)) => }
   }
   it should "reject 3.1415927* E1" in {
-    val np: p.ParseResult[p.NumberWithFuzziness] = p.parseAll(p.numberWithFuzziness, "3.1415927* E1")
+    val np: p.ParseResult[p.NumberWithFuzziness] = p.parseAll(p.numberWithFuzziness, s"3.1415927$Asterisk E1")
     np should matchPattern { case p.Failure(_, _) => }
   }
   it should "parse 1.00(5)" in {
@@ -200,9 +201,9 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     r.get should matchPattern { case Some("(17)") => }
   }
   it should "parse *" in {
-    val r: p.ParseResult[Option[String]] = p.parseAll(p.fuzz, "*")
+    val r: p.ParseResult[Option[String]] = p.parseAll(p.fuzz, Asterisk)
     r should matchPattern { case p.Success(_, _) => }
-    r.get should matchPattern { case None => }
+    r.get should matchPattern { case Some(Asterisk) => }
   }
 
   behavior of "number"
@@ -268,6 +269,14 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
     val ry: Try[Rational] = r.get.value
     ry should matchPattern { case scala.util.Success(_) => }
     ry.get shouldBe Rational(BigDecimal.valueOf(299792458))
+  }
+
+  behavior of "exponent"
+  it should "parse E-1" in {
+    p.parseAll(p.exponent, "E-1") should matchPattern { case p.Success(_, _) => }
+  }
+  it should "parse E+1" in {
+    p.parseAll(p.exponent, "E+1") should matchPattern { case p.Success(_, _) => }
   }
 
 }

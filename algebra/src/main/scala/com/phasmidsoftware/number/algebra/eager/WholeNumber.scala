@@ -198,7 +198,7 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
     *
     * @return the string representation of this `WholeNumber` instance
     */
-  def render: String = maybeName getOrElse x.toString
+  lazy val render: String = maybeName getOrElse x.toString
 
   /**
     * Negates the current `WholeNumber` instance, returning its additive inverse.

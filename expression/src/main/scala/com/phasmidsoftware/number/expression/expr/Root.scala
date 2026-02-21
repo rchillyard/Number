@@ -322,7 +322,7 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int, maybeName: Option
     *
     * @return a String
     */
-  def render: String = solution.render
+  lazy val render: String = solution.render
 
   /**
     * Computes the power of the current `Expression` raised to the specified `Rational` exponent.

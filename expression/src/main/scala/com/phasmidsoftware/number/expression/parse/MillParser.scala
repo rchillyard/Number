@@ -57,7 +57,7 @@ abstract class BaseMillParser extends BaseNumberParser {
     * @param t the defining token.
     */
   case class AnadicTerm(t: Token) extends Term {
-    override def toString: String = t match {
+    override lazy val toString: String = t match {
       case Right(x) =>
         x.toString
       case Left(x) =>
@@ -73,7 +73,7 @@ abstract class BaseMillParser extends BaseNumberParser {
     * @param op an monadic operator, represented by a String.
     */
   case class MonadicTerm(t: Term, os: List[String], op: String) extends Term {
-    override def toString: String = s"$t $os $op"
+    override lazy val toString: String = s"$t $os $op"
   }
 
   /**

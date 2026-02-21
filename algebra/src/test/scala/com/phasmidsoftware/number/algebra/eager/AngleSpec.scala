@@ -30,7 +30,7 @@ class AngleSpec extends AnyFlatSpec with Matchers with AssertionHelpers {
   }
 
   it should "test conversion to other Structures" in {
-    pi.convert(Real.zero) shouldBe Some(Real(3.141592653589793, Some(RelativeFuzz(1.6E-16, Box))))
+    pi.convert(Real.zero) shouldBe Some(Real(3.141592653589793, Some(RelativeFuzz(1.5915494309189536E-16, Box))))
     pi.convert(RationalNumber.zero) shouldBe None
   }
 

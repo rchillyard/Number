@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
-import com.phasmidsoftware.number.core.numerical.Constants.{`𝛑`, sGamma, sPhi}
+import com.phasmidsoftware.number.core.numerical.Constants.{sGamma, sPhi}
 import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
 import com.phasmidsoftware.number.core.numerical.Fuzziness.showPercentage
 import com.phasmidsoftware.number.core.numerical.Number.{negate, twoPi}
@@ -480,8 +480,8 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "implement asComparedWith" in {
     val n: Number = Number(r"22/7")
-    showPercentage(n.asComparedWith(Number.pi)) shouldBe "0.020%"
-    showPercentage(Number.pi.asComparedWith(n)) shouldBe "0.020%"
+    showPercentage(n.asComparedWith(Number.pi)) shouldBe "0.02%"
+    showPercentage(Number.pi.asComparedWith(n)) shouldBe "0.02%"
   }
 
   behavior of "foucault"

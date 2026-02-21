@@ -26,21 +26,21 @@ class InfiniteSeriesSpec extends AnyFlatSpec with should.Matchers {
     val xy = basel.evaluateToTolerance(0.001)
     xy.isSuccess shouldBe true
     val pi = (6 * xy.get).sqrt
-    pi.render shouldBe "3.1111323022281687±31.0%"
+    pi.render shouldBe "3.1111323022281687±31%"
     pi.isSame(Number.pi) shouldBe true
   }
   it should "evaluateToTolerance 0.00001" in {
     val xy = basel.evaluateToTolerance(0.00001)
     xy.isSuccess shouldBe true
     val pi = (6 * xy.get).sqrt
-    pi.render shouldBe "3.1385740505663335±0.30%"
+    pi.render shouldBe "3.1385740505663335±0.3%"
     pi.isSame(Number.pi) shouldBe true
   }
   it should "evaluateToTolerance 0.000001" in {
     val xy = basel.evaluateToTolerance(0.000001)
     xy.isSuccess shouldBe true
     val pi = (6 * xy.get).sqrt
-    pi.render shouldBe "3.140637100985938±0.030%"
+    pi.render shouldBe "3.140637100985938±0.03%"
     pi.fuzzyCompare(Number.pi, 0.25) shouldBe 0
   }
 

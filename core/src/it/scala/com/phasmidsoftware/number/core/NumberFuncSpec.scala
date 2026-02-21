@@ -9,9 +9,12 @@ class NumberFuncSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality
 
   implicit object ExpressionEquality extends Equality[Expression] {
     def areEqual(a: Expression, b: Any): Boolean = b match {
-      case n: Number => new ExpressionOps(a).compare(Literal(n)) == 0
-      case n: Expression => a.compare(n) == 0
-      case _ => false
+      case n: Number =>
+        new ExpressionOps(a).compare(Literal(n)) == 0
+      case n: Expression =>
+        a.compare(n) == 0
+      case _ =>
+        false
     }
   }
 

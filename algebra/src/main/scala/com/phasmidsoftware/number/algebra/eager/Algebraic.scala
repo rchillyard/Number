@@ -267,7 +267,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
     *
     * @return a String
     */
-  def render: String = maybeName getOrElse (this match {
+  lazy val render: String = maybeName getOrElse (this match {
     case q@QuadraticSolution(base, offset, coefficient, false) if offset.isZero || base.isZero =>
       q.normalize.render
     case QuadraticSolution(base, offset, coefficient, false) =>
@@ -870,7 +870,7 @@ case class LinearSolution(value: Structure)(val maybeName: Option[String] = None
     *
     * @return a string representation of the solution
     */
-  def render: String =
+  lazy val render: String =
     maybeName.getOrElse(value.render)
 
   /**

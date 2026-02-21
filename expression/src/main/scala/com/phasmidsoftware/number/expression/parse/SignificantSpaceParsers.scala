@@ -44,7 +44,8 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
     * @tparam T the underlying type of p.
     * @return a Parser[T] that ignores trailing white space.
     */
-  def trim[T](p: Parser[T]): Parser[T] = p <~ opt(whiteSpace)
+  def trim[T](p: Parser[T]): Parser[T] =
+    p <~ opt(whiteSpace)
 
   /**
     * A parser which parses a list of Ts separated by white space.
@@ -53,7 +54,8 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
     * @tparam T the underlying type of p.
     * @return a Parser of List[T] that expects elements to be separated by white space.
     */
-  def repSepSp[T](p: Parser[T]): Parser[List[T]] = repsep(p, whiteSpace)
+  def repSepSp[T](p: Parser[T]): Parser[List[T]] =
+    repsep(p, whiteSpace)
 
   /**
     * Implicit class ParserOps which allows us to use the method :| on a Parser[X].
@@ -62,7 +64,8 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
     * @tparam X the underlying type of p.
     */
   implicit class ParserOps[X](p: Parser[X]) {
-    def :|(name: String)(implicit ll: LogLevel): Parser[X] = logit(p)(name)
+    def :|(name: String)(implicit ll: LogLevel): Parser[X] =
+      logit(p)(name)
   }
 
   /**
@@ -72,9 +75,11 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
     * @tparam X the under-underlying type of p.
     */
   implicit class ParserOptionOps[X](p: Parser[Option[X]]) {
-    def ??(q: => Parser[X]): Parser[X] = compose(p, q) :| "compose"
+    def ??(q: => Parser[X]): Parser[X] =
+      compose(p, q) :| "compose"
 
-    def ?|[Y](q: => Parser[Y]): Parser[Either[Y, X]] = composeOption(p, q) :| "composeOption"
+    def ?|[Y](q: => Parser[Y]): Parser[Either[Y, X]] =
+      composeOption(p, q) :| "composeOption"
   }
 
   /**
@@ -119,12 +124,14 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
       val q = p | failure(name)
       Parser { in =>
         tee(q(in)) {
-          case this.Success(x, _) => println(s"$name: matched $x")
+          case this.Success(x, _) =>
+            println(s"$name: matched $x")
           case _ =>
         }
       }
 
-    case _ => p | failure(name)
+    case _ =>
+      p | failure(name)
   }
 
   // NOTE enabled and debug are not currently used.

@@ -415,7 +415,7 @@ case object NoScalar extends Scalar with Exact {
     *
     * @return a String
     */
-  def render: String = "Not a Scalar"
+  lazy val render: String = "Not a Scalar"
 
   /**
     * Determines whether this object is exact, i.e., is not any kind of approximation.

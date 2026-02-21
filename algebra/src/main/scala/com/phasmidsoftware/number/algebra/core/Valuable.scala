@@ -16,16 +16,24 @@ import scala.language.implicitConversions
 import scala.util.Try
 
 /**
-  * TODO rework this doc.
-  * A trait representing an object that is in some sense numerical and has a value (or possibly more than one value).
-  * `Valuable` does not define an order because a sub-class may not be comparable, for example, a complex number.
+  * A trait representing an object that is in some sense numerical and can be evaluated mathematically.
+  * `Valuable` objects are either `Eager`, in which case they are concrete mathematical values, or
+  * `Lazy` in which case they are symbolic expressions that require further evaluation (through the `materialize` method).
   *
-  * The properties exposed by this trait are: `isExact`, `approximation`, `maybeDouble`.
-  *
-  * NOTE: this trait has the same name as the `Valuable` typeclass in the `com.phasmidsoftware.number` package,
-  * but it is not the same thing.
+  * The `Valuable` trait extends multiple traits, enabling it to support rendering,
+  * numeric operations, normalization, exactitude, and type safety. Instances of `Valuable`
+  * can be either eager or lazy in computation and can represent various structures
+  * or numbers.
   */
 trait Valuable extends Renderable with Numeric with Zeroable with Unitary with Exactitude with Normalizable[Valuable] with TypeSafe {
+
+  /**
+    * Renders and returns a string representation of the object.
+    * By default, this is the same as `render` but it can be overridden in subclasses.
+    *
+    * @return a string representing the object
+    */
+  def show: String = render
 
   /**
     * Converts the current `Lazy` instance into an `Eager` instance by forcing
@@ -222,8 +230,6 @@ object Valuable {
     * This method performs pattern matching on the input `Valuable` object to map
     * it to a corresponding `Field` representation if possible. If no valid mapping
     * exists, it returns `None`.
-    *
-    * TODO change the type of the input parameter to `Eager`.
     *
     * @param v the `Valuable` instance that is to be converted into an `Option[Field]`.
     * @return `Some(Field)` if the conversion is successful, or `None` if the

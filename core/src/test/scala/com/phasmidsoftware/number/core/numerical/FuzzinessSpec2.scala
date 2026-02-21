@@ -95,13 +95,13 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
 
   it should "render as percentage correctly" in {
     val fuzz1 = RelativeFuzz[Double](0.01, Gaussian)
-    fuzz1.asPercentage shouldBe "1.0%"
+    fuzz1.asPercentage shouldBe "1%"
 
     val fuzz2 = RelativeFuzz[Double](0.5, Gaussian)
-    fuzz2.asPercentage shouldBe "50.0%"
+    fuzz2.asPercentage shouldBe "50%"
 
     val fuzz3 = RelativeFuzz[Double](0.0001, Gaussian)
-    fuzz3.asPercentage shouldBe "0.010%" // 3 decimal places for 2 sig figs
+    fuzz3.asPercentage shouldBe "0.01%" // 3 decimal places for 2 sig figs
   }
 
   it should "normalize shape from Box to Gaussian" in {
@@ -201,7 +201,7 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
     val (embedded, str) = absoluteFuzz.getQualifiedString(100.0)
 
     embedded shouldBe true
-    str shouldBe "1.000(5)E+02"
+    str shouldBe "100.0(5)"
   }
 
   behavior of "Fuzziness.normalize"

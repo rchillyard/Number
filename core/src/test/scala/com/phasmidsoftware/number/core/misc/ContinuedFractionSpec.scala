@@ -82,7 +82,7 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
     rs.head shouldBe Rational(3)
     val c1 = rs(1)
     c1 shouldBe r"22/7"
-    showPercentage(Number(c1).asComparedWith(Number.pi)) shouldBe "0.020%"
+    showPercentage(Number(c1).asComparedWith(Number.pi)) shouldBe "0.02%"
     val c2 = rs(2)
     c2 shouldBe r"333/106"
     showPercentage(Number(c2).asComparedWith(Number.pi)) shouldBe "0.0013%"
@@ -91,19 +91,19 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
     showPercentage(Number(c3).asComparedWith(Number.pi)) shouldBe "0.0000042%"
     val c4 = rs(4)
     c4 shouldBe r"103993/33102"
-    showPercentage(Number(c4).asComparedWith(Number.pi)) shouldBe "9.2E-9%"
+    showPercentage(Number(c4).asComparedWith(Number.pi)) shouldBe "0.0000000092%"
     val c5 = rs(5)
     c5 shouldBe r"104348/33215"
-    showPercentage(Number(c5).asComparedWith(Number.pi)) shouldBe "5.3E-9%"
+    showPercentage(Number(c5).asComparedWith(Number.pi)) shouldBe "0.0000000053%"
     val c6 = rs(6)
     c6 shouldBe r"208341/66317"
-    showPercentage(Number(c6).asComparedWith(Number.pi)) shouldBe "1.9E-9%"
+    showPercentage(Number(c6).asComparedWith(Number.pi)) shouldBe "0.0000000019%"
     val c7 = rs(7)
     c7 shouldBe r"312689/99532"
-    showPercentage(Number(c7).asComparedWith(Number.pi)) shouldBe "4.6E-10%"
+    showPercentage(Number(c7).asComparedWith(Number.pi)) shouldBe "0.00000000046%"
     val c8 = rs(8)
     c8.toRationalString shouldBe "833719/265381"
-    showPercentage(Number(c8).asComparedWith(Number.pi)) shouldBe "1.4E-10%"
+    showPercentage(Number(c8).asComparedWith(Number.pi)) shouldBe "0.00000000014%"
   }
 
   it should "get convergents for e" in {

@@ -25,6 +25,8 @@ import org.scalatest.matchers.should
 /**
   * The `TopSpec` class represents a set of specifications for testing mathematical expressions,
   * including their manipulation, evaluation, simplifications, and special mathematical edge cases.
+  * 
+  * NOTE that this source code is well-formed, even if your IDE suggests otherwise.
   *
   * This class extends ScalaTest's `AnyFlatSpec` for behavior-driven development (BDD) style testing
   * and integrates `Matchers` for expressive assertions. It also uses the `BeforeAndAfter` trait to

@@ -374,7 +374,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *
     * @return a string representation of the `Root` in terms of π
     */
-  def render: String = maybeName getOrElse {
+  lazy val render: String = maybeName getOrElse {
     val suffix = number.render
     n match {
       case 2 => s"√$suffix"

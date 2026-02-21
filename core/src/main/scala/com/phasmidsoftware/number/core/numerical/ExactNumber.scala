@@ -233,6 +233,23 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
   }
 
   /**
+    * Show this ExactNumber in a human-friendly manner.
+    * Uses Unicode vulgar fraction characters for common rationals (½, ⅓, ¼, etc.),
+    * and falls back to render for everything else.
+    *
+    * @return a String
+    */
+  override lazy val show: String = factor match {
+    case PureNumber =>
+      Value.maybeRational(nominalValue) match {
+        case Some(VulgarFraction(s)) => s
+        case _ => render
+      }
+    case _ =>
+      render
+  }
+
+  /**
     * Render this ExactNumber in String form, including the factor.
     *
     * @return a String
