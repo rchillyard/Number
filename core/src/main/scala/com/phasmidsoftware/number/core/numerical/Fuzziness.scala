@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.inner.MonadicOperation
+import com.phasmidsoftware.number.core.inner.{MonadicOperation, Percent}
 import com.phasmidsoftware.number.core.misc.Variance.{convolution, rootSumSquares}
 import com.phasmidsoftware.number.core.numerical.Fuzziness.{toDecimalPower, zipStrings}
 import com.phasmidsoftware.number.core.numerical.HasValue.HasValueDouble$
@@ -12,6 +12,7 @@ import org.apache.commons.math3.special.Erf.{erf, erfInv}
 
 import scala.math.Numeric.DoubleIsFractional
 import scala.util.Try
+import scala.util.matching.Regex
 
 /**
   * This trait models the behavior of fuzziness.
@@ -77,10 +78,11 @@ sealed trait Fuzziness[T] {
     * Method to yield a String to render the given T value.
     * The result is qualified by a Boolean indicating if the value is embedded in the result.
     *
-    * @param t a T value.
+    * @param t               a T value.
+    * @param forceScientific if true, always use scientific notation regardless of value magnitude.
     * @return a tuple of a Boolean and a String that is the textual rendering of t with this Fuzziness applied.
     */
-  def getQualifiedString(t: T): (Boolean, String)
+  def getQualifiedString(t: T, forceScientific: Boolean = false): (Boolean, String)
 
   /**
     * A variation on toString where we render this Fuzziness as a percentage.
@@ -228,23 +230,24 @@ case class RelativeFuzz[T: HasValue](tolerance: Double, shape: Shape) extends Fu
     * @param t the T value.
     * @return a String which is the textual rendering of t with this Fuzziness applied.
     */
-  def getQualifiedString(t: T): (Boolean, String) =
+  def getQualifiedString(t: T, forceScientific: Boolean = false): (Boolean, String) =
   {
     lazy val absoluteFuzz = absolute(t)
     lazy val tuple = false -> asPercentage
-    lazy val maybeAbsTuple = absoluteFuzz.map(_.getQualifiedString(t))
+    lazy val maybeAbsTuple = absoluteFuzz.map(_.getQualifiedString(t, forceScientific))
     (Option.when(tolerance > 0.0001)(tuple) orElse maybeAbsTuple).getOrElse(tuple)
   }
 
   /**
     * A variation on toString where we render this relative Fuzziness as a percentage.
+    * Trailing zeros are stripped (e.g. "0.5%" not "0.50%", "2%" not "2.0%").
     *
     * @return a String which ends with the '%' character.
     */
   def asPercentage: String = {
     val percentage = tolerance * 100
 
-    if (percentage == 0.0) return "0.0%"
+    if (percentage == 0.0) return s"0$Percent"
 
     val absPercentage = math.abs(percentage)
 
@@ -252,7 +255,11 @@ case class RelativeFuzz[T: HasValue](tolerance: Double, shape: Shape) extends Fu
     val decimals = if (absPercentage >= 1) 1
     else math.max(1, -math.floor(math.log10(absPercentage)).toInt + 1)
 
-    BigDecimal(percentage).setScale(decimals, BigDecimal.RoundingMode.HALF_UP).toString + "%"
+    BigDecimal(percentage)
+      .setScale(decimals, BigDecimal.RoundingMode.HALF_UP)
+      .underlying
+      .stripTrailingZeros
+      .toPlainString + Percent
   }
 
   /**
@@ -368,33 +375,50 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
     *
     * CONSIDER cleaning this method up a bit.
     *
-    * @param t a T value.
+    * @param t               a T value.
+    * @param forceScientific if true, always use scientific notation regardless of value magnitude.
     * @return a tuple of a Boolean (indicating if the value is embedded in the result) and a String which is the textual rendering of t with this Fuzziness applied.
     */
-  def getQualifiedString(t: T): (Boolean, String) = {
-    val eString = tv.render(t) match {
+  def getQualifiedString(t: T, forceScientific: Boolean = false): (Boolean, String) = {
+    val tDouble = tv.toDouble(t)
+    val absValue = math.abs(tDouble)
+
+    // Use scientific notation for values outside [0.001, 10000), OR when the
+    // magnitude of the fuzz is >= 1 (uncertainty at or above the units position),
+    // OR when forceScientific is explicitly requested (e.g. for asAbsolute).
+    val magnitudeDouble = tv.toDouble(magnitude)
+    val magnitudeExp = if (magnitudeDouble > 0) math.floor(math.log10(magnitudeDouble)).toInt else 0
+    val useScientific = forceScientific || (absValue != 0.0 && (absValue >= 10000.0 || absValue < 0.001)) || magnitudeExp >= 0
+
+    val scientificFormat = f"$tDouble%.20E"
+    val eString = scientificFormat match {
       case AbsoluteFuzz.numberR(e) => e
       case _ => noExponent
     }
+
     val exponent = Integer.parseInt(eString)
-    val scientificSuffix = eString match {
-      case `noExponent` => ""
-      case x => s"E$x"
-    }
-    val scaledM = toDecimalPower(tv.toDouble(magnitude), -exponent)
+
+    // Only append E-suffix when we actually want scientific notation
+    val scientificSuffix = if (useScientific && eString != noExponent) s"E$eString" else ""
+
+    // Only scale when using scientific notation; otherwise work in natural decimal
+    val effectiveExponent = if (useScientific) exponent else 0
+
+    val scaledM = toDecimalPower(tv.toDouble(magnitude), -effectiveExponent)
     val d = math.log10(scaledM).toInt
     val roundedM = round(scaledM, 2 - d)
-    //      if (scaledM > 0.01) // TODO let's do this unusual adjustment later
-    val scaledT = tv.scale(t, toDecimalPower(1, -exponent))
-    val q = f"$roundedM%.99f".substring(2) // XXX drop the "0."
+
+    val scaledT = tv.scale(t, toDecimalPower(1, -effectiveExponent))
+
+    val q = f"$roundedM%.99f".substring(2)
     val (qPrefix, qSuffix) = q.toCharArray.span(_ == '0')
     val (qPreSuffix, _) = qSuffix.span(_ != '0')
     val adjust = qPreSuffix.length - 2
     val mScaledAndRounded = toDecimalPower(round(scaledM, qPrefix.length + 2 + adjust), qPrefix.length)
     val yq = mScaledAndRounded.toString.substring(2).padTo(2 + adjust, '0').substring(0, 2 + adjust)
     val brackets = if (shape == Gaussian) "()" else "[]"
-    // CONSIDER changing the padding "0" value to be "5".
     val mask = new String(qPrefix) + "0" * (2 + adjust) + brackets.head + yq + brackets.tail.head
+
     val (zPrefix, zSuffix) = tv.render(scaledT).toCharArray.span(_ != '.')
     true -> (new String(zPrefix) + "." + zipStrings(new String(zSuffix).substring(1), mask) + scientificSuffix)
   }
@@ -721,9 +745,9 @@ case object Box extends Shape {
     case 1.0 =>
       0
     case _ =>
-    // NOTE: This implementation is approximate and only accurate for p ≈ 0.5
-    // In practice, Box distributions are normalized to Gaussian before wiggle is called
-    l / 2 // CONSIDER something like (1 - p) * l
+      // NOTE: This implementation is approximate and only accurate for p ≈ 0.5
+      // In practice, Box distributions are normalized to Gaussian before wiggle is called
+      l / 2 // CONSIDER something like (1 - p) * l
   }
 
   /**
@@ -841,6 +865,33 @@ trait WithFuzziness {
 }
 
 /**
+  * Companion object for the `WithFuzziness` trait.
+  *
+  * This object provides utility constants or values related to fuzziness.
+  * It serves as a container for any shared definitions or configuration
+  * that may support implementations of the `WithFuzziness` trait.
+  *
+  * @define Ellipsis A constant string value representing an ellipsis ("...").
+  *                  This might be used as a placeholder or to indicate omissions in certain contexts.
+  */
+object WithFuzziness {
+  val Ellipsis: String = "..."
+  val Asterisk: String = "*"
+  val GaussianOpen: String = "("
+  val GaussianClose: String = ")"
+  val BoxOpen: String = "["
+  val BoxClose: String = "]"
+
+  // Or for the bracket patterns
+  val GaussianPattern: Regex = """\((\d{1,2})\)""".r
+  val BoxPattern: Regex = """\[(\d{1,2})]""".r
+
+  // And for repeating sequences
+  val RepeatOpen: String = "<"
+  val RepeatClose: String = ">"
+}
+
+/**
   * Trait which models the behavior of something with (maybe) fuzziness.
   *
   * See also related trait Fuzzy[X] but note that there, the parametric type X
@@ -914,7 +965,7 @@ trait HasValue[T] extends Fractional[T] {
     * @return the value, without any sign.
     */
   def normalize(x: T): T
-  
+
   /**
     * Method to multiply a `U` by a `V`, resulting in a `T`.
     *
@@ -949,13 +1000,16 @@ trait HasValueDouble extends HasValue[Double] with DoubleIsFractional with Order
     *         fixed-point or scientific notation format.
     */
   def render(t: Double): String = {
-    lazy val asScientific: String = f"$t%.20E"
-    val z = f"$t%.99f"
-    val (prefix, suffix) = z.toCharArray.span(x => x != '.')
-    val sevenZeroes = "0000000".toCharArray
-    if (prefix.endsWith(sevenZeroes)) asScientific
-    else if (suffix.tail.startsWith(sevenZeroes)) asScientific
-    else z
+    val absValue = math.abs(t)
+
+    // Use scientific notation only for values outside [0.001, 10000).
+    // Within that range always stay decimal, even if the fractional part is all zeros
+    // (e.g. 100.0 must not be scaled to 1.0E+02 during mask calculation).
+    if (absValue != 0.0 && (absValue >= 10000.0 || absValue < 0.001)) {
+      f"$t%.20E"
+    } else {
+      f"$t%.99f"
+    }
   }
 
   /**
@@ -996,7 +1050,6 @@ trait HasValueDouble extends HasValue[Double] with DoubleIsFractional with Order
   * with fractional operations, scaling, normalization, and rendering to a string.
   */
 object HasValue {
-
   /**
     * An implicit object extending `HasValueDouble`, providing functionality for
     * working with `Double` values within the `HasValue` type class.

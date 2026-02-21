@@ -105,10 +105,14 @@ case class DyadicExpression(left: CoreMillExpression, right: CoreMillExpression,
   override lazy val toString: String = s"($left $operator $right)"
 
   lazy val value: Number = operator match {
-    case "+" => left.value.doAdd(right.value)
-    case "*" => left.value.doMultiply(right.value)
-    case "∧" => left.value.doPower(right.value)
-    case _ => throw new IllegalArgumentException(s"unknown operator $operator")
+    case "+" => 
+      left.value.doAdd(right.value)
+    case "*" => 
+      left.value.doMultiply(right.value)
+    case "∧" => 
+      left.value.doPower(right.value)
+    case _ => 
+      throw new IllegalArgumentException(s"unknown operator $operator")
   }
 
 }

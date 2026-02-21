@@ -19,8 +19,6 @@ import scala.language.implicitConversions
   * - `Transcendental`
   * - `Noop`
   */
-
-/** sealed */
 trait AtomicExpression extends Expression with Nameable {
 
   /**
@@ -151,11 +149,11 @@ case class Noop(w: String) extends AtomicExpression {
     throw new UnsupportedOperationException(s"Can''t evaluate: $this")
 
   /**
-    * Method to render this Structure in a presentable manner.
+    * Method to render this Renderable in a presentable manner.
     *
     * @return a String
     */
-  def render: String = toString
+  lazy val render: String = s"Noop: not an Expression: $w"
 
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
@@ -180,8 +178,7 @@ case class Noop(w: String) extends AtomicExpression {
     *
     */
   def simplifyAtomic: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyAtomic")(
-    _ =>
-      em.Miss[Expression, Expression]("simplifyAtomic: ", this)
+    _ => em.Miss[Expression, Expression]("simplifyAtomic: ", this)
   )
 
   /**
@@ -196,6 +193,4 @@ case class Noop(w: String) extends AtomicExpression {
     *         of this `Number`, or `None` if no approximation is available.
     */
   def approximation(force: Boolean): Option[Real] = None
-
-  override def toString: String = s"Noop: not an Expression: $w"
 }

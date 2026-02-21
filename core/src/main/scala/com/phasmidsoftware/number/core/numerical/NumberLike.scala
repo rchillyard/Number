@@ -76,6 +76,15 @@ trait NumberLike {
   def render: String
 
   /**
+    * Method to show this NumberLike in a human-friendly manner.
+    * Subclasses may override for prettier output (vulgar fractions, dropped trailing zeros, etc.).
+    * The default falls back to render.
+    *
+    * @return a String
+    */
+  def show: String = render
+
+  /**
     * Method to determine the NumberSet, if any, to which this NumberLike object belongs.
     * NOTE that we don't yet support H, the quaternions.
     *
@@ -91,4 +100,18 @@ trait NumberLike {
     * @return true if this is exact and belongs to set.
     */
   def memberOf(set: NumberSet): Boolean = set.isMember(this)
+}
+
+/**
+  * Companion object for the `NumberLike` class.
+  *
+  * This object provides typeclass instances and utility methods for working with `NumberLike`.
+  * It includes an implicit instance of the `cats.Show` typeclass, allowing `NumberLike` objects
+  * to be easily converted to their string representation in a human-readable format.
+  */
+object NumberLike {
+
+  import cats.Show
+
+  given showNumberLike: Show[NumberLike] = Show.show(_.show)
 }

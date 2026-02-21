@@ -232,6 +232,20 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     }
   }
 
+  override lazy val show: String = maybeName getOrElse {
+    val value = normalize.number
+    if (degrees)
+      value.scale(r180).show + "°"
+    else if value.isExact then
+      val prefix = value.show
+      (if prefix == "1" then "" else prefix) + "𝛑"
+    else {
+      val maybeReal = convert(Real.zero)
+      println(s"maybeReal = $maybeReal")
+      maybeReal.map(_.show) getOrElse "Angle.show: logic error"
+    }
+  }
+
   /**
     * Computes the additive inverse of the current `Angle` instance.
     *

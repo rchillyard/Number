@@ -135,7 +135,7 @@ sealed abstract class AbstractTranscendental(val name: String, val expression: E
     *
     * @return a String
     */
-  def render: String = name
+  lazy val render: String = name
 
   /**
     * Action to evaluate this `Expression` as a `Valuable`, if possible.

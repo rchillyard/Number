@@ -964,7 +964,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val x = Number("1.643(1)")
     val pi = (x `multiply` Real(6)) `power` Number.half
     pi should matchPattern { case ComplexPolar(_, `zeroR`, 2) => }
-    pi.render shouldBe "±3.1397452125928944±0.030%"
+    pi.render shouldBe "±3.1397452125928944±0.03%"
   }
   it should "sqrt" in {
     val x = Number("1.643(1)")

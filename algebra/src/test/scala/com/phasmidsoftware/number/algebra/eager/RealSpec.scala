@@ -81,7 +81,7 @@ class RealSpec extends AnyFlatSpec with Matchers {
   behavior of "Ring[Real]"
 
   it should "plus" in {
-    rr.plus(Real(3), Angle.pi.approximation(true).get) shouldBe Real(6.141592653589793, Some(AbsoluteFuzz(5.02654824574367E-16, Box)))
+    rr.plus(Real(3), Angle.pi.approximation(true).get) shouldBe Real(6.141592653589793, Some(AbsoluteFuzz(5E-16, Box)))
   }
   it should "negate" in {
     rr.negate(Real(3)) shouldBe Real(-3)

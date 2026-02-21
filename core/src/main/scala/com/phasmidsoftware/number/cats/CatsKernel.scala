@@ -38,9 +38,12 @@ trait CatsKernelInstances {
   // Structural Eq for Fuzziness[Double]: kind/shape/magnitude
   implicit val fuzzEq: Eq[Fuzziness[Double]] = Eq.instance { (f, g) =>
     (f, g) match {
-      case (Abs(m1: Double, s1), Abs(m2: Double, s2)) => m1 == m2 && s1 == s2
-      case (Rel(m1: Double, s1), Rel(m2: Double, s2)) => m1 == m2 && s1 == s2
-      case _ => false
+      case (Abs(m1: Double, s1), Abs(m2: Double, s2)) =>
+        m1 == m2 && s1 == s2
+      case (Rel(m1: Double, s1), Rel(m2: Double, s2)) =>
+        m1 == m2 && s1 == s2
+      case _ =>
+        false
     }
   }
 

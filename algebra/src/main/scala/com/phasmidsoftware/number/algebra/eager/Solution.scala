@@ -161,7 +161,7 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
     *
     * @return a String
     */
-  def render: String = maybeName getOrElse complex.render
+  lazy val render: String = maybeName getOrElse complex.render
 
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.

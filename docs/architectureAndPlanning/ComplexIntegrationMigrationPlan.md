@@ -137,7 +137,7 @@ sealed trait ComplexNumber extends Solution {
     else if (imaginary.isZero) real.maybeFactor(context)
     else None
   
-  def render: String = maybeName.getOrElse {
+  lazy val render: String = maybeName.getOrElse {
     (real.isZero, imaginary.isZero) match {
       case (true, true) => "0"
       case (true, false) => 

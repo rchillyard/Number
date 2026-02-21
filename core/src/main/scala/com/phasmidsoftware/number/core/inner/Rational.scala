@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.inner.Rational.{MAX_PRIME_FACTORS, NaN, bigNegOne, bigOne, bigZero, half, minus, one, rootOfBigInt, times, toInts}
 import com.phasmidsoftware.number.core.misc.ContinuedFraction
 import com.phasmidsoftware.number.core.misc.FP.*
-import com.phasmidsoftware.number.core.numerical.FuzzyNumber.Ellipsis
+import com.phasmidsoftware.number.core.numerical.WithFuzziness.{Ellipsis, RepeatClose, RepeatOpen}
 import com.phasmidsoftware.number.core.numerical.{BigNumber, Number, NumberLike, Prime}
 import com.phasmidsoftware.number.core.parse.RationalParser
 
@@ -650,7 +650,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * @return A string representation of the number as a percentage with the specified number of decimal places.
     */
   def renderAsPercent(places: Int): String =
-    (this * 100).renderApproximate(4 + places, Some(places)) + "%"
+    (this * 100).renderApproximate(4 + places, Some(places)) + Percent
 
   /**
     * Multiplies this Rational number by a given Long value and returns the result as a new Rational number.
@@ -692,7 +692,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * @return A string representation of the value, either as a rational string or a BigDecimal string with an ellipsis.
     */
   private lazy val asString: String = d match {
-    case x if x <= 100000L => // XXX arbitrary limit of one hundred thousand.
+    case x if x <= 100_000L => // XXX arbitrary limit of one hundred thousand.
       toRationalString
     case _ =>
       // NOTE this case represents a Rational that cannot easily be rendered in decimal form.
@@ -1460,7 +1460,7 @@ object Rational {
         case h :: t =>
           findRepeatingPattern(bigNumber, h) match {
             case Some(z) if z + h < l =>
-              Success(bigNumber.substring(0, z) + "<" + bigNumber.substring(z, z + h) + ">")
+              Success(bigNumber.substring(0, z) + RepeatOpen + bigNumber.substring(z, z + h) + RepeatClose)
             case Some(z) =>
               Failure[String](RationalException(s"Rational.findRepeatingSequence: logic error: pattern exhausts bigNumber: ${z + h} > $l"))
             case None =>
@@ -1526,6 +1526,11 @@ object Rational {
         getCandidates(Seq(d.toInt - 1))
       case None =>
         Failure(RationalException(s"Rational.getPeriods: no suitable candidates for repeating sequence length"))
+      case Some(Nil) if d < BigNumber.MAXDECIMALDIGITS =>
+        // primeFactors were found but all had period 0 (factors of 2 or 5 only),
+        // OR primeFactors were not found due to search limit being too small.
+        // Fall back to d-1 as the candidate period (correct for prime d).
+        getCandidates(Seq(d.toInt - 1))
       case Some(xs) =>
         getCandidates(xs)
     }

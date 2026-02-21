@@ -269,7 +269,16 @@ case class BaseDimWitness(
     j - other.j
   )
 
-  def pow(exp: Rational): BaseDimWitness = BaseDimWitness(
+  /**
+    * Raises the dimensions of the current `BaseDimWitness` instance to the specified rational exponent.
+    *
+    * Each dimension's exponent is multiplied by the provided rational value, effectively scaling the 
+    * dimensional representation.
+    *
+    * @param exp The rational exponent to which all dimension exponents will be raised.
+    * @return A new `BaseDimWitness` instance with all dimensions raised to the given exponent.
+    */
+  infix def pow(exp: Rational): BaseDimWitness = BaseDimWitness(
     m * exp,
     l * exp,
     t * exp,

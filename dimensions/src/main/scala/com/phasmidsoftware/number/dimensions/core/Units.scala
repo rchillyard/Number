@@ -98,9 +98,20 @@ trait Unit[D <: Dimension] {
   * @tparam D the dimension type associated with this unit, which must extend `Dimension`
   */
 trait SIUnit[D <: Dimension] extends Unit[D] {
-  def toSI: ExactNumber = WholeNumber.one
+  lazy val toSI: ExactNumber = WholeNumber.one
 
-  def rename(s: String): Unit[D] = throw DimensionsException("Cannot rename SIUnit")
+  /**
+    * Renames the symbol representing this SI unit of measurement.
+    *
+    * This method is not supported for `SIUnit` and will throw a `DimensionsException`
+    * if invoked.
+    *
+    * @param s a string representing the new symbol for the unit
+    * @return this method does not return normally; it always throws a `DimensionsException`
+    *         indicating that renaming is not allowed for `SIUnit`
+    */
+  def rename(s: String): Unit[D] =
+    throw DimensionsException("Cannot rename SIUnit")
 }
 
 /**
@@ -122,7 +133,7 @@ case class ProductUnit[D <: Dimension](
     * @return An `ExactNumber` representing the product of the two units in SI base units.
     * @note Throws DimensionsException if the product of the converted components cannot be represented as an `ExactNumber`.
     */
-  def toSI: ExactNumber =
+  lazy val toSI: ExactNumber =
     left.toSI * right.toSI match {
       case r: ExactNumber =>
         r
@@ -141,15 +152,37 @@ case class ProductUnit[D <: Dimension](
   override def compositeSymbol: String =
     s"${left.compositeSymbol}·${right.compositeSymbol}"
 
+  /**
+    * Renames the symbol representing this unit of measurement.
+    *
+    * This method updates the current symbol of the unit to the provided value,
+    * allowing for a custom or alternative representation of the unit.
+    *
+    * @param name the new symbol to replace the current symbol of the unit
+    * @return a new unit instance with the updated symbol
+    */
   def rename(name: String): Unit[D] = copy(symbol = name)
 
-  def dimensionWitness: DimensionWitness =
+  /**
+    * Computes the composite dimension witness for the product of two units.
+    *
+    * This method derives the dimension witness by summing the dimensional exponents
+    * of the left and right component units in their respective seven SI base dimensions
+    * (mass, length, time, electric current, thermodynamic temperature, amount of substance,
+    * and luminous intensity).
+    *
+    * @return A `DimensionWitness` representing the combined dimensional structure of the
+    *         product unit.
+    *         Throws `DimensionsException` if the dimension witnesses of the components
+    *         cannot be combined.
+    */
+  lazy val dimensionWitness: DimensionWitness =
     (left.dimensionWitness, right.dimensionWitness) match {
       case (BaseDimWitness(m1, l1, t1, i1, θ1, n1, j1), BaseDimWitness(m2, l2, t2, i2, θ2, n2, j2)) =>
         BaseDimWitness(m1 + m2, l1 + l2, t1 + t2, i1 + i2, θ1 + θ2, n1 + n2, j1 + j2)
-      case _ => throw DimensionsException("Invalid dimension witness for ProductUnit")
+      case _ =>
+        throw DimensionsException("Invalid dimension witness for ProductUnit")
     }
-
 
 /**
   * A composite unit formed by dividing two units.
@@ -173,7 +206,7 @@ case class QuotientUnit[D <: Dimension](
     * @return an `ExactNumber` representing the quotient of the numerator and denominator in SI base units.
     * @note Throws DimensionsException if the conversion to a rational number fails.
     */
-  def toSI: ExactNumber =
+  lazy val toSI: ExactNumber =
     numerator.toSI / denominator.toSI match {
       case r: ExactNumber =>
         r
@@ -181,16 +214,46 @@ case class QuotientUnit[D <: Dimension](
         throw DimensionsException(s"cannot determine a conversion factor for $numerator / $denominator that is an ExactNumber: got $x")
   }
 
+  /**
+    * Computes the composite symbol of the quotient unit by combining the composite symbols
+    * of its numerator and denominator.
+    *
+    * The composite symbol is represented as a fraction, where the numerator's composite symbol
+    * appears above the denominator's composite symbol. This provides a readable and standardized
+    * form for representing the quotient unit.
+    *
+    * @return a string representation of the composite symbol in the format "numerator/denominator".
+    */
   override def compositeSymbol: String =
     s"${numerator.compositeSymbol}/${denominator.compositeSymbol}"
 
+  /**
+    * Renames the symbol representing this unit of measurement.
+    *
+    * This method updates the symbol of the unit to the provided value, allowing for a custom or alternative representation.
+    *
+    * @param name the new symbol to be assigned to the unit
+    * @return a new instance of the unit with the updated symbol
+    */
   def rename(name: String): Unit[D] = copy(symbol = name)
 
-  def dimensionWitness: DimensionWitness =
+  /**
+    * Computes the dimension witness for the current `QuotientUnit`.
+    *
+    * This method derives the dimensional structure of the quotient by subtracting
+    * the dimensions of the denominator from those of the numerator.
+    * If the dimension witnesses for the numerator or denominator are invalid,
+    * a `DimensionsException` is thrown.
+    *
+    * @return a `DimensionWitness` representing the resultant dimensional structure of the quotient unit.
+    * @throws DimensionsException if the numerator or denominator do not have valid dimension witnesses.
+    */
+  lazy val dimensionWitness: DimensionWitness =
     (numerator.dimensionWitness, denominator.dimensionWitness) match {
       case (BaseDimWitness(m1, l1, t1, i1, θ1, n1, j1), BaseDimWitness(m2, l2, t2, i2, θ2, n2, j2)) =>
         BaseDimWitness(m1 - m2, l1 - l2, t1 - t2, i1 - i2, θ1 - θ2, n1 - n2, j1 - j2)
-      case _ => throw DimensionsException("Invalid dimension witness for QuotientUnit")
+      case _ =>
+        throw DimensionsException("Invalid dimension witness for QuotientUnit")
     }
 
 /**
@@ -214,22 +277,35 @@ case class PowerUnit[D <: Dimension](
     * @note Throws DimensionsException if there is an error during conversion to the
     *       exact rational number representation.
     */
-  def toSI: ExactNumber =
+  lazy val toSI: ExactNumber =
     base.toSI.pow(RationalNumber(power)) match {
-      case Some(e: ExactNumber) => e
-      case None => throw DimensionsException("PowerUnit.toSI: cannot evaluate toSI")
+      case Some(e: ExactNumber) =>
+        e
+      case None =>
+        throw DimensionsException("PowerUnit.toSI: cannot evaluate toSI")
     }
 
+  /**
+    * Computes the composite symbol for this `PowerUnit` based on its base unit and power.
+    *
+    * The composite symbol is derived by taking the composite symbol of the base unit
+    * and appending the power as an exponent. This provides a human-readable representation
+    * that reflects the dimensional structure of the `PowerUnit`.
+    *
+    * @return a string representing the composite symbol of the `PowerUnit`,
+    *         formatted as "(baseCompositeSymbol)^power".
+    */
   override def compositeSymbol: String =
     s"(${base.compositeSymbol})^$power"
 
   def rename(name: String): Unit[D] = copy(symbol = name)
 
-  def dimensionWitness: DimensionWitness =
+  lazy val dimensionWitness: DimensionWitness =
     base.dimensionWitness match {
-      case BaseDimWitness(m, l, t, i, θ, n, j) =>
-        BaseDimWitness(m * power, l * power, t * power, i * power, θ * power, n * power, j * power)
-      case _ => throw DimensionsException("Invalid dimension witness for PowerUnit")
+      case d@BaseDimWitness(_, _, _, _, _, _, _) =>
+        d pow power
+      case _ =>
+        throw DimensionsException("Invalid dimension witness for PowerUnit")
     }
 
 /**
@@ -258,7 +334,7 @@ case class ScaledUnit[D <: Dimension](
     *
     * @return an `ExactNumber` representing the value of the scaled unit in SI base units.
     */
-  def toSI: ExactNumber = base.toSI * scale
+  lazy val toSI: ExactNumber = base.toSI * scale
 
   /**
     * Constructs the composite symbol for the unit, incorporating its scale factor and
@@ -269,7 +345,7 @@ case class ScaledUnit[D <: Dimension](
     *
     * @return The composite symbol for the unit, combining the scale factor and the base unit's composite symbol.
     */
-  override def compositeSymbol: String =
+  override lazy val compositeSymbol: String =
     if (scale != Rational.one) {
       val scaleStr = if (scale.d == 1) scale.n.toString else s"(${scale.n}/${scale.d})"
       s"${scaleStr}·${base.compositeSymbol}"
@@ -280,12 +356,14 @@ case class ScaledUnit[D <: Dimension](
   def rename(name: String): Unit[D] = copy(symbol = name)
 
   /** Inherit dimension from base unit */
-  def dimensionWitness: DimensionWitness = base.dimensionWitness
+  lazy val dimensionWitness: DimensionWitness = base.dimensionWitness
 
 private def powerSymbol[D <: Dimension](base: Unit[D], power: Rational) = {
   val baseSymbol = base match {
-    case _: ProductUnit[?] | _: QuotientUnit[?] => s"(${base.symbol})"
-    case _ => base.symbol
+    case _: ProductUnit[?] | _: QuotientUnit[?] =>
+      s"(${base.symbol})"
+    case _ =>
+      base.symbol
   }
   if power == Rational(2) then s"$baseSymbol²"
   else if power == Rational(3) then s"$baseSymbol³"
@@ -380,9 +458,9 @@ extension [D <: Dimension](unit: Unit[D])
   * Extends `SIUnit` and provides a specific implementation for dimensionless quantities.
   */
 case object Dimensionless extends SIUnit[Dimensionless] {
-  def symbol: String = ""
+  lazy val symbol: String = ""
 
-  def dimensionWitness: DimensionWitness = DimensionWitness.dimensionless
+  lazy val dimensionWitness: DimensionWitness = DimensionWitness.dimensionless
 
 }
 
@@ -404,9 +482,9 @@ case object Dimensionless extends SIUnit[Dimensionless] {
   * @see DimensionWitness.length for the length dimension's representation in the dimension-witness system
   */
 case object Meter extends SIUnit[Length] {
-  def symbol: String = "m"
+  lazy val symbol: String = "m"
 
-  def dimensionWitness: DimensionWitness = DimensionWitness.length
+  lazy val dimensionWitness: DimensionWitness = DimensionWitness.length
 }
 
 /**
@@ -421,9 +499,9 @@ case object Meter extends SIUnit[Length] {
   * @see DimensionWitness
   */
 case object Kilogram extends SIUnit[Mass] {
-  def symbol: String = "kg"
+  lazy val symbol: String = "kg"
 
-  def dimensionWitness: DimensionWitness = DimensionWitness.mass
+  lazy val dimensionWitness: DimensionWitness = DimensionWitness.mass
 }
 
 /**
@@ -432,9 +510,9 @@ case object Kilogram extends SIUnit[Mass] {
   * It is associated with the time dimension.
   */
 case object Second extends SIUnit[Time] {
-  def symbol: String = "s"
+  lazy val symbol: String = "s"
 
-  def dimensionWitness: DimensionWitness = DimensionWitness.time
+  lazy val dimensionWitness: DimensionWitness = DimensionWitness.time
 }
 
 /**
@@ -450,9 +528,9 @@ case object Second extends SIUnit[Time] {
   * and a single unit contribution from electric current.
   */
 case object Ampere extends SIUnit[BaseDim[Zero, Zero, Zero, One, Zero, Zero, Zero]] {
-  def symbol: String = "A"
+  lazy val symbol: String = "A"
 
-  def dimensionWitness: DimensionWitness = DimensionWitness.current
+  lazy val dimensionWitness: DimensionWitness = DimensionWitness.current
 }
 
 /**
@@ -467,9 +545,9 @@ case object Ampere extends SIUnit[BaseDim[Zero, Zero, Zero, One, Zero, Zero, Zer
   * Inherits from the `SIUnit` trait.
   */
 case object Kelvin extends SIUnit[BaseDim[Zero, Zero, Zero, Zero, One, Zero, Zero]] {
-  def symbol: String = "K"
+  lazy val symbol: String = "K"
 
-  def dimensionWitness: DimensionWitness = DimensionWitness.temperature
+  lazy val dimensionWitness: DimensionWitness = DimensionWitness.temperature
 }
 
 /**
@@ -484,9 +562,9 @@ case object Kelvin extends SIUnit[BaseDim[Zero, Zero, Zero, Zero, One, Zero, Zer
   * @see BaseDim
   */
 case object Mole extends SIUnit[BaseDim[Zero, Zero, Zero, Zero, Zero, One, Zero]] {
-  def symbol: String = "mol"
+  lazy val symbol: String = "mol"
 
-  def dimensionWitness: DimensionWitness = DimensionWitness.amount
+  lazy val dimensionWitness: DimensionWitness = DimensionWitness.amount
 }
 
 /**
@@ -502,9 +580,9 @@ case object Mole extends SIUnit[BaseDim[Zero, Zero, Zero, Zero, Zero, One, Zero]
   * The symbol for the candela is "cd".
   */
 case object Candela extends SIUnit[BaseDim[Zero, Zero, Zero, Zero, Zero, Zero, One]] {
-  def symbol: String = "cd"
+  lazy val symbol: String = "cd"
 
-  def dimensionWitness: DimensionWitness = DimensionWitness.luminosity
+  lazy val dimensionWitness: DimensionWitness = DimensionWitness.luminosity
 }
 
 // ============================================================================
@@ -558,9 +636,9 @@ val MetersPerSecondSquared: Unit[Acceleration] = Meter / Second.squared
   * This object provides the symbol and dimension witness for the Newton unit.
   */
 case object Newton extends SIUnit[Force] {
-  def symbol: String = "N"
+  lazy val symbol: String = "N"
 
-  def dimensionWitness: DimensionWitness = DimensionWitness.force
+  lazy val dimensionWitness: DimensionWitness = DimensionWitness.force
 }
 
 /**
@@ -572,9 +650,9 @@ case object Newton extends SIUnit[Force] {
   * This object is a concrete implementation of the `SIUnit` trait, specifically for the dimension of energy.
   */
 case object Joule extends SIUnit[Energy] {
-  def symbol: String = "J"
+  lazy val symbol: String = "J"
 
-  def dimensionWitness: DimensionWitness = DimensionWitness.energy
+  lazy val dimensionWitness: DimensionWitness = DimensionWitness.energy
 }
 
 /**
@@ -589,27 +667,27 @@ case object Joule extends SIUnit[Energy] {
   * @see DimensionWitness
   */
 case object Watt extends SIUnit[Power] {
-  def symbol: String = "W"
+  lazy val symbol: String = "W"
 
-  def dimensionWitness: DimensionWitness = DimensionWitness.power
+  lazy val dimensionWitness: DimensionWitness = DimensionWitness.power
 }
 
 case object Weber extends SIUnit[MagneticFlux] {
-  def symbol: String = "Wb"
+  lazy val symbol: String = "Wb"
 
-  def dimensionWitness: DimensionWitness = DimensionWitness.magneticFlux
+  lazy val dimensionWitness: DimensionWitness = DimensionWitness.magneticFlux
 }
 
 case object Henry extends SIUnit[Inductance] {
-  def symbol: String = "H"
+  lazy val symbol: String = "H"
 
-  def dimensionWitness: DimensionWitness = DimensionWitness.inductance
+  lazy val dimensionWitness: DimensionWitness = DimensionWitness.inductance
 }
 
 case object Tesla extends SIUnit[MagneticFluxDensity] {
-  def symbol: String = "T"
+  lazy val symbol: String = "T"
 
-  def dimensionWitness: DimensionWitness = DimensionWitness.magneticFluxDensity
+  lazy val dimensionWitness: DimensionWitness = DimensionWitness.magneticFluxDensity
 }
 
 /**
@@ -624,9 +702,9 @@ case object Tesla extends SIUnit[MagneticFluxDensity] {
   * @define dimensionWitness The dimension corresponding to pressure: mass × length⁻¹ × time⁻².
   */
 case object Pascal extends SIUnit[Pressure] {
-  def symbol: String = "Pa"
+  lazy val symbol: String = "Pa"
 
-  def dimensionWitness: DimensionWitness = DimensionWitness.pressure
+  lazy val dimensionWitness: DimensionWitness = DimensionWitness.pressure
 }
 
 /**
@@ -640,9 +718,9 @@ case object Pascal extends SIUnit[Pressure] {
   * for frequency.
   */
 case object Hertz extends SIUnit[Frequency] {
-  def symbol: String = "Hz"
+  lazy val symbol: String = "Hz"
 
-  def dimensionWitness: DimensionWitness = DimensionWitness.frequency
+  lazy val dimensionWitness: DimensionWitness = DimensionWitness.frequency
 }
 
 /**
@@ -652,9 +730,9 @@ case object Hertz extends SIUnit[Frequency] {
   * of electric charge as defined by the International System of Units (SI).
   */
 case object Coulomb extends SIUnit[Charge] {
-  def symbol: String = "C"
+  lazy val symbol: String = "C"
 
-  def dimensionWitness: DimensionWitness = DimensionWitness.charge
+  lazy val dimensionWitness: DimensionWitness = DimensionWitness.charge
 }
 
 /**
@@ -667,9 +745,9 @@ case object Coulomb extends SIUnit[Charge] {
   * @see DimensionWitness.voltage
   */
 case object Volt extends SIUnit[Voltage] {
-  def symbol: String = "V"
+  lazy val symbol: String = "V"
 
-  def dimensionWitness: DimensionWitness = DimensionWitness.voltage
+  lazy val dimensionWitness: DimensionWitness = DimensionWitness.voltage
 }
 
 /**
@@ -683,9 +761,9 @@ case object Volt extends SIUnit[Voltage] {
   * dimensional analysis of capacitance.
   */
 case object Farad extends SIUnit[Capacitance] {
-  def symbol: String = "F"
+  lazy val symbol: String = "F"
 
-  def dimensionWitness: DimensionWitness = DimensionWitness.capacitance
+  lazy val dimensionWitness: DimensionWitness = DimensionWitness.capacitance
 }
 
 /**
@@ -702,9 +780,9 @@ case object Farad extends SIUnit[Capacitance] {
   * @see [[DimensionWitness.resistance]]
   */
 case object Ohm extends SIUnit[Resistance] {
-  def symbol: String = "Ω"
+  lazy val symbol: String = "Ω"
 
-  def dimensionWitness: DimensionWitness = DimensionWitness.resistance
+  lazy val dimensionWitness: DimensionWitness = DimensionWitness.resistance
 }
 
 // ============================================================================
@@ -764,9 +842,9 @@ val Day: Unit[Time] = Hour.scaled(Rational(24), "d")
 
 /** Radian - SI unit of angle (dimensionless) */
 case object Radian extends SIUnit[com.phasmidsoftware.number.dimensions.core.Angle] {
-  def symbol: String = "rad"
+  lazy val symbol: String = "rad"
 
-  def dimensionWitness: DimensionWitness = DimensionWitness.dimensionless
+  lazy val dimensionWitness: DimensionWitness = DimensionWitness.dimensionless
 }
 
 // ============================================================================
@@ -791,7 +869,7 @@ val unitRegistry: Map[String, Unit[?]] = buildRegistry(
   // Base SI units
   Meter, Kilogram, Second, Ampere, Kelvin, Mole, Candela,
   // Named derived SI units
-  Newton, Joule, Watt, Pascal, Hertz, Coulomb, Volt, Ohm,
+  Newton, Joule, Watt, Pascal, Hertz, Coulomb, Volt, Ohm, Tesla, Henry, Weber, Farad,
   // Scaled units
   Kilometer, Centimeter, Millimeter, Inch, Foot, Yard, Mile,
   Gram, Pound, Ounce,
@@ -801,7 +879,8 @@ val unitRegistry: Map[String, Unit[?]] = buildRegistry(
   Liter, KilometerPerHour, MilePerHour,
   // Named composite units
   CompositeUnits.Chain, CompositeUnits.LightSecond, CompositeUnits.C,
-  CompositeUnits.Hectometer, CompositeUnits.Hectare, CompositeUnits.Milliliter, CompositeUnits.GallonImp
+  CompositeUnits.Hectometer, CompositeUnits.Hectare, CompositeUnits.Milliliter,
+  CompositeUnits.GallonImp
 )
 /**
   * Build a registry mapping unit symbols (both regular and composite) to unit instances.
@@ -900,7 +979,8 @@ object CompositeUnits:
   val GallonImp: Unit[Volume] = Liter.scaled(Rational(454609, 10000), "gal")
 
   // Gravitation
-  val Kepler: Unit[DivDim[DivDim[Volume, Mass], PowDim[Time, Two]]] = CubicMeter / Kilogram / Second.squared
+  val Kepler: Unit[DivDim[DivDim[Volume, Mass], PowDim[Time, Two]]] =
+    CubicMeter / Kilogram / Second.squared
 
   // For Planck's constant
   val JouleSecond: Unit[EnergyTime] = Joule * Second
@@ -913,5 +993,7 @@ object CompositeUnits:
   val FaradPerMeter: Unit[Permittivity] = Farad / Meter
 
   // For Thermodynamics
-  val blackBoxRadiationUnits: Unit[DivDim[Power, MulDim[Area, PowDim[PowDim[Temperature, Two], Two]]]] = Watt / (Meter.squared * Kelvin.squared.squared)
-  val gasConstantUnits: Unit[DivDim[Energy, MulDim[Amount, Temperature]]] = Joule / (Mole * Kelvin)
+  val blackBoxRadiationUnits: Unit[DivDim[Power, MulDim[Area, PowDim[PowDim[Temperature, Two], Two]]]] =
+    Watt / (Meter.squared * Kelvin.squared.squared)
+  val gasConstantUnits: Unit[DivDim[Energy, MulDim[Amount, Temperature]]] =
+    Joule / (Mole * Kelvin)

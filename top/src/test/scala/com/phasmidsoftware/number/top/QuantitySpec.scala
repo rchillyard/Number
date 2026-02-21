@@ -4,6 +4,7 @@ import com.phasmidsoftware.number.algebra.core.Valuable
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.dimensions.core.*
+import com.phasmidsoftware.number.dimensions.core.DimensionWitness.area
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -141,7 +142,7 @@ class QuantitySpec extends AnyFlatSpec with Matchers {
   it should "handle squared units" in {
     val length = Quantity(4, Meter)
     val area = Quantity(16, Meter.squared)
-
+    length.squared shouldBe area
     area.render shouldBe "16 m²"
   }
 

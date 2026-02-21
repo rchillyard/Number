@@ -49,12 +49,6 @@ object UnitsParser {
     * @return a parser that produces a unit of measurement, taking into account the division
     *         of two unit expressions if applicable
     */
-  //  def unitsParser(using P[Any]): P[Unit[?]] = {
-  //    P(unitProductParser ~ ("/" ~ unitProductParser).?).map {
-  //      case (num, None) => num
-  //      case (num, Some(den)) => num / den
-  //    }
-
   def unitsParser(using P[Any]): P[Unit[?]] = {
     P(unitProductParser ~ ("/" ~ unitProductParser).?).map { parsed =>
       val result = parsed match {

@@ -3,6 +3,7 @@ package com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical.Constants.sG
 import com.phasmidsoftware.number.core.numerical.Fuzziness.{createFuzz, monadicFuzziness}
+import com.phasmidsoftware.number.core.numerical.WithFuzziness.{Asterisk, Ellipsis}
 import com.phasmidsoftware.number.core.parse.NumberParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -60,12 +61,12 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "fuzz"
   it should "parse *" in {
-    val z = p.parseAll(p.fuzz, "*")
-    z should matchPattern { case p.Success(None, _) => }
+    val z = p.parseAll(p.fuzz, Asterisk)
+    z should matchPattern { case p.Success(Some(Asterisk), _) => }
   }
   it should "parse ..." in {
-    val z = p.parseAll(p.fuzz, "...")
-    z should matchPattern { case p.Success(None, _) => }
+    val z = p.parseAll(p.fuzz, Ellipsis)
+    z should matchPattern { case p.Success(Some(Ellipsis), _) => }
   }
   it should "parse (5)" in {
     val z = p.parseAll(p.fuzz, "(5)")
@@ -103,14 +104,14 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "numberWithFuzziness"
   it should "parse 1.0*" in {
-    val z = p.parseAll(p.numberWithFuzziness, "1.0*")
+    val z = p.parseAll(p.numberWithFuzziness, s"1.0$Asterisk")
     z should matchPattern { case p.Success(_, _) => }
-    z.get shouldBe p.NumberWithFuzziness(p.RealNumber(sign = false, "1", Some("0"), None), None, None)
+    z.get shouldBe p.NumberWithFuzziness(p.RealNumber(sign = false, "1", Some("0"), None), Some(Asterisk), None)
   }
   it should "parse 1.0..." in {
-    val z: p.ParseResult[p.NumberWithFuzziness] = p.parseAll(p.numberWithFuzziness, "1.0...")
+    val z: p.ParseResult[p.NumberWithFuzziness] = p.parseAll(p.numberWithFuzziness, s"1.0$Ellipsis")
     z should matchPattern { case p.Success(_, _) => }
-    z.get shouldBe p.NumberWithFuzziness(p.RealNumber(sign = false, "1", Some("0"), None), None, None)
+    z.get shouldBe p.NumberWithFuzziness(p.RealNumber(sign = false, "1", Some("0"), None), Some(Ellipsis), None)
   }
   it should "parse G" in {
     val z: p.ParseResult[p.NumberWithFuzziness] = p.parseAll(p.numberWithFuzziness, sG)
