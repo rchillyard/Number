@@ -1,5 +1,0 @@
-[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/dimensions/src/test/scala/com/phasmidsoftware/number/dimensions/core/DimensionSpec.scala:6:33 [0m[0m[0m
-[0m[[0m[33mwarn[0m] [0m[0m[33m6 |[0m[33mimport[0m scala.compiletime.ops.int.*[0m
-[0m[[0m[33mwarn[0m] [0m[0m[33m[33m  |[0m                                 ^[0m[0m
-[0m[[0m[33mwarn[0m] [0m[0m[33m  |[0m                                 unused import[0m
-[0m[[0m[33mwarn[0m] [0m[0mone warning found[0m

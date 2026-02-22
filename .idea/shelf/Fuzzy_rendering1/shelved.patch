@@ -1,0 +1,30 @@
+Index: algebra/src/test/scala/com/phasmidsoftware/number/algebra/eager/InversePowerSpec.scala
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/algebra/src/test/scala/com/phasmidsoftware/number/algebra/eager/InversePowerSpec.scala b/algebra/src/test/scala/com/phasmidsoftware/number/algebra/eager/InversePowerSpec.scala
+--- a/algebra/src/test/scala/com/phasmidsoftware/number/algebra/eager/InversePowerSpec.scala	(revision e8193ae2224c11afac5a4d6ed6139c307b6a21e1)
++++ b/algebra/src/test/scala/com/phasmidsoftware/number/algebra/eager/InversePowerSpec.scala	(date 1770216252147)
+@@ -17,14 +17,14 @@
+   val two: InversePower = InversePower(1, 2)
+   val three: InversePower = InversePower(1, 3)
+ 
+-//  it should "compareTo" in {
+-////    InversePower(2, 4).compareTo(two) shouldBe 0
+-////    InversePower(2, 9).compareTo(three) shouldBe 0
+-////    InversePower(2, 4).compareTo(three) should be < 0
+-////    InversePower(2, 9).compareTo(two) should be > 0
+-////    InversePower(3, 8).compareTo(two) shouldBe 0
++  it should "compareTo" in {
++    InversePower(2, 4).compareTo(two) shouldBe 0
++    InversePower(2, 9).compareTo(three) shouldBe 0
++    InversePower(2, 4).compareTo(three) should be < 0
++    InversePower(2, 9).compareTo(two) should be > 0
++    InversePower(3, 8).compareTo(two) shouldBe 0
+ //    pending
+-//  }
++  }
+ 
+   it should "convert" in {
+     InversePower(2, 4).convert[RationalNumber](RationalNumber.zero).get shouldBe RationalNumber(2, 1)

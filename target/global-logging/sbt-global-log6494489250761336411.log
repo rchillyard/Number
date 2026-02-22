@@ -1,6 +1,0 @@
-[0m[[0m[0mdebug[0m] [0m[0m> Exec(clean, None, None)[0m
-[0m[[0m[0mdebug[0m] [0m[0mEvaluating tasks: expression / clean, parse / clean, top / clean, algebra / clean, core / clean, clean[0m
-[0m[[0m[0mdebug[0m] [0m[0mRunning task... Cancel: Signal, check cycles: false, forcegc: true[0m
-[0m[[0m[0mdebug[0m] [0m[0mForcing garbage collection...[0m
-[0m[[0m[32msuccess[0m] [0m[0mTotal time: 37 s, completed Feb 10, 2026, 8:45:30 AM[0m
-[0m[[0m[0mdebug[0m] [0m[0m> Exec(idea-shell, None, None)[0m

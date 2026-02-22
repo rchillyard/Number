@@ -1,0 +1,153 @@
+Index: algebra/src/main/scala/com/phasmidsoftware/number/algebra/core/Valuable.scala
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/algebra/src/main/scala/com/phasmidsoftware/number/algebra/core/Valuable.scala b/algebra/src/main/scala/com/phasmidsoftware/number/algebra/core/Valuable.scala
+--- a/algebra/src/main/scala/com/phasmidsoftware/number/algebra/core/Valuable.scala	(revision 0473ff4bfe9efcfebc0c747a4c6c836004c38b6a)
++++ b/algebra/src/main/scala/com/phasmidsoftware/number/algebra/core/Valuable.scala	(date 1768232333149)
+@@ -28,15 +28,6 @@
+   */
+ trait Valuable extends Renderable with Numeric with Exactitude with Normalizable[Valuable] with TypeSafe {
+ 
+-  /**
+-    * Attempts to retrieve a factor based on the provided context.
+-    * This method evaluates whether there is an applicable factor within the given context.
+-    *
+-    * @param context the context in which the factor is evaluated.
+-    * @return an optional `Factor` if one qualifies under the provided context; otherwise, `None`.
+-    */
+-  def maybeFactor(context: Context): Option[Factor]
+-
+   /**
+     * Converts the current `Lazy` instance into an `Eager` instance by forcing
+     * the resolution or evaluation of its underlying value.
+@@ -49,6 +40,15 @@
+     * @return the materialized `Eager` instance representing the resolved value
+     */
+   def materialize: Eager
++  
++  /**
++    * Attempts to retrieve a factor based on the provided context.
++    * This method evaluates whether there is an applicable factor within the given context.
++    *
++    * @param context the context in which the factor is evaluated.
++    * @return an optional `Factor` if one qualifies under the provided context; otherwise, `None`.
++    */
++  def maybeFactor(context: Context): Option[Factor]
+ 
+   /**
+     * Casts this `Valuable` instance into a `Monotone` type if it already is a `Monotone`.
+@@ -83,6 +83,7 @@
+   * whereby full resolution or evaluation may not be required unless explicitly invoked.
+   */
+ trait Lazy extends Valuable {
++
+   /**
+     * Simplifies the given expression or computation and returns a lazy evaluation result.
+     *
+@@ -163,7 +164,14 @@
+     */
+   def fuzzyCompare(p: Double)(x: Eager, y: Eager): Try[Int]
+ 
+-//  def sum(x: Eager, y: Eager): Try[Eager]
++  // TODO implement these basic methods the "proper" way (like we do with eqv, FuzzyEqv)
++  def sum(x: Eager, y: Eager): Try[Eager]
++
++  def product(x: Eager, y: Eager): Try[Eager]
++  
++  def quotient(x: Eager, y: Eager): Try[Eager]
++  
++  def subtract(x: Eager, y: Eager): Try[Eager]
+ }
+ 
+ /**
+Index: algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/Eager.scala
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/Eager.scala b/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/Eager.scala
+--- a/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/Eager.scala	(revision 0473ff4bfe9efcfebc0c747a4c6c836004c38b6a)
++++ b/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/Eager.scala	(date 1768233770541)
+@@ -133,6 +133,24 @@
+     */
+   def fuzzyCompare(p: Double)(x: Eager, y: Eager): Try[Int] =
+     Failure(AlgebraException(s"Eager.fuzzyCompare: unimplemented compare $x and $y"))
++
++  // TODO these should be implemented using the DyadicOperator mechanism.
++  // See, for example, eqv in Structure.scala.
++  def sum(x: Eager, y: Eager): Try[Eager] = (x, y) match {
++    case (a: Real, b: Structure) =>
++      import Real.given 
++      FP.toTry(a.plus(b))(Failure(AlgebraException(s"cannot sum $x + $y")))
++    case (a: RationalNumber, b: Structure) =>
++      given AdditiveCommutativeMonoid[RationalNumber]
++      FP.toTry(a.plus(b))(Failure(AlgebraException(s"cannot sum $x + $y")))
++  }
++    
++
++  def product(x: Eager, y: Eager): Try[Eager] = ???
++
++  def quotient(x: Eager, y: Eager): Try[Eager] = ???
++
++  def subtract(x: Eager, y: Eager): Try[Eager] = ???
+ }
+ 
+ /**
+Index: algebra/src/main/scala/com/phasmidsoftware/number/algebra/util/FP.scala
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/algebra/src/main/scala/com/phasmidsoftware/number/algebra/util/FP.scala b/algebra/src/main/scala/com/phasmidsoftware/number/algebra/util/FP.scala
+--- a/algebra/src/main/scala/com/phasmidsoftware/number/algebra/util/FP.scala	(revision 0473ff4bfe9efcfebc0c747a4c6c836004c38b6a)
++++ b/algebra/src/main/scala/com/phasmidsoftware/number/algebra/util/FP.scala	(date 1768233224061)
+@@ -223,7 +223,7 @@
+     * @return if `xo` is `Some(x)` then `Success(x)` else `Failure(RationalException(default))`.
+     */
+   def toTryWithRationalException[X](xo: Option[X], default: => String): Try[X] =
+-    toTryWithThrowable(xo, RationalException(default))
++    toTryWithThrowable(xo)(RationalException(default))
+ 
+   /**
+     * Method to convert an `Option` into a `Try` where the default is an exception, i.e., a `Throwable`.
+@@ -233,7 +233,7 @@
+     * @tparam X the underlying type of both input and output.
+     * @return if `xo` is `Some(x)` then `Success(x)` else `Failure(default)`.
+     */
+-  def toTryWithThrowable[X](xo: Option[X], default: => Throwable): Try[X] =
++  def toTryWithThrowable[X](xo: Option[X])(default: => Throwable): Try[X] =
+     xo.toRight(default).toTry // toTry(xo, Failure(default))
+ 
+   /**
+@@ -379,7 +379,7 @@
+     * @tparam X the underlying type of both input and output.
+     * @return if `xo` is `Some(x)` then `Success(x)` else `default`.
+     */
+-  def toTry[X](xo: Option[X], default: => Try[X]): Try[X] =
++  def toTry[X](xo: Option[X])(default: => Try[X]): Try[X] =
+     xo map (Success(_)) getOrElse default
+ 
+   /**
+Index: expression/src/main/scala/com/phasmidsoftware/number/expression/expr/EagerOps.scala
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/EagerOps.scala b/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/EagerOps.scala
+--- a/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/EagerOps.scala	(revision 0473ff4bfe9efcfebc0c747a4c6c836004c38b6a)
++++ b/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/EagerOps.scala	(date 1768231822034)
+@@ -9,7 +9,11 @@
+ 
+ object EagerOps {
+   extension (x: Eager) {
+-    def +(y: Eager): Valuable = Sum(x, y).normalize
++    def +(y: Eager): Valuable = 
++      if (x.isExact && y.isExact)
++        Sum(x, y).normalize
++      else 
++        // This is where we should use the Dyadic Operator sum.
+     def -(y: Eager): Valuable = BiFunction(Literal(x), -Literal(y), Sum).normalize
+     def *(y: Eager): Valuable = Product(x, y).normalize
+     def /(y: Eager): Valuable = BiFunction(Literal(x), Literal(y).reciprocal, Product).normalize

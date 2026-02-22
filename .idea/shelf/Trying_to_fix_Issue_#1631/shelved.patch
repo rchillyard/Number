@@ -1,0 +1,131 @@
+Index: top/src/test/scala/com/phasmidsoftware/number/top/FunctionalSpec.scala
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/top/src/test/scala/com/phasmidsoftware/number/top/FunctionalSpec.scala b/top/src/test/scala/com/phasmidsoftware/number/top/FunctionalSpec.scala
+new file mode 100644
+--- /dev/null	(date 1768957250139)
++++ b/top/src/test/scala/com/phasmidsoftware/number/top/FunctionalSpec.scala	(date 1768957250139)
+@@ -0,0 +1,64 @@
++package com.phasmidsoftware.number.top
++
++import com.phasmidsoftware.number.expression.expr.{BiFunction, Expression, NamedConstant, Noop, Power}
++import org.scalatest.flatspec.AnyFlatSpec
++import org.scalatest.matchers.should
++import cats.implicits.toShow
++import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NatLog, WholeNumber}
++import com.phasmidsoftware.number.expression.expr.{E, Pi, Root}
++import com.phasmidsoftware.number.parse.ExpressionParser.puremath
++
++class FunctionalSpec extends AnyFlatSpec with should.Matchers {
++
++  behavior of "Functional.sc"
++
++  it should "get root2 right" in {
++    val root2 = puremath"\sqrt{2}"
++    root2.materialize shouldBe Eager.root2
++  }
++
++  it should "perform the worksheet operations" in {
++
++    // Euler's constant (as an expression)
++    val e = E
++    e shouldBe a[NamedConstant]
++
++    // Other ways to express e
++    Eager.e shouldBe NatLog(WholeNumber(1))
++    val e1 = puremath"\e"
++    e1.toDouble shouldBe 2.718281828459045
++
++    // What about e^2?
++    val e2 = puremath"\e^2"
++    e2 shouldBe BiFunction(E, 2, Power)
++    e2.toDouble shouldBe 7.3890560989306495
++
++    // Pi as an expression
++    val pi = Pi
++    pi shouldBe a[NamedConstant]
++
++    // Other ways to express pi
++    val pi1 = Angle(1)
++    pi1.show shouldBe "\uD835\uDED1"
++    Pi.materialize shouldBe Angle(WholeNumber(1))
++
++    val deg180 = Angle.degrees(WholeNumber(180))
++    deg180.show shouldBe "180°"
++
++    // √2 as an expression
++    val actual = Root.rootTwo.materialize
++    val expected = Eager.root2
++    actual shouldBe expected
++
++    // Other ways to express √2
++    val root2 = puremath"\sqrt{2}"
++    val materialize = root2.materialize
++    materialize shouldBe Eager.root2
++    val string = root2.show
++    string shouldBe "1.4142135623730951[5]"
++    materialize shouldBe Eager.root2
++    root2.toDouble shouldBe 1.4142135623730951
++
++
++  }
++}
+Index: top/src/main/scala/com/phasmidsoftware/number/worksheets/Functional.sc
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/top/src/main/scala/com/phasmidsoftware/number/worksheets/Functional.sc b/top/src/main/scala/com/phasmidsoftware/number/worksheets/Functional.sc
+new file mode 100644
+--- /dev/null	(date 1768950007669)
++++ b/top/src/main/scala/com/phasmidsoftware/number/worksheets/Functional.sc	(date 1768950007669)
+@@ -0,0 +1,47 @@
++/**
++  * This worksheet illustrates the use of Functional Numbers in the algebra module.
++  */
++
++import cats.implicits.toShow
++import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NatLog, WholeNumber}
++import com.phasmidsoftware.number.expression.expr.{E, Pi, Root}
++import com.phasmidsoftware.number.parse.ExpressionParser.puremath
++
++// Euler's constant (as an expression)
++E
++
++// Other ways to express e
++NatLog(1)
++val e1 = puremath"\e"
++e1.toDouble
++
++// What about e^2?
++NatLog(2)
++val e2 = puremath"\e^2"
++e2.toDouble
++
++// Pi as an expression
++Pi
++
++// Other ways to express pi
++val pi1 = Angle(1)
++pi1.show
++Pi.materialize
++
++val deg180 = Angle.degrees(WholeNumber(180))
++deg180.show
++
++// √2 as an expression
++Root.rootTwo
++Root.rootTwo.materialize
++
++// Other ways to express √2
++val root2 = puremath"\sqrt{2}"
++root2.show
++root2.materialize
++root2.toDouble
++
++
++
++
++

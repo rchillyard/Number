@@ -1,0 +1,1377 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="BspLocalSettings">
+    <option name="projectSyncType">
+      <map>
+        <entry key="$PROJECT_DIR$/../HedgeFund" value="PREVIEW" />
+        <entry key="$PROJECT_DIR$/../New HedgeFund-2" value="PREVIEW" />
+        <entry key="$PROJECT_DIR$/../NewHedgeFund" value="PREVIEW" />
+        <entry key="$PROJECT_DIR$/../TableParser" value="PREVIEW" />
+        <entry key="$PROJECT_DIR$/../TicketAgency" value="PREVIEW" />
+        <entry key="$PROJECT_DIR$/../akka-http-quickstart-scala" value="PREVIEW" />
+      </map>
+    </option>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="c3a3b7ea-82d1-44b4-96b3-f2be2f3dfc42" name="Changes" comment="" />
+    <list id="a31e3566-ee6a-48c9-83d5-98533cddf17a" name="Fuzzy rendering" comment="Fuzzy rendering" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CoverageOptionsProvider">
+    <option name="myAddOrReplace" value="0" />
+  </component>
+  <component name="DefaultGradleProjectSettings">
+    <option name="testRunner" value="GRADLE" />
+    <option name="delegatedBuild" value="true" />
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="644" />
+    <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="SBT">
+      <state>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="number2026" type="f1a62948:ProjectNode" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Scala Worksheet" />
+        <option value="ScalaTest Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="gh-pages" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GradleLocalSettings">
+    <option name="projectSyncType">
+      <map>
+        <entry key="$USER_HOME$/PlayProjects/play-scala-slick-example-2" value="PREVIEW" />
+      </map>
+    </option>
+  </component>
+  <component name="HierarchyBrowserManager">
+    <option name="SCOPE" value="Production" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="jar://$USER_HOME$/.ivy2/local/com.phasmidsoftware/matchers_3/1.0.13/srcs/matchers_3-sources.jar!/com/phasmidsoftware/matchers/Matchers.scala" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_3/2.4.0/scala-parser-combinators_3-2.4.0-sources.jar!/scala/util/parsing/combinator/RegexParsers.scala" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16-sources.jar!/scala/Option.scala" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16-sources.jar!/scala/collection/Seq.scala" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16-sources.jar!/scala/math/package.scala" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16-sources.jar!/scala/util/Try.scala" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_3/3.2.19/scalatest-core_3-3.2.19-sources.jar!/org/scalatest/OutcomeOf.scala" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.13.0/cats-core_3-2.13.0-sources.jar!/cats/Show.scala" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.13.0/cats-core_3-2.13.0-sources.jar!/cats/syntax/eq.scala" root0="SKIP_INSPECTION" />
+    <setting file="jar://$USER_HOME$/Library/Java/JavaVirtualMachines/openjdk-23.0.1/Contents/Home/lib/src.zip!/java.base/jdk/internal/loader/BuiltinClassLoader.java" root0="SKIP_INSPECTION" />
+  </component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="ProjectCodeStyleSettingsMigration">
+    <option name="version" value="2" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
+  <component name="ProjectId" id="37opjmlVdJ67qAVcHp119yRxay0" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.Junk.executor": "Run",
+    "Application.exampleMainProgram.executor": "Run",
+    "Application.main.executor": "Run",
+    "Application.mainNatural.executor": "Run",
+    "JUnit.BigNumberTest.testPiConstant.executor": "Debug",
+    "JUnit.java in number.number-core.test.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "Scala REPL.Scala REPL.executor": "Run",
+    "ScalaTest.AggregateSpec.Aggregate should simplify 3 * 1/5 * 5/3.executor": "Run",
+    "ScalaTest.AggregateSpec.Aggregate should simplify 3 -5 +2.executor": "Run",
+    "ScalaTest.AggregateSpec.executor": "Run",
+    "ScalaTest.AlgebraicSpec (1).executor": "Run",
+    "ScalaTest.AlgebraicSpec (2).executor": "Run",
+    "ScalaTest.AlgebraicSpec (3).executor": "Run",
+    "ScalaTest.AlgebraicSpec (4).executor": "Debug",
+    "ScalaTest.AlgebraicSpec.executor": "Run",
+    "ScalaTest.AlgebraicSpec.worksheet should evaluate phi + 1.executor": "Debug",
+    "ScalaTest.AlgebraicSpec.worksheet should work (1).executor": "Debug",
+    "ScalaTest.AlgebraicSpec.worksheet should work (2).executor": "Debug",
+    "ScalaTest.AlgebraicSpec.worksheet should work (3).executor": "Run",
+    "ScalaTest.AlgebraicSpec.worksheet should work.executor": "Debug",
+    "ScalaTest.All the Number tests.executor": "Coverage",
+    "ScalaTest.All the dimensions tests.executor": "Run",
+    "ScalaTest.AtomicExpressionSpec.QuadraticRoot should materialize correctly.executor": "Debug",
+    "ScalaTest.AtomicExpressionSpec.executor": "Run",
+    "ScalaTest.AtomicExpressionSpec_TableDriven.executor": "Run",
+    "ScalaTest.BaseComplexSpec.BaseComplex basic operations should compute inverse correctly for polar.executor": "Run",
+    "ScalaTest.BaseComplexSpec.BaseComplex trigonometric functions should handle this simple test.executor": "Debug",
+    "ScalaTest.BaseComplexSpec.BaseComplex trigonometric functions should satisfy exp(z1 + z2) = exp(z1) · exp(z2).executor": "Run",
+    "ScalaTest.BaseComplexSpec.ComplexPolar operations should multiply in polar form correctly.executor": "Debug",
+    "ScalaTest.BaselSpec.executor": "Run",
+    "ScalaTest.BenchmarkSpec.Benchmark should do 100rRepetitions.executor": "Run",
+    "ScalaTest.ComplexRootSpec.Complex roots from QuadraticEquation should generate cube roots of unity for x² + x + 1 = 0.executor": "Debug",
+    "ScalaTest.ComplexRootSpec.Edge cases for complex roots should handle equations with large coefficients.executor": "Run",
+    "ScalaTest.ComplexRootSpec.executor": "Run",
+    "ScalaTest.ComplexRootTableSpec.Complex roots from QuadraticEquation (table-driven) should evaluate to zero when roots are substituted back.executor": "Run",
+    "ScalaTest.ComplexRootTableSpec.Complex roots from QuadraticEquation (table-driven) should generate complex solutions for all test cases.executor": "Run",
+    "ScalaTest.ComplexRootTableSpec.executor": "Run",
+    "ScalaTest.ComplexSpec.worksheet should evaluate an equation.executor": "Debug",
+    "ScalaTest.ComplexSpec.worksheet should work.executor": "Run",
+    "ScalaTest.CompositeExpressionSpec.Aggregate - Basic Properties should test simplifyOperands.executor": "Debug",
+    "ScalaTest.CompositeExpressionSpec.BiFunction - Evaluation (Product) should evaluate product with minus one.executor": "Run",
+    "ScalaTest.CompositeExpressionSpec.BiFunction - Simplification (Power) should simplify (x^a)^b to x^(a*b) for root.executor": "Debug",
+    "ScalaTest.CompositeExpressionSpec.BiFunction - Simplification (Product) should combine powers of same base.executor": "Debug",
+    "ScalaTest.CompositeExpressionSpec.BiFunction - Simplification (Product) should simplify x * (-1) to -x.executor": "Debug",
+    "ScalaTest.CompositeExpressionSpec.BiFunction - Simplification (Sum) should evaluate (unnamed) constant sum completely.executor": "Run",
+    "ScalaTest.CompositeExpressionSpec.BiFunction - Simplification (Sum) should evaluate constant sum completely.executor": "Debug",
+    "ScalaTest.CompositeExpressionSpec.UniFunction - Simplification should simplify reciprocal of reciprocal.executor": "Run",
+    "ScalaTest.CompositeExpressionSpec.protection should not protect 1 + 2 from evaluation.executor": "Run",
+    "ScalaTest.CompositeExpressionSpec.protection should protect 2 * 𝛑 from evaluation.executor": "Run",
+    "ScalaTest.CompositeExpressionSpec2.Aggregate - Basic Properties should have correct depth.executor": "Debug",
+    "ScalaTest.CompositeExpressionSpec2.BiFunction - Simplification (Power) should simplify (x^a)^b to x^(a*b) for root.executor": "Run",
+    "ScalaTest.CompositeExpressionSpec2.BiFunction - Simplification (Power) should simplify (x^a)^b to x^(a*b) for transcendental.executor": "Debug",
+    "ScalaTest.CompositeExpressionSpec2.BiFunction - Simplification (Power) should simplify x^(log_x(y)) to y.executor": "Debug",
+    "ScalaTest.CompositeExpressionSpec2.BiFunction - Simplification (Power) should simplify φ^2 using golden ratio identity.executor": "Debug",
+    "ScalaTest.CompositeExpressionSpec2.BiFunction - Simplification (Product) should combine powers of same base.executor": "Run",
+    "ScalaTest.CompositeExpressionSpec2.BiFunction - Simplification (Product) should simplify x * (-1) to -x.executor": "Debug",
+    "ScalaTest.CompositeExpressionSpec2.BiFunction - Simplification (Product) should simplify x * 1 to x.executor": "Debug",
+    "ScalaTest.CompositeExpressionSpec2.BiFunction - Simplification (Sum) should simplify 0 + x to x.executor": "Debug",
+    "ScalaTest.CompositeExpressionSpec2.CompositeExpression - Integration should simplify nested powers for transcendentals.executor": "Run",
+    "ScalaTest.CompositeExpressionSpec2.Square root simplification consistency should show what simplifyByEvaluation returns for each.executor": "Run",
+    "ScalaTest.CompositeExpressionSpec2.Square root simplification consistency should simplify bare √3 to consistent form\nSquare root simplification consistency should simplify √3 inside negation to consistent form\nSquare root simplification consistency should ensure both representations are equivalent\nSquare root simplification consistency should show what simplifyByEvaluation returns for each\nSquare root simplification consistency should test simplifyByEvaluation directly on both forms\nSquare root simplification consistency should verify the aggregate expansion creates consistent forms.executor": "Run",
+    "ScalaTest.CompositeExpressionSpec2.Square root simplification consistency should simplify bare √3 to consistent form\nSquare root simplification consistency should simplify √3 inside negation to consistent form\nSquare root simplification consistency should ensure both representations are equivalent\nSquare root simplification consistency should test simplifyByEvaluation directly on both forms\nSquare root simplification consistency should verify the aggregate expansion creates consistent forms.executor": "Run",
+    "ScalaTest.CompositeExpressionSpec2.Square root simplification consistency should trace the full simplification pipeline for bare √3.executor": "Run",
+    "ScalaTest.CompositeExpressionSpec2.Square root simplification consistency should trace the full simplification pipeline for nested √3.executor": "Run",
+    "ScalaTest.CompositeExpressionSpec2.executor": "Run",
+    "ScalaTest.CompositeExpressionSpec3.BiFunction identity simplifications - Quadratic roots should simplify conjugate product of quadratic roots.executor": "Run",
+    "ScalaTest.CompositeExpressionSpec3.BiFunction structural simplifications should simplify (-a) * a → -(a²).executor": "Debug",
+    "ScalaTest.CompositeExpressionSpec3.BiFunction structural simplifications should simplify power of power: (a^b)^p → a^(bp).executor": "Run",
+    "ScalaTest.CompositeExpressionSpec3.executor": "Run",
+    "ScalaTest.ConstantsSpec.Constants should G.executor": "Debug",
+    "ScalaTest.ConstantsSpec.Constants should c.executor": "Debug",
+    "ScalaTest.ConstantsSpec.constants should have mu.executor": "Run",
+    "ScalaTest.ConstantsSpec.constants should show proton/electron ratio with appropriate precision.executor": "Run",
+    "ScalaTest.ConstantsSpec.executor": "Run",
+    "ScalaTest.ContinuedFractionSpec.Worksheet should.executor": "Run",
+    "ScalaTest.DimensionSpec.executor": "Run",
+    "ScalaTest.DimensionWitnessSpec.executor": "Run",
+    "ScalaTest.ExactNumberSpec.ExactNumber should render.executor": "Debug",
+    "ScalaTest.ExponentialSpec.BinaryExponential should calculate toDouble correctly.executor": "Debug",
+    "ScalaTest.ExponentialSpec.NaturalExponential should calculate toDouble correctly.executor": "Run",
+    "ScalaTest.ExpressionEdgeCasesSpec.BiFunction identity simplifications - Power operations should handle Euler's identity with complex cartesian.executor": "Debug",
+    "ScalaTest.ExpressionEdgeCasesSpec.BiFunction identity simplifications - Power operations should handle Euler's identity with complex polar.executor": "Debug",
+    "ScalaTest.ExpressionEqSpec.executor": "Run",
+    "ScalaTest.ExpressionMatchersSpec.biFunctionSimplifier should simplify 1 :+ 2 - 2.executor": "Debug",
+    "ScalaTest.ExpressionMatchersSpec.biFunctionSimplifier should simplify √3 * -1 as -√3.executor": "Debug",
+    "ScalaTest.ExpressionMatchersSpec.biFunctionTransformer (2) should fail to simplify 2 ∧ 1/2.executor": "Debug",
+    "ScalaTest.ExpressionMatchersSpec.matchAndCollectTwoDyadicLevels should work for (π :+ 1) * (π - 1).executor": "Run",
+    "ScalaTest.ExpressionMatchersSpec.matchSimpler 2 should properly simplify 1 * (root3 / root3 * 3).executor": "Debug",
+    "ScalaTest.ExpressionMatchersSpec.matchSimpler 2 should properly simplify 1 * (√3 / √3 * 3).executor": "Debug",
+    "ScalaTest.ExpressionMatchersSpec.matchSimpler 2 should simplify root4 * 2 / 2 part 1.executor": "Debug",
+    "ScalaTest.ExpressionMatchersSpec.matchSimpler should cancel addition and subtraction of 3.executor": "Debug",
+    "ScalaTest.ExpressionMatchersSpec.matchSimpler should cancel addition and subtraction of e.executor": "Debug",
+    "ScalaTest.ExpressionMatchersSpec.matchSimpler should simplify sqrt(7)∧2.executor": "Debug",
+    "ScalaTest.ExpressionMatchersSpec.matchSimpler should work for multi-levels 2.executor": "Debug",
+    "ScalaTest.ExpressionMatchersSpec.should cancel addition and subtraction of e.executor": "Debug",
+    "ScalaTest.ExpressionMatchersSpec.simplify aggregate, etc. should simplify aggregate 1a.executor": "Debug",
+    "ScalaTest.ExpressionMatchersSpec.simplify aggregate, etc. should simplify aggregate 4b.executor": "Debug",
+    "ScalaTest.ExpressionMatchersSpec.simplify should work for Exp Infinity.executor": "Run",
+    "ScalaTest.ExpressionParserSpec.ExpressionParser should lazymath functions.executor": "Debug",
+    "ScalaTest.ExpressionSpec.Expression worksheet should work.executor": "Debug",
+    "ScalaTest.ExpressionSpec.ExpressionOps should evaluate atan.executor": "Debug",
+    "ScalaTest.ExpressionSpec.Sum should add pi to -pi.executor": "Debug",
+    "ScalaTest.ExpressionSpec.evaluate should evaluate i * 2.executor": "Debug",
+    "ScalaTest.ExpressionSpec.executor": "Run",
+    "ScalaTest.ExpressionSpec.parse should fail to evaluate 3 ∧ ( 2 ∧ -1 ).executor": "Run",
+    "ScalaTest.ExpressionSpec.parse should parse and evaluate sqrt(3).executor": "Run",
+    "ScalaTest.ExpressionSpec.simplify should simplify field expressions.executor": "Run",
+    "ScalaTest.ExpressionSpec.worksheet should work.executor": "Run",
+    "ScalaTest.ExtractorsSpec.NthRoot should match square root from Literal QuadraticSolution.executor": "Debug",
+    "ScalaTest.ExtractorsSpec.QuadraticValue should match Literal QuadraticSolution.executor": "Debug",
+    "ScalaTest.ExtractorsSpec.executor": "Run",
+    "ScalaTest.FactorSpec.Factor should convert.executor": "Run",
+    "ScalaTest.FibonacciSpec.Fibonacci should render phi+1 as a Field.executor": "Debug",
+    "ScalaTest.FoucaultSpec.Foucault worksheets should perform Foucault1.executor": "Run",
+    "ScalaTest.FoucaultSpec.executor": "Run",
+    "ScalaTest.FunctionalSpec.Functional.sc should get root2 right.executor": "Run",
+    "ScalaTest.FunctionalSpec.Functional.sc should perform the worksheet operations.executor": "Debug",
+    "ScalaTest.FunctionalSpec.Functional.sc should work.executor": "Debug",
+    "ScalaTest.FunctionalSpec.executor": "Run",
+    "ScalaTest.FuzzinessSpec.Fuzz.toString should work for 3.1415927.executor": "Debug",
+    "ScalaTest.FuzzinessSpec.Fuzz.toString should work for Avagadro.executor": "Debug",
+    "ScalaTest.FuzzinessSpec2.AbsoluteFuzz should preserve absolute fuzz when normalization with zero fails.executor": "Run",
+    "ScalaTest.FuzzinessSpec2.executor": "Run",
+    "ScalaTest.FuzzyNumberIsProbablyZeroSpec.FuzzyNumber.isProbablyZero with exact numbers (no fuzz) should return correct results for exact numbers.executor": "Debug",
+    "ScalaTest.FuzzyNumberIsProbablyZeroSpec.executor": "Run",
+    "ScalaTest.FuzzyNumberIsProbablyZeroSpec.wiggle should show relationship between fuzz, wiggle, and probability.executor": "Run",
+    "ScalaTest.FuzzyNumberSpec.Fuzz.toString should work for 1/0.005/Box.executor": "Run",
+    "ScalaTest.FuzzyNumberSpec2.executor": "Run",
+    "ScalaTest.InversePowerAdditionalSpec.InversePower power operations should return None for pow on unsupported base.executor": "Debug",
+    "ScalaTest.InversePowerAdditionalSpec.InversePower rendering and display should render fourth and higher roots.executor": "Debug",
+    "ScalaTest.InversePowerSpec.InversePower should compareTo.executor": "Debug",
+    "ScalaTest.InversePowerSpec.Number raised to inverse integer powers should evaluate fourth root via 1/4 power.executor": "Run",
+    "ScalaTest.InversePowerSpec.Number raised to inverse integer powers should handle negative radicands with odd roots.executor": "Debug",
+    "ScalaTest.InversePowerSpec.Number raised to inverse integer powers should handle rational bases.executor": "Run",
+    "ScalaTest.InversePowerSpec.Number raised to inverse integer powers should stay symbolic for non-exact roots.executor": "Debug",
+    "ScalaTest.InversePowerSpec.executor": "Run",
+    "ScalaTest.LaTeXParserSpec.LaTeXParser should apply functions.executor": "Run",
+    "ScalaTest.LaTeXParserSpec.exponents should parse 8.8541878128 \times 10^{-12}.executor": "Debug",
+    "ScalaTest.LaTeXParserSpec.exponents should parse 8.8541878128 \\\\times 10^{-12}.executor": "Debug",
+    "ScalaTest.LaTeXParserSpec.exponents should parse 8.8541878128(13) \\\\times 10^{-12}.executor": "Run",
+    "ScalaTest.LaTeXParserSpec.old Expression.parse string should parse and evaluate sqrt(3)\nold Expression.parse string should parse and evaluate half.executor": "Run",
+    "ScalaTest.LaTeXParserSpec.old Expression.parse string should parse and evaluate sqrt(3).executor": "Debug",
+    "ScalaTest.LatexRendererInstancesSpec.Edge cases and special values should handle very large rationals.executor": "Debug",
+    "ScalaTest.LatexRendererInstancesSpec.Rational LatexRenderer should render proper fractions.executor": "Debug",
+    "ScalaTest.LatexRendererInstancesSpec.RationalNumber LatexRenderer should delegate to Rational renderer\nRationalNumber LatexRenderer should render half correctly\nRationalNumber LatexRenderer should render zero correctly\nRationalNumber LatexRenderer should render one correctly.executor": "Run",
+    "ScalaTest.LatexRendererInstancesSpec.RationalNumber LatexRenderer should render speed of light in furlongs per fortnight.executor": "Debug",
+    "ScalaTest.MaybeFuzzySpec.MaybeFuzzy extension methods edge cases should handle very small relative fuzziness.executor": "Run",
+    "ScalaTest.MaybeFuzzySpec.MaybeFuzzy extension methods for Angle should render exact Angle with asAbsolute\nMaybeFuzzy extension methods for Angle should render fuzzy Angle with absolute fuzz using asAbsolute\nMaybeFuzzy extension methods for Angle should render fuzzy Angle with relative fuzz using asAbsolute\nMaybeFuzzy extension methods for Angle should render fuzzy Angle with asRelative\nMaybeFuzzy extension methods for Angle should render fuzzy Angle with asPercentage.executor": "Debug",
+    "ScalaTest.MaybeFuzzySpec.MaybeFuzzy extension methods for Angle should render exact Angle with asAbsolute.executor": "Debug",
+    "ScalaTest.MaybeFuzzySpec.MaybeFuzzy extension methods for Angle should render fuzzy Angle with absolute fuzz using asAbsolute.executor": "Debug",
+    "ScalaTest.MaybeFuzzySpec.MaybeFuzzy extension methods for Angle should render fuzzy Angle with relative fuzz using asAbsolute.executor": "Debug",
+    "ScalaTest.MaybeFuzzySpec.MaybeFuzzy extension methods for Angle should show fuzzy Angle with asPercentage.executor": "Run",
+    "ScalaTest.MaybeFuzzySpec.MaybeFuzzy extension methods for InversePower should render exact InversePower with asAbsolute.executor": "Run",
+    "ScalaTest.MaybeFuzzySpec.MaybeFuzzy extension methods for Real should render exact Real with asAbsolute.executor": "Debug",
+    "ScalaTest.MaybeFuzzySpec.MaybeFuzzy extension methods for Real should render fuzzy Real with absolute fuzz using asAbsolute.executor": "Run",
+    "ScalaTest.MaybeFuzzySpec.MaybeFuzzy extension methods for Real should render fuzzy Real with relative fuzz using asAbsolute.executor": "Run",
+    "ScalaTest.MaybeFuzzySpec.executor": "Run",
+    "ScalaTest.ModuloSpec.executor": "Run",
+    "ScalaTest.NamedConstantSpec.NamedConstant should scale correctly.executor": "Debug",
+    "ScalaTest.NaturalSpec.Natural should multiply correctly.executor": "Run",
+    "ScalaTest.NaturalSpec.RomanParser should parse compound Roman numerals.executor": "Debug",
+    "ScalaTest.NaturalSpec.RomanParser should parse simple Roman numerals.executor": "Run",
+    "ScalaTest.NaturalSpec.executor": "Run",
+    "ScalaTest.NormalizeRootSpec.executor": "Run",
+    "ScalaTest.NormalizeSpec.Complex.normalize should reduce further to WholeNumber if possible.executor": "Run",
+    "ScalaTest.NormalizeSpec.Complex.normalize should reduce to Real when imaginary part is zero.executor": "Debug",
+    "ScalaTest.NormalizeSpec.Complex.normalize should stay as Complex when imaginary part is non-zero.executor": "Run",
+    "ScalaTest.NormalizeSpec.executor": "Run",
+    "ScalaTest.NumberNotationRoundTripSpec.Fuzziness magnitude calculation should calculate correct fuzziness for different decimal places.executor": "Run",
+    "ScalaTest.NumberNotationRoundTripSpec.Number notation round-trips should round-trip fuzzy numbers with various decimal places.executor": "Debug",
+    "ScalaTest.NumberNotationRoundTripSpec.Number notation round-trips should round-trip repeating decimals with two-digit patterns.executor": "Debug",
+    "ScalaTest.NumberNotationRoundTripSpec.Number notation round-trips should round-trip simple repeating decimals.executor": "Debug",
+    "ScalaTest.NumberNotationRoundTripSpec.executor": "Run",
+    "ScalaTest.NumberParserSpec.exponent should parse E-1\nexponent should parse E+1.executor": "Run",
+    "ScalaTest.NumberParserSpec.exponent should parse E-1.executor": "Run",
+    "ScalaTest.NumberRenderSpec.executor": "Run",
+    "ScalaTest.NumberRenderSpec.parsing issues should use scientific notation for very large values\nparsing issues should use scientific notation for very small values.executor": "Run",
+    "ScalaTest.NumberShowFuzzySpec.executor": "Run",
+    "ScalaTest.NumberShowSpec.ExactNumber.show (vulgar fractions) should show 1/2 as ½.executor": "Debug",
+    "ScalaTest.NumberShowSpec.executor": "Run",
+    "ScalaTest.NumberSpec.Number should handle zero correctly.executor": "Debug",
+    "ScalaTest.NumberSpec.Number should isExact.executor": "Debug",
+    "ScalaTest.NumberSpec.atan should be 0Pi for 0/-1.executor": "Debug",
+    "ScalaTest.NumberSpec.atan should be 5 Pi / 6 for (-√3, 1).executor": "Debug",
+    "ScalaTest.NumberSpec.atan should be approximately 5 Pi / 6 for (-√3, 1).executor": "Debug",
+    "ScalaTest.NumberSpec.cos should work for 2/3.executor": "Run",
+    "ScalaTest.NumberSpec.normalize should multiply e and e.executor": "Run",
+    "ScalaTest.NumberSpec.normalize should multiply e and pi.executor": "Debug",
+    "ScalaTest.NumberSpec.normalize should multiply pi and e.executor": "Debug",
+    "ScalaTest.NumberSpec.sin should work for 1/3.executor": "Debug",
+    "ScalaTest.NumberSpec.sin should work for 5/12 Radian.executor": "Run",
+    "ScalaTest.NumberSpec.toString and render should work for E as scalar (rel fuzzy).executor": "Run",
+    "ScalaTest.NumberTestmeSpec.Number.divide with BaseComplex (TESTME at line 337) should divide a Number by a BaseComplex (ComplexCartesian).executor": "Debug",
+    "ScalaTest.NumberTestmeSpec.Number.power with ComplexCartesian (TESTME at line 378) should handle power of 0 (converts to Polar).executor": "Debug",
+    "ScalaTest.NumberTestmeSpec.Number.power with ComplexCartesian (TESTME at line 378) should handle power of 3 (converts to Polar).executor": "Debug",
+    "ScalaTest.NumberTestmeSpec.Number.power with ComplexCartesian (TESTME at line 378) should raise ComplexCartesian to a Number power.executor": "Debug",
+    "ScalaTest.NumberTestmeSpec.Number.toLong (TESTME at line 159) should convert a large integer to Long.executor": "Debug",
+    "ScalaTest.NumberTestmeSpec.executor": "Run",
+    "ScalaTest.NumberUpdatedSpec.NumberUpdated should evaluate root 3.executor": "Run",
+    "ScalaTest.NumberUpdatedSpec.NumberUpdated should get one half.executor": "Debug",
+    "ScalaTest.NumberUpdatedSpec.executor": "Run",
+    "ScalaTest.OperationsSpec.executor": "Run",
+    "ScalaTest.PhysicalConstantsSpec.Expression evaluation should get product of these two values.executor": "Run",
+    "ScalaTest.PhysicalConstantsSpec.PhysicalConstants - Derived Constants should have Stefan-Boltzmann constant.executor": "Debug",
+    "ScalaTest.PhysicalConstantsSpec.PhysicalConstants - Measured Constants should have gravitational constant with uncertainty.executor": "Run",
+    "ScalaTest.PhysicalConstantsSpec.PhysicalConstants - Measured Constants should have vacuum permittivity.executor": "Debug",
+    "ScalaTest.PhysicalConstantsSpec.PhysicalConstants - Relationships should have proton-to-electron mass ratio.executor": "Debug",
+    "ScalaTest.PhysicalConstantsSpec.PhysicalConstants - Relationships should satisfy ε₀μ₀c² = 1 (approximately).executor": "Debug",
+    "ScalaTest.PhysicalConstantsSpec.PhysicalConstantsConventional - Pre-2019 Values should have conventional μ₀ = 4π × 10⁻⁷ H/m (approximately).executor": "Run",
+    "ScalaTest.PhysicalConstantsSpec.PhysicalConstantsConventional - Pre-2019 Values should satisfy ε₀μ₀c² = 1 (exactly).executor": "Debug",
+    "ScalaTest.PhysicalConstantsSpec.executor": "Run",
+    "ScalaTest.PowerUnitSpec.PowerUnit should create inverted units with correct dimension.executor": "Debug",
+    "ScalaTest.PowerUnitSpec.executor": "Run",
+    "ScalaTest.QuadraticRootSpec.normalize - rational roots should normalize 2x² - 5x + 2 converted to monic form.executor": "Debug",
+    "ScalaTest.QuadraticSolutionSpec.executor": "Run",
+    "ScalaTest.QuantityLaTeXSpec.executor": "Run",
+    "ScalaTest.QuantityParserSpec.QuantityParser should parse LaTeX fractions.executor": "Debug",
+    "ScalaTest.QuantityParserSpec.QuantityParser should parse units alone with exponent.executor": "Run",
+    "ScalaTest.QuantityParserSpec.QuantityParser should parse with LaTeX thin space.executor": "Run",
+    "ScalaTest.QuantityParserSpec.executor": "Run",
+    "ScalaTest.QuantitySpec.Quantity should add quantities 1.executor": "Run",
+    "ScalaTest.QuantitySpec.Quantity should convert meters to centimeters.executor": "Debug",
+    "ScalaTest.QuantitySpec.executor": "Run",
+    "ScalaTest.QuantityWorksheetSpec.QuantityWorksheet should work.executor": "Debug",
+    "ScalaTest.QuantityWorksheetSpec.executor": "Run",
+    "ScalaTest.RationalParserSpec.repeatingDecimal should parse 1/3\nrepeatingDecimal should parse simple repeating decimals\nrepeatingDecimal should parse repeating decimals with integer parts\nrepeatingDecimal should parse repeating decimals with non-repeating parts\nrepeatingDecimal should parse repeating decimals with multi-digit patterns\nrepeatingDecimal should parse negative repeating decimals\nrepeatingDecimal should parse complex repeating decimals\nrepeatingDecimal should handle edge case of all 9s repeating\nrepeatingDecimal should round-trip through rendering\nrepeatingDecimal should parse single digit repeating with longer non-repeating\nrepeatingDecimal should parse two-digit repeating patterns.executor": "Run",
+    "ScalaTest.RationalParserSpec.repeatingDecimal should parse simple repeating decimals\nrepeatingDecimal should parse repeating decimals with integer parts\nrepeatingDecimal should parse repeating decimals with non-repeating parts\nrepeatingDecimal should parse repeating decimals with multi-digit patterns\nrepeatingDecimal should parse negative repeating decimals\nrepeatingDecimal should parse complex repeating decimals\nrepeatingDecimal should handle edge case of all 9s repeating\nrepeatingDecimal should round-trip through rendering\nrepeatingDecimal should parse single digit repeating with longer non-repeating\nrepeatingDecimal should parse two-digit repeating patterns.executor": "Run",
+    "ScalaTest.RationalSpec.Reciprocals of Primes should invert 137 and render as 0.00<729927>.executor": "Run",
+    "ScalaTest.RationalSpec.Reciprocals of Primes should invert 37 and render as ...\nReciprocals of Primes should invert 137 and render as 0.<00729927>.executor": "Run",
+    "ScalaTest.RealSpec.atan should be 3 pi / 4 for 1/-1.executor": "Debug",
+    "ScalaTest.RealSpec.atan should be 7 Pi / 6 for 1/-root(3).executor": "Debug",
+    "ScalaTest.RootSpec.QuadraticRoot.add should add two quadratic roots with compatible solutions.executor": "Run",
+    "ScalaTest.RootSpec.Root factory method should add linear equations.executor": "Run",
+    "ScalaTest.RootSpec.Root.simplify should simplify Root.√(3) ∧ 2\nRoot.simplify should simplify.executor": "Run",
+    "ScalaTest.RootSpec.Root.simplify should simplify Root.√(3) ∧ 2.executor": "Debug",
+    "ScalaTest.RootSpec.Root.simplify should simplify.executor": "Debug",
+    "ScalaTest.RootSpec.executor": "Run",
+    "ScalaTest.ScalaTests in 'algebraic'.executor": "Run",
+    "ScalaTest.ScalaTests in 'numerical'.executor": "Run",
+    "ScalaTest.ScalarSpec.Scalar should parse string.executor": "Debug",
+    "ScalaTest.ShuntingYardParserSpec.ShuntingYardParser should parse the tricky expressions.executor": "Run",
+    "ScalaTest.TopSpec.math and lazymath should distributeProductSum b 2.executor": "Debug",
+    "ScalaTest.TopSpec.math and lazymath should simplify aggregate 4a.executor": "Debug",
+    "ScalaTest.TopSpec.math and lazymath should simplify phi∧2.executor": "Debug",
+    "ScalaTest.TopSpec.math and lazymath should use multiply instead of addition.executor": "Debug",
+    "ScalaTest.TopSpec.math and lazymath should work for Exp Zero.executor": "Debug",
+    "ScalaTest.TopSpec.math and lazymath should work for sine special cases.executor": "Run",
+    "ScalaTest.TranscendentalSpec.Transcendental should render.executor": "Debug",
+    "ScalaTest.TranscendentalSpec.executor": "Run",
+    "ScalaTest.TrigonometryWorksheetSpec.executor": "Coverage",
+    "ScalaTest.UnitsParserSpec.CompositeUnits should parse the Gravitation constant units.executor": "Run",
+    "ScalaTest.UnitsParserSpec.UnitsParser should check character encoding.executor": "Run",
+    "ScalaTest.UnitsParserSpec.UnitsParser should parse cubed units with superscript.executor": "Debug",
+    "ScalaTest.UnitsParserSpec.UnitsParser should parse just 'm' directly.executor": "Run",
+    "ScalaTest.UnitsParserSpec.UnitsParser should parse m cubed step by step.executor": "Run",
+    "ScalaTest.UnitsParserSpec.UnitsParser should parse silly velocity correctly.executor": "Run",
+    "ScalaTest.UnitsParserSpec.UnitsParser should parse squared units with superscript.executor": "Debug",
+    "ScalaTest.UnitsParserSpec.UnitsParser should parse.executor": "Run",
+    "ScalaTest.UnitsParserSpec.executor": "Run",
+    "ScalaTest.UnitsSpec.executor": "Run",
+    "ScalaTest.UnitsSpec.registry should.executor": "Run",
+    "ScalaTest.UnitsSpec.unitRegistry should build the unitRegistry correctly\nunitRegistry should find hectometers.executor": "Run",
+    "ScalaTest.UnitsSpec.unitRegistry should build the unitRegistry correctly.executor": "Run",
+    "ScalaTest.algebra tests.executor": "Coverage",
+    "ScalaTest.core tests.executor": "Run",
+    "ScalaTest.dimensions tests.executor": "Run",
+    "ScalaTest.expression tests.executor": "Run",
+    "ScalaTest.parse tests.executor": "Run",
+    "ScalaTest.top tests.executor": "Coverage",
+    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "ScalaTest",
+    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.ScalaTest": "org.scalatest.flatspec.AnyFlatSpec",
+    "git-widget-placeholder": "gh-pages",
+    "kotlin-language-version-configured": "true",
+    "last_directory_selection": "/Users/rhillyard/IdeaProjects/Number2026/expression/src/test/scala/com/phasmidsoftware/number/expression/algebraic",
+    "last_opened_file_path": "/Users/rhillyard/IdeaProjects/Number2026",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Global Libraries",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "scala_project_settings_configurable.last_selected_tab_index": "7",
+    "settings.editor.selected.configurable": "org.jetbrains.plugins.scala.settings.sections.EditorSettingsSectionConfigurable",
+    "two.files.diff.last.used.file": "/Users/rhillyard/IdeaProjects/Number2026/core/src/main/scala/com/phasmidsoftware/number/core/parse/NumberParser.scala",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecapSpentCounter">
+    <option name="endsOfQuotaMs" value="1769288400000" />
+    <option name="spentUsd" value="0.18466799" />
+  </component>
+  <component name="RecapUselessUpdatesCounter">
+    <option name="suspendCountdown" value="0" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/parse/src/test/resources" />
+      <recent name="$PROJECT_DIR$/parse/src/main/resources" />
+      <recent name="$PROJECT_DIR$/dimensions/src/test/resources" />
+      <recent name="$PROJECT_DIR$/dimensions/src/main/resources" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/docs/architectureAndPlanning" />
+      <recent name="$PROJECT_DIR$/docs/testing" />
+      <recent name="$PROJECT_DIR$/core/src/test/scala/com/phasmidsoftware/number/core/inner" />
+      <recent name="$PROJECT_DIR$/parse/src/main/scala/com/phasmidsoftware/number/parse" />
+    </key>
+    <key name="CreateTestDialog.Recents.Supers">
+      <recent name="org.scalatest.flatspec.AnyFlatSpec" />
+      <recent name="org.scalatest.funsuite.AnyFunSuiteLike" />
+    </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="com.phasmidsoftware.number.expression.algebraic" />
+      <recent name="" />
+      <recent name="com.phasmidsoftware.number.parse" />
+    </key>
+    <key name="CreateTestDialog.RecentsKey">
+      <recent name="com.phasmidsoftware.number.top" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.phasmidsoftware.number.expression.expr" />
+    </key>
+  </component>
+  <component name="RunManager" selected="ScalaTest.dimensions tests">
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="number2026_293" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="number2026_293" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
+    <configuration name="NumberNotationRoundTripSpec.Fuzziness magnitude calculation should calculate correct fuzziness for different decimal places" type="ScalaTestRunConfiguration" factoryName="ScalaTest" temporary="true" nameIsGenerated="true" show_console_on_std_err="false" show_console_on_std_out="false">
+      <module name="number.number-expression.test" />
+      <option name="VMParameters" value="" />
+      <option name="allowRunningInParallel" value="false" />
+      <option name="alternativeJrePath" />
+      <option name="alternativeJrePathEnabled" value="false" />
+      <option name="classpathModifications">
+        <list />
+      </option>
+      <option name="envFilePaths">
+        <list />
+      </option>
+      <option name="envs">
+        <map />
+      </option>
+      <option name="passParentEnvs" value="true" />
+      <option name="programParameters" value="" />
+      <option name="projectPathOnTarget" />
+      <option name="selectedOptions">
+        <list />
+      </option>
+      <option name="testKind" value="Test name" />
+      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <option name="testClassPath" value="com.phasmidsoftware.number.expression.parse.NumberNotationRoundTripSpec" />
+      <option name="testName" value="Fuzziness magnitude calculation should calculate correct fuzziness for different decimal places" />
+      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NumberParserSpec.exponent should parse E-1&#10;exponent should parse E+1" type="ScalaTestRunConfiguration" factoryName="ScalaTest" temporary="true" nameIsGenerated="true" show_console_on_std_err="false" show_console_on_std_out="false">
+      <module name="number.number-core.test" />
+      <option name="VMParameters" value="" />
+      <option name="allowRunningInParallel" value="false" />
+      <option name="alternativeJrePath" />
+      <option name="alternativeJrePathEnabled" value="false" />
+      <option name="classpathModifications">
+        <list />
+      </option>
+      <option name="envFilePaths">
+        <list />
+      </option>
+      <option name="envs">
+        <map />
+      </option>
+      <option name="passParentEnvs" value="true" />
+      <option name="programParameters" value="" />
+      <option name="projectPathOnTarget" />
+      <option name="selectedOptions">
+        <list />
+      </option>
+      <option name="testKind" value="Test name" />
+      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <option name="testClassPath" value="com.phasmidsoftware.number.core.parse.NumberParserSpec" />
+      <option name="testName" value="exponent should parse E-1&#10;exponent should parse E+1" />
+      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="NumberRenderSpec" type="ScalaTestRunConfiguration" factoryName="ScalaTest" temporary="true" nameIsGenerated="true" show_console_on_std_err="false" show_console_on_std_out="false">
+      <module name="number.number-core.test" />
+      <option name="VMParameters" value="" />
+      <option name="allowRunningInParallel" value="false" />
+      <option name="alternativeJrePath" />
+      <option name="alternativeJrePathEnabled" value="false" />
+      <option name="classpathModifications">
+        <list />
+      </option>
+      <option name="envFilePaths">
+        <list />
+      </option>
+      <option name="envs">
+        <map />
+      </option>
+      <option name="passParentEnvs" value="true" />
+      <option name="programParameters" value="" />
+      <option name="projectPathOnTarget" />
+      <option name="selectedOptions">
+        <list />
+      </option>
+      <option name="testKind" value="Class" />
+      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <option name="testClassPath" value="com.phasmidsoftware.number.core.numerical.NumberRenderSpec" />
+      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="RationalSpec.Reciprocals of Primes should invert 137 and render as 0.00&lt;729927&gt;" type="ScalaTestRunConfiguration" factoryName="ScalaTest" temporary="true" nameIsGenerated="true" show_console_on_std_err="false" show_console_on_std_out="false">
+      <module name="number.number-core.test" />
+      <option name="VMParameters" value="" />
+      <option name="allowRunningInParallel" value="false" />
+      <option name="alternativeJrePath" />
+      <option name="alternativeJrePathEnabled" value="false" />
+      <option name="classpathModifications">
+        <list />
+      </option>
+      <option name="envFilePaths">
+        <list />
+      </option>
+      <option name="envs">
+        <map />
+      </option>
+      <option name="passParentEnvs" value="true" />
+      <option name="programParameters" value="" />
+      <option name="projectPathOnTarget" />
+      <option name="selectedOptions">
+        <list />
+      </option>
+      <option name="testKind" value="Test name" />
+      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <option name="testClassPath" value="com.phasmidsoftware.number.core.inner.RationalSpec" />
+      <option name="testName" value="Reciprocals of Primes should invert 137 and render as 0.00&lt;729927&gt;" />
+      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="RationalSpec.Reciprocals of Primes should invert 37 and render as ...&#10;Reciprocals of Primes should invert 137 and render as 0.&lt;00729927&gt;" type="ScalaTestRunConfiguration" factoryName="ScalaTest" temporary="true" nameIsGenerated="true" show_console_on_std_err="false" show_console_on_std_out="false">
+      <module name="number.number-core.test" />
+      <option name="VMParameters" value="" />
+      <option name="allowRunningInParallel" value="false" />
+      <option name="alternativeJrePath" />
+      <option name="alternativeJrePathEnabled" value="false" />
+      <option name="classpathModifications">
+        <list />
+      </option>
+      <option name="envFilePaths">
+        <list />
+      </option>
+      <option name="envs">
+        <map />
+      </option>
+      <option name="passParentEnvs" value="true" />
+      <option name="programParameters" value="" />
+      <option name="projectPathOnTarget" />
+      <option name="selectedOptions">
+        <list />
+      </option>
+      <option name="testKind" value="Test name" />
+      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <option name="testClassPath" value="com.phasmidsoftware.number.core.inner.RationalSpec" />
+      <option name="testName" value="Reciprocals of Primes should invert 37 and render as ...&#10;Reciprocals of Primes should invert 137 and render as 0.&lt;00729927&gt;" />
+      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="algebra tests" type="ScalaTestRunConfiguration" factoryName="ScalaTest" show_console_on_std_err="false" show_console_on_std_out="false">
+      <module name="number.number-algebra.test" />
+      <option name="VMParameters" value="" />
+      <option name="allowRunningInParallel" value="false" />
+      <option name="alternativeJrePath" />
+      <option name="alternativeJrePathEnabled" value="false" />
+      <option name="classpathModifications">
+        <list />
+      </option>
+      <option name="envFilePaths">
+        <list />
+      </option>
+      <option name="envs">
+        <map />
+      </option>
+      <option name="passParentEnvs" value="true" />
+      <option name="programParameters" value="" />
+      <option name="projectPathOnTarget" />
+      <option name="selectedOptions">
+        <list />
+      </option>
+      <option name="testKind" value="All in package" />
+      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <option name="classBuf">
+        <list>
+          <option value="com.phasmidsoftware.number.algebra.util.LatexRendererInstancesSpec" />
+          <option value="com.phasmidsoftware.number.algebra.util.LatexRendererSpec" />
+          <option value="com.phasmidsoftware.number.algebra.eager.AngleSpec" />
+          <option value="com.phasmidsoftware.number.algebra.eager.EagerSpec" />
+          <option value="com.phasmidsoftware.number.algebra.eager.EqualityComprehensiveSpec" />
+          <option value="com.phasmidsoftware.number.algebra.eager.ExponentialSpec" />
+          <option value="com.phasmidsoftware.number.algebra.eager.InversePowerAdditionalSpec" />
+          <option value="com.phasmidsoftware.number.algebra.eager.InversePowerSpec" />
+          <option value="com.phasmidsoftware.number.algebra.eager.NatSpec" />
+          <option value="com.phasmidsoftware.number.algebra.eager.NormalizeIntegrationSpec" />
+          <option value="com.phasmidsoftware.number.algebra.eager.NormalizeRootSpec" />
+          <option value="com.phasmidsoftware.number.algebra.eager.NormalizeSpec" />
+          <option value="com.phasmidsoftware.number.algebra.eager.NumberSpec" />
+          <option value="com.phasmidsoftware.number.algebra.eager.QuadraticSolutionSpec" />
+          <option value="com.phasmidsoftware.number.algebra.eager.RationalNumberSpec" />
+          <option value="com.phasmidsoftware.number.algebra.eager.RealSpec" />
+          <option value="com.phasmidsoftware.number.algebra.eager.ScalarSpec" />
+          <option value="com.phasmidsoftware.number.algebra.eager.WholeNumberSpec" />
+          <option value="com.phasmidsoftware.number.algebra.core.FuzzyNumberIsProbablyZeroSpec" />
+          <option value="com.phasmidsoftware.number.algebra.core.MaybeFuzzySpec" />
+        </list>
+      </option>
+      <option name="searchTest" value="In single module" />
+      <option name="shortenClasspath" value="NONE" />
+      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="core tests" type="ScalaTestRunConfiguration" factoryName="ScalaTest" show_console_on_std_err="false" show_console_on_std_out="false">
+      <module name="number.number-core.test" />
+      <option name="VMParameters" value="" />
+      <option name="allowRunningInParallel" value="false" />
+      <option name="alternativeJrePath" />
+      <option name="alternativeJrePathEnabled" value="false" />
+      <option name="classpathModifications">
+        <list />
+      </option>
+      <option name="envFilePaths">
+        <list />
+      </option>
+      <option name="envs">
+        <map />
+      </option>
+      <option name="passParentEnvs" value="true" />
+      <option name="programParameters" value="" />
+      <option name="projectPathOnTarget" />
+      <option name="selectedOptions">
+        <list />
+      </option>
+      <option name="testKind" value="All in package" />
+      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <option name="classBuf">
+        <list>
+          <option value="com.phasmidsoftware.number.cats.CatsKernelSpec" />
+          <option value="com.phasmidsoftware.number.cats.ComplexAlgebraicInstancesSpec" />
+          <option value="com.phasmidsoftware.number.cats.ErrorCommutativeMonoidSpec" />
+          <option value="com.phasmidsoftware.number.cats.RationalAlgebraicInstancesSpec" />
+          <option value="com.phasmidsoftware.number.cats.RealAlgebraicInstancesSpec" />
+          <option value="com.phasmidsoftware.number.cats.laws.CatsKernelLawSpec" />
+          <option value="com.phasmidsoftware.number.cats.laws.ComplexAlgebraicInstancesLawSpec" />
+          <option value="com.phasmidsoftware.number.cats.laws.ErrorCommutativeMonoidLawSpec" />
+          <option value="com.phasmidsoftware.number.cats.laws.RationalAlgebraicInstancesLawSpec" />
+          <option value="com.phasmidsoftware.number.cats.laws.RealAlgebraicInstancesLawSpec" />
+          <option value="com.phasmidsoftware.number.problems.PotHolesSpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.BaseComplexSpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.ComplexSpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.ConstantsSpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.ExactNumberSpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.FieldSpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.FuzzinessSpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.FuzzinessSpec2" />
+          <option value="com.phasmidsoftware.number.core.numerical.FuzzyNumberSpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.FuzzyNumberSpec2" />
+          <option value="com.phasmidsoftware.number.core.numerical.FuzzySpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.GoldbachSpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.InfiniteSeriesSpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.NumberLikeSpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.NumberSetSpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.NumberShowSpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.NumberSpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.NumberTestmeSpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.PolynomialSpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.PowerSeriesSpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.PrimeSpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.PrimesSpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.RealSpec" />
+          <option value="com.phasmidsoftware.number.core.numerical.SeriesSpec" />
+          <option value="com.phasmidsoftware.number.core.algebraic.LinearSpec" />
+          <option value="com.phasmidsoftware.number.core.algebraic.SolutionSpec" />
+          <option value="com.phasmidsoftware.number.core.applications.ApproximationSpec" />
+          <option value="com.phasmidsoftware.number.core.parse.ComplexParserSpec" />
+          <option value="com.phasmidsoftware.number.core.parse.ExpressionParserSpec" />
+          <option value="com.phasmidsoftware.number.core.parse.FuzzyParserSpec" />
+          <option value="com.phasmidsoftware.number.core.parse.MillParserSpec" />
+          <option value="com.phasmidsoftware.number.core.parse.NumberParserSpec" />
+          <option value="com.phasmidsoftware.number.core.parse.RationalParserSpec" />
+          <option value="com.phasmidsoftware.number.core.parse.ShuntingYardParserSpec" />
+          <option value="com.phasmidsoftware.number.core.parse.SignificantSpaceParsersSpec" />
+          <option value="com.phasmidsoftware.number.core.mill.ExpressionSpec" />
+          <option value="com.phasmidsoftware.number.core.mill.MillSpec" />
+          <option value="com.phasmidsoftware.number.core.misc.BaselSpec" />
+          <option value="com.phasmidsoftware.number.core.misc.BenchmarkSpec" />
+          <option value="com.phasmidsoftware.number.core.misc.BumperatorSpec" />
+          <option value="com.phasmidsoftware.number.core.misc.ContinuedFractionSpec" />
+          <option value="com.phasmidsoftware.number.core.misc.FPSpec" />
+          <option value="com.phasmidsoftware.number.core.misc.FactorialSpec" />
+          <option value="com.phasmidsoftware.number.core.misc.FuzzSpec" />
+          <option value="com.phasmidsoftware.number.core.misc.InfiniteProductSpec" />
+          <option value="com.phasmidsoftware.number.core.misc.InfiniteSumSpec" />
+          <option value="com.phasmidsoftware.number.core.misc.LazyFunctionSpec" />
+          <option value="com.phasmidsoftware.number.core.misc.LazyNumberFuzzySpec" />
+          <option value="com.phasmidsoftware.number.core.misc.LazyNumberRationalSpec" />
+          <option value="com.phasmidsoftware.number.core.misc.NewtonSpec" />
+          <option value="com.phasmidsoftware.number.core.misc.RandomLongSpec" />
+          <option value="com.phasmidsoftware.number.core.misc.VarianceSpec" />
+          <option value="com.phasmidsoftware.number.core.inner.ContextSpec" />
+          <option value="com.phasmidsoftware.number.core.inner.FactorSpec" />
+          <option value="com.phasmidsoftware.number.core.inner.ModuloSpec" />
+          <option value="com.phasmidsoftware.number.core.inner.OperationsSpec" />
+          <option value="com.phasmidsoftware.number.core.inner.RationalFloorSpec" />
+          <option value="com.phasmidsoftware.number.core.inner.RationalSpec" />
+          <option value="com.phasmidsoftware.number.core.inner.ValueSpec" />
+        </list>
+      </option>
+      <option name="searchTest" value="In single module" />
+      <option name="shortenClasspath" value="NONE" />
+      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="dimensions tests" type="ScalaTestRunConfiguration" factoryName="ScalaTest" show_console_on_std_err="false" show_console_on_std_out="false">
+      <module name="number.number-dimensions.test" />
+      <option name="VMParameters" value="" />
+      <option name="allowRunningInParallel" value="false" />
+      <option name="alternativeJrePath" />
+      <option name="alternativeJrePathEnabled" value="false" />
+      <option name="classpathModifications">
+        <list />
+      </option>
+      <option name="envFilePaths">
+        <list />
+      </option>
+      <option name="envs">
+        <map />
+      </option>
+      <option name="passParentEnvs" value="true" />
+      <option name="programParameters" value="" />
+      <option name="projectPathOnTarget" />
+      <option name="selectedOptions">
+        <list />
+      </option>
+      <option name="testKind" value="All in package" />
+      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <option name="classBuf">
+        <list>
+          <option value="com.phasmidsoftware.number.dimensions.core.DimensionSpec" />
+          <option value="com.phasmidsoftware.number.dimensions.core.DimensionWitnessSpec" />
+          <option value="com.phasmidsoftware.number.dimensions.core.PowerUnitSpec" />
+          <option value="com.phasmidsoftware.number.dimensions.core.TRationalSpec" />
+          <option value="com.phasmidsoftware.number.dimensions.core.UnitsSpec" />
+        </list>
+      </option>
+      <option name="searchTest" value="In single module" />
+      <option name="shortenClasspath" value="NONE" />
+      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="expression tests" type="ScalaTestRunConfiguration" factoryName="ScalaTest" show_console_on_std_err="false" show_console_on_std_out="false">
+      <module name="number.number-expression.test" />
+      <option name="VMParameters" value="" />
+      <option name="allowRunningInParallel" value="false" />
+      <option name="alternativeJrePath" />
+      <option name="alternativeJrePathEnabled" value="false" />
+      <option name="classpathModifications">
+        <list />
+      </option>
+      <option name="envFilePaths">
+        <list />
+      </option>
+      <option name="envs">
+        <map />
+      </option>
+      <option name="passParentEnvs" value="true" />
+      <option name="programParameters" value="" />
+      <option name="projectPathOnTarget" />
+      <option name="selectedOptions">
+        <list />
+      </option>
+      <option name="testKind" value="All in package" />
+      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <option name="classBuf">
+        <list>
+          <option value="com.phasmidsoftware.number.expression.algebraic.AlgebraicSpec" />
+          <option value="com.phasmidsoftware.number.expression.algebraic.LinearEquationSpec" />
+          <option value="com.phasmidsoftware.number.expression.algebraic.QuadraticEquationSpec" />
+          <option value="com.phasmidsoftware.number.expression.mill.ExpressionSpec" />
+          <option value="com.phasmidsoftware.number.expression.mill.MillSpec" />
+          <option value="com.phasmidsoftware.number.expression.parse.ArithmeticParserSpec" />
+          <option value="com.phasmidsoftware.number.expression.parse.ComplexParserSpec" />
+          <option value="com.phasmidsoftware.number.expression.parse.ExpressionParserSpec" />
+          <option value="com.phasmidsoftware.number.expression.parse.FuzzyParserSpec" />
+          <option value="com.phasmidsoftware.number.expression.parse.MillParserSpec" />
+          <option value="com.phasmidsoftware.number.expression.parse.NumberParserSpec" />
+          <option value="com.phasmidsoftware.number.expression.parse.RationalParserSpec" />
+          <option value="com.phasmidsoftware.number.expression.parse.ShuntingYardParserSpec" />
+          <option value="com.phasmidsoftware.number.expression.parse.SignificantSpaceParsersSpec" />
+          <option value="com.phasmidsoftware.number.expression.expr.AtomicExpressionSpec" />
+          <option value="com.phasmidsoftware.number.expression.expr.ComplexRootSpec" />
+          <option value="com.phasmidsoftware.number.expression.expr.ComplexRootTableSpec" />
+          <option value="com.phasmidsoftware.number.expression.expr.CompositeExpressionSpec" />
+          <option value="com.phasmidsoftware.number.expression.expr.EagerOpsIntegrationSpec" />
+          <option value="com.phasmidsoftware.number.expression.expr.EagerOpsSpec" />
+          <option value="com.phasmidsoftware.number.expression.expr.EmptySpec" />
+          <option value="com.phasmidsoftware.number.expression.expr.ExpressionEdgeCasesSpec" />
+          <option value="com.phasmidsoftware.number.expression.expr.ExpressionEqSpec" />
+          <option value="com.phasmidsoftware.number.expression.expr.ExpressionMatchersSpec" />
+          <option value="com.phasmidsoftware.number.expression.expr.ExpressionSpec" />
+          <option value="com.phasmidsoftware.number.expression.expr.ExtractorsSpec" />
+          <option value="com.phasmidsoftware.number.expression.expr.InversePowerSpec" />
+          <option value="com.phasmidsoftware.number.expression.expr.LiteralSpec" />
+          <option value="com.phasmidsoftware.number.expression.expr.NamedConstantSpec" />
+          <option value="com.phasmidsoftware.number.expression.expr.QuadraticRootSpec" />
+          <option value="com.phasmidsoftware.number.expression.expr.RootSpec" />
+          <option value="com.phasmidsoftware.number.expression.expr.TranscendentalSpec" />
+        </list>
+      </option>
+      <option name="searchTest" value="In single module" />
+      <option name="shortenClasspath" value="NONE" />
+      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="parse tests" type="ScalaTestRunConfiguration" factoryName="ScalaTest" show_console_on_std_err="false" show_console_on_std_out="false">
+      <module name="number.number-parse.test" />
+      <option name="VMParameters" value="" />
+      <option name="allowRunningInParallel" value="false" />
+      <option name="alternativeJrePath" />
+      <option name="alternativeJrePathEnabled" value="false" />
+      <option name="classpathModifications">
+        <list />
+      </option>
+      <option name="envFilePaths">
+        <list />
+      </option>
+      <option name="envs">
+        <map />
+      </option>
+      <option name="passParentEnvs" value="true" />
+      <option name="programParameters" value="" />
+      <option name="projectPathOnTarget" />
+      <option name="selectedOptions">
+        <list />
+      </option>
+      <option name="testKind" value="All in package" />
+      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <option name="searchTest" value="In single module" />
+      <option name="shortenClasspath" value="NONE" />
+      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="top tests" type="ScalaTestRunConfiguration" factoryName="ScalaTest" show_console_on_std_err="false" show_console_on_std_out="false">
+      <module name="number.number-top.test" />
+      <option name="VMParameters" value="" />
+      <option name="allowRunningInParallel" value="false" />
+      <option name="alternativeJrePath" />
+      <option name="alternativeJrePathEnabled" value="false" />
+      <option name="classpathModifications">
+        <list />
+      </option>
+      <option name="envFilePaths">
+        <list />
+      </option>
+      <option name="envs">
+        <map />
+      </option>
+      <option name="passParentEnvs" value="true" />
+      <option name="programParameters" value="" />
+      <option name="projectPathOnTarget" />
+      <option name="selectedOptions">
+        <list />
+      </option>
+      <option name="testKind" value="All in package" />
+      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <option name="classBuf">
+        <list>
+          <option value="com.phasmidsoftware.number.top.FoucaultSpec" />
+          <option value="com.phasmidsoftware.number.top.FunctionalSpec" />
+          <option value="com.phasmidsoftware.number.top.NaturalSpec" />
+          <option value="com.phasmidsoftware.number.top.NumberUpdatedSpec" />
+          <option value="com.phasmidsoftware.number.top.PhysicalConstantsSpec" />
+          <option value="com.phasmidsoftware.number.top.QuantityLaTeXSpec" />
+          <option value="com.phasmidsoftware.number.top.QuantityParserSpec" />
+          <option value="com.phasmidsoftware.number.top.QuantitySpec" />
+          <option value="com.phasmidsoftware.number.top.QuantityWorksheetSpec" />
+          <option value="com.phasmidsoftware.number.top.TopSpec" />
+          <option value="com.phasmidsoftware.number.top.TrigonometryWorksheetSpec" />
+        </list>
+      </option>
+      <option name="searchTest" value="In single module" />
+      <option name="shortenClasspath" value="NONE" />
+      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="ScalaTest.dimensions tests" />
+      <item itemvalue="ScalaTest.expression tests" />
+      <item itemvalue="ScalaTest.parse tests" />
+      <item itemvalue="ScalaTest.algebra tests" />
+      <item itemvalue="ScalaTest.top tests" />
+      <item itemvalue="ScalaTest.core tests" />
+      <item itemvalue="ScalaTest.NumberNotationRoundTripSpec.Fuzziness magnitude calculation should calculate correct fuzziness for different decimal places" />
+      <item itemvalue="ScalaTest.NumberParserSpec.exponent should parse E-1&#10;exponent should parse E+1" />
+      <item itemvalue="ScalaTest.RationalSpec.Reciprocals of Primes should invert 137 and render as 0.00&lt;729927&gt;" />
+      <item itemvalue="ScalaTest.RationalSpec.Reciprocals of Primes should invert 37 and render as ...&#10;Reciprocals of Primes should invert 137 and render as 0.&lt;00729927&gt;" />
+      <item itemvalue="ScalaTest.NumberRenderSpec" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="ScalaTest.NumberRenderSpec" />
+        <item itemvalue="ScalaTest.RationalSpec.Reciprocals of Primes should invert 37 and render as ...&#10;Reciprocals of Primes should invert 137 and render as 0.&lt;00729927&gt;" />
+        <item itemvalue="ScalaTest.RationalSpec.Reciprocals of Primes should invert 137 and render as 0.00&lt;729927&gt;" />
+        <item itemvalue="ScalaTest.NumberNotationRoundTripSpec.Fuzziness magnitude calculation should calculate correct fuzziness for different decimal places" />
+        <item itemvalue="ScalaTest.NumberParserSpec.exponent should parse E-1&#10;exponent should parse E+1" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="ScalaProjectSettings">
+    <option name="migrateConfigurationsNotificationShown" value="true" />
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.30387.90" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-IU-253.30387.90" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="ShelveChangesManager">
+    <option name="remove_strategy" value="true" />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="c3a3b7ea-82d1-44b4-96b3-f2be2f3dfc42" name="Changes" comment="" />
+      <changelist id="a31e3566-ee6a-48c9-83d5-98533cddf17a" name="Fuzzy rendering" comment="" />
+      <created>1767579416277</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1767579416277</updated>
+      <workItem from="1767579417451" duration="15009000" />
+      <workItem from="1767790406020" duration="7177000" />
+      <workItem from="1767883667359" duration="16916000" />
+      <workItem from="1767926914259" duration="168000" />
+      <workItem from="1767927151980" duration="1018000" />
+      <workItem from="1767977961419" duration="75076000" />
+      <workItem from="1768156166750" duration="28348000" />
+      <workItem from="1768226564741" duration="6069000" />
+      <workItem from="1768242928480" duration="20803000" />
+      <workItem from="1768340961450" duration="38732000" />
+      <workItem from="1768494795540" duration="48908000" />
+      <workItem from="1768680143059" duration="4684000" />
+      <workItem from="1768689433643" duration="16657000" />
+      <workItem from="1768757780431" duration="13355000" />
+      <workItem from="1768771809851" duration="34399000" />
+      <workItem from="1768882292870" duration="8722000" />
+      <workItem from="1768933988752" duration="23588000" />
+      <workItem from="1769019343090" duration="13731000" />
+      <workItem from="1769107958618" duration="43796000" />
+      <workItem from="1769312688593" duration="5874000" />
+      <workItem from="1769360051508" duration="34904000" />
+      <workItem from="1769453589992" duration="36431000" />
+      <workItem from="1769605979525" duration="45743000" />
+      <workItem from="1769704061909" duration="13520000" />
+      <workItem from="1769735466067" duration="47598000" />
+      <workItem from="1769875582110" duration="51773000" />
+      <workItem from="1769980790643" duration="46414000" />
+      <workItem from="1770122316199" duration="31156000" />
+      <workItem from="1770317511001" duration="26901000" />
+      <workItem from="1770410119954" duration="23294000" />
+      <workItem from="1770488298213" duration="99444000" />
+      <workItem from="1770837302517" duration="6366000" />
+      <workItem from="1770853900138" duration="13838000" />
+      <workItem from="1770912124882" duration="14947000" />
+      <workItem from="1770943861363" duration="18160000" />
+      <workItem from="1771001879440" duration="2591000" />
+      <workItem from="1771012151571" duration="38343000" />
+      <workItem from="1771166659567" duration="22197000" />
+      <workItem from="1771200959284" duration="60095000" />
+      <workItem from="1771450805266" duration="2213000" />
+      <workItem from="1771465114646" duration="5888000" />
+      <workItem from="1771510909186" duration="41103000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Changes to properly handle all of the PhysicalConstants with * and + working for Quantity" />
+    <MESSAGE value="Trying to fix Issue #163" />
+    <MESSAGE value="Fuzzy rendering" />
+    <MESSAGE value="Unnecessarily complex code in GeneralNumber" />
+    <MESSAGE value="Seeminly innocuous code in BaseComplex.scala" />
+    <MESSAGE value="Tentative changes to exponent parser" />
+    <option name="LAST_COMMIT_MESSAGE" value="Tentative changes to exponent parser" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/parse/src/test/scala/com/phasmidsoftware/number/parse/UnitsParserSpec.scala</url>
+          <line>102</line>
+          <option name="timeStamp" value="9" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/top/src/test/scala/com/phasmidsoftware/number/top/PhysicalConstantsSpec.scala</url>
+          <line>105</line>
+          <option name="timeStamp" value="12" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/Number.scala</url>
+          <line>617</line>
+          <option name="timeStamp" value="14" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/top/src/main/scala/com/phasmidsoftware/number/top/Quantity.scala</url>
+          <line>65</line>
+          <option name="timeStamp" value="24" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/Scalar.scala</url>
+          <line>247</line>
+          <option name="timeStamp" value="63" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/ExpressionFunction.scala</url>
+          <line>901</line>
+          <option name="timeStamp" value="102" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/core/src/test/scala/com/phasmidsoftware/number/core/numerical/ExactNumberSpec.scala</url>
+          <line>47</line>
+          <option name="timeStamp" value="107" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/expression/src/test/scala/com/phasmidsoftware/number/expression/expr/ExpressionMatchersSpec.scala</url>
+          <line>823</line>
+          <option name="timeStamp" value="138" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/top/src/test/scala/com/phasmidsoftware/number/top/TopSpec.scala</url>
+          <line>224</line>
+          <option name="timeStamp" value="154" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/core/src/test/scala/com/phasmidsoftware/number/core/numerical/FuzzinessSpec2.scala</url>
+          <line>153</line>
+          <option name="timeStamp" value="177" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/expression/src/test/scala/com/phasmidsoftware/number/expression/expr/ExpressionMatchersSpec.scala</url>
+          <line>1158</line>
+          <option name="timeStamp" value="299" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/expression/src/test/scala/com/phasmidsoftware/number/expression/expr/ExpressionMatchersSpec.scala</url>
+          <line>1416</line>
+          <option name="timeStamp" value="300" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/Real.scala</url>
+          <line>490</line>
+          <option name="timeStamp" value="301" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/Real.scala</url>
+          <line>498</line>
+          <option name="timeStamp" value="302" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/top/src/test/scala/com/phasmidsoftware/number/top/PhysicalConstantsSpec.scala</url>
+          <line>243</line>
+          <option name="timeStamp" value="309" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/core/src/main/scala/com/phasmidsoftware/number/core/inner/Factor.scala</url>
+          <line>1752</line>
+          <option name="timeStamp" value="332" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/core/src/main/scala/com/phasmidsoftware/number/core/inner/CoreContext.scala</url>
+          <line>101</line>
+          <option name="timeStamp" value="336" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/core/src/main/scala/com/phasmidsoftware/number/core/inner/CoreContext.scala</url>
+          <line>103</line>
+          <option name="timeStamp" value="337" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/expression/src/test/scala/com/phasmidsoftware/number/expression/expr/CompositeExpressionSpec.scala</url>
+          <line>443</line>
+          <option name="timeStamp" value="354" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/expression/src/test/scala/com/phasmidsoftware/number/expression/expr/CompositeExpressionSpec.scala</url>
+          <line>438</line>
+          <option name="timeStamp" value="355" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/Expression.scala</url>
+          <line>739</line>
+          <properties>
+            <option name="lambda-ordinal" value="-1" />
+          </properties>
+          <option name="timeStamp" value="367" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/expression/src/test/scala/com/phasmidsoftware/number/expression/expr/ExpressionMatchersSpec.scala</url>
+          <line>303</line>
+          <option name="timeStamp" value="412" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/expression/src/test/scala/com/phasmidsoftware/number/expression/expr/ExpressionMatchersSpec.scala</url>
+          <line>1238</line>
+          <properties>
+            <option name="lambda-ordinal" value="-1" />
+          </properties>
+          <option name="timeStamp" value="413" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/expression/src/test/scala/com/phasmidsoftware/number/expression/expr/RootSpec.scala</url>
+          <line>627</line>
+          <option name="timeStamp" value="414" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/Root.scala</url>
+          <line>249</line>
+          <option name="timeStamp" value="415" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/Root.scala</url>
+          <line>253</line>
+          <option name="timeStamp" value="416" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/expression/src/test/scala/com/phasmidsoftware/number/expression/expr/CompositeExpressionSpec.scala</url>
+          <line>403</line>
+          <option name="timeStamp" value="428" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/top/src/test/scala/com/phasmidsoftware/number/top/TopSpec.scala</url>
+          <line>170</line>
+          <option name="timeStamp" value="431" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/expression/src/test/scala/com/phasmidsoftware/number/expression/expr/ExpressionMatchersSpec.scala</url>
+          <line>318</line>
+          <option name="timeStamp" value="433" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/expression/src/test/scala/com/phasmidsoftware/number/expression/expr/ExtractorsSpec.scala</url>
+          <line>116</line>
+          <option name="timeStamp" value="434" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/expression/src/test/scala/com/phasmidsoftware/number/expression/expr/InversePowerSpec.scala</url>
+          <line>39</line>
+          <option name="timeStamp" value="467" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/RationalNumber.scala</url>
+          <line>432</line>
+          <option name="timeStamp" value="470" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/RationalNumber.scala</url>
+          <line>434</line>
+          <option name="timeStamp" value="471" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/RationalNumber.scala</url>
+          <line>436</line>
+          <option name="timeStamp" value="472" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/RationalNumber.scala</url>
+          <line>438</line>
+          <option name="timeStamp" value="473" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/RationalNumber.scala</url>
+          <line>440</line>
+          <option name="timeStamp" value="474" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/expression/src/test/scala/com/phasmidsoftware/number/expression/expr/ExpressionEdgeCasesSpec.scala</url>
+          <line>156</line>
+          <option name="timeStamp" value="475" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/algebra/src/test/scala/com/phasmidsoftware/number/algebra/core/MaybeFuzzySpec.scala</url>
+          <line>85</line>
+          <option name="timeStamp" value="496" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/algebra/src/test/scala/com/phasmidsoftware/number/algebra/core/MaybeFuzzySpec.scala</url>
+          <line>86</line>
+          <option name="timeStamp" value="502" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/algebra/src/test/scala/com/phasmidsoftware/number/algebra/eager/NumberSpec.scala</url>
+          <line>89</line>
+          <option name="timeStamp" value="504" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/Real.scala</url>
+          <line>645</line>
+          <properties>
+            <option name="lambda-ordinal" value="-1" />
+          </properties>
+          <option name="timeStamp" value="505" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/Angle.scala</url>
+          <line>224</line>
+          <option name="timeStamp" value="513" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/core/src/test/scala/com/phasmidsoftware/number/core/numerical/FuzzinessSpec.scala</url>
+          <line>153</line>
+          <option name="timeStamp" value="522" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/core/src/main/scala/com/phasmidsoftware/number/core/misc/Pi.scala</url>
+          <line>44</line>
+          <option name="timeStamp" value="564" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/core/src/main/scala/com/phasmidsoftware/number/core/misc/Pi.scala</url>
+          <line>41</line>
+          <option name="timeStamp" value="565" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/core/src/main/scala/com/phasmidsoftware/number/core/misc/Pi.scala</url>
+          <line>51</line>
+          <option name="timeStamp" value="566" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/expression/src/test/scala/com/phasmidsoftware/number/expression/expr/RootSpec.scala</url>
+          <line>63</line>
+          <option name="timeStamp" value="584" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/core/src/main/scala/com/phasmidsoftware/number/core/inner/Rational.scala</url>
+          <line>329</line>
+          <option name="timeStamp" value="587" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/core/src/main/scala/com/phasmidsoftware/number/core/inner/Rational.scala</url>
+          <line>1292</line>
+          <properties>
+            <option name="lambda-ordinal" value="-1" />
+          </properties>
+          <option name="timeStamp" value="588" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/algebra/src/test/scala/com/phasmidsoftware/number/algebra/eager/ExponentialSpec.scala</url>
+          <line>49</line>
+          <option name="timeStamp" value="604" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/CompositeExpression.scala</url>
+          <line>537</line>
+          <properties>
+            <option name="lambda-ordinal" value="-1" />
+          </properties>
+          <option name="timeStamp" value="613" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/expression/src/test/scala/com/phasmidsoftware/number/expression/parse/NumberNotationRoundTripSpec.scala</url>
+          <line>31</line>
+          <option name="timeStamp" value="616" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/core/src/main/scala/com/phasmidsoftware/number/core/inner/Rational.scala</url>
+          <line>1475</line>
+          <option name="timeStamp" value="629" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/core/src/main/scala/com/phasmidsoftware/number/core/inner/Rational.scala</url>
+          <line>1477</line>
+          <option name="timeStamp" value="630" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="scala-line">
+          <url>file://$PROJECT_DIR$/core/src/main/scala/com/phasmidsoftware/number/core/inner/Rational.scala</url>
+          <line>1479</line>
+          <option name="timeStamp" value="631" />
+        </line-breakpoint>
+        <breakpoint enabled="true" type="java-exception">
+          <properties class="java.lang.StringIndexOutOfBoundsException" package="java.lang" />
+          <option name="timeStamp" value="165" />
+        </breakpoint>
+        <breakpoint enabled="true" type="java-exception">
+          <properties class="java.lang.ClassCastException" package="java.lang" />
+          <option name="timeStamp" value="205" />
+        </breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/number$java_in_number_number_core_test.ic" NAME="java in number.number-core.test Coverage Results" MODIFIED="1770852934186" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true" />
+    <SUITE FILE_PATH="coverage/number$top_tests.ic" NAME="top tests Coverage Results" MODIFIED="1771365811059" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true" />
+    <SUITE FILE_PATH="coverage/number$ExpressionSpec.ic" NAME="ExpressionSpec Coverage Results" MODIFIED="1770591681432" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true" />
+    <SUITE FILE_PATH="coverage/number$TrigonometryWorksheetSpec.ic" NAME="TrigonometryWorksheetSpec Coverage Results" MODIFIED="1770925203712" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true" />
+    <SUITE FILE_PATH="coverage/number$algebra_tests.ic" NAME="algebra tests Coverage Results" MODIFIED="1771033807576" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true" />
+    <SUITE FILE_PATH="coverage/number$All_the_Number_tests.ic" NAME="All the Number tests Coverage Results" MODIFIED="1771784387976" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true" />
+    <SUITE FILE_PATH="coverage/number$expression_tests.ic" NAME="expression tests Coverage Results" MODIFIED="1769442907344" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true" />
+    <SUITE FILE_PATH="coverage/number$NaturalSpec.ic" NAME="NaturalSpec Coverage Results" MODIFIED="1771362654312" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true" />
+  </component>
+</project>

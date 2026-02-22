@@ -1,0 +1,17 @@
+Index: algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/RationalNumber.scala
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/RationalNumber.scala b/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/RationalNumber.scala
+--- a/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/RationalNumber.scala	(revision ffbcb0368690ef2ffedcd387a2c3bf852ba13b5f)
++++ b/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/RationalNumber.scala	(date 1768959176678)
+@@ -38,7 +38,7 @@
+   *                   Similarly to the `degrees` attribute of `Angle`,
+   *                   this is a flag that is primarily cosmetic.
+   */
+-case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeName: Option[String] = None) extends ExactNumber with Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[ExactNumber] with CanPower[ExactNumber] {
++case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeName: Option[String] = None) extends ExactNumber with Q with CanAddAndSubtract[RationalNumber, RationalNumber] with CanMultiplyAndDivide[RationalNumber] with Scalable[ExactNumber] {
+   /**
+     * Normalizes the current object to ensure it is represented in a simplified form.
+     * If the denominator (r.d) is 1, it represents the object as a WholeNumber.

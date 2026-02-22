@@ -1,0 +1,133 @@
+Index: expression/src/main/scala/com/phasmidsoftware/number/expression/expr/ExpressionMatchers.scala
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/ExpressionMatchers.scala b/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/ExpressionMatchers.scala
+--- a/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/ExpressionMatchers.scala	(revision ffbcb0368690ef2ffedcd387a2c3bf852ba13b5f)
++++ b/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/ExpressionMatchers.scala	(date 1769011497094)
+@@ -4,6 +4,7 @@
+ 
+ package com.phasmidsoftware.number.expression.expr
+ 
++import com.phasmidsoftware.matchers.Matchers.TildeOps
+ import com.phasmidsoftware.matchers.{MatchLogger, ~}
+ import com.phasmidsoftware.number.algebra.*
+ import com.phasmidsoftware.number.algebra.core.{AnyContext, RestrictedContext, Valuable}
+@@ -13,6 +14,7 @@
+ import com.phasmidsoftware.number.core.numerical
+ import com.phasmidsoftware.number.core.numerical.Field
+ import com.phasmidsoftware.number.expression.expr.BiFunction.asAggregate
++import com.phasmidsoftware.number.expression.expr.Expression.em.matchComplementaryExpressions
+ import com.phasmidsoftware.number.expression.expr.Expression.{isIdentityFunction, matchSimpler}
+ import com.phasmidsoftware.number.expression.expr.{Aggregate, BiFunction, UniFunction}
+ import com.phasmidsoftware.number.expression.matchers.MatchersExtras
+@@ -260,30 +262,17 @@
+     *         expression with reduced complementary terms or returns a miss description
+     *         if no reduction takes place.
+     */
+-  def complementaryTermsEliminatorAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("complementaryTermsEliminatorAggregate") {
++  lazy val complementaryTermsEliminatorAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("complementaryTermsEliminatorAggregate") {
+     case a@Aggregate(f, xs) =>
+-      val invertFunction: Double => Double = f match {
+-        case Sum =>
+-          x => Math.abs(x)
+-        case Product =>
+-          x => if x < 1 then 1 / x else x
+-        case _ =>
+-          throw new IllegalArgumentException("complementaryTermsEliminatorAggregate: Power function not supported")
+-      }
+-      val sortFunction: Expression => Double =
+-        x => invertFunction(x.approximation(true).flatMap(_.maybeDouble) getOrElse Double.NaN)
+-
+-      // NOTE this ordering is really only appropriate when f is Sum.
+-      // TODO find a better way to find complementary elements.
+-      Try(xs.sortBy(sortFunction)) match {
+-        case Success(sorted) =>
+-          val list = Bumperator[Expression](sorted) { (x, y) => isComplementary(f, x, y) }.toList
++      val maybeList: Try[List[Expression]] = a.eliminateAggregateComplementaryTerms
++      maybeList match {
++        case Success(list) => 
+           matchOrMiss(f, list)(a)
+-        case Failure(x) =>
+-          Error(x) // XXX the result of an extremely improbable NoSuchElementException // TESTME
++        case Failure(x) => 
++          Miss(x.getLocalizedMessage, this)
+       }
+   }
+-
++  
+   /**
+     * A Matcher that processes an `Aggregate` with the `Product` function, identifying specific
+     * expressions containing angles and their reciprocals. If both angles and reciprocal angles
+@@ -294,7 +283,7 @@
+     * @return A `Matcher[Aggregate, Expression]` that matches aggregates with angle and reciprocal
+     *         angle expressions, restructuring them accordingly. Returns a `Miss` otherwise.
+     */
+-  private def angleEliminatorAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("angleEliminatorAggregate") {
++  private lazy val angleEliminatorAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("angleEliminatorAggregate") {
+     case a@Aggregate(Product, xs) =>
+       if (Aggregate.hasAngles(xs) && Aggregate.hasReciprocalAngles(xs))
+         Match(Aggregate(Product, Aggregate.getAnglesEtc(xs)))
+@@ -353,9 +342,9 @@
+     *           indicating this and the input term.
+     */
+   def complementaryTermsEliminatorBiFunction: Matcher[BiFunction, Expression] = Matcher[BiFunction, Expression]("complementaryTermsEliminatorBiFunction") {
+-    case BiFunction(a, b, f) if isComplementary(f, a, b) && a.maybeFactor(AnyContext).contains(Angle) =>
++    case BiFunction(a, b, f) if ExpressionMatchers.isComplementary(f, a, b) && a.maybeFactor(AnyContext).contains(Angle) =>
+       Match(Literal(Angle.zero))
+-    case BiFunction(a, b, f) if isComplementary(f, a, b) =>
++    case BiFunction(a, b, f) if ExpressionMatchers.isComplementary(f, a, b) =>
+       f.maybeIdentityL match {
+         case Some(field) =>
+           Match(Literal(field))
+@@ -413,6 +402,16 @@
+       MatchCheck(Aggregate(f, list))(a)
+     else
+       Miss(s"complementaryTermsEliminatorAggregate: $a", a)
++}
++
++/**
++  * The `ExpressionMatchers` object provides utilities for evaluating relationships between
++  * two `Expression` objects using a given `ExpressionBiFunction`. It enables analysis
++  * of complementary expressions under specific mathematical or logical contexts.
++  *
++  * These methods are here so that they're not part of the `ExpressionMatchers` API.
++  */
++object ExpressionMatchers {
+ 
+   /**
+     * Determines if the given bi-function is complementary for the specified expressions.
+@@ -424,20 +423,11 @@
+     * @param y the second expression to be checked
+     * @return true if the bi-function is complementary for the given expressions, false otherwise
+     */
+-  private def isComplementary(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean = {
++  def isComplementary(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean = {
+     val identityCheck: Expression => Boolean = isIdentityFunction(f)
+-    (matchComplementaryExpressions(f ~ x ~ y) & filter(identityCheck)).successful
++    (matchComplementaryExpressions(f ~ x ~ y) & em.filter(identityCheck)).successful
+   }
+-}
+ 
+-/**
+-  * The `ExpressionMatchers` object provides utilities for evaluating relationships between
+-  * two `Expression` objects using a given `ExpressionBiFunction`. It enables analysis
+-  * of complementary expressions under specific mathematical or logical contexts.
+-  *
+-  * These methods are here so that they're not part of the `ExpressionMatchers` API.
+-  */
+-object ExpressionMatchers {
+   /**
+     * Evaluates whether two `Expression` instances, when combined using the provided
+     * `ExpressionBiFunction`, yield the appropriate identity value (although, in practice, we shortcut that logic a little).
+@@ -465,4 +455,8 @@
+       case x =>
+         None
+     }
++
++  def getApproximateDouble(x: Expression): Double =
++    x.approximation(true).flatMap(_.maybeDouble) getOrElse Double.NaN
++
+ }
+\ No newline at end of file

@@ -1,0 +1,21 @@
+Index: dimensions/src/main/scala/com/phasmidsoftware/number/dimensions/core/Units.scala
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/dimensions/src/main/scala/com/phasmidsoftware/number/dimensions/core/Units.scala b/dimensions/src/main/scala/com/phasmidsoftware/number/dimensions/core/Units.scala
+--- a/dimensions/src/main/scala/com/phasmidsoftware/number/dimensions/core/Units.scala	(revision ffbcb0368690ef2ffedcd387a2c3bf852ba13b5f)
++++ b/dimensions/src/main/scala/com/phasmidsoftware/number/dimensions/core/Units.scala	(date 1768959576340)
+@@ -216,7 +216,11 @@
+     *       exact rational number representation.
+     */
+   def toSI: ExactNumber =
+-    FP.recover(base.toSI.pow(RationalNumber(power)))(DimensionsException("PowerUnit.toSI: cannot convert to RationalNumber:"))
++    base.toSI.pow(RationalNumber(power)) match {
++      case Some(e: ExactNumber) => e
++      case Some(x) => throw DimensionsException("PowerUnit.toSI: cannot convert to ExactNumber")
++      case None => throw DimensionsException("PowerUnit.toSI: cannot evaluate toSI")
++    }
+ 
+   override def compositeSymbol: String =
+     s"(${base.compositeSymbol})^$power"

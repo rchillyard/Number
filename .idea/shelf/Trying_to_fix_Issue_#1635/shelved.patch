@@ -1,0 +1,70 @@
+Index: expression/src/main/scala/com/phasmidsoftware/number/expression/expr/CompositeExpression.scala
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/CompositeExpression.scala b/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/CompositeExpression.scala
+--- a/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/CompositeExpression.scala	(revision ffbcb0368690ef2ffedcd387a2c3bf852ba13b5f)
++++ b/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/CompositeExpression.scala	(date 1769011197177)
+@@ -11,6 +11,7 @@
+ import com.phasmidsoftware.number.algebra.util.FP
+ import com.phasmidsoftware.number.core.algebraic.{Algebraic_Quadratic, Quadratic}
+ import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian}
++import com.phasmidsoftware.number.core.misc.Bumperator
+ import com.phasmidsoftware.number.core.numerical
+ import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, Number, Real}
+ import com.phasmidsoftware.number.expression.algebraic
+@@ -20,6 +21,7 @@
+ 
+ import java.util.Objects
+ import scala.language.implicitConversions
++import scala.util.*
+ 
+ /**
+   * An abstract class which extends Expression while providing an instance of ExpressionMatchers for use
+@@ -716,6 +718,7 @@
+         z <- b.evaluate(RestrictedContext(PureNumber))
+         y <- f.applyExact(w, z)
+       } yield y
++      if (qqq.isEmpty) println(s"BiFunction: matchLiteral: failed to match $a and $b with $f")
+       em.matchIfDefined(qqq)(this)
+     case _ =>
+       em.Miss[Expression, Expression](s"BiFunction: matchLiteral: ", expression.expr.BiFunction(l, x, f)) // TESTME
+@@ -1122,6 +1125,7 @@
+       (ao, x) =>
+         for (a <- ao; b <- x.evaluateAsIs; c <- function.applyExact(a, b)) yield c
+     }
++    if (vo.isEmpty) println(s"BiFunction.evaluate: no identity found for $xs")
+     context.qualifyingEagerValue(vo)
+   }
+ 
+@@ -1177,6 +1181,29 @@
+     FP.sequence(vos) map (xs => xs.foldLeft[Eager](identity)(function.apply).asInstanceOf[eager.Real])
+   }
+ 
++  lazy val eliminateAggregateComplementaryTerms: Try[List[Expression]] = {
++    val invertFunction: Double => Double = function match {
++      case Sum =>
++        x => Math.abs(x)
++      case Product =>
++        x => if x < 1 then 1 / x else x
++      case _ =>
++        throw new IllegalArgumentException("complementaryTermsEliminatorAggregate: Power function not supported")
++    }
++    val sortFunction: Expression => Double =
++      x => invertFunction(ExpressionMatchers.getApproximateDouble(x))
++
++    // NOTE this ordering is really only appropriate when f is Sum.
++    // TODO find a better way to find complementary elements.
++    Try(xs.sortBy(sortFunction)) match {
++      case Success(sorted) =>
++        val list = Bumperator[Expression](sorted) { (x, y) => ExpressionMatchers.isComplementary(function, x, y) }.toList
++        Success(list)
++      case Failure(x) =>
++        Failure(x) // XXX the result of an extremely improbable NoSuchElementException // TESTME
++    }
++  }
++
+   /**
+     * Method to render this Structure in a presentable manner.
+     *

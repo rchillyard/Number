@@ -1,0 +1,513 @@
+Index: expression/src/main/scala/com/phasmidsoftware/number/expression/expr/CompositeExpression.scala
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/CompositeExpression.scala b/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/CompositeExpression.scala
+--- a/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/CompositeExpression.scala	(revision 0473ff4bfe9efcfebc0c747a4c6c836004c38b6a)
++++ b/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/CompositeExpression.scala	(date 1768231384056)
+@@ -784,6 +784,8 @@
+         em.Match(expression.expr.BiFunction(a, Two, Power))
+       case (BiFunction(w, x, Power), BiFunction(y, z, Power)) if w == y =>
+         em.Match(expression.expr.BiFunction(w, x plus z, Power))
++      case (a, b) if !a.isExact && !b.isExact =>
++        em.Match(Literal(a.materialize * b.materialize))
+       case _ =>
+         em.Miss[Expression, Expression]("BiFunction: simplifyTrivial: no trivial simplification for Product", this)
+     }
+Index: top/src/test/scala/com/phasmidsoftware/number/top/PhysicalConstantsSpec.scala
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/top/src/test/scala/com/phasmidsoftware/number/top/PhysicalConstantsSpec.scala b/top/src/test/scala/com/phasmidsoftware/number/top/PhysicalConstantsSpec.scala
+--- a/top/src/test/scala/com/phasmidsoftware/number/top/PhysicalConstantsSpec.scala	(revision 0473ff4bfe9efcfebc0c747a4c6c836004c38b6a)
++++ b/top/src/test/scala/com/phasmidsoftware/number/top/PhysicalConstantsSpec.scala	(date 1768231053130)
+@@ -146,44 +146,24 @@
+ 
+   behavior of "PhysicalConstants - Relationships"
+ 
+-  it should "satisfy R = k·Nₐ (approximately, given parsing)" in {
+-    val k = PhysicalConstants.k
+-    val Na = PhysicalConstants.N_A
+-    val R = PhysicalConstants.R
+-
+-    // This test verifies the relationship holds approximately
+-    // Exact verification would require symbolic computation
+-    //    val kValue = k.value.materialize.approximation().get
+-    //    val NaValue = Na.value.maybeDouble.get
+-    //    val RValue = R.value.maybeDouble.get
+-    //
+-    //    val computed = kValue * NaValue
+-    //    computed should be (RValue +- RValue * 1e-10)
+-  }
+-
+-  ignore should "satisfy ε₀μ₀c² = 1 (approximately)" in {
++  it should "satisfy ε₀μ₀c² = 1 (approximately)" in {
+     val eps0 = PhysicalConstants.epsilon_0
+     val mu0 = PhysicalConstants.mu_0
+     val c = PhysicalConstants.c
+ 
+-    val eps0Val = eps0.value.maybeDouble.get
+-    val mu0Val = mu0.value.maybeDouble.get
+-    val cVal = c.value.maybeDouble.get
+-
+-    val product = eps0Val * mu0Val * cVal * cVal
+-    product should be(1.0 +- 1e-9)
++    val q: Quantity[MulDim[MulDim[Permittivity, Permeability], MulDim[Velocity, Velocity]]] = eps0 * mu0 * c.squared
++    q.unit.dimensionWitness shouldBe DimensionWitness.dimensionless
++    q.value.materialize.~=(WholeNumber(1)) shouldBe true
+   }
+ 
+-  ignore should "have proton-to-electron mass ratio" in {
++  it should "have proton-to-electron mass ratio" in {
+     val mp = PhysicalConstants.m_p
+     val me = PhysicalConstants.m_e
++    val expectedRatio = Eager("1836.15267343(11)")
+ 
+-    val mpVal = mp.value.maybeDouble.get
+-    val meVal = me.value.maybeDouble.get
+-
+-    val ratio = mpVal / meVal
+-    // Known ratio is approximately 1836.15
+-    ratio should be(1836.15 +- 0.01)
++    val q: Quantity[Dimensionless] = mp / me
++    q.unit.dimensionWitness shouldBe DimensionWitness.dimensionless
++    q.value.materialize.~=(expectedRatio) shouldBe true
+   }
+ 
+   behavior of "PhysicalConstants - Unit Dimensions"
+@@ -228,13 +208,34 @@
+   it should "have conventional μ₀ = 4π × 10⁻⁷ H/m (approximately)" in {
+     val mu0 = PhysicalConstantsConventional.mu_0
+ 
++    val value = mu0.value.materialize
++    value shouldBe Angle(RationalNumber(Rational.exponent(-7)*4))
+     // Should be close to 4π × 10⁻⁷ ≈ 1.25663706144e-6
+-    val value = mu0.value.maybeDouble.get
+-    value should be(1.25663706144e-6 +- 1e-15)
++    value.approximation(true).get.toDouble shouldBe 1.25663706144e-6 +- 1E-12
+   }
+ 
+   it should "have conventional μ₀ as exact value (not fuzzy)" in {
+     val mu0 = PhysicalConstantsConventional.mu_0
+     mu0.value.isExact shouldBe true
+   }
++
++  it should "satisfy ε₀μ₀c² = 1 (exactly)" in {
++    val eps0 = PhysicalConstantsConventional.epsilon_0
++    val mu0 = PhysicalConstantsConventional.mu_0
++    val c = PhysicalConstants.c
++
++    val q: Quantity[MulDim[MulDim[Permittivity, Permeability], MulDim[Velocity, Velocity]]] = eps0 * mu0 * c.squared
++    q.unit.dimensionWitness shouldBe DimensionWitness.dimensionless
++    q.value.materialize shouldBe WholeNumber(1)
++  }
++
++  behavior of "Expression evaluation"
++  it should "get product of these two values" in {
++    val e1 = Quantity("8.8541878128(13)E-12")
++    // TODO the following line should work, but it doesn't (it's partly related to the way we render Real numbers)
++//    e1.render shouldBe "8.8541878128*E-12"
++    val e2 = Quantity("1.25663706212(19)E-6")
++    val e3 = e1 * e2
++    println(e3)
++  }
+ }
+\ No newline at end of file
+Index: top/src/test/scala/com/phasmidsoftware/number/top/QuantitySpec.scala
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/top/src/test/scala/com/phasmidsoftware/number/top/QuantitySpec.scala b/top/src/test/scala/com/phasmidsoftware/number/top/QuantitySpec.scala
+--- a/top/src/test/scala/com/phasmidsoftware/number/top/QuantitySpec.scala	(revision 0473ff4bfe9efcfebc0c747a4c6c836004c38b6a)
++++ b/top/src/test/scala/com/phasmidsoftware/number/top/QuantitySpec.scala	(date 1768229550044)
+@@ -43,11 +43,9 @@
+   it should "multiply quantities correctly" in {
+     val length = Quantity(5, Meter)
+     val width = Quantity(3, Meter)
+-    val area = length * width
+-
+-    area shouldBe defined
+-    area.get.value shouldBe WholeNumber(15)
+-    area.get.unit match {
++    val q = length * width
++    q.value.materialize shouldBe WholeNumber(15)
++    q.unit match {
+       case p: ProductUnit[?] =>
+         p.left.symbol shouldBe "m"
+         p.right.symbol shouldBe "m"
+@@ -58,10 +56,8 @@
+     val distance = Quantity(100, Meter)
+     val time = Quantity(10, Second)
+     val velocity = distance / time
+-
+-    velocity shouldBe defined
+-    velocity.get.value shouldBe WholeNumber(10)
+-    velocity.get.unit match {
++    velocity.value.materialize shouldBe WholeNumber(10)
++    velocity.unit match {
+       case q: QuotientUnit[?] =>
+         q.numerator.symbol shouldBe "m"
+         q.denominator.symbol shouldBe "s"
+@@ -96,9 +92,7 @@
+     val mass = Quantity(2, Kilogram)
+     val acceleration = Quantity(10, Meter / Second.squared)
+     val force = mass * acceleration
+-
+-    force shouldBe defined
+-    force.get.value shouldBe WholeNumber(20)
++    force.value.materialize shouldBe WholeNumber(20)
+     // Force has dimension [M¹L¹T⁻²]
+   }
+ 
+@@ -121,8 +115,7 @@
+     val distance = Quantity(5, Meter)
+     val energy = force * distance
+ 
+-    energy shouldBe defined
+-    energy.get.value shouldBe WholeNumber(50)
++    energy.value.materialize shouldBe WholeNumber(50)
+     // Energy should have dimension [M¹L²T⁻²]
+   }
+ 
+@@ -130,9 +123,7 @@
+     val length1 = Quantity(10, Meter)
+     val length2 = Quantity(5, Meter)
+     val ratio = length1 / length2
+-
+-    ratio shouldBe defined
+-    ratio.get.value shouldBe WholeNumber(2)
++    ratio.value.materialize shouldBe WholeNumber(2)
+     // Result should be dimensionless [L¹/L¹ = L⁰]
+   }
+ 
+@@ -143,12 +134,9 @@
+ 
+     // momentum = mass * velocity
+     val momentum = mass * velocity
+-    momentum shouldBe defined
+-
+     // force = momentum / time = mass * velocity / time = mass * acceleration
+-    val force = momentum.flatMap(_ / time)
+-    force shouldBe defined
+-    force.get.value shouldBe WholeNumber(25)
++    val force = momentum / time
++    force.value.materialize shouldBe WholeNumber(25)
+   }
+ 
+   it should "handle squared units" in {
+@@ -184,8 +172,7 @@
+     val nonNumeric: Valuable = Noop("not a number")
+ 
+     val quantity = Quantity(nonNumeric, Meter)
+-    val result = quantity * Quantity(WholeNumber(2), Second)
++    quantity * Quantity(WholeNumber(2), Second)
+ 
+-    result shouldBe None
+   }
+ }
+\ No newline at end of file
+Index: top/src/main/scala/com/phasmidsoftware/number/top/Quantity.scala
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/top/src/main/scala/com/phasmidsoftware/number/top/Quantity.scala b/top/src/main/scala/com/phasmidsoftware/number/top/Quantity.scala
+--- a/top/src/main/scala/com/phasmidsoftware/number/top/Quantity.scala	(revision 0473ff4bfe9efcfebc0c747a4c6c836004c38b6a)
++++ b/top/src/main/scala/com/phasmidsoftware/number/top/Quantity.scala	(date 1768231092782)
+@@ -1,10 +1,12 @@
+ package com.phasmidsoftware.number.top
+ 
+ import com.phasmidsoftware.number.algebra.core.{Lazy, Renderable, Valuable}
++import com.phasmidsoftware.number.algebra.eager
+ import com.phasmidsoftware.number.algebra.eager.*
+ import com.phasmidsoftware.number.algebra.util.LatexRenderer
+ import com.phasmidsoftware.number.core.inner.Rational
+ import com.phasmidsoftware.number.dimensions.core.*
++import com.phasmidsoftware.number.expression.expr.Expression
+ import com.phasmidsoftware.number.parse.{ParseError, UnitsParser}
+ 
+ type PhysicalUnit[D <: Dimension] = com.phasmidsoftware.number.dimensions.core.Unit[D]
+@@ -45,20 +47,33 @@
+   /**
+     * Multiply two quantities
+     */
+-  def *[D2 <: Dimension](other: Quantity[D2]): Option[Quantity[MulDim[D, D2]]] =
+-    for {
+-      v1 <- value.asNumber
+-      v2 <- other.value.asNumber
+-    } yield Quantity(v1 * v2, unit * other.unit)
+-
++  def *[D2 <: Dimension](other: Quantity[D2]): Quantity[MulDim[D, D2]] = {
++    val product: Expression = Expression(value) * Expression(other.value)
++    val simplify = product.simplify
++    Quantity(simplify, unit * other.unit)
++  }
++    
+   /**
+     * Divide two quantities
+     */
+-  def /[D2 <: Dimension](other: Quantity[D2]): Option[Quantity[DivDim[D, D2]]] =
+-    for {
+-      v1 <- value.asNumber
+-      v2 <- other.value.asNumber
+-    } yield Quantity(v1 / v2, unit / other.unit)
++  def /[D2 <: Dimension](other: Quantity[D2]): Quantity[DivDim[D, D2]] =
++    Quantity(Expression(value) / Expression(other.value), unit / other.unit)
++
++  /**
++    * Computes the squared value of the quantity by multiplying it with itself.
++    *
++    * @return an `Option` containing the squared quantity if the operation is valid, or `None` if the operation cannot be performed.
++    */
++  def squared: Quantity[MulDim[D, D]] = this * this
++
++  /**
++    * Computes the multiplicative inverse of this quantity, resulting in a quantity
++    * that represents one divided by the value of this quantity.
++    *
++    * @return an `Option` containing the inverted quantity if the operation is valid,
++    *         or `None` if the operation cannot be performed.
++    */
++  def inverted: Quantity[DivDim[Dimensionless, D]] = Quantity.unity / this
+ 
+   /**
+     * Adds this quantity to another quantity of the same dimension.
+@@ -141,6 +156,28 @@
+   def apply[D <: Dimension](value: Double, unit: PhysicalUnit[D]): Quantity[D] =
+     apply(Real(value), unit)
+ 
++  /**
++    * Constructs a `Quantity[Dimensionless]` instance using the provided `Valuable` value.
++    *
++    * This method associates the given `Valuable` numerical value with the `Dimensionless` unit,
++    * creating a quantity that represents a dimensionless measurement.
++    *
++    * @param value the numerical value of type `Valuable` to be associated with the `Dimensionless` unit
++    * @return a `Quantity[Dimensionless]` instance representing the specified value
++    */
++  def apply(value: Valuable): Quantity[Dimensionless] = Quantity(value, Dimensionless)
++
++  /**
++    * Constructs a `Quantity[Dimensionless]` instance using the provided `Rational` value.
++    *
++    * This method associates the given `Rational` numerical value with the `Dimensionless` unit,
++    * creating a quantity that represents a dimensionless measurement.
++    *
++    * @param value the numerical value of type `Rational` to be associated with the `Dimensionless` unit
++    * @return a `Quantity[Dimensionless]` instance representing the specified value
++    */
++  def apply(value: Rational): Quantity[Dimensionless] = Quantity(value, Dimensionless)
++
+   /**
+     * Creates a `Quantity` instance with the specified numerical value and physical unit.
+     *
+@@ -155,6 +192,26 @@
+   def apply[D <: Dimension](value: Lazy, unit: PhysicalUnit[D]): Quantity[D] =
+     new Quantity[D](value.simplify, unit)
+ 
++  /**
++    * Constructs a `Quantity[Dimensionless]` instance with the given integer value.
++    *
++    * This method takes an integer value and associates it with the `Dimensionless` unit,
++    * creating a quantity that represents a dimensionless measurement.
++    *
++    * @param value the integer value to be associated with the `Dimensionless` unit
++    * @return a `Quantity[Dimensionless]` instance representing the specified value
++    */
++  def apply(value: Int): Quantity[Dimensionless] = Quantity(value, Dimensionless)
++
++  /**
++    * Represents the dimensionless unit quantity with a value of 1.
++    *
++    * This predefined quantity is associated with the `Dimensionless` unit
++    * and is constructed with an integer value of 1. It can be used as a
++    * constant for operations requiring a base unit in dimensional analysis.
++    */
++  val unity: Quantity[Dimensionless] = apply(1)
++
+   /**
+     * Parses a numerical value and a unit into a `Quantity` instance.
+     *
+@@ -215,4 +272,16 @@
+ 
+     s"$valueLatex\\,${com.phasmidsoftware.number.dimensions.core.toLatex(quantity.unit)}"
+   }
+-}
+\ No newline at end of file
++}
++
++/**
++  * Represents an exception specific to quantity-related errors.
++  *
++  * The `QuantityException` is used to signal issues or invalid operations
++  * related to quantities within the application. It extends the base `Exception`
++  * class and includes a customizable error message to provide additional context
++  * about the exception's cause.
++  *
++  * @param message Detailed message describing the nature of the quantity-related error.
++  */
++case class QuantityException(message: String) extends Exception(message)
+\ No newline at end of file
+Index: top/src/main/scala/com/phasmidsoftware/number/top/PhysicalConstants.scala
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/top/src/main/scala/com/phasmidsoftware/number/top/PhysicalConstants.scala b/top/src/main/scala/com/phasmidsoftware/number/top/PhysicalConstants.scala
+--- a/top/src/main/scala/com/phasmidsoftware/number/top/PhysicalConstants.scala	(revision 0473ff4bfe9efcfebc0c747a4c6c836004c38b6a)
++++ b/top/src/main/scala/com/phasmidsoftware/number/top/PhysicalConstants.scala	(date 1768227033286)
+@@ -1,5 +1,7 @@
+ package com.phasmidsoftware.number.top
+ 
++import com.phasmidsoftware.number.algebra.eager.Angle
++import com.phasmidsoftware.number.algebra.util.FP
+ import com.phasmidsoftware.number.core.inner.Rational
+ import com.phasmidsoftware.number.dimensions.core.*
+ import com.phasmidsoftware.number.dimensions.core.CompositeUnits.{JouleSecond, Kepler}
+@@ -43,8 +45,7 @@
+   lazy val h: Quantity[EnergyTime] = Quantity("6.6260701500E-34", JouleSecond) // NOTE trailing "00" is to force exactitude
+ 
+   /** Reduced Planck constant: ℏ = h/(2π) (exact, derived from h) */
+-  // Note: This involves π, so it's not expressible as exact rational
+-  // You'd need: h / (2π) ≈ 1.054571817... × 10⁻³⁴ J·s
++  lazy val HBar: Quantity[EnergyTime] = h / Quantity(Angle.twoPi)
+ 
+   /**
+     * Represents the elementary charge, a physical constant that quantifies the charge
+@@ -79,7 +80,8 @@
+     * @see Dimensionless
+     * @see Mole
+     */
+-  lazy val N_A: Quantity[DivDim[Dimensionless, Amount]] = Quantity("6.0221407600E23", Dimensionless / Mole) // NOTE trailing "00" is to force exactitude
++  lazy val N_A: Quantity[DivDim[Dimensionless, Amount]] =
++    Quantity("6.0221407600E23", Dimensionless / Mole) // NOTE trailing "00" is to force exactitude
+ 
+   // ============================================================================
+   // MEASURED Constants (with uncertainty)
+@@ -89,53 +91,60 @@
+     * Relative uncertainty: 2.2 × 10⁻⁵
+     * One of the least precisely known constants!
+     */
+-  lazy val G: Quantity[DivDim[DivDim[Volume, Mass], PowDim[Time, Two]]] = Quantity("6.67430(15)E-11", Kepler)
++  lazy val G: Quantity[DivDim[DivDim[Volume, Mass], PowDim[Time, Two]]] =
++    Quantity("6.67430(15)E-11", Kepler)
+ 
+   /** Fine structure constant: α = 7.2973525693(11) × 10⁻³ (dimensionless)
+     * Relative uncertainty: 1.5 × 10⁻¹⁰
+     */
+-  lazy val alpha = Quantity("7.2973525693(11)e-3", Dimensionless)
++  lazy val alpha =
++    Quantity("7.2973525693(11)e-3", Dimensionless)
+ 
+   /** Rydberg constant: R∞ = 10973731.568160(21) m⁻¹
+     * Relative uncertainty: 1.9 × 10⁻¹²
+     */
+-  lazy val R_inf: Quantity[PowDim[Length, MinusOne]] = Quantity("10973731.568160(21)", Meter.invert)
++  lazy val R_inf: Quantity[PowDim[Length, MinusOne]] =
++    Quantity("10973731.568160(21)", Meter.invert)
+ 
+   /** Electron mass: mₑ = 9.1093837015(28) × 10⁻³¹ kg
+     * Relative uncertainty: 3.0 × 10⁻¹⁰
+     */
+-  lazy val m_e = Quantity("9.1093837015(28)e-31", Kilogram)
++  lazy val m_e =
++    Quantity("9.1093837015(28)e-31", Kilogram)
+ 
+   /** Proton mass: mₚ = 1.67262192369(51) × 10⁻²⁷ kg
+     * Relative uncertainty: 3.1 × 10⁻¹⁰
+     */
+-  lazy val m_p = Quantity("1.67262192369(51)E-27", Kilogram)
++  lazy val m_p =
++    Quantity("1.67262192369(51)E-27", Kilogram)
+ 
+   /** Vacuum permittivity: ε₀ = 8.8541878128(13) × 10⁻¹² F/m
+     * Derived from: ε₀ = 1/(μ₀c²)
+     * Relative uncertainty: 1.5 × 10⁻¹⁰
+     */
+-  lazy val epsilon_0: Quantity[Permittivity] = Quantity("8.8541878128(13)E-12", Farad / Meter)
++  lazy val epsilon_0: Quantity[Permittivity] =
++    Quantity("8.8541878128(13)E-12", Farad / Meter)
+ 
+   /** Vacuum permeability: μ₀ = 1.25663706212(19) × 10⁻⁶ H/m
+     * Previously exact (4π × 10⁻⁷), now measured
+     * Relative uncertainty: 1.5 × 10⁻¹⁰
+     */
+-  lazy val mu_0: Quantity[Permeability] = Quantity("1.25663706212(19)E-6", Henry / Meter)
++  lazy val mu_0: Quantity[Permeability] =
++    Quantity("1.25663706212(19)E-6", Henry / Meter)
+ 
+   /** Stefan-Boltzmann constant: σ = 5.670374419... × 10⁻⁸ W/(m²·K⁴)
+     * Derived from: σ = (2π⁵k⁴)/(15h³c²)
+     * Exact in SI 2019 (derived from exact constants)
+     * NOTE at present our library does not allow us to express π⁵ as an exact number.
+     */
+-  lazy val sigma = Quantity("5.670374419184429453970996731889230876059E-8", Watt / (Meter.squared * Kelvin.squared.squared))
++  lazy val sigma =
++    Quantity("5.670374419184429453970996731889230876059E-8", Watt / (Meter.squared * Kelvin.squared.squared))
+ 
+-  /** Gas constant: R = 8.31446261815324 J/(mol·K)
++  /** Gas constant: R = k·Nₐ
+     * Derived from: R = k·Nₐ
+     * Exact (product of exact constants)
+-    * TODO do this by multiplication
+     */
+-  lazy val R = Quantity("8.31446261815324", Joule / (Mole * Kelvin))
++  lazy val R: Quantity[DivDim[EnergyPerTemperature, Amount]] = k * N_A
+ }
+ 
+ object PhysicalConstantsConventional {
+@@ -154,10 +163,12 @@
+     */
+   lazy val mu_0 = Quantity(Angle(4).scale(Rational(10000000).invert), Henry / Meter)
+ 
++  println(s"mu_0 = $mu_0")
++
+   /** Conventional value of ε₀ (pre-2019): derived exactly from μ₀ and c
+     *
+     * ε₀ = 1/(μ₀c²) = 1/(4π × 10⁻⁷ × (299792458)²)
+     * ≈ 8.8541878176... × 10⁻¹² F/m (exact with exact μ₀)
+     */
+-  lazy val epsilon_0 = ??? // TODO calculate this later
++  lazy val epsilon_0: Quantity[DivDim[Dimensionless, MulDim[MulDim[Velocity, Velocity], DivDim[Inductance, Length]]]] = (PhysicalConstants.c.squared * mu_0).inverted
+ }
+\ No newline at end of file
+Index: dimensions/src/main/scala/com/phasmidsoftware/number/dimensions/core/Dimension.scala
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/dimensions/src/main/scala/com/phasmidsoftware/number/dimensions/core/Dimension.scala b/dimensions/src/main/scala/com/phasmidsoftware/number/dimensions/core/Dimension.scala
+--- a/dimensions/src/main/scala/com/phasmidsoftware/number/dimensions/core/Dimension.scala	(revision 0473ff4bfe9efcfebc0c747a4c6c836004c38b6a)
++++ b/dimensions/src/main/scala/com/phasmidsoftware/number/dimensions/core/Dimension.scala	(date 1768188089418)
+@@ -183,6 +183,10 @@
+   * Multiply two dimensions by adding their corresponding exponents.
+   */
+ type MulDim[D1 <: Dimension, D2 <: Dimension] <: Dimension = (D1, D2) match {
++  case (BaseDim[m1, l1, t1, i1, θ1, n1, j1], Dimensionless) =>
++    D1
++  case (Dimensionless, BaseDim[m1, l1, t1, i1, θ1, n1, j1]) =>
++    D2
+   case (BaseDim[m1, l1, t1, i1, θ1, n1, j1], BaseDim[m2, l2, t2, i2, θ2, n2, j2]) =>
+   BaseDim[
+     AddTRat[m1, m2],
+@@ -199,6 +203,8 @@
+   * Divide two dimensions by subtracting their corresponding exponents.
+   */
+ type DivDim[D1 <: Dimension, D2 <: Dimension] <: Dimension = (D1, D2) match {
++  case (BaseDim[m1, l1, t1, i1, θ1, n1, j1], Dimensionless) =>
++    D1
+   case (BaseDim[m1, l1, t1, i1, θ1, n1, j1], BaseDim[m2, l2, t2, i2, θ2, n2, j2]) =>
+   BaseDim[
+     SubTRat[m1, m2],
+@@ -336,6 +342,6 @@
+   val magneticFlux: BaseDimWitness = voltage * time
+   val magneticFluxDensity: BaseDimWitness = magneticFlux / area
+   val frequency: BaseDimWitness = dimensionless / time
+-  val inductance: BaseDimWitness = magneticFlux / area
++  val inductance: BaseDimWitness = magneticFlux / current
+   val permeability: BaseDimWitness = inductance / length
+ }
+\ No newline at end of file

@@ -1,0 +1,16 @@
+Index: .run/All the Number tests.run.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.run/All the Number tests.run.xml b/.run/All the Number tests.run.xml
+--- a/.run/All the Number tests.run.xml	(revision ffbcb0368690ef2ffedcd387a2c3bf852ba13b5f)
++++ b/.run/All the Number tests.run.xml	(date 1768951504314)
+@@ -38,6 +38,7 @@
+         <option value="com.phasmidsoftware.number.cats.laws.RationalAlgebraicInstancesLawSpec" />
+         <option value="com.phasmidsoftware.number.cats.laws.RealAlgebraicInstancesLawSpec" />
+         <option value="com.phasmidsoftware.number.top.FoucaultSpec" />
++        <option value="com.phasmidsoftware.number.top.FunctionalSpec" />
+         <option value="com.phasmidsoftware.number.top.PhysicalConstantsSpec" />
+         <option value="com.phasmidsoftware.number.top.QuantityLaTeXSpec" />
+         <option value="com.phasmidsoftware.number.top.QuantityParserSpec" />

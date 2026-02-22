@@ -1,0 +1,33 @@
+Index: algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/Number.scala
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/Number.scala b/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/Number.scala
+--- a/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/Number.scala	(revision ffbcb0368690ef2ffedcd387a2c3bf852ba13b5f)
++++ b/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/Number.scala	(date 1768960115177)
+@@ -305,7 +305,7 @@
+   * Subtypes of ExactNumber include WholeNumber and RationalNumber.
+   * Although some instances of Real are exact, the type in general cannot be assumed to represent an exact value.
+   */
+-trait ExactNumber extends Number with Exact with Q with Scalable[ExactNumber] with CanPower[ExactNumber] {
++trait ExactNumber extends Number with Exact with Q with Scalable[ExactNumber] with CanPower[Eager] {
+ 
+   /**
+     * Converts this ExactNumber into a RationalNumber representation.
+@@ -371,8 +371,13 @@
+     * @return an `Option[ExactNumber]` containing the resulting value if the power
+     *         operation can be computed exactly, or `None` if it cannot
+     */
+-  infix def pow(that: ExactNumber): Option[ExactNumber] =
+-    for (r <- toRational.power(that.toRational).toOption) yield RationalNumber(r).normalize
++  infix def pow(that: ExactNumber): Option[Eager] =
++    that match {
++      case (RationalNumber(r, _)) if r.signum > 0 && r.invert.isWhole && r.invert.toInt > 1 =>
++        Some(InversePower(r.invert.toInt, this).normalize)
++      case _ =>
++        for (r <- toRational.power(that.toRational).toOption) yield RationalNumber(r).normalize
++    }
+ }
+ /**
+   * The `Number` object provides predefined constants and implicit conversions related to numerical operations.

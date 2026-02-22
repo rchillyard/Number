@@ -1,9 +1,0 @@
-[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/Eager.scala:440:4 [0m[0m[0m
-[0m[[0m[33mwarn[0m] [0m[0m[33m440 |[0m    NumberParser.parseNumber(str) [33mmatch[0m {[0m
-[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m    ^^^^^^^^^^^^[0m[0m
-[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m[33mobject[0m [35mNumberParser[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.parse[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.expression.parse.NumberParser instead[0m
-[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/Real.scala:596:4 [0m[0m[0m
-[0m[[0m[33mwarn[0m] [0m[0m[33m596 |[0m    NumberParser.parseNumber(w).map([36mx[0m => numerical.Real(x)) [33mmatch[0m {[0m
-[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m    ^^^^^^^^^^^^[0m[0m
-[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m[33mobject[0m [35mNumberParser[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.parse[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.expression.parse.NumberParser instead[0m
-[0m[[0m[33mwarn[0m] [0m[0mtwo warnings found[0m

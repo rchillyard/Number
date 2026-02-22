@@ -1,0 +1,21 @@
+Index: top/src/main/scala/com/phasmidsoftware/number/worksheets/LogWorksheet.sc
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/top/src/main/scala/com/phasmidsoftware/number/worksheets/LogWorksheet.sc b/top/src/main/scala/com/phasmidsoftware/number/worksheets/LogWorksheet.sc
+--- a/top/src/main/scala/com/phasmidsoftware/number/worksheets/LogWorksheet.sc	(revision ffbcb0368690ef2ffedcd387a2c3bf852ba13b5f)
++++ b/top/src/main/scala/com/phasmidsoftware/number/worksheets/LogWorksheet.sc	(date 1768948080718)
+@@ -1,9 +1,10 @@
+ /**
+-  * This worksheet illustrates the use of Log-factor numbers..
++  * This worksheet illustrates the use of core Log-factor numbers..
+   */
+ 
+ import com.phasmidsoftware.number.core.inner.{Euler, NatLog}
+-import com.phasmidsoftware.number.core.{Constants, ExactNumber, Number}
++import com.phasmidsoftware.number.core.numerical.ExactNumber
++import com.phasmidsoftware.number.core.numerical.{Constants, Number}
+ 
+ // One way to express e
+ ExactNumber(1, NatLog)
