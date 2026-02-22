@@ -126,7 +126,6 @@ lazy val parse = (project in file("parse"))
     scalacOptions ++= commonScalacOptions ++ scala3Options,
 
     libraryDependencies ++= Seq(
-      "com.lihaoyi" %% "fastparse" % "3.1.1"
     )
   )
   .settings(scala3TestSettings)

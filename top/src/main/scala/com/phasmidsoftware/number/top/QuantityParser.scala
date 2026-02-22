@@ -5,101 +5,78 @@ import com.phasmidsoftware.number.dimensions.core.*
 import com.phasmidsoftware.number.expression.expr.{Expression, Literal}
 import com.phasmidsoftware.number.expression.parse.NumberParser
 import com.phasmidsoftware.number.parse.*
-import fastparse.*
-import fastparse.NoWhitespace.*
+
+import scala.util.parsing.combinator.RegexParsers
 
 /**
   * An object that provides utilities for parsing textual representations of quantities.
   * A quantity is composed of a numerical value, optionally followed by a physical unit.
-  * The object contains methods and parsers to handle numeric and unit parsing, with support
-  * for common formats including LaTeX-compatible syntax.
   */
-object QuantityParser {
+object QuantityParser extends RegexParsers with UnitsParser {
+
+  // Disable automatic whitespace skipping — whitespace is handled explicitly.
+  override val skipWhitespace: Boolean = false
 
   /**
-    * Parses a string representation of a quantity, which consists of a numerical value
-    * optionally followed by a physical unit. The input string is processed using the `quantityParser`.
+    * Parses a string representation of a quantity.
     *
-    * @param input the string to parse. It may include a numerical value, followed by an optional
-    *              unit specification separated by whitespace or a comma.
-    *
-    * @return an `Either` containing a successfully parsed `Quantity` wrapped in `Right`, or
-    *         a `ParseError` wrapped in `Left` if the parsing fails.
+    * @param input the string to parse.
+    * @return `Right` with the parsed `Quantity`, or `Left` with a `ParseError`.
     */
-  def parse(input: String): Either[ParseError, Quantity[?]] = {
-    fastparse.parse(input, p => quantityParser(using p)) match {
-      case Parsed.Success(q, _) => Right(q)
-      case f: Parsed.Failure => Left(UnitError(f.msg))
+  def parse(input: String): Either[ParseError, Quantity[?]] =
+    parseAll(quantityParser, input) match {
+      case Success(q, _) => Right(q)
+      case f: NoSuccess => Left(UnitError(f.msg))
     }
-  }
 
   /**
-    * Parses a string representation of a numerical value using a LaTeX-compatible parser.
-    * The parser processes characters commonly used in numerical expressions, including
-    * digits, decimal points, fractions, scientific notation, and LaTeX syntax elements.
-    *
-    * @param P an implicit parameter representing the parsing context, which defines
-    *          the utilities and environment used for the parser.
-    *
-    * @return a parser that produces an `Expression` representation of the parsed numerical value.
+    * Parses a LaTeX command of the form `\cmd{...}{...}`.
     */
-  def numberParser(using P[Any]): P[Expression] = {
-    def latexCommand: P[String] = P(
-      "\\" ~ CharsWhileIn("a-z", 1).! ~ braceGroup.rep(1)
-    ).map { case (cmd, groups) => "\\" + cmd + groups.mkString }
+  private def latexCommand: Parser[String] =
+    ("\\" ~> "[a-z]+".r) ~ rep1(braceGroup) ^^ {
+      case cmd ~ groups => "\\" + cmd + groups.mkString
+    }
 
-    def braceGroup: P[String] = P("{" ~ CharsWhile(_ != '}').! ~ "}").map(s => s"{$s}")
+  private def braceGroup: Parser[String] =
+    "{" ~> "[^}]*".r <~ "}" ^^ (s => s"{$s}")
 
-    def regularNumChars: P[String] = P(
-      CharIn("0-9.+\\-eE/").rep(1).!
-    )
+  private def regularNumChars: Parser[String] =
+    "[0-9.+\\-eE/]+".r
 
-    def numberContent: P[String] = P((latexCommand | regularNumChars).rep(1)).map(_.mkString)
+  private def numberContent: Parser[String] =
+    rep1(latexCommand | regularNumChars) ^^ (_.mkString)
 
-    P(numberContent).map(doParseNumber)
-  }
   /**
-    * Parses a string representation of a number, attempting to process it first using
-    * the LaTeX parser. If the LaTeX parser fails, it falls back to a numeric parser.
-    * If both attempts fail, an exception is thrown.
+    * Parses a numerical value using a LaTeX-compatible parser.
+    */
+  def numberParser: Parser[Expression] =
+    numberContent ^^ doParseNumber
+
+  /**
+    * Attempts to parse `numStr` with `LaTeXParser`, falling back to `NumberParser`.
     *
-    * @param numStr the string to parse, expected to represent a number
-    * @return an `Expression` object, either parsed and simplified using the LaTeX parser
-    *         or constructed as a literal scalar value in case of numeric parsing
-    *
-    * @throws LaTeXParserException if the input cannot be parsed using either parser
+    * @throws LaTeXParserException if both fail.
     */
   def doParseNumber(numStr: String): Expression =
     LaTeXParser.parse(numStr) match {
-      case fastparse.Parsed.Success(expr, _) =>
+      case LaTeXParser.Success(expr, _) =>
         expr.simplify
-      case failure: Parsed.Failure =>
+      case _: LaTeXParser.NoSuccess =>
         NumberParser.parseNumber(numStr) match {
           case scala.util.Success(value) =>
             Literal(Scalar(value))
           case _ =>
-            throw LaTeXParserException(s"Tried to parse '$numStr' with LaTeXParser.parse and with NumberParser.parseNumber but failed")
+            throw LaTeXParserException(
+              s"Tried to parse '$numStr' with LaTeXParser.parse and with NumberParser.parseNumber but failed"
+            )
         }
     }
 
-  /**
-    * Parses a textual representation of a quantity, consisting of a numerical value
-    * optionally followed by a unit. Supports optional whitespace or a comma character
-    * as a separator between the numerical value and the unit.
-    *
-    * @param P an implicit parameter representing the context for the parser framework.
-    *          It defines the parsing environment and utilities used during parsing.
-    *
-    * @return a parser that produces a `Quantity` object. The resulting quantity has a numerical
-    *         value and an optional physical unit. If no unit is provided in the input,
-    *         the quantity defaults to a dimensionless unit.
-    */
-  private def quantityParser(using P[Any]): P[Quantity[?]] = {
-    P(numberParser ~ (P(" ") | P("\\,")).? ~ UnitsParser.unitsParser.? ~ End).map {
-      case (n, u) => u match {
-        case None => Quantity(n, Dimensionless)
-        case Some(unit) => Quantity(n, unit)
-      }
+  private def separator: Parser[String] = " " | "\\,"
+
+  private def quantityParser: Parser[Quantity[?]] =
+    (numberParser ~ opt(separator) ~ opt(unitsParser)) ^^ {
+      case n ~ _ ~ None => Quantity(n, Dimensionless)
+      case n ~ _ ~ Some(unit) => Quantity(n, unit)
     }
-  }
 }
