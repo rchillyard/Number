@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module external.linked.project.id="number2026:main [file:///Users/rhillyard/IdeaProjects/Number2026/]" external.linked.project.path="$MODULE_DIR$/../../.." external.root.project.path="$MODULE_DIR$/../../.." external.system.id="SBT" external.system.module.type="sbtSourceSet" type="JAVA_MODULE" version="4">
+  <component name="DisplayModuleName">
+    <option name="name" value="number2026.main" />
+  </component>
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_23">
+    <output url="file://$MODULE_DIR$/../../../target/scala-2.12/classes" />
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/../../../src/main" />
+    <content url="file://$MODULE_DIR$/../../../target/scala-2.12/resource_managed/main" />
+    <content url="file://$MODULE_DIR$/../../../target/scala-2.12/src_managed/main" />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="sbt: scala-sdk-2.12.20" level="project" />
+    <orderEntry type="library" name="sbt: org.scala-lang:scala-library:2.12.20:jar" level="project" />
+  </component>
+</module>

@@ -1,0 +1,255 @@
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E175] Potential Issue Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/inner/RationalFloorSpec.scala:159:8 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m159 |[0m        r.ceiling shouldBe r.floor + Rational([31m1[0m)[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0mdiscarded non-Unit value of type org.scalatest.Assertion. Add `: Unit` to discard silently.[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/numerical/FuzzyNumberSpec.scala:159:24 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m159 |[0m    [33mval[0m [36mz[0m: [35mNumber[0m = ((x doMultiply Number.two))[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m                        ^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0mAlphanumeric method doMultiply is not declared [33minfix[0m; it should not be used as infix operator.[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0mInstead, use method syntax .doMultiply(...) or backticked identifier `doMultiply`.[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0mThe latter can be rewritten automatically under -rewrite -source 3.4-migration.[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/cats/CatsKernelSpec.scala:145:8 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m145 |[0m    [33mval[0m [36mf4[0m: [35mField[0m = ComplexCartesian(Number.one, Number.one)[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m        ^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m        unused local definition[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/algebraic/LinearSpec.scala:7:45 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m7 |[0m[33mimport[0m com.phasmidsoftware.number.core.inner.Rational[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m  |[0m                                             ^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m  |[0m                                             unused import[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/algebraic/LinearSpec.scala:8:65 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m8 |[0m[33mimport[0m com.phasmidsoftware.number.core.numerical.{FuzzyEquality, Real}[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m  |[0m                                                                 ^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m  |[0m                                                             unused import[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/mill/MillSpec.scala:7:46 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m7 |[0m[33mimport[0m com.phasmidsoftware.number.core.inner.{NatLog, Rational}[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m  |[0m                                              ^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m  |[0m                                              unused import[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/mill/MillSpec.scala:7:54 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m7 |[0m[33mimport[0m com.phasmidsoftware.number.core.inner.{NatLog, Rational}[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m  |[0m                                                      ^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m  |[0m                                                      unused import[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/mill/MillSpec.scala:8:53 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m8 |[0m[33mimport[0m com.phasmidsoftware.number.core.mill.CoreMill.parseInfix[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m  |[0m                                                     ^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m  |[0m                                                     unused import[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/mill/MillSpec.scala:10:55 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m10 |[0m[33mimport[0m com.phasmidsoftware.number.core.numerical.Field.convertToNumber[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                                                       ^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m                                                       unused import[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/mill/MillSpec.scala:11:50 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m11 |[0m[33mimport[0m com.phasmidsoftware.number.core.numerical.{Field, FuzzyEquality, Number, Real}[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                                                  ^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m                                                  unused import[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/mill/MillSpec.scala:11:80 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m11 |[0m[33mimport[0m com.phasmidsoftware.number.core.numerical.{Field, FuzzyEquality, Number, Real}[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                                                                                ^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m                                                           unused import[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/mill/MillSpec.scala:15:33 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m15 |[0m[33mimport[0m org.scalatest.{Assertion, Succeeded}[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                                 ^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m                                 unused import[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/mill/MillSpec.scala:16:19 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m16 |[0m[33mimport[0m scala.util.{Success, Try}[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                   ^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m                   unused import[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/mill/MillSpec.scala:16:28 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m16 |[0m[33mimport[0m scala.util.{Success, Try}[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                            ^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m                            unused import[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/mill/MillSpec.scala:103:14 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m103 |[0m  [33mprivate[0m [33mval[0m p = MillParser[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m              ^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m              unused private member[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/misc/NewtonSpec.scala:8:39 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m8 |[0m[33mimport[0m com.phasmidsoftware.number.core.numerical[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m  |[0m                                       ^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m  |[0m                                       unused import[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/misc/NewtonSpec.scala:9:49 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m9 |[0m[33mimport[0m com.phasmidsoftware.number.core.numerical.Constants[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m  |[0m                                                 ^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m  |[0m                                                 unused import[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/misc/NewtonSpec.scala:10:56 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m10 |[0m[33mimport[0m com.phasmidsoftware.number.core.numerical.Number.piBy2[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                                                        ^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m                                                        unused import[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/numerical/BaseComplexSpec.scala:62:8 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m62 |[0m    [33mval[0m [36mangle[0m = z.imag.make(Radian)[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m        ^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m        unused local definition[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/numerical/FuzzyNumberSpec.scala:158:8 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m158 |[0m    [33mval[0m [36my[0m = Constants.two[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m        ^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m        unused local definition[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/numerical/NumberSpec.scala:176:8 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m176 |[0m    [33mval[0m [36mexpected[0m = Number(math.E * math.E, SquareRoot)[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m        ^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m        unused local definition[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/parse/NumberParserSpec.scala:39:8 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m39 |[0m    [33mval[0m [36mx[0m: [35mNumber[0m = r.get[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m        ^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m        unused local definition[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/algebraic/SolutionSpec.scala:14:11 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m14 |[0m  [33mval[0m [36mphi[0m: [35mSolution[0m = QuadraticSolution.phi[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m           ^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mtrait[0m [35mSolution[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.algebraic[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.algebra.eager.Solution instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/algebraic/SolutionSpec.scala:15:11 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m15 |[0m  [33mval[0m [36mpsi[0m: [35mSolution[0m = QuadraticSolution.psi[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m           ^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mtrait[0m [35mSolution[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.algebraic[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.algebra.eager.Solution instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/algebraic/SolutionSpec.scala:16:13 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m16 |[0m  [33mval[0m [36mroot2[0m: [35mSolution[0m = QuadraticSolution.root2[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m             ^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mtrait[0m [35mSolution[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.algebraic[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.algebra.eager.Solution instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/algebraic/SolutionSpec.scala:17:16 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m17 |[0m  [33mval[0m [36mnegRoot2[0m: [35mSolution[0m = QuadraticSolution.root2Neg[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                ^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mtrait[0m [35mSolution[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.algebraic[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.algebra.eager.Solution instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/algebraic/SolutionSpec.scala:32:11 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m32 |[0m    twoPhi shouldBe Some(QuadraticSolution(Value.one, Value.fromInt([31m5[0m), SquareRoot, [31m0[0m))[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m           ^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mtrait[0m [35mSolution[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.algebraic[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.algebra.eager.Solution instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/algebraic/SolutionSpec.scala:32:25 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m32 |[0m    twoPhi shouldBe Some(QuadraticSolution(Value.one, Value.fromInt([31m5[0m), SquareRoot, [31m0[0m))[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                         ^^^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mclass[0m [35mQuadraticSolution[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.algebraic[0m is deprecated since 1.6.7: use com.phasmidsoftware.number.algebra.eager.QuadraticSolution instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/algebraic/SolutionSpec.scala:33:44 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m33 |[0m    twoPhi flatMap (_.scale(Rational.half)) shouldBe Some(phi)[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                                            ^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mtrait[0m [35mSolution[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.algebraic[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.algebra.eager.Solution instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/algebraic/SolutionSpec.scala:33:11 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m33 |[0m    twoPhi flatMap (_.scale(Rational.half)) shouldBe Some(phi)[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m    ^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mtrait[0m [35mSolution[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.algebraic[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.algebra.eager.Solution instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/algebraic/SolutionSpec.scala:72:17 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m72 |[0m    phi.add(psi) shouldBe Some(LinearSolution(Value.one))[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                 ^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mtrait[0m [35mSolution[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.algebraic[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.algebra.eager.Solution instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/algebraic/SolutionSpec.scala:72:31 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m72 |[0m    phi.add(psi) shouldBe Some(LinearSolution(Value.one))[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                               ^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mclass[0m [35mLinearSolution[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.algebraic[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.algebra.eager.LinearSolution instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/algebraic/SolutionSpec.scala:73:24 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m73 |[0m    root2.add(negRoot2) shouldBe Some(LinearSolution(Value.zero))[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                        ^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mtrait[0m [35mSolution[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.algebraic[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.algebra.eager.Solution instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/algebraic/SolutionSpec.scala:73:38 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m73 |[0m    root2.add(negRoot2) shouldBe Some(LinearSolution(Value.zero))[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                                      ^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mclass[0m [35mLinearSolution[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.algebraic[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.algebra.eager.LinearSolution instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/algebraic/SolutionSpec.scala:74:19 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m74 |[0m    phi.add(root2) shouldBe None[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                   ^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mtrait[0m [35mSolution[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.algebraic[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.algebra.eager.Solution instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/numerical/FuzzinessSpec.scala:15:18 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m15 |[0m  [33mprivate[0m [33mval[0m p = NumberParser[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                  ^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mobject[0m [35mNumberParser[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.parse[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.expression.parse.NumberParser instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/numerical/FuzzinessSpec.scala:56:12 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m56 |[0m    [33mval[0m [36mx[0m = NumberParser[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m            ^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mobject[0m [35mNumberParser[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.parse[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.expression.parse.NumberParser instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/numerical/FuzzyEquality.scala:31:14 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m31 |[0m      [33mcase[0m s: Solution =>[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m              ^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mtrait[0m [35mSolution[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.algebraic[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.algebra.eager.Solution instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/parse/ComplexParserSpec.scala:19:21 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m19 |[0m    [33mval[0m [36mparser[0m = [33mnew[0m [35mComplexParser[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                     ^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mclass[0m [35mComplexParser[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.parse[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.expression.parse.ComplexParser instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/parse/NumberParserSpec.scala:21:18 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m21 |[0m  [33mprivate[0m [33mval[0m p = NumberParser[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                  ^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mobject[0m [35mNumberParser[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.parse[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.expression.parse.NumberParser instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/parse/RationalParserSpec.scala:20:17 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m20 |[0m    [33mval[0m [36mparser[0m = RationalParser[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                 ^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mobject[0m [35mRationalParser[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.parse[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.expression.parse.RationalParser instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/parse/RationalParserSpec.scala:28:17 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m28 |[0m    [33mval[0m [36mparser[0m = RationalParser[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                 ^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mobject[0m [35mRationalParser[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.parse[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.expression.parse.RationalParser instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/parse/RationalParserSpec.scala:34:17 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m34 |[0m    [33mval[0m [36mparser[0m = RationalParser[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                 ^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mobject[0m [35mRationalParser[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.parse[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.expression.parse.RationalParser instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/parse/RationalParserSpec.scala:44:17 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m44 |[0m    [33mval[0m [36mparser[0m = RationalParser[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                 ^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mobject[0m [35mRationalParser[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.parse[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.expression.parse.RationalParser instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/parse/RationalParserSpec.scala:52:17 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m52 |[0m    [33mval[0m [36mparser[0m = RationalParser[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                 ^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mobject[0m [35mRationalParser[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.parse[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.expression.parse.RationalParser instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/parse/RationalParserSpec.scala:61:17 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m61 |[0m    [33mval[0m [36mparser[0m = RationalParser[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                 ^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mobject[0m [35mRationalParser[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.parse[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.expression.parse.RationalParser instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/parse/RationalParserSpec.scala:70:17 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m70 |[0m    [33mval[0m [36mparser[0m = RationalParser[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                 ^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mobject[0m [35mRationalParser[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.parse[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.expression.parse.RationalParser instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/parse/RationalParserSpec.scala:78:17 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m78 |[0m    [33mval[0m [36mparser[0m = RationalParser[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                 ^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mobject[0m [35mRationalParser[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.parse[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.expression.parse.RationalParser instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/parse/SignificantSpaceParsersSpec.scala:16:19 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m16 |[0m  [33mprivate[0m [33mval[0m ssp: SignificantSpaceParsers = [33mnew[0m SignificantSpaceParsers {}[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                   ^^^^^^^^^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mclass[0m [35mSignificantSpaceParsers[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.parse[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.expression.parse.SignificantSpaceParsers instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/parse/SignificantSpaceParsersSpec.scala:16:49 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m16 |[0m  [33mprivate[0m [33mval[0m ssp: SignificantSpaceParsers = [33mnew[0m SignificantSpaceParsers {}[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                                                 ^^^^^^^^^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mclass[0m [35mSignificantSpaceParsers[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.parse[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.expression.parse.SignificantSpaceParsers instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/parse/SignificantSpaceParsersSpec.scala:19:25 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m19 |[0m    [33mclass[0m [35mTester[0m [33mextends[0m [35mSignificantSpaceParsers[0m {[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                         ^^^^^^^^^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mclass[0m [35mSignificantSpaceParsers[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.parse[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.expression.parse.SignificantSpaceParsers instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/parse/SignificantSpaceParsersSpec.scala:38:25 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m38 |[0m    [33mclass[0m [35mTester[0m [33mextends[0m [35mSignificantSpaceParsers[0m {[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                         ^^^^^^^^^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mclass[0m [35mSignificantSpaceParsers[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.parse[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.expression.parse.SignificantSpaceParsers instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/parse/SignificantSpaceParsersSpec.scala:48:25 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m48 |[0m    [33mclass[0m [35mTester[0m [33mextends[0m [35mSignificantSpaceParsers[0m {[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                         ^^^^^^^^^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mclass[0m [35mSignificantSpaceParsers[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.parse[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.expression.parse.SignificantSpaceParsers instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/parse/SignificantSpaceParsersSpec.scala:61:25 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m61 |[0m    [33mclass[0m [35mTester[0m [33mextends[0m [35mSignificantSpaceParsers[0m {[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                         ^^^^^^^^^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mclass[0m [35mSignificantSpaceParsers[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.parse[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.expression.parse.SignificantSpaceParsers instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/parse/SignificantSpaceParsersSpec.scala:74:25 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m74 |[0m    [33mclass[0m [35mTester[0m [33mextends[0m [35mSignificantSpaceParsers[0m {[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                         ^^^^^^^^^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mclass[0m [35mSignificantSpaceParsers[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.parse[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.expression.parse.SignificantSpaceParsers instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/parse/SignificantSpaceParsersSpec.scala:89:25 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m89 |[0m    [33mclass[0m [35mTester[0m [33mextends[0m [35mSignificantSpaceParsers[0m {[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                         ^^^^^^^^^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mclass[0m [35mSignificantSpaceParsers[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.core.parse[0m is deprecated since 1.6.5: use com.phasmidsoftware.number.expression.parse.SignificantSpaceParsers instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E029] Pattern Match Exhaustivity Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/numerical/FuzzyNumberSpec.scala:212:11 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m212 |[0m    z.fuzz.get [33mmatch[0m {[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m    ^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m[33mmatch[0m may not be exhaustive.[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0mIt would fail on pattern case: com.phasmidsoftware.number.core.numerical.RelativeFuzz(_, _), com.phasmidsoftware.number.core.numerical.AbsoluteFuzz(_, _)[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |---------------------------------------------------------------------------[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m Explanation (enabled by `-explain`)[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m There are several ways to make the match exhaustive:[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m  - Add missing cases as shown in the warning[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m  - If an extractor always return Some(...), write Some[[35mX[0m] for its return type[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m  - Add a [33mcase[0m _ => ... at the end to match all remaining cases[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m     ---------------------------------------------------------------------------[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E029] Pattern Match Exhaustivity Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/test/scala/com/phasmidsoftware/number/core/numerical/FuzzyNumberSpec.scala:283:16 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m283 |[0m    zy.get.fuzz.get [33mmatch[0m {[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m    ^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m[33mmatch[0m may not be exhaustive.[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0mIt would fail on pattern case: com.phasmidsoftware.number.core.numerical.RelativeFuzz(_, _), com.phasmidsoftware.number.core.numerical.AbsoluteFuzz(_, _)[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |---------------------------------------------------------------------------[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m Explanation (enabled by `-explain`)[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m There are several ways to make the match exhaustive:[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m  - Add missing cases as shown in the warning[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m  - If an extractor always return Some(...), write Some[[35mX[0m] for its return type[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m  - Add a [33mcase[0m _ => ... at the end to match all remaining cases[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m     ---------------------------------------------------------------------------[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m58 warnings found[0m

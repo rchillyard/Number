@@ -1,0 +1,106 @@
+[0m[[0m[0mdebug[0m] [0m[0m[zinc] IncrementalCompile -----------[0m
+[0m[[0m[0mdebug[0m] [0m[0mIncrementalCompile.incrementalCompile[0m
+[0m[[0m[0mdebug[0m] [0m[0mprevious = Stamps for: 21 products, 4 sources, 4 libraries[0m
+[0m[[0m[0mdebug[0m] [0m[0mcurrent source = Set(${BASE}/parse/src/main/scala/com/phasmidsoftware/number/parse/LaTeXParser.scala, ${BASE}/parse/src/main/scala/com/phasmidsoftware/number/parse/ParseError.scala, ${BASE}/parse/src/main/scala/com/phasmidsoftware/number/parse/UnitsParser.scala, ${BASE}/parse/src/main/scala/com/phasmidsoftware/number/parse/ExpressionParser.scala)[0m
+[0m[[0m[0mdebug[0m] [0m[0mInvalidating '${CSR_CACHE}/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_3/3.1.1/fastparse_3-3.1.1.jar' because could not find class fastparse.Implicits$Repeater$ on the classpath.[0m
+[0m[[0m[0mdebug[0m] [0m[0mInvalidating '${CSR_CACHE}/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.0/sourcecode_3-0.4.0.jar' because could not find class sourcecode.NameMacros on the classpath.[0m
+[0m[[0m[0mdebug[0m] [0m[0m> initialChanges = InitialChanges(Changes(added = Set(), removed = Set(), changed = Set(${BASE}/parse/src/main/scala/com/phasmidsoftware/number/parse/UnitsParser.scala, ${BASE}/parse/src/main/scala/com/phasmidsoftware/number/parse/ExpressionParser.scala, ${BASE}/parse/src/main/scala/com/phasmidsoftware/number/parse/LaTeXParser.scala), unmodified = ...),Set(${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/ParseError.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/ParseException.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/UnitsParser$.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/LaTeXParserException$.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/SyntaxError.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/LaTeXParser.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/UnitsParserException$.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/UnitsParserException.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/ExpressionParser.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/LaTeXParser$.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/DimensionError.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/UnitsParser.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/UnitError.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/ExpressionParser$.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/LaTeXParserException.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/ParseError$package.class),Set(${CSR_CACHE}/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_3/3.1.1/fastparse_3-3.1.1.jar, ${CSR_CACHE}/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.0/sourcecode_3-0.4.0.jar),API Changes: Set(TraitPrivateMembersModified(com.phasmidsoftware.number.algebra.eager.Number), NamesChange(com.phasmidsoftware.number.dimensions.core.Units$package$,ModifiedNames(changes = UsedName(*,[Default]), UsedName(/,[Default]))), TraitPrivateMembersModified(com.phasmidsoftware.number.expression.expr.Expression$), TraitPrivateMembersModified(com.phasmidsoftware.number.expression.expr.AtomicExpression), TraitPrivateMembersModified(com.phasmidsoftware.number.core.numerical.Field), TraitPrivateMembersModified(com.phasmidsoftware.number.algebra.eager.Eager), TraitPrivateMembersModified(com.phasmidsoftware.number.algebra.eager.Eager$), TraitPrivateMembersModified(com.phasmidsoftware.number.expression.expr.Expression), TraitPrivateMembersModified(com.phasmidsoftware.number.algebra.eager.Number$), TraitPrivateMembersModified(com.phasmidsoftware.number.expression.expr.Root$)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mThe private signature of trait com.phasmidsoftware.number.algebra.eager.Number changed.[0m
+[0m[[0m[0mdebug[0m] [0m[0mAll member reference dependencies will be considered within this context.[0m
+[0m[[0m[0mdebug[0m] [0m[0mFiles invalidated by inheriting from (external) com.phasmidsoftware.number.algebra.eager.Number: Set()[0m
+[0m[[0m[0mdebug[0m] [0m[0mNow invalidating by inheritance (internally).[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting direct dependencies of all classes transitively invalidated by inheritance.[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting classes that directly depend on (external) com.phasmidsoftware.number.algebra.eager.Number.[0m
+[0m[[0m[0mdebug[0m] [0m[0mThe com.phasmidsoftware.number.dimensions.core.Units$package$ has the following regular definitions changed:[0m
+[0m[[0m[0mdebug[0m] [0m[0m	UsedName(*,[Default]), UsedName(/,[Default]).[0m
+[0m[[0m[0mdebug[0m] [0m[0mAll member reference dependencies will be considered within this context.[0m
+[0m[[0m[0mdebug[0m] [0m[0mFiles invalidated by inheriting from (external) com.phasmidsoftware.number.dimensions.core.Units$package$: Set()[0m
+[0m[[0m[0mdebug[0m] [0m[0mNow invalidating by inheritance (internally).[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting direct dependencies of all classes transitively invalidated by inheritance.[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting classes that directly depend on (external) com.phasmidsoftware.number.dimensions.core.Units$package$.[0m
+[0m[[0m[0mdebug[0m] [0m[0mThe following modified names cause invalidation of com.phasmidsoftware.number.parse.UnitsParser: [/, *][0m
+[0m[[0m[0mdebug[0m] [0m[0mThe private signature of trait com.phasmidsoftware.number.expression.expr.Expression$ changed.[0m
+[0m[[0m[0mdebug[0m] [0m[0mAll member reference dependencies will be considered within this context.[0m
+[0m[[0m[0mdebug[0m] [0m[0mFiles invalidated by inheriting from (external) com.phasmidsoftware.number.expression.expr.Expression$: Set()[0m
+[0m[[0m[0mdebug[0m] [0m[0mNow invalidating by inheritance (internally).[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting direct dependencies of all classes transitively invalidated by inheritance.[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting classes that directly depend on (external) com.phasmidsoftware.number.expression.expr.Expression$.[0m
+[0m[[0m[0mdebug[0m] [0m[0mThe private signature of trait com.phasmidsoftware.number.expression.expr.AtomicExpression changed.[0m
+[0m[[0m[0mdebug[0m] [0m[0mAll member reference dependencies will be considered within this context.[0m
+[0m[[0m[0mdebug[0m] [0m[0mFiles invalidated by inheriting from (external) com.phasmidsoftware.number.expression.expr.AtomicExpression: Set()[0m
+[0m[[0m[0mdebug[0m] [0m[0mNow invalidating by inheritance (internally).[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting direct dependencies of all classes transitively invalidated by inheritance.[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting classes that directly depend on (external) com.phasmidsoftware.number.expression.expr.AtomicExpression.[0m
+[0m[[0m[0mdebug[0m] [0m[0mThe private signature of trait com.phasmidsoftware.number.core.numerical.Field changed.[0m
+[0m[[0m[0mdebug[0m] [0m[0mAll member reference dependencies will be considered within this context.[0m
+[0m[[0m[0mdebug[0m] [0m[0mFiles invalidated by inheriting from (external) com.phasmidsoftware.number.core.numerical.Field: Set()[0m
+[0m[[0m[0mdebug[0m] [0m[0mNow invalidating by inheritance (internally).[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting direct dependencies of all classes transitively invalidated by inheritance.[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting classes that directly depend on (external) com.phasmidsoftware.number.core.numerical.Field.[0m
+[0m[[0m[0mdebug[0m] [0m[0mThe private signature of trait com.phasmidsoftware.number.algebra.eager.Eager changed.[0m
+[0m[[0m[0mdebug[0m] [0m[0mAll member reference dependencies will be considered within this context.[0m
+[0m[[0m[0mdebug[0m] [0m[0mFiles invalidated by inheriting from (external) com.phasmidsoftware.number.algebra.eager.Eager: Set()[0m
+[0m[[0m[0mdebug[0m] [0m[0mNow invalidating by inheritance (internally).[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting direct dependencies of all classes transitively invalidated by inheritance.[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting classes that directly depend on (external) com.phasmidsoftware.number.algebra.eager.Eager.[0m
+[0m[[0m[0mdebug[0m] [0m[0mThe private signature of trait com.phasmidsoftware.number.algebra.eager.Eager$ changed.[0m
+[0m[[0m[0mdebug[0m] [0m[0mAll member reference dependencies will be considered within this context.[0m
+[0m[[0m[0mdebug[0m] [0m[0mFiles invalidated by inheriting from (external) com.phasmidsoftware.number.algebra.eager.Eager$: Set()[0m
+[0m[[0m[0mdebug[0m] [0m[0mNow invalidating by inheritance (internally).[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting direct dependencies of all classes transitively invalidated by inheritance.[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting classes that directly depend on (external) com.phasmidsoftware.number.algebra.eager.Eager$.[0m
+[0m[[0m[0mdebug[0m] [0m[0mThe private signature of trait com.phasmidsoftware.number.expression.expr.Expression changed.[0m
+[0m[[0m[0mdebug[0m] [0m[0mAll member reference dependencies will be considered within this context.[0m
+[0m[[0m[0mdebug[0m] [0m[0mFiles invalidated by inheriting from (external) com.phasmidsoftware.number.expression.expr.Expression: Set()[0m
+[0m[[0m[0mdebug[0m] [0m[0mNow invalidating by inheritance (internally).[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting direct dependencies of all classes transitively invalidated by inheritance.[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting classes that directly depend on (external) com.phasmidsoftware.number.expression.expr.Expression.[0m
+[0m[[0m[0mdebug[0m] [0m[0mThe private signature of trait com.phasmidsoftware.number.algebra.eager.Number$ changed.[0m
+[0m[[0m[0mdebug[0m] [0m[0mAll member reference dependencies will be considered within this context.[0m
+[0m[[0m[0mdebug[0m] [0m[0mFiles invalidated by inheriting from (external) com.phasmidsoftware.number.algebra.eager.Number$: Set()[0m
+[0m[[0m[0mdebug[0m] [0m[0mNow invalidating by inheritance (internally).[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting direct dependencies of all classes transitively invalidated by inheritance.[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting classes that directly depend on (external) com.phasmidsoftware.number.algebra.eager.Number$.[0m
+[0m[[0m[0mdebug[0m] [0m[0mThe private signature of trait com.phasmidsoftware.number.expression.expr.Root$ changed.[0m
+[0m[[0m[0mdebug[0m] [0m[0mAll member reference dependencies will be considered within this context.[0m
+[0m[[0m[0mdebug[0m] [0m[0mFiles invalidated by inheriting from (external) com.phasmidsoftware.number.expression.expr.Root$: Set()[0m
+[0m[[0m[0mdebug[0m] [0m[0mNow invalidating by inheritance (internally).[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting direct dependencies of all classes transitively invalidated by inheritance.[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting classes that directly depend on (external) com.phasmidsoftware.number.expression.expr.Root$.[0m
+[0m[[0m[0mdebug[0m] [0m[0m[0m
+[0m[[0m[0mdebug[0m] [0m[0mInitial source changes:[0m
+[0m[[0m[0mdebug[0m] [0m[0m	removed: Set()[0m
+[0m[[0m[0mdebug[0m] [0m[0m	added: Set()[0m
+[0m[[0m[0mdebug[0m] [0m[0m	modified: Set(${BASE}/parse/src/main/scala/com/phasmidsoftware/number/parse/UnitsParser.scala, ${BASE}/parse/src/main/scala/com/phasmidsoftware/number/parse/ExpressionParser.scala, ${BASE}/parse/src/main/scala/com/phasmidsoftware/number/parse/LaTeXParser.scala)[0m
+[0m[[0m[0mdebug[0m] [0m[0mInvalidated products: Set(${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/ParseError.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/ParseException.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/UnitsParser$.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/LaTeXParserException$.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/SyntaxError.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/LaTeXParser.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/UnitsParserException$.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/UnitsParserException.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/ExpressionParser.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/LaTeXParser$.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/DimensionError.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/UnitsParser.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/UnitError.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/ExpressionParser$.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/LaTeXParserException.class, ${BASE}/parse/target/scala-3.7.3/classes/com/phasmidsoftware/number/parse/ParseError$package.class)[0m
+[0m[[0m[0mdebug[0m] [0m[0mExternal API changes: API Changes: Set(TraitPrivateMembersModified(com.phasmidsoftware.number.algebra.eager.Number), NamesChange(com.phasmidsoftware.number.dimensions.core.Units$package$,ModifiedNames(changes = UsedName(*,[Default]), UsedName(/,[Default]))), TraitPrivateMembersModified(com.phasmidsoftware.number.expression.expr.Expression$), TraitPrivateMembersModified(com.phasmidsoftware.number.expression.expr.AtomicExpression), TraitPrivateMembersModified(com.phasmidsoftware.number.core.numerical.Field), TraitPrivateMembersModified(com.phasmidsoftware.number.algebra.eager.Eager), TraitPrivateMembersModified(com.phasmidsoftware.number.algebra.eager.Eager$), TraitPrivateMembersModified(com.phasmidsoftware.number.expression.expr.Expression), TraitPrivateMembersModified(com.phasmidsoftware.number.algebra.eager.Number$), TraitPrivateMembersModified(com.phasmidsoftware.number.expression.expr.Root$))[0m
+[0m[[0m[0mdebug[0m] [0m[0mModified binary dependencies: Set(${CSR_CACHE}/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_3/3.1.1/fastparse_3-3.1.1.jar, ${CSR_CACHE}/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.0/sourcecode_3-0.4.0.jar)[0m
+[0m[[0m[0mdebug[0m] [0m[0mInitial directly invalidated classes: Set(com.phasmidsoftware.number.parse.LaTeXParser, com.phasmidsoftware.number.parse.UnitsParserException, com.phasmidsoftware.number.parse.ExpressionParser, com.phasmidsoftware.number.parse.LaTeXParserException, com.phasmidsoftware.number.parse.UnitsParser)[0m
+[0m[[0m[0mdebug[0m] [0m[0mSources indirectly invalidated by:[0m
+[0m[[0m[0mdebug[0m] [0m[0m	product: Set(${BASE}/parse/src/main/scala/com/phasmidsoftware/number/parse/UnitsParser.scala, ${BASE}/parse/src/main/scala/com/phasmidsoftware/number/parse/ParseError.scala, ${BASE}/parse/src/main/scala/com/phasmidsoftware/number/parse/LaTeXParser.scala, ${BASE}/parse/src/main/scala/com/phasmidsoftware/number/parse/ExpressionParser.scala)[0m
+[0m[[0m[0mdebug[0m] [0m[0m	binary dep: Set(${BASE}/parse/src/main/scala/com/phasmidsoftware/number/parse/UnitsParser.scala, ${BASE}/parse/src/main/scala/com/phasmidsoftware/number/parse/LaTeXParser.scala, ${BASE}/parse/src/main/scala/com/phasmidsoftware/number/parse/ExpressionParser.scala)[0m
+[0m[[0m[0mdebug[0m] [0m[0m	external source: Set(com.phasmidsoftware.number.parse.UnitsParser)[0m
+[0m[[0m[0mdebug[0m] [0m[0mall 4 sources are invalidated[0m
+[0m[[0m[0mdebug[0m] [0m[0mInitial set of included nodes: com.phasmidsoftware.number.parse.LaTeXParser, com.phasmidsoftware.number.parse.UnitsParserException, com.phasmidsoftware.number.parse.ExpressionParser, com.phasmidsoftware.number.parse.LaTeXParserException, com.phasmidsoftware.number.parse.UnitsParser[0m
+[0m[[0m[0mdebug[0m] [0m[0mRecompiling all sources: number of invalidated sources > 50.0 percent of all sources[0m
+[0m[[0m[0mdebug[0m] [0m[0mcompilation cycle 1[0m
+[0m[[0m[0minfo[0m] [0m[0mcompiling 4 Scala sources to /Users/rhillyard/IdeaProjects/Number2026/parse/target/scala-3.7.3/classes ...[0m
+[0m[[0m[0mdebug[0m] [0m[0mReturning already retrieved and compiled bridge: /Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-sbt-bridge/3.7.3/scala3-sbt-bridge-3.7.3.jar.[0m
+[0m[[0m[0mdebug[0m] [0m[0m[zinc] Running cached compiler 923fa4e for Scala Compiler version 3.7.3[0m
+[0m[[0m[0mdebug[0m] [0m[0m[zinc] The Scala compiler is invoked with:[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-encoding[0m
+[0m[[0m[0mdebug[0m] [0m[0m	UTF-8[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-unchecked[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-deprecation[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-feature[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-Wvalue-discard[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-Wnonunit-statement[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-explain[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-Wunused:imports[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-Wunused:privates[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-Wunused:locals[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-Wconf:msg=Couldn't resolve a member:s[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-classpath[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/parse/target/scala-3.7.3/classes:/Users/rhillyard/IdeaProjects/Number2026/core/target/scala-3.7.3/classes:/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes:/Users/rhillyard/IdeaProjects/Number2026/expression/target/scala-3.7.3/classes:/Users/rhillyard/IdeaProjects/Number2026/dimensions/target/scala-3.7.3/classes:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/typesafe/config/1.4.5/config-1.4.5.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.7.3/scala3-library_3-3.7.3.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.5.32/logback-classic-1.5.32.jar:/Users/rhillyard/.ivy2/local/com.phasmidsoftware/flog_3/1.0.12/jars/flog_3.jar:/Users/rhillyard/.ivy2/local/com.phasmidsoftware/matchers_3/1.0.13/jars/matchers_3.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_3/2.4.0/scala-parser-combinators_3-2.4.0.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/spire_3/0.18.0/spire_3-0.18.0.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.13.0/cats-kernel_3-2.13.0.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.13.0/cats-core_3-2.13.0.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.32/logback-core-1.5.32.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/spire-macros_3/0.18.0/spire-macros_3-0.18.0.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/spire-platform_3/0.18.0/spire-platform_3-0.18.0.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/spire-util_3/0.18.0/spire-util_3-0.18.0.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/algebra_3/2.8.0/algebra_3-2.8.0.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0mScala compilation took 0.694963375 s[0m
+[0m[[0m[0minfo[0m] [0m[0mdone compiling[0m

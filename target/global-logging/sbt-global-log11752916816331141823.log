@@ -1,0 +1,9 @@
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(sonaUpload, None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0mRunning task... Cancel: Signal, check cycles: false, forcegc: true[0m
+[0m[[0m[0mdebug[0m] [0m[0mRunning task... Cancel: Signal, check cycles: false, forcegc: true[0m
+[0m[[0m[0minfo[0m] [0m[0muploading bundle to the Central Portal (attempt: 1)[0m
+[0m[[0m[0minfo[0m] [0m[0muploading...[0m
+[0m[[0m[0minfo[0m] [0m[0mdeployment com.phasmidsoftware:number:1.5.6:4a3643d7 VALIDATING 1/n[0m
+[0m[[0m[0minfo[0m] [0m[0mdeployment com.phasmidsoftware:number:1.5.6:4a3643d7 VALIDATING 2/n[0m
+[0m[[0m[0minfo[0m] [0m[0mdeployment com.phasmidsoftware:number:1.5.6:4a3643d7 VALIDATED 3/n[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(idea-shell, None, None)[0m

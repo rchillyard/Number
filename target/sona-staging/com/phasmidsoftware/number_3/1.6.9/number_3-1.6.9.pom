@@ -1,0 +1,66 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.phasmidsoftware</groupId>
+    <artifactId>number_3</artifactId>
+    <packaging>jar</packaging>
+    <description>Fuzzy, Lazy Scala library for numerical computation</description>
+    <url>https://github.com/rchillyard/Number</url>
+    <version>1.6.9</version>
+    <licenses>
+        <license>
+            <name>MIT</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <name>number</name>
+    <organization>
+        <name>Phasmid Software</name>
+        <url>https://phasmidsoftware.com/</url>
+    </organization>
+    <scm>
+        <url>https://github.com/rchillyard/Number</url>
+        <connection>scm:git@github.com:rchillyard/Number.git</connection>
+    </scm>
+    <developers>
+        <developer>
+            <id>rchillyard</id>
+            <name>Robin Hillyard</name>
+            <url>https://phasmidsoftware.com</url>
+            <email>rchillyard@phasmidsoftware.com</email>
+        </developer>
+    </developers>
+    <properties>
+        <info.versionScheme>early-semver</info.versionScheme>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>com.phasmidsoftware</groupId>
+            <artifactId>number-top_3</artifactId>
+            <version>1.6.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest_3</artifactId>
+            <version>3.2.19</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe</groupId>
+            <artifactId>config</artifactId>
+            <version>1.4.5</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.5.29</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala3-library_3</artifactId>
+            <version>3.7.3</version>
+        </dependency>
+    </dependencies>
+</project>

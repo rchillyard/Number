@@ -1,0 +1,182 @@
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(compile, None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0mEvaluating tasks: expression / Compile / compile, parse / Compile / compile, top / Compile / compile, algebra / Compile / compile, core / Compile / compile, Compile / compile[0m
+[0m[[0m[0mdebug[0m] [0m[0mRunning task... Cancel: Signal, check cycles: false, forcegc: true[0m
+[0m[[0m[0minfo[0m] [0m[0mcompiling 86 Scala sources and 1 Java source to /Users/rhillyard/IdeaProjects/Number2026/core/target/scala-3.7.3/classes ...[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/main/scala/com/phasmidsoftware/number/core/numerical/Complex.scala:137:45 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m137 |[0m      [33mval[0m [36mmagnitude[0m = (c.x.power(Number.two) doAdd c.y.power(Number.two)).sqrt[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m                                             ^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0mAlphanumeric method doAdd is not declared [33minfix[0m; it should not be used as infix operator.[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0mInstead, use method syntax .doAdd(...) or backticked identifier `doAdd`.[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0mThe latter can be rewritten automatically under -rewrite -source 3.4-migration.[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/main/scala/com/phasmidsoftware/number/cats/CatsKernel.scala:13:24 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m13 |[0m[33mimport[0m scala.annotation.tailrec[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                        ^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m                        unused import[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E121] Pattern Match Warning: /Users/rhillyard/IdeaProjects/Number2026/core/src/main/scala/com/phasmidsoftware/number/cats/CatsKernel.scala:76:17 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m76 |[0m            [33mcase[0m _ => None[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                 ^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0mUnreachable case except for [31mnull[0m (if this is intentional, consider writing [33mcase[0m [31mnull[0m => instead).[0m
+[0m[[0m[33mwarn[0m] [0m[0mthree warnings found[0m
+[0m[[0m[0minfo[0m] [0m[0mdone compiling[0m
+[0m[[0m[0minfo[0m] [0m[0mcompiling 37 Scala sources to /Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes ...[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/Eager.scala:14:46 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m14 |[0m[33mimport[0m com.phasmidsoftware.number.core.inner.{PureNumber, Rational}[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                                              ^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m                                              unused import[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/Eager.scala:17:40 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m17 |[0m[33mimport[0m com.phasmidsoftware.number.core.{algebraic, inner, numerical}[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                                        ^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m                                        unused import[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number2026/algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/Eager.scala:608:14 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m608 |[0m  [33mprivate[0m [33mdef[0m convertToMonotone(value: inner.Value, factor: inner.Factor): Monotone =[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m              ^^^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m              unused private member[0m
+[0m[[0m[33mwarn[0m] [0m[0mthree warnings found[0m
+[0m[[0m[0minfo[0m] [0m[0mdone compiling[0m
+[0m[[0m[0minfo[0m] [0m[0mcompiling 4 Scala sources to /Users/rhillyard/IdeaProjects/Number2026/dimensions/target/scala-3.7.3/classes ...[0m
+[0m[[0m[0minfo[0m] [0m[0mcompiling 30 Scala sources to /Users/rhillyard/IdeaProjects/Number2026/expression/target/scala-3.7.3/classes ...[0m
+[0m[[0m[0minfo[0m] [0m[0mdone compiling[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m-- [E007] Type Mismatch Error: /Users/rhillyard/IdeaProjects/Number2026/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/CompositeExpression.scala:798:64 [0m[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m798 |[0m        em.matchIfDefined(simplifyInversePowerTimesNumber(n, a, b))([33mthis[0m)[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m    |[0m                                                                ^[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0mFound:    [1m[31m([0m[1m[31mb[0m[1m[31m [0m[1m[31m:[0m[1m[31m [0mcom.phasmidsoftware.number.algebra.[1m[31meager[0m[1m[31m.[0m[1m[31mEager[0m[1m[31m [0m[1m[31m&[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[1m[31m [0m[1m[31m [0m[1m[31mcom[0m[1m[31m.[0m[1m[31mphasmidsoftware[0m[1m[31m.[0m[1m[31mnumber[0m[1m[31m.[0m[1m[31malgebra[0m[1m[31m.[0mcore.CanPower[[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m  [1m[31m [0m[1m[31m [0mcom.phasmidsoftware.number.[1m[31malgebra[0m[1m[31m.[0m[1m[31meager[0m.[1m[31mEager[0m][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[1m[31m)[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0mRequired: com.phasmidsoftware.number.algebra.core.CanPower[[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m  com.phasmidsoftware.number.[1m[32mcore[0m[1m[32m².[0m[1m[32mnumerical[0m.[1m[32mNumber[0m][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0mwhere:    core  is a package in [33mpackage[0m [35mcom.phasmidsoftware.number.algebra[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m          core² is a package in [33mpackage[0m [35mcom.phasmidsoftware.number[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |---------------------------------------------------------------------------[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m Explanation (enabled by `-explain`)[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m Tree:[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m b[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m I tried to show that[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m   (b : com.phasmidsoftware.number.algebra.eager.Eager &[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m   com.phasmidsoftware.number.algebra.core.CanPower[[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m     com.phasmidsoftware.number.algebra.eager.Eager][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m )[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m conforms to[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m   com.phasmidsoftware.number.algebra.core.CanPower[[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m   com.phasmidsoftware.number.core.numerical.Number][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m but none of the attempts shown below succeeded:[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m   ==> (b : com.phasmidsoftware.number.algebra.eager.Eager &   com.phasmidsoftware.number.algebra.core.CanPower[     com.phasmidsoftware.number.algebra.eager.Eager] )  <:  com.phasmidsoftware.number.algebra.core.CanPower[   com.phasmidsoftware.number.core.numerical.Number][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m     ==> com.phasmidsoftware.number.algebra.core.CanPower[   com.phasmidsoftware.number.algebra.eager.Eager]  <:  com.phasmidsoftware.number.algebra.core.CanPower[   com.phasmidsoftware.number.core.numerical.Number][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m       ==> com.phasmidsoftware.number.core.numerical.Number  <:  com.phasmidsoftware.number.algebra.eager.Eager  = false[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m     ==> com.phasmidsoftware.number.algebra.eager.Eager &   com.phasmidsoftware.number.algebra.core.CanPower[     com.phasmidsoftware.number.algebra.eager.Eager]  <:  com.phasmidsoftware.number.algebra.core.CanPower[   com.phasmidsoftware.number.core.numerical.Number][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m       ==> com.phasmidsoftware.number.algebra.core.CanPower[   com.phasmidsoftware.number.algebra.eager.Eager]  <:  com.phasmidsoftware.number.algebra.core.CanPower[   com.phasmidsoftware.number.core.numerical.Number][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m         ==> com.phasmidsoftware.number.core.numerical.Number  <:  com.phasmidsoftware.number.algebra.eager.Eager  = false[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m       ==> com.phasmidsoftware.number.algebra.eager.Eager  <:  com.phasmidsoftware.number.algebra.core.CanPower[   com.phasmidsoftware.number.core.numerical.Number]  = false[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m       ==> com.phasmidsoftware.number.algebra.core.CanPower[   com.phasmidsoftware.number.algebra.eager.Eager]  <:  com.phasmidsoftware.number.algebra.core.CanPower[   com.phasmidsoftware.number.core.numerical.Number][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m         ==> com.phasmidsoftware.number.core.numerical.Number  <:  com.phasmidsoftware.number.algebra.eager.Eager  = false[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m The tests were made under a constraint with:[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m  uninstantiated variables: T, R, T, R[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m  constrained types:[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m   [T, R][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m     (ry: Option[R])[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m       (t: T):[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m         com.phasmidsoftware.number.expression.expr.Expression.em.MatchResult[R][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m     ,[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m   [T, R][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m     (ry: Option[R])[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m       (t: T):[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m         com.phasmidsoftware.number.expression.expr.Expression.em.MatchResult[R][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m  bounds:[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m      T[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m      R[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m      T[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m      R >: com.phasmidsoftware.number.algebra.eager.Eager[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m  ordering:[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m  co-deps:[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m  contra-deps:[0m
+[0m[[0m[31merror[0m] [0m[0m[31m     ---------------------------------------------------------------------------[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m-- [E007] Type Mismatch Error: /Users/rhillyard/IdeaProjects/Number2026/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/CompositeExpression.scala:800:46 [0m[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m800 |[0m        simplifyInversePowerTimesNumber(n, a, b)[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m    |[0m                                              ^[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0mFound:    [1m[31m([0m[1m[31mb[0m[1m[31m [0m[1m[31m:[0m[1m[31m [0mcom.phasmidsoftware.number.algebra.[1m[31meager[0m[1m[31m.[0m[1m[31mEager[0m[1m[31m [0m[1m[31m&[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[1m[31m [0m[1m[31m [0m[1m[31mcom[0m[1m[31m.[0m[1m[31mphasmidsoftware[0m[1m[31m.[0m[1m[31mnumber[0m[1m[31m.[0m[1m[31malgebra[0m[1m[31m.[0mcore.CanPower[[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m  [1m[31m [0m[1m[31m [0mcom.phasmidsoftware.number.[1m[31malgebra[0m[1m[31m.[0m[1m[31meager[0m.[1m[31mEager[0m][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[1m[31m)[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0mRequired: com.phasmidsoftware.number.algebra.core.CanPower[[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m  com.phasmidsoftware.number.[1m[32mcore[0m[1m[32m².[0m[1m[32mnumerical[0m.[1m[32mNumber[0m][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0mwhere:    core  is a package in [33mpackage[0m [35mcom.phasmidsoftware.number.algebra[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m          core² is a package in [33mpackage[0m [35mcom.phasmidsoftware.number[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |---------------------------------------------------------------------------[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m Explanation (enabled by `-explain`)[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m Tree:[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m b[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m I tried to show that[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m   (b : com.phasmidsoftware.number.algebra.eager.Eager &[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m   com.phasmidsoftware.number.algebra.core.CanPower[[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m     com.phasmidsoftware.number.algebra.eager.Eager][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m )[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m conforms to[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m   com.phasmidsoftware.number.algebra.core.CanPower[[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m   com.phasmidsoftware.number.core.numerical.Number][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m but none of the attempts shown below succeeded:[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m   ==> (b : com.phasmidsoftware.number.algebra.eager.Eager &   com.phasmidsoftware.number.algebra.core.CanPower[     com.phasmidsoftware.number.algebra.eager.Eager] )  <:  com.phasmidsoftware.number.algebra.core.CanPower[   com.phasmidsoftware.number.core.numerical.Number][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m     ==> com.phasmidsoftware.number.algebra.core.CanPower[   com.phasmidsoftware.number.algebra.eager.Eager]  <:  com.phasmidsoftware.number.algebra.core.CanPower[   com.phasmidsoftware.number.core.numerical.Number][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m       ==> com.phasmidsoftware.number.core.numerical.Number  <:  com.phasmidsoftware.number.algebra.eager.Eager  = false[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m     ==> com.phasmidsoftware.number.algebra.eager.Eager &   com.phasmidsoftware.number.algebra.core.CanPower[     com.phasmidsoftware.number.algebra.eager.Eager]  <:  com.phasmidsoftware.number.algebra.core.CanPower[   com.phasmidsoftware.number.core.numerical.Number][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m       ==> com.phasmidsoftware.number.algebra.core.CanPower[   com.phasmidsoftware.number.algebra.eager.Eager]  <:  com.phasmidsoftware.number.algebra.core.CanPower[   com.phasmidsoftware.number.core.numerical.Number][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m         ==> com.phasmidsoftware.number.core.numerical.Number  <:  com.phasmidsoftware.number.algebra.eager.Eager  = false[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m       ==> com.phasmidsoftware.number.algebra.eager.Eager  <:  com.phasmidsoftware.number.algebra.core.CanPower[   com.phasmidsoftware.number.core.numerical.Number]  = false[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m       ==> com.phasmidsoftware.number.algebra.core.CanPower[   com.phasmidsoftware.number.algebra.eager.Eager]  <:  com.phasmidsoftware.number.algebra.core.CanPower[   com.phasmidsoftware.number.core.numerical.Number][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m         ==> com.phasmidsoftware.number.core.numerical.Number  <:  com.phasmidsoftware.number.algebra.eager.Eager  = false[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m The tests were made under the empty constraint[0m
+[0m[[0m[31merror[0m] [0m[0m[31m     ---------------------------------------------------------------------------[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m-- [E007] Type Mismatch Error: /Users/rhillyard/IdeaProjects/Number2026/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/CompositeExpression.scala:814:37 [0m[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m814 |[0m    eo map ([36me[0m => InversePower(n, a * e))[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m    |[0m                                     ^[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0mFound:    [1m[31m([0m[1m[31me[0m[1m[31m [0m[1m[31m:[0m[1m[31m [0mcom.phasmidsoftware.number.[1m[31mcore[0m.[1m[31mnumerical[0m.Number[1m[31m)[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0mRequired: com.phasmidsoftware.number.[1m[32malgebra[0m.[1m[32meager[0m.Number[1m[32m²[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0mwhere:    Number  is a trait in [33mpackage[0m [35mcom.phasmidsoftware.number.core.numerical[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m          Number² is a trait in [33mpackage[0m [35mcom.phasmidsoftware.number.algebra.eager[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |---------------------------------------------------------------------------[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m Explanation (enabled by `-explain`)[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m Tree:[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m e[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m I tried to show that[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m   (e : com.phasmidsoftware.number.core.numerical.Number)[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m conforms to[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m   com.phasmidsoftware.number.algebra.eager.Number[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m but none of the attempts shown below succeeded:[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m   ==> (e : com.phasmidsoftware.number.core.numerical.Number)  <:  com.phasmidsoftware.number.algebra.eager.Number[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m     ==> com.phasmidsoftware.number.core.numerical.Number  <:  com.phasmidsoftware.number.algebra.eager.Number  = false[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m The tests were made under a constraint with:[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m  uninstantiated variables: B, B[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m  constrained types:[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m   [B](f: com.phasmidsoftware.number.core.numerical.Number => B): Option[B],[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m   [B](f: com.phasmidsoftware.number.core.numerical.Number => B): Option[B][0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m  bounds:[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m      B[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m      B <: com.phasmidsoftware.number.algebra.eager.Eager[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m  ordering:[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m  co-deps:[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m  contra-deps:[0m
+[0m[[0m[31merror[0m] [0m[0m[31m     ---------------------------------------------------------------------------[0m[0m
+[0m[[0m[31merror[0m] [0m[0mthree errors found[0m
+[0m[[0m[31merror[0m] [0m[0m(expression / Compile / [31mcompileIncremental[0m) Compilation failed[0m
+[0m[[0m[31merror[0m] [0m[0mTotal time: 27 s, completed Feb 8, 2026, 3:31:27 PM[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(idea-shell, None, None)[0m

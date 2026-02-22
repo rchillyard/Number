@@ -1,0 +1,2756 @@
+<!DOCTYPE html><html data-pathToRoot="../../../../" data-rawLocation="com/phasmidsoftware/number/core/numerical" data-dynamicSideMenu="false"><head><meta charset="utf-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"></meta><title>com.phasmidsoftware.number.core.numerical</title><link rel="shortcut icon" type="image/x-icon" href="../../../../favicon.ico"></link><script type="text/javascript" src="../../../../scripts/theme.js"></script><script type="text/javascript" src="../../../../scripts/searchData.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/scastieConfiguration.js" defer="true"></script><link rel="stylesheet" href="../../../../styles/theme/bundle.css"></link><link rel="stylesheet" href="../../../../styles/theme/components/bundle.css"></link><link rel="stylesheet" href="../../../../styles/theme/components/button/bundle.css"></link><link rel="stylesheet" href="../../../../styles/theme/layout/bundle.css"></link><link rel="stylesheet" href="../../../../styles/nord-light.css"></link><link rel="stylesheet" href="../../../../styles/dotty-icons.css"></link><link rel="stylesheet" href="../../../../styles/filter-bar.css"></link><link rel="stylesheet" href="../../../../styles/code-snippets.css"></link><link rel="stylesheet" href="../../../../styles/searchbar.css"></link><link rel="stylesheet" href="../../../../styles/social-links.css"></link><link rel="stylesheet" href="../../../../styles/versions-dropdown.css"></link><link rel="stylesheet" href="../../../../styles/content-contributors.css"></link><link rel="stylesheet" href="../../../../styles/fontawesome.css"></link><script type="text/javascript" src="../../../../hljs/highlight.pack.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/hljs-scala3.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/ux.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/common/component.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/common/utils.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/components/FilterBar.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/components/DocumentableList.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/components/Input.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/components/FilterGroup.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/components/Filter.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/scaladoc-scalajs.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/contributors.js" defer="true"></script><script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.min.js" defer="true"></script><script type="text/javascript" src="https://d3js.org/d3.v6.min.js" defer="true"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/graphlib-dot@0.6.2/dist/graphlib-dot.min.js" defer="true"></script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dagre-d3/0.6.1/dagre-d3.min.js" defer="true"></script><script type="text/javascript" src="https://scastie.scala-lang.org/embedded.js" defer="true"></script><script type="text/javascript" src="../../../../scripts/data.js" defer="true"></script><link rel="stylesheet" href="../../../../styles/apistyles.css"></link><script>var pathToRoot = "../../../../";</script></head><body><div id=""><div id="header" class="body-small"><div class="header-container-left"><a href="../../../../" class="logo-container"><span class="project-name h300">number-core-test</span></a><span onclick="dropdownHandler(event)" class="text-button with-arrow" id="dropdown-trigger"><a></a></span><div id="version-dropdown" class="dropdown-menu"></div></div><div class="header-container-right"><button id="search-toggle" class="icon-button"></button><span id="theme-toggle" class="icon-button"></span><span id="mobile-menu-toggle" class="icon-button hamburger"></span></div></div><div id="mobile-menu"><div class="mobile-menu-header body-small"><span class="mobile-menu-logo"><span class="project-name h300">number-core-test</span></span><button id="mobile-menu-close" class="icon-button close"></button></div><div class="mobile-menu-container body-medium"><input id="mobile-scaladoc-searchbar-input" class="scaladoc-searchbar-input" type="search" placeholder="Find anything"></input><span id="mobile-theme-toggle" class="mobile-menu-item mode"></span></div></div><span id="mobile-sidebar-toggle" class="floating-button"></span><div id="leftColumn" class="body-small"><div class="switcher-container"><a id="api-nav-button" class="switcher h100 selected" href="../../../../index.html">API</a></div><nav id="api-nav" class="side-menu"><div class="ni n0 expanded"><span class="nh h100 expanded cs"><button class="ar icon-button expanded"></button><a href="../../number.html"><span class="micon pa"></span><span>com.phasmidsoftware.number</span></a></span><div class="ni n1"><span class="nh "><button class="ar icon-button "></button><a href="../cats.html"><span class="micon pa"></span><span>cats</span></a></span><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="../cats/laws.html"><span class="micon pa"></span><span>laws</span></a></span><div class="ni n3 "><span class="nh "><a href="../cats/laws/CatsKernelLawSpec.html"><span class="micon cl"></span><span>CatsKernelLawSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../cats/laws/ComplexAlgebraicInstancesLawSpec.html"><span class="micon cl"></span><span>ComplexAlgebraicInstancesLawSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../cats/laws/ErrorCommutativeMonoidLawSpec.html"><span class="micon cl"></span><span>ErrorCommutativeMonoidLawSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../cats/laws/RationalAlgebraicInstancesLawSpec.html"><span class="micon cl"></span><span>RationalAlgebraicInstancesLawSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="../cats/laws/RealAlgebraicInstancesLawSpec.html"><span class="micon cl"></span><span>RealAlgebraicInstancesLawSpec</span></a></span></div></div><div class="ni n2 "><span class="nh "><a href="../cats/CatsKernelSpec.html"><span class="micon cl"></span><span>CatsKernelSpec</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../cats/ComplexAlgebraicInstancesSpec.html"><span class="micon cl"></span><span>ComplexAlgebraicInstancesSpec</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../cats/ErrorCommutativeMonoidSpec.html"><span class="micon cl"></span><span>ErrorCommutativeMonoidSpec</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../cats/RationalAlgebraicInstancesSpec.html"><span class="micon cl"></span><span>RationalAlgebraicInstancesSpec</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../cats/RealAlgebraicInstancesSpec.html"><span class="micon cl"></span><span>RealAlgebraicInstancesSpec</span></a></span></div></div><div class="ni n1 expanded"><span class="nh h100 expanded cs"><button class="ar icon-button expanded"></button><a href="../core.html"><span class="micon pa"></span><span>core</span></a></span><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="algebraic.html"><span class="micon pa"></span><span>algebraic</span></a></span><div class="ni n3 "><span class="nh "><a href="algebraic/LinearSpec.html"><span class="micon cl"></span><span>LinearSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="algebraic/SolutionSpec.html"><span class="micon cl"></span><span>SolutionSpec</span></a></span></div></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="applications.html"><span class="micon pa"></span><span>applications</span></a></span><div class="ni n3 "><span class="nh "><a href="applications/ApproximationSpec.html"><span class="micon cl"></span><span>ApproximationSpec</span></a></span></div></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="inner.html"><span class="micon pa"></span><span>inner</span></a></span><div class="ni n3 "><span class="nh "><a href="inner/ContextSpec.html"><span class="micon cl"></span><span>ContextSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="inner/FactorSpec.html"><span class="micon cl"></span><span>FactorSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="inner/ModuloSpec.html"><span class="micon cl"></span><span>ModuloSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="inner/OperationsSpec.html"><span class="micon cl"></span><span>OperationsSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="inner/RationalFloorSpec.html"><span class="micon cl"></span><span>RationalFloorSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="inner/RationalPropertySpec.html"><span class="micon cl"></span><span>RationalPropertySpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="inner/RationalSpec.html"><span class="micon cl"></span><span>RationalSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="inner/ValueSpec.html"><span class="micon cl"></span><span>ValueSpec</span></a></span></div></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="mill.html"><span class="micon pa"></span><span>mill</span></a></span><div class="ni n3"><span class="nh "><button class="ar icon-button "></button><a href="mill/ExpressionSpec.html"><span class="micon cl"></span><span>ExpressionSpec</span></a></span><div class="ni n4 "><span class="nh "><a href="mill/ExpressionSpec$NumberEquality$.html"><span class="micon ob"></span><span>NumberEquality</span></a></span></div></div><div class="ni n3 "><span class="nh "><a href="mill/MillSpec.html"><span class="micon cl"></span><span>MillSpec</span></a></span></div></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="misc.html"><span class="micon pa"></span><span>misc</span></a></span><div class="ni n3 "><span class="nh "><a href="misc/BaselSpec.html"><span class="micon cl"></span><span>BaselSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="misc/BenchmarkSpec.html"><span class="micon cl"></span><span>BenchmarkSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="misc/BumperatorSpec.html"><span class="micon cl"></span><span>BumperatorSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="misc/ContinuedFractionSpec.html"><span class="micon cl"></span><span>ContinuedFractionSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="misc/FPSpec.html"><span class="micon cl"></span><span>FPSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="misc/FactorialSpec.html"><span class="micon cl"></span><span>FactorialSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="misc/FuzzSpec.html"><span class="micon cl"></span><span>FuzzSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="misc/InfiniteProductSpec.html"><span class="micon cl"></span><span>InfiniteProductSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="misc/InfiniteSumSpec.html"><span class="micon cl"></span><span>InfiniteSumSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="misc/LazyFunctionSpec.html"><span class="micon cl"></span><span>LazyFunctionSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="misc/LazyNumberFuzzySpec.html"><span class="micon cl"></span><span>LazyNumberFuzzySpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="misc/LazyNumberRationalSpec.html"><span class="micon cl"></span><span>LazyNumberRationalSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="misc/NewtonSpec.html"><span class="micon cl"></span><span>NewtonSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="misc/RandomLongSpec.html"><span class="micon cl"></span><span>RandomLongSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="misc/VarianceSpec.html"><span class="micon cl"></span><span>VarianceSpec</span></a></span></div></div><div class="ni n2 expanded"><span class="nh h100 selected"><button class="ar icon-button expanded"></button><a href="#"><span class="micon pa"></span><span>numerical</span></a></span><div class="ni n3 "><span class="nh "><a href="numerical/BaseComplexSpec.html"><span class="micon cl"></span><span>BaseComplexSpec</span></a></span></div><div class="ni n3"><span class="nh "><button class="ar icon-button "></button><a href="numerical/ComplexSpec.html"><span class="micon cl"></span><span>ComplexSpec</span></a></span><div class="ni n4 "><span class="nh "><a href="numerical/ComplexSpec$ComplexCartesianEquality$.html"><span class="micon ob"></span><span>ComplexCartesianEquality</span></a></span></div><div class="ni n4 "><span class="nh "><a href="numerical/ComplexSpec$ComplexPolarEquality$.html"><span class="micon ob"></span><span>ComplexPolarEquality</span></a></span></div></div><div class="ni n3 "><span class="nh "><a href="numerical/ConstantsSpec.html"><span class="micon cl"></span><span>ConstantsSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="numerical/ExactNumberSpec.html"><span class="micon cl"></span><span>ExactNumberSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="numerical/FieldSpec.html"><span class="micon cl"></span><span>FieldSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="numerical/FuzzinessSpec.html"><span class="micon cl"></span><span>FuzzinessSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="numerical/FuzzinessSpec2.html"><span class="micon cl"></span><span>FuzzinessSpec2</span></a></span></div><div class="ni n3"><span class="nh "><button class="ar icon-button "></button><a href="numerical/FuzzyEquality.html"><span class="micon tr"></span><span>FuzzyEquality</span></a></span><div class="ni n4 "><span class="nh "><a href="numerical/FuzzyEquality$FieldEquality$.html"><span class="micon ob"></span><span>FieldEquality</span></a></span></div><div class="ni n4 "><span class="nh "><a href="numerical/FuzzyEquality$NumberEquality$.html"><span class="micon ob"></span><span>NumberEquality</span></a></span></div><div class="ni n4 "><span class="nh "><a href="numerical/FuzzyEquality$NumberLikeEquality$.html"><span class="micon ob"></span><span>NumberLikeEquality</span></a></span></div><div class="ni n4 "><span class="nh "><a href="numerical/FuzzyEquality$RealEquality$.html"><span class="micon ob"></span><span>RealEquality</span></a></span></div></div><div class="ni n3"><span class="nh "><button class="ar icon-button "></button><a href="numerical/FuzzyNumberSpec.html"><span class="micon cl"></span><span>FuzzyNumberSpec</span></a></span><div class="ni n4 "><span class="nh "><a href="numerical/FuzzyNumberSpec$FuzzyNumberEquality$.html"><span class="micon ob"></span><span>FuzzyNumberEquality</span></a></span></div></div><div class="ni n3 "><span class="nh "><a href="numerical/FuzzyNumberSpec2.html"><span class="micon cl"></span><span>FuzzyNumberSpec2</span></a></span></div><div class="ni n3"><span class="nh "><button class="ar icon-button "></button><a href="numerical/FuzzySpec.html"><span class="micon cl"></span><span>FuzzySpec</span></a></span><div class="ni n4 "><span class="nh "><a href="numerical/FuzzySpec$Color.html"><span class="micon cl"></span><span>Color</span></a></span></div><div class="ni n4"><span class="nh "><button class="ar icon-button "></button><a href="numerical/FuzzySpec$Color$.html"><span class="micon ob"></span><span>Color</span></a></span><div class="ni n5 "><span class="nh "><a href="numerical/FuzzySpec$Color$$FuzzyColor$.html"><span class="micon ob"></span><span>FuzzyColor</span></a></span></div><div class="ni n5 "><span class="nh "><a href="numerical/FuzzySpec$Color$$FuzzyColor.html"><span class="micon tr"></span><span>FuzzyColor</span></a></span></div></div></div><div class="ni n3 "><span class="nh "><a href="numerical/GoldbachSpec.html"><span class="micon cl"></span><span>GoldbachSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="numerical/InfiniteSeriesSpec.html"><span class="micon cl"></span><span>InfiniteSeriesSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="numerical/NumberLikeSpec.html"><span class="micon cl"></span><span>NumberLikeSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="numerical/NumberPropertySpec.html"><span class="micon cl"></span><span>NumberPropertySpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="numerical/NumberRenderSpec.html"><span class="micon cl"></span><span>NumberRenderSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="numerical/NumberSetSpec.html"><span class="micon cl"></span><span>NumberSetSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="numerical/NumberShowFuzzySpec.html"><span class="micon cl"></span><span>NumberShowFuzzySpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="numerical/NumberShowSpec.html"><span class="micon cl"></span><span>NumberShowSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="numerical/NumberSpec.html"><span class="micon cl"></span><span>NumberSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="numerical/NumberTestmeSpec.html"><span class="micon cl"></span><span>NumberTestmeSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="numerical/PolynomialSpec.html"><span class="micon cl"></span><span>PolynomialSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="numerical/PowerSeriesSpec.html"><span class="micon cl"></span><span>PowerSeriesSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="numerical/PrimeSpec.html"><span class="micon cl"></span><span>PrimeSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="numerical/PrimesSpec.html"><span class="micon cl"></span><span>PrimesSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="numerical/RealSpec.html"><span class="micon cl"></span><span>RealSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="numerical/SeriesSpec.html"><span class="micon cl"></span><span>SeriesSpec</span></a></span></div></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="parse.html"><span class="micon pa"></span><span>parse</span></a></span><div class="ni n3 "><span class="nh "><a href="parse/ComplexParserSpec.html"><span class="micon cl"></span><span>ComplexParserSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="parse/ExpressionParserSpec.html"><span class="micon cl"></span><span>ExpressionParserSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="parse/FuzzyParserSpec.html"><span class="micon cl"></span><span>FuzzyParserSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="parse/MillParserSpec.html"><span class="micon cl"></span><span>MillParserSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="parse/NumberParserSpec.html"><span class="micon cl"></span><span>NumberParserSpec</span></a></span></div><div class="ni n3 "><span class="nh "><a href="parse/RationalParserSpec.html"><span class="micon cl"></span><span>RationalParserSpec</span></a></span></div><div class="ni n3"><span class="nh "><button class="ar icon-button "></button><a href="parse/ShuntingYardParserSpec.html"><span class="micon cl"></span><span>ShuntingYardParserSpec</span></a></span><div class="ni n4 "><span class="nh "><a href="parse/ShuntingYardParserSpec$NumberEquality$.html"><span class="micon ob"></span><span>NumberEquality</span></a></span></div></div><div class="ni n3 "><span class="nh "><a href="parse/SignificantSpaceParsersSpec.html"><span class="micon cl"></span><span>SignificantSpaceParsersSpec</span></a></span></div></div></div><div class="ni n1"><span class="nh "><button class="ar icon-button "></button><a href="../problems.html"><span class="micon pa"></span><span>problems</span></a></span><div class="ni n2 "><span class="nh "><a href="../problems/PotHolesSpec.html"><span class="micon cl"></span><span>PotHolesSpec</span></a></span></div></div><div class="ni n1 "><span class="nh "><a href="../Slow$.html"><span class="micon ob"></span><span>Slow</span></a></span></div></div></nav></div><div id="footer" class="body-small"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div><div id="scaladoc-searchBar"></div><div id="main"><div class="breadcrumbs container"><a href="../../../../index.html">number-core-test</a>/<a href="../../number.html">com.phasmidsoftware.number</a>/<a href="../core.html">com.phasmidsoftware.number.core</a>/<a href="numerical.html">com.phasmidsoftware.number.core.numerical</a></div><div id="content" class="body-medium"><div><div class="cover-header">
+ <span class="icon"><span class="micon pa"></span></span>
+ <h1 class="h600 single">com.phasmidsoftware.number.core.numerical</h1>
+</div>
+<div class="fqname body-large">
+ <span></span>
+</div>
+<div class="main-signature mono-small-block">
+ <div class="signature">
+  <span class="modifiers"></span><span class="kind"><span t="k">package </span></span><a href="numerical.html" t="n" class="documentableName ">com.phasmidsoftware.number.core.numerical</a>
+ </div>
+</div>
+<section id="members-list">
+ <h2 class="h500">Members list</h2>
+ <div class="documentableFilter">
+  <div class="filtersContainer"></div><input class="filterableInput" placeholder="Filter by any phrase" data-test-id="filterBarInput" type="search"><button class="clearButton label-only-button" data-test-id="filterBarClearButton">Clear all</button>
+ </div>
+ <div class="membersList expand">
+  <div class="tabs">
+   <div class="contents">
+    <section id="Type-members">
+     <div data-togglable="Type members" class="tab expand">
+      <div class="member-group-header">
+       <h3 data-togglable="Type members" class="h400">Type members</h3>
+      </div>
+      <section id="Classlikes">
+       <div class="documentableList expand">
+        <div class="documentableList-expander">
+         <button class="icon-button show-content expand"></button>
+         <h4 class="groupHeader h200">Classlikes</h4>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/BaseComplexSpec.html" t="n" class="documentableName ">BaseComplexSpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/ComplexSpec.html" t="n" class="documentableName ">ComplexSpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/ConstantsSpec.html" t="n" class="documentableName ">ConstantsSpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span><span t="k">, </span><a href="numerical/FuzzyEquality.html" t="t">FuzzyEquality</a></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <a href="numerical/FuzzyEquality.html" t="n">FuzzyEquality</a>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/ExactNumberSpec.html" t="n" class="documentableName ">ExactNumberSpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/FieldSpec.html" t="n" class="documentableName ">FieldSpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/FuzzinessSpec.html" t="n" class="documentableName ">FuzzinessSpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/FuzzinessSpec2.html" t="n" class="documentableName ">FuzzinessSpec2</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="numerical/FuzzyEquality.html" t="n" class="documentableName ">FuzzyEquality</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span></span>
+               </div>
+              </dd>
+              <dt class="body-small">
+               Known subtypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block subtypes">
+                <div>
+                 class <a href="algebraic/LinearSpec.html" t="n">LinearSpec</a>
+                </div>
+                <div>
+                 class <a href="applications/ApproximationSpec.html" t="n">ApproximationSpec</a>
+                </div>
+                <div>
+                 class <a href="mill/MillSpec.html" t="n">MillSpec</a>
+                </div>
+                <div>
+                 class <a href="numerical/ConstantsSpec.html" t="n">ConstantsSpec</a>
+                </div>
+                <div>
+                 class <a href="numerical/NumberSpec.html" t="n">NumberSpec</a>
+                </div>
+                <div>
+                 class <a href="numerical/RealSpec.html" t="n">RealSpec</a>
+                </div>
+                <div>
+                 class <a href="numerical/SeriesSpec.html" t="n">SeriesSpec</a>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/FuzzyNumberSpec.html" t="n" class="documentableName ">FuzzyNumberSpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/FuzzyNumberSpec2.html" t="n" class="documentableName ">FuzzyNumberSpec2</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/FuzzySpec.html" t="n" class="documentableName ">FuzzySpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/GoldbachSpec.html" t="n" class="documentableName ">GoldbachSpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/InfiniteSeriesSpec.html" t="n" class="documentableName ">InfiniteSeriesSpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/NumberLikeSpec.html" t="n" class="documentableName ">NumberLikeSpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/NumberPropertySpec.html" t="n" class="documentableName ">NumberPropertySpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">Properties</span></span><span class="signature-long"></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Created by scalaprof on 10/29/22.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Created by scalaprof on 10/29/22.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 class <span data-unresolved-link="" t="n">Properties</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span></span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/NumberRenderSpec.html" t="n" class="documentableName ">NumberRenderSpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Tests for Phase 2 of the rendering refactor: fixing <code>render</code> for true round-trips.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Tests for Phase 2 of the rendering refactor: fixing <code>render</code> for true round-trips.</p>
+              <p>Key semantics:</p>
+              <p>Table 1: <code>*</code> notation — round-trips as <code>*</code>, stays in decimal form for normal-range values.</p>
+              <table>
+               <thead>
+                <tr>
+                 <th>Parsed string</th>
+                 <th>render output</th>
+                </tr>
+               </thead>
+               <tbody>
+                <tr>
+                 <td>"0.1*"</td>
+                 <td>"0.1*"</td>
+                </tr>
+                <tr>
+                 <td>"0.10*"</td>
+                 <td>"0.10*"</td>
+                </tr>
+                <tr>
+                 <td>"9.81*"</td>
+                 <td>"9.81*"</td>
+                </tr>
+                <tr>
+                 <td>"100.*"</td>
+                 <td>"100.*"</td>
+                </tr>
+               </tbody>
+              </table>
+              <p>Table 2: Explicit bracket/paren notation — already canonical, render preserves as-is.</p>
+              <table>
+               <thead>
+                <tr>
+                 <th>Parsed string</th>
+                 <th>render output</th>
+                </tr>
+               </thead>
+               <tbody>
+                <tr>
+                 <td>"9.81[1]"</td>
+                 <td>"9.81[1]"</td>
+                </tr>
+                <tr>
+                 <td>"2.50[5]"</td>
+                 <td>"2.50[5]"</td>
+                </tr>
+                <tr>
+                 <td>"1836.15267343(11)"</td>
+                 <td>"1836.15267343(11)"</td>
+                </tr>
+                <tr>
+                 <td>"1.2345(67)"</td>
+                 <td>"1.2345(67)"</td>
+                </tr>
+               </tbody>
+              </table>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/NumberSetSpec.html" t="n" class="documentableName ">NumberSetSpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/NumberShowFuzzySpec.html" t="n" class="documentableName ">NumberShowFuzzySpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Tests for Phase 3 of the rendering refactor: FuzzyNumber.show with percentage notation.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Tests for Phase 3 of the rendering refactor: FuzzyNumber.show with percentage notation.</p>
+              <p>Key principle: show converts fuzziness to relative (percentage) form. render always produces absolute notation ([n], (n), *). show produces human-friendly percentage notation (100±1%).</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/NumberShowSpec.html" t="n" class="documentableName ">NumberShowSpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Tests for the <code>show</code> method introduced in Phase 1 of the rendering refactor.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Tests for the <code>show</code> method introduced in Phase 1 of the rendering refactor.</p>
+              <p>Covers:</p>
+              <ul>
+               <li>ExactNumber.show: vulgar fractions, integers, general fallback to render</li>
+               <li>FuzzyNumber.show: trailing zero stripping before uncertainty markers</li>
+               <li>Real.show: delegation to underlying Number</li>
+               <li>NumberLike.show: default fallback to render</li>
+               <li>Cats Show[NumberLike] typeclass instance</li>
+              </ul>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/NumberSpec.html" t="n" class="documentableName ">NumberSpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span><span t="k">, </span><a href="numerical/FuzzyEquality.html" t="t">FuzzyEquality</a></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <a href="numerical/FuzzyEquality.html" t="n">FuzzyEquality</a>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/NumberTestmeSpec.html" t="n" class="documentableName ">NumberTestmeSpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Test suite for testme items in Number.scala. This spec addresses 6 specific testme comments found in the Number trait.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Test suite for testme items in Number.scala. This spec addresses 6 specific testme comments found in the Number trait.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/PolynomialSpec.html" t="n" class="documentableName ">PolynomialSpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/PowerSeriesSpec.html" t="n" class="documentableName ">PowerSeriesSpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/PrimeSpec.html" t="n" class="documentableName ">PrimeSpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/PrimesSpec.html" t="n" class="documentableName ">PrimesSpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>CONSIDER moving this to an integration testing directory since it is a bit slow.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>CONSIDER moving this to an integration testing directory since it is a bit slow.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/RealSpec.html" t="n" class="documentableName ">RealSpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span><span t="k">, </span><a href="numerical/FuzzyEquality.html" t="t">FuzzyEquality</a></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <a href="numerical/FuzzyEquality.html" t="n">FuzzyEquality</a>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="numerical/SeriesSpec.html" t="n" class="documentableName ">SeriesSpec</a><span t="k"> extends </span><span data-unresolved-link="" t="t">AnyFlatSpec</span><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">Matchers</span><span t="k">, </span><a href="numerical/FuzzyEquality.html" t="t">FuzzyEquality</a></span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Supertypes
+              </dt>
+              <dd class="body-medium">
+               <div class="mono-small-block supertypes">
+                <div>
+                 trait <a href="numerical/FuzzyEquality.html" t="n">FuzzyEquality</a>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchers</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Explicitly</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MatcherWords</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Tolerance</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">AnyFlatSpec</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">AnyFlatSpecLike</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Documenting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Alerting</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Notifying</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Informing</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">CanVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">MustVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">ShouldVerb</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestRegistration</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TestSuite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Suite</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Serializable</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Assertions</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEquals</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">TripleEqualsSupport</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Object</span>
+                </div>
+                <div>
+                 trait <span data-unresolved-link="" t="n">Matchable</span>
+                </div>
+                <div>
+                 class <span data-unresolved-link="" t="n">Any</span>
+                </div><span class="show-all-code show-content text-button h100">Show all</span>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </section>
+     </div>
+    </section>
+   </div>
+  </div>
+ </div>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#members-list">Members list</a><ul><li><a href="#Type-members">Type members</a><ul><li><a href="#Classlikes">Classlikes</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>

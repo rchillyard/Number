@@ -1,0 +1,286 @@
+<!DOCTYPE html><html data-pathToRoot="../../../../../" data-rawLocation="com/phasmidsoftware/number/expression/parse/ExpressionParser$Term" data-dynamicSideMenu="false"><head><meta charset="utf-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"></meta><title>Term</title><link rel="shortcut icon" type="image/x-icon" href="../../../../../favicon.ico"></link><script type="text/javascript" src="../../../../../scripts/theme.js"></script><script type="text/javascript" src="../../../../../scripts/searchData.js" defer="true"></script><script type="text/javascript" src="../../../../../scripts/scastieConfiguration.js" defer="true"></script><link rel="stylesheet" href="../../../../../styles/theme/bundle.css"></link><link rel="stylesheet" href="../../../../../styles/theme/components/bundle.css"></link><link rel="stylesheet" href="../../../../../styles/theme/components/button/bundle.css"></link><link rel="stylesheet" href="../../../../../styles/theme/layout/bundle.css"></link><link rel="stylesheet" href="../../../../../styles/nord-light.css"></link><link rel="stylesheet" href="../../../../../styles/dotty-icons.css"></link><link rel="stylesheet" href="../../../../../styles/filter-bar.css"></link><link rel="stylesheet" href="../../../../../styles/code-snippets.css"></link><link rel="stylesheet" href="../../../../../styles/searchbar.css"></link><link rel="stylesheet" href="../../../../../styles/social-links.css"></link><link rel="stylesheet" href="../../../../../styles/versions-dropdown.css"></link><link rel="stylesheet" href="../../../../../styles/content-contributors.css"></link><link rel="stylesheet" href="../../../../../styles/fontawesome.css"></link><script type="text/javascript" src="../../../../../hljs/highlight.pack.js" defer="true"></script><script type="text/javascript" src="../../../../../scripts/hljs-scala3.js" defer="true"></script><script type="text/javascript" src="../../../../../scripts/ux.js" defer="true"></script><script type="text/javascript" src="../../../../../scripts/common/component.js" defer="true"></script><script type="text/javascript" src="../../../../../scripts/common/utils.js" defer="true"></script><script type="text/javascript" src="../../../../../scripts/components/FilterBar.js" defer="true"></script><script type="text/javascript" src="../../../../../scripts/components/DocumentableList.js" defer="true"></script><script type="text/javascript" src="../../../../../scripts/components/Input.js" defer="true"></script><script type="text/javascript" src="../../../../../scripts/components/FilterGroup.js" defer="true"></script><script type="text/javascript" src="../../../../../scripts/components/Filter.js" defer="true"></script><script type="text/javascript" src="../../../../../scripts/scaladoc-scalajs.js" defer="true"></script><script type="text/javascript" src="../../../../../scripts/contributors.js" defer="true"></script><script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.min.js" defer="true"></script><script type="text/javascript" src="https://d3js.org/d3.v6.min.js" defer="true"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/graphlib-dot@0.6.2/dist/graphlib-dot.min.js" defer="true"></script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dagre-d3/0.6.1/dagre-d3.min.js" defer="true"></script><script type="text/javascript" src="https://scastie.scala-lang.org/embedded.js" defer="true"></script><script type="text/javascript" src="../../../../../scripts/data.js" defer="true"></script><link rel="stylesheet" href="../../../../../styles/apistyles.css"></link><script>var pathToRoot = "../../../../../";</script></head><body><div id=""><div id="header" class="body-small"><div class="header-container-left"><a href="../../../../../" class="logo-container"><span class="project-name h300">number-expression</span></a><span onclick="dropdownHandler(event)" class="text-button with-arrow" id="dropdown-trigger"><a></a></span><div id="version-dropdown" class="dropdown-menu"></div></div><div class="header-container-right"><button id="search-toggle" class="icon-button"></button><span id="theme-toggle" class="icon-button"></span><span id="mobile-menu-toggle" class="icon-button hamburger"></span></div></div><div id="mobile-menu"><div class="mobile-menu-header body-small"><span class="mobile-menu-logo"><span class="project-name h300">number-expression</span></span><button id="mobile-menu-close" class="icon-button close"></button></div><div class="mobile-menu-container body-medium"><input id="mobile-scaladoc-searchbar-input" class="scaladoc-searchbar-input" type="search" placeholder="Find anything"></input><span id="mobile-theme-toggle" class="mobile-menu-item mode"></span></div></div><span id="mobile-sidebar-toggle" class="floating-button"></span><div id="leftColumn" class="body-small"><div class="switcher-container"><a id="api-nav-button" class="switcher h100 selected" href="../../../../../index.html">API</a></div><nav id="api-nav" class="side-menu"><div class="ni n0 expanded"><span class="nh h100 expanded cs"><button class="ar icon-button expanded"></button><a href="../../expression.html"><span class="micon pa"></span><span>com.phasmidsoftware.number.expression</span></a></span><div class="ni n1"><span class="nh "><button class="ar icon-button "></button><a href="../algebraic.html"><span class="micon pa"></span><span>algebraic</span></a></span><div class="ni n2 "><span class="nh "><a href="../algebraic/Equation.html"><span class="micon tr"></span><span>Equation</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../algebraic/LinearEquation.html"><span class="micon cl"></span><span>LinearEquation</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../algebraic/QuadraticEquation.html"><span class="micon cl"></span><span>QuadraticEquation</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../algebraic/QuadraticEquation$.html"><span class="micon ob"></span><span>QuadraticEquation</span></a></span></div></div><div class="ni n1"><span class="nh "><button class="ar icon-button "></button><a href="../expr.html"><span class="micon pa"></span><span>expr</span></a></span><div class="ni n2 "><span class="nh "><a href="../expr/AbstractRoot.html"><span class="micon cl"></span><span>AbstractRoot</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/AbstractTranscendental.html"><span class="micon cl"></span><span>AbstractTranscendental</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/AdditiveIdentityCommutative$.html"><span class="micon ob"></span><span>AdditiveIdentityCommutative</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Aggregate.html"><span class="micon cl"></span><span>Aggregate</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Aggregate$.html"><span class="micon ob"></span><span>Aggregate</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Atan$.html"><span class="micon ob"></span><span>Atan</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/AtomicExpression.html"><span class="micon tr"></span><span>AtomicExpression</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/AtomicExpression$.html"><span class="micon ob"></span><span>AtomicExpression</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/BiFunction.html"><span class="micon cl"></span><span>BiFunction</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/BiFunction$.html"><span class="micon ob"></span><span>BiFunction</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/CommutativeExtractor.html"><span class="micon cl"></span><span>CommutativeExtractor</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/CompositeExpression.html"><span class="micon tr"></span><span>CompositeExpression</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/CompositeExpression$.html"><span class="micon ob"></span><span>CompositeExpression</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Cosine$.html"><span class="micon ob"></span><span>Cosine</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/CubeRoot$.html"><span class="micon ob"></span><span>CubeRoot</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/E$.html"><span class="micon ob"></span><span>E</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/ETranscendental$.html"><span class="micon ob"></span><span>ETranscendental</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/EagerOps$.html"><span class="micon ob"></span><span>EagerOps</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Empty$.html"><span class="micon ob"></span><span>Empty</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/EulerMascheroni$.html"><span class="micon ob"></span><span>EulerMascheroni</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Exp$.html"><span class="micon ob"></span><span>Exp</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Expression.html"><span class="micon tr"></span><span>Expression</span></a></span></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="../expr/Expression$.html"><span class="micon ob"></span><span>Expression</span></a></span><div class="ni n3 "><span class="nh "><a href="../expr/Expression$$ExpressionOps.html"><span class="micon cl"></span><span>ExpressionOps</span></a></span></div></div><div class="ni n2 "><span class="nh "><a href="../expr/ExpressionBiFunction.html"><span class="micon cl"></span><span>ExpressionBiFunction</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/ExpressionBiFunction$.html"><span class="micon ob"></span><span>ExpressionBiFunction</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/ExpressionComplementaryCommutative$.html"><span class="micon ob"></span><span>ExpressionComplementaryCommutative</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/ExpressionConfig$.html"><span class="micon ob"></span><span>ExpressionConfig</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/ExpressionEq$.html"><span class="micon ob"></span><span>ExpressionEq</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/ExpressionException.html"><span class="micon cl"></span><span>ExpressionException</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/ExpressionFunction.html"><span class="micon tr"></span><span>ExpressionFunction</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/ExpressionFunction$.html"><span class="micon ob"></span><span>ExpressionFunction</span></a></span></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="../expr/ExpressionMatchers.html"><span class="micon cl"></span><span>ExpressionMatchers</span></a></span><div class="ni n3 "><span class="nh "><a href="../expr/ExpressionMatchers$ExpressionMatcher.html"><span class="micon cl"></span><span>ExpressionMatcher</span></a></span></div></div><div class="ni n2 "><span class="nh "><a href="../expr/ExpressionMatchers$.html"><span class="micon ob"></span><span>ExpressionMatchers</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/ExpressionMonoFunction.html"><span class="micon cl"></span><span>ExpressionMonoFunction</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/ExpressionMonoFunction$.html"><span class="micon ob"></span><span>ExpressionMonoFunction</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/ExpressionNegationCommutative$.html"><span class="micon ob"></span><span>ExpressionNegationCommutative</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/ExpressionPrelude$.html"><span class="micon ob"></span><span>ExpressionPrelude</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Extractors$.html"><span class="micon ob"></span><span>Extractors</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Half$.html"><span class="micon ob"></span><span>Half</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/I$.html"><span class="micon ob"></span><span>I</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Infinity$.html"><span class="micon ob"></span><span>Infinity</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/InversePowerTimesNumberCommutative$.html"><span class="micon ob"></span><span>InversePowerTimesNumberCommutative</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/IsIntegral$.html"><span class="micon ob"></span><span>IsIntegral</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/IsMinusOne$.html"><span class="micon ob"></span><span>IsMinusOne</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/IsUnity$.html"><span class="micon ob"></span><span>IsUnity</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/IsZero$.html"><span class="micon ob"></span><span>IsZero</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/L2$.html"><span class="micon ob"></span><span>L2</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/LgE$.html"><span class="micon ob"></span><span>LgE</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/LinearRoot.html"><span class="micon cl"></span><span>LinearRoot</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Literal.html"><span class="micon cl"></span><span>Literal</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Literal$.html"><span class="micon ob"></span><span>Literal</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Ln$.html"><span class="micon ob"></span><span>Ln</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Log$.html"><span class="micon ob"></span><span>Log</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/MathematicalEq.html"><span class="micon tr"></span><span>MathematicalEq</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/MathematicalEq$.html"><span class="micon ob"></span><span>MathematicalEq</span></a></span></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="../expr/MathematicalEqSyntax$.html"><span class="micon ob"></span><span>MathematicalEqSyntax</span></a></span><div class="ni n3 "><span class="nh "><a href="../expr/MathematicalEqSyntax$$MathematicalEqOps.html"><span class="micon cl"></span><span>MathematicalEqOps</span></a></span></div></div><div class="ni n2 "><span class="nh "><a href="../expr/MinusOne$.html"><span class="micon ob"></span><span>MinusOne</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/MultiplicativeIdentityCommutative$.html"><span class="micon ob"></span><span>MultiplicativeIdentityCommutative</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/NamedConstant.html"><span class="micon cl"></span><span>NamedConstant</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Negate$.html"><span class="micon ob"></span><span>Negate</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Noop.html"><span class="micon cl"></span><span>Noop</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/NthRoot$.html"><span class="micon ob"></span><span>NthRoot</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/One$.html"><span class="micon ob"></span><span>One</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Pi$.html"><span class="micon ob"></span><span>Pi</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/PiTranscendental$.html"><span class="micon ob"></span><span>PiTranscendental</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Power$.html"><span class="micon ob"></span><span>Power</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Product$.html"><span class="micon ob"></span><span>Product</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/ProductExpression$.html"><span class="micon ob"></span><span>ProductExpression</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/QuadraticRoot.html"><span class="micon cl"></span><span>QuadraticRoot</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/QuadraticRoot$.html"><span class="micon ob"></span><span>QuadraticRoot</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/QuadraticValue$.html"><span class="micon ob"></span><span>QuadraticValue</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Reciprocal$.html"><span class="micon ob"></span><span>Reciprocal</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Root.html"><span class="micon tr"></span><span>Root</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Root$.html"><span class="micon ob"></span><span>Root</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/ScalarConstant.html"><span class="micon cl"></span><span>ScalarConstant</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Sine$.html"><span class="micon ob"></span><span>Sine</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/SineCos.html"><span class="micon cl"></span><span>SineCos</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/SquareRoot$.html"><span class="micon ob"></span><span>SquareRoot</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Sum$.html"><span class="micon ob"></span><span>Sum</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Transcendental.html"><span class="micon tr"></span><span>Transcendental</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Two$.html"><span class="micon ob"></span><span>Two</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/UniFunction.html"><span class="micon cl"></span><span>UniFunction</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/UniFunction$.html"><span class="micon ob"></span><span>UniFunction</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/ValueExpression.html"><span class="micon cl"></span><span>ValueExpression</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/ValueExpression$.html"><span class="micon ob"></span><span>ValueExpression</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/Zero$.html"><span class="micon ob"></span><span>Zero</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../expr/∅$.html"><span class="micon ob"></span><span>∅</span></a></span></div></div><div class="ni n1"><span class="nh "><button class="ar icon-button "></button><a href="../matchers.html"><span class="micon pa"></span><span>matchers</span></a></span><div class="ni n2 "><span class="nh "><a href="../matchers/MatchersExtras.html"><span class="micon tr"></span><span>MatchersExtras</span></a></span></div></div><div class="ni n1"><span class="nh "><button class="ar icon-button "></button><a href="../mill.html"><span class="micon pa"></span><span>mill</span></a></span><div class="ni n2 "><span class="nh "><a href="../mill/Add$.html"><span class="micon ob"></span><span>Add</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Anadic.html"><span class="micon tr"></span><span>Anadic</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Chs$.html"><span class="micon ob"></span><span>Chs</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Close$.html"><span class="micon ob"></span><span>Close</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Clr$.html"><span class="micon ob"></span><span>Clr</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Cos$.html"><span class="micon ob"></span><span>Cos</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Divide$.html"><span class="micon ob"></span><span>Divide</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Dyadic.html"><span class="micon cl"></span><span>Dyadic</span></a></span></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="../mill/Dyadic$.html"><span class="micon ob"></span><span>Dyadic</span></a></span><div class="ni n3 "><span class="nh "><a href="../mill/Dyadic$$DyadicOrdering$.html"><span class="micon ob"></span><span>DyadicOrdering</span></a></span></div></div><div class="ni n2 "><span class="nh "><a href="../mill/DyadicExpression.html"><span class="micon cl"></span><span>DyadicExpression</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Empty$.html"><span class="micon ob"></span><span>Empty</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Exponent$.html"><span class="micon ob"></span><span>Exponent</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Expr.html"><span class="micon cl"></span><span>Expr</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Expr$.html"><span class="micon ob"></span><span>Expr</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Expression.html"><span class="micon tr"></span><span>Expression</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Expression$.html"><span class="micon ob"></span><span>Expression</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Inv$.html"><span class="micon ob"></span><span>Inv</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Item.html"><span class="micon tr"></span><span>Item</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Item$.html"><span class="micon ob"></span><span>Item</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Ln$.html"><span class="micon ob"></span><span>Ln</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Mill.html"><span class="micon tr"></span><span>Mill</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Mill$.html"><span class="micon ob"></span><span>Mill</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/MillException.html"><span class="micon cl"></span><span>MillException</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Monadic.html"><span class="micon tr"></span><span>Monadic</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/MonadicExpression.html"><span class="micon cl"></span><span>MonadicExpression</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Multiply$.html"><span class="micon ob"></span><span>Multiply</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Noop$.html"><span class="micon ob"></span><span>Noop</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Open$.html"><span class="micon ob"></span><span>Open</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Power$.html"><span class="micon ob"></span><span>Power</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Sin$.html"><span class="micon ob"></span><span>Sin</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Sqrt$.html"><span class="micon ob"></span><span>Sqrt</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Stack.html"><span class="micon cl"></span><span>Stack</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Subtract$.html"><span class="micon ob"></span><span>Subtract</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/Swap$.html"><span class="micon ob"></span><span>Swap</span></a></span></div><div class="ni n2 "><span class="nh "><a href="../mill/TerminalExpression.html"><span class="micon cl"></span><span>TerminalExpression</span></a></span></div></div><div class="ni n1 expanded"><span class="nh h100 expanded cs"><button class="ar icon-button expanded"></button><a href="../parse.html"><span class="micon pa"></span><span>parse</span></a></span><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="ArithmeticParser.html"><span class="micon cl"></span><span>ArithmeticParser</span></a></span><div class="ni n3 "><span class="nh "><a href="ArithmeticParser$BadFactor.html"><span class="micon cl"></span><span>BadFactor</span></a></span></div><div class="ni n3 "><span class="nh "><a href="ArithmeticParser$Expr.html"><span class="micon cl"></span><span>Expr</span></a></span></div><div class="ni n3 "><span class="nh "><a href="ArithmeticParser$Expression.html"><span class="micon tr"></span><span>Expression</span></a></span></div><div class="ni n3 "><span class="nh "><a href="ArithmeticParser$Factor.html"><span class="micon cl"></span><span>Factor</span></a></span></div><div class="ni n3 "><span class="nh "><a href="ArithmeticParser$FloatingPoint.html"><span class="micon cl"></span><span>FloatingPoint</span></a></span></div><div class="ni n3 "><span class="nh "><a href="ArithmeticParser$Parentheses.html"><span class="micon cl"></span><span>Parentheses</span></a></span></div><div class="ni n3 "><span class="nh "><a href="ArithmeticParser$Term.html"><span class="micon cl"></span><span>Term</span></a></span></div></div><div class="ni n2 "><span class="nh "><a href="ArithmeticParserNumeric.html"><span class="micon cl"></span><span>ArithmeticParserNumeric</span></a></span></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="BaseMillParser.html"><span class="micon cl"></span><span>BaseMillParser</span></a></span><div class="ni n3 "><span class="nh "><a href="BaseMillParser$AnadicTerm.html"><span class="micon cl"></span><span>AnadicTerm</span></a></span></div><div class="ni n3 "><span class="nh "><a href="BaseMillParser$MonadicTerm.html"><span class="micon cl"></span><span>MonadicTerm</span></a></span></div><div class="ni n3 "><span class="nh "><a href="BaseMillParser$Term.html"><span class="micon tr"></span><span>Term</span></a></span></div></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="BaseNumberParser.html"><span class="micon cl"></span><span>BaseNumberParser</span></a></span><div class="ni n3 "><span class="nh "><a href="BaseNumberParser$NumberWithFuzziness.html"><span class="micon cl"></span><span>NumberWithFuzziness</span></a></span></div><div class="ni n3 "><span class="nh "><a href="BaseNumberParser$WithFuzziness.html"><span class="micon tr"></span><span>WithFuzziness</span></a></span></div></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="BaseRationalParser.html"><span class="micon cl"></span><span>BaseRationalParser</span></a></span><div class="ni n3 "><span class="nh "><a href="BaseRationalParser$RatioNumber.html"><span class="micon cl"></span><span>RatioNumber</span></a></span></div><div class="ni n3 "><span class="nh "><a href="BaseRationalParser$RealNumber.html"><span class="micon cl"></span><span>RealNumber</span></a></span></div><div class="ni n3 "><span class="nh "><a href="BaseRationalParser$WholeNumber.html"><span class="micon cl"></span><span>WholeNumber</span></a></span></div><div class="ni n3 "><span class="nh "><a href="BaseRationalParser$WholeNumber$.html"><span class="micon ob"></span><span>WholeNumber</span></a></span></div></div><div class="ni n2 "><span class="nh "><a href="ComplexParser.html"><span class="micon cl"></span><span>ComplexParser</span></a></span></div><div class="ni n2 "><span class="nh "><a href="ComplexParser$.html"><span class="micon ob"></span><span>ComplexParser</span></a></span></div><div class="ni n2 "><span class="nh "><a href="DoubleArithmeticParser$.html"><span class="micon ob"></span><span>DoubleArithmeticParser</span></a></span></div><div class="ni n2 "><span class="nh "><a href="EmptyExpression$.html"><span class="micon ob"></span><span>EmptyExpression</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Expression.html"><span class="micon tr"></span><span>Expression</span></a></span></div><div class="ni n2 "><span class="nh "><a href="Expression$.html"><span class="micon ob"></span><span>Expression</span></a></span></div><div class="ni n2 expanded"><span class="nh h100 expanded cs"><button class="ar icon-button expanded"></button><a href="ExpressionParser.html"><span class="micon cl"></span><span>ExpressionParser</span></a></span><div class="ni n3 "><span class="nh "><a href="ExpressionParser$BadFactor.html"><span class="micon cl"></span><span>BadFactor</span></a></span></div><div class="ni n3 "><span class="nh "><a href="ExpressionParser$Expr.html"><span class="micon cl"></span><span>Expr</span></a></span></div><div class="ni n3 "><span class="nh "><a href="ExpressionParser$Factor.html"><span class="micon cl"></span><span>Factor</span></a></span></div><div class="ni n3 "><span class="nh "><a href="ExpressionParser$FloatingPoint.html"><span class="micon cl"></span><span>FloatingPoint</span></a></span></div><div class="ni n3 "><span class="nh "><a href="ExpressionParser$Parentheses.html"><span class="micon cl"></span><span>Parentheses</span></a></span></div><div class="ni n3 expanded"><span class="nh h100 selected"><a href="#"><span class="micon cl"></span><span>Term</span></a></span></div><div class="ni n3 "><span class="nh "><a href="ExpressionParser$Tokens.html"><span class="micon tr"></span><span>Tokens</span></a></span></div></div><div class="ni n2 "><span class="nh "><a href="ExpressionParserException.html"><span class="micon cl"></span><span>ExpressionParserException</span></a></span></div><div class="ni n2 "><span class="nh "><a href="ExpressionToken.html"><span class="micon cl"></span><span>ExpressionToken</span></a></span></div><div class="ni n2 "><span class="nh "><a href="ExpressionToken$.html"><span class="micon ob"></span><span>ExpressionToken</span></a></span></div><div class="ni n2 "><span class="nh "><a href="ExpressionTokens.html"><span class="micon cl"></span><span>ExpressionTokens</span></a></span></div><div class="ni n2 "><span class="nh "><a href="ExpressionTokens$.html"><span class="micon ob"></span><span>ExpressionTokens</span></a></span></div><div class="ni n2 "><span class="nh "><a href="IntArithmeticParser$.html"><span class="micon ob"></span><span>IntArithmeticParser</span></a></span></div><div class="ni n2 "><span class="nh "><a href="LogDebug$.html"><span class="micon ob"></span><span>LogDebug</span></a></span></div><div class="ni n2 "><span class="nh "><a href="LogInfo$.html"><span class="micon ob"></span><span>LogInfo</span></a></span></div><div class="ni n2 "><span class="nh "><a href="LogLevel.html"><span class="micon tr"></span><span>LogLevel</span></a></span></div><div class="ni n2 "><span class="nh "><a href="LogLevel$.html"><span class="micon ob"></span><span>LogLevel</span></a></span></div><div class="ni n2 "><span class="nh "><a href="LogOff$.html"><span class="micon ob"></span><span>LogOff</span></a></span></div><div class="ni n2 "><span class="nh "><a href="MillParser$.html"><span class="micon ob"></span><span>MillParser</span></a></span></div><div class="ni n2 "><span class="nh "><a href="NumberParser$.html"><span class="micon ob"></span><span>NumberParser</span></a></span></div><div class="ni n2 "><span class="nh "><a href="ParseException.html"><span class="micon cl"></span><span>ParseException</span></a></span></div><div class="ni n2 "><span class="nh "><a href="RationalArithmeticParser$.html"><span class="micon ob"></span><span>RationalArithmeticParser</span></a></span></div><div class="ni n2 "><span class="nh "><a href="RationalParser$.html"><span class="micon ob"></span><span>RationalParser</span></a></span></div><div class="ni n2 "><span class="nh "><a href="RationalParserException.html"><span class="micon cl"></span><span>RationalParserException</span></a></span></div><div class="ni n2 "><span class="nh "><a href="RepeatingDecimal.html"><span class="micon cl"></span><span>RepeatingDecimal</span></a></span></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="ShuntingYardParser$.html"><span class="micon ob"></span><span>ShuntingYardParser</span></a></span><div class="ni n3 "><span class="nh "><a href="ShuntingYardParser$$InfixToken.html"><span class="micon cl"></span><span>InfixToken</span></a></span></div><div class="ni n3 "><span class="nh "><a href="ShuntingYardParser$$ShuntingYard.html"><span class="micon cl"></span><span>ShuntingYard</span></a></span></div><div class="ni n3 "><span class="nh "><a href="ShuntingYardParser$$ShuntingYard$.html"><span class="micon ob"></span><span>ShuntingYard</span></a></span></div></div><div class="ni n2 "><span class="nh "><a href="SignificantSpaceParserException.html"><span class="micon cl"></span><span>SignificantSpaceParserException</span></a></span></div><div class="ni n2"><span class="nh "><button class="ar icon-button "></button><a href="SignificantSpaceParsers.html"><span class="micon cl"></span><span>SignificantSpaceParsers</span></a></span><div class="ni n3 "><span class="nh "><a href="SignificantSpaceParsers$ParserOps.html"><span class="micon cl"></span><span>ParserOps</span></a></span></div><div class="ni n3 "><span class="nh "><a href="SignificantSpaceParsers$ParserOptionOps.html"><span class="micon cl"></span><span>ParserOptionOps</span></a></span></div><div class="ni n3 "><span class="nh "><a href="SignificantSpaceParsers$RegexOps.html"><span class="micon cl"></span><span>RegexOps</span></a></span></div></div><div class="ni n2 "><span class="nh "><a href="TokenType.html"><span class="micon en"></span><span>TokenType</span></a></span></div><div class="ni n2 "><span class="nh "><a href="ValuableNumber.html"><span class="micon tr"></span><span>ValuableNumber</span></a></span></div><div class="ni n2 "><span class="nh "><a href="VulgarFractionNumber.html"><span class="micon cl"></span><span>VulgarFractionNumber</span></a></span></div></div></div></nav></div><div id="footer" class="body-small"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div><div id="scaladoc-searchBar"></div><div id="main"><div class="breadcrumbs container"><a href="../../../../../index.html">number-expression</a>/<a href="../../expression.html">com.phasmidsoftware.number.expression</a>/<a href="../parse.html">com.phasmidsoftware.number.expression.parse</a>/<a href="ExpressionParser.html">ExpressionParser</a>/<a href="ExpressionParser$Term.html">Term</a></div><div id="content" class="body-medium"><div><div class="cover-header">
+ <span class="icon"><span class="micon cl"></span></span>
+ <h1 class="h600 single">Term</h1>
+</div>
+<div class="fqname body-large">
+ <span>com.phasmidsoftware.number.expression.parse.ExpressionParser.Term</span>
+</div>
+<div class="main-signature mono-small-block">
+ <div class="signature">
+  <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="ExpressionParser$Term.html" t="n" class="documentableName ">Term</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">f</span>: <a href="ExpressionParser.html" t="t">ExpressionParser</a>.<span t="k">this</span>.<a href="ExpressionParser$Factor.html" t="t">Factor</a>, <span t="k"></span><span data-unresolved-link="" t="n">fs</span>: <span data-unresolved-link="" t="t">List</span>[<span data-unresolved-link="" t="t">String</span> <a href="ExpressionParser.html" t="t">ExpressionParser</a>.<span t="k">this</span>.<a href="../../../../../scala/util/parsing/combinator/Parsers$$tilde$.html" t="t">~</a> <a href="ExpressionParser.html" t="t">ExpressionParser</a>.<span t="k">this</span>.<a href="ExpressionParser$Factor.html" t="t">Factor</a>])<span t="k"> extends </span><a href="ExpressionParser$Tokens.html" t="t">Tokens</a></span><span class="signature-long"></span>
+ </div>
+</div>
+<div class="cover">
+ <div class="doc">
+  <p>Represents a Term as part of an expression, consisting of a leading <code>Factor</code> followed by a list of pairs containing an operator (<code>String</code>) and a subsequent <code>Factor</code>.</p>
+ </div>
+ <section id="attributes">
+  <h2 class="h500">Value parameters</h2>
+  <dl class="attributes">
+   <dt class="body-small">
+    f
+   </dt>
+   <dd class="body-medium">
+    <p>The leading <code>Factor</code> in the term.</p>
+   </dd>
+   <dt class="body-small">
+    fs
+   </dt>
+   <dd class="body-medium">
+    <p>A list of operator-factor pairs, where each pair contains a string operator and a <code>Factor</code>.</p>
+   </dd>
+  </dl>
+  <h2 class="h500">Attributes</h2>
+  <dl class="attributes">
+   <dt class="body-small">
+    Constructor
+   </dt>
+   <dd class="body-medium">
+    <p>Creates a Term with a leading <code>Factor</code> and a sequence of operator-factor pairs.</p>
+   </dd>
+   <dt class="body-small">
+    Graph
+   </dt>
+   <dd class="body-medium">
+    <div id="inheritance-diagram" class="diagram-class showGraph">
+     <button type="button" class="label-only-button" onclick="zoomOut()">Reset zoom</button><button type="button" class="label-only-button" onclick="hideGraph()">Hide graph</button><button type="button" class="label-only-button" onclick="showGraph()">Show graph</button>
+     <svg id="graph"></svg>
+     <script type="text/dot" id="dot"> digraph g {
+ node0 [id=node0, label="<span style=\"color: #FFFFFF;\">class <a href=\"ExpressionParser.html\" t=\"n\">ExpressionParser</a>.<span t=\"k\">this</span>.<a href=\"ExpressionParser$Term.html\" t=\"t\">Term</a></span>", class="class vertex"];
+node1 [id=node1, label="<span style=\"color: #FFFFFF;\">class <span data-unresolved-link=\"\" t=\"n\">Object</span></span>", class="class vertex"];
+node2 [id=node2, label="<span style=\"color: #FFFFFF;\">class <span data-unresolved-link=\"\" t=\"n\">Any</span></span>", class="class vertex"];
+node3 [id=node3, label="<span style=\"color: #FFFFFF;\">trait <span data-unresolved-link=\"\" t=\"n\">Matchable</span></span>", class="trait vertex"];
+node4 [id=node4, label="<span style=\"color: #FFFFFF;\">trait <a href=\"ExpressionParser.html\" t=\"n\">ExpressionParser</a>.<span t=\"k\">this</span>.<a href=\"ExpressionParser$Tokens.html\" t=\"t\">Tokens</a></span>", class="trait vertex"];
+node5 [id=node5, label="<span style=\"color: #FFFFFF;\">trait <span data-unresolved-link=\"\" t=\"n\">Product</span></span>", class="trait vertex"];
+node6 [id=node6, label="<span style=\"color: #FFFFFF;\">trait <span data-unresolved-link=\"\" t=\"n\">Equals</span></span>", class="trait vertex"];
+node7 [id=node7, label="<span style=\"color: #FFFFFF;\">class <span data-unresolved-link=\"\" t=\"n\">Serializable</span></span>", class="class vertex"];
+
+
+ node0 -> node1;
+node1 -> node2;
+node1 -> node3;
+node3 -> node2;
+node0 -> node4;
+node4 -> node1;
+node0 -> node5;
+node5 -> node2;
+node5 -> node6;
+node6 -> node2;
+node0 -> node7;
+node7 -> node2;
+
+}
+</script>
+    </div>
+   </dd>
+   <dt class="body-small">
+    Supertypes
+   </dt>
+   <dd class="body-medium">
+    <div class="mono-small-block supertypes">
+     <div>
+      trait <span data-unresolved-link="" t="n">Serializable</span>
+     </div>
+     <div>
+      trait <span data-unresolved-link="" t="n">Product</span>
+     </div>
+     <div>
+      trait <span data-unresolved-link="" t="n">Equals</span>
+     </div>
+     <div>
+      trait <a href="ExpressionParser.html" t="n">ExpressionParser</a>.<span t="k">this</span>.<a href="ExpressionParser$Tokens.html" t="t">Tokens</a>
+     </div>
+     <div>
+      class <span data-unresolved-link="" t="n">Object</span>
+     </div>
+     <div>
+      trait <span data-unresolved-link="" t="n">Matchable</span>
+     </div>
+     <div>
+      class <span data-unresolved-link="" t="n">Any</span>
+     </div><span class="show-all-code show-content text-button h100">Show all</span>
+    </div>
+   </dd>
+  </dl>
+ </section>
+</div>
+<section id="members-list">
+ <h2 class="h500">Members list</h2>
+ <div class="documentableFilter">
+  <div class="filtersContainer"></div><input class="filterableInput" placeholder="Filter by any phrase" data-test-id="filterBarInput" type="search"><button class="clearButton label-only-button" data-test-id="filterBarClearButton">Clear all</button>
+ </div>
+ <div class="membersList expand">
+  <div class="tabs">
+   <div class="contents">
+    <section id="Value-members">
+     <div data-togglable="Value members" class="tab expand">
+      <div class="member-group-header">
+       <h3 data-togglable="Value members" class="h400">Value members</h3>
+      </div>
+      <section id="Concrete-methods">
+       <div class="documentableList expand">
+        <div class="documentableList-expander">
+         <button class="icon-button show-content expand"></button>
+         <h4 class="groupHeader h200">Concrete methods</h4>
+        </div>
+        <div class="documentableElement" id="factorVal-e8b">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ExpressionParser$Term.html#factorVal-e8b" t="n" class="documentableName ">factorVal</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">t</span>: <span data-unresolved-link="" t="t">String</span> <a href="ExpressionParser.html" t="t">ExpressionParser</a>.<span t="k">this</span>.<a href="../../../../../scala/util/parsing/combinator/Parsers$$tilde$.html" t="t">~</a> <a href="ExpressionParser.html" t="t">ExpressionParser</a>.<span t="k">this</span>.<a href="ExpressionParser$Factor.html" t="t">Factor</a>): <span data-unresolved-link="" t="t">Try</span>[<a href="Expression.html" t="t">Expression</a>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Evaluates the value of a <code>String ~ Factor</code> pair based on the operator provided in the <code>String</code>.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Evaluates the value of a <code>String ~ Factor</code> pair based on the operator provided in the <code>String</code>.</p>
+              <p>The function supports two operators:</p>
+              <ul>
+               <li><code>"*"</code>: Multiplication, directly evaluates the factor's value.</li>
+               <li><code>"/"</code>: Division, applies the division operation using the <code>one</code> element and the factor's value.</li>
+              </ul>
+              <p>If an unsupported operator is encountered, it returns a failure with a <code>ParseException</code>.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               t
+              </dt>
+              <dd class="body-medium">
+               <p>a pair consisting of an operator (<code>String</code>) and a <code>Factor</code></p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a <code>Try[Expression]</code> containing the evaluated result if the operator is supported and the factor can be evaluated, or a failure if the operator is unsupported or the evaluation fails</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="value-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ExpressionParser$Term.html#value-0" t="n" class="documentableName ">value</a>: <span data-unresolved-link="" t="t">Try</span>[<a href="Expression.html" t="t">Expression</a>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Evaluates the expression and returns the result wrapped in a <code>Try</code>. The <code>Try</code> indicates whether the evaluation was successful (<code>Success</code>) or resulted in an error (<code>Failure</code>).</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Evaluates the expression and returns the result wrapped in a <code>Try</code>. The <code>Try</code> indicates whether the evaluation was successful (<code>Success</code>) or resulted in an error (<code>Failure</code>).</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a <code>Try[Expression]</code> containing either the result of the evaluation or an error.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </section>
+      <section id="Inherited-methods">
+       <div class="documentableList expand">
+        <div class="documentableList-expander">
+         <button class="icon-button show-content expand"></button>
+         <h4 class="groupHeader h200">Inherited methods</h4>
+        </div>
+        <div class="documentableElement" id="productElementNames-0" data-f-inherited="Product">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ExpressionParser$Term.html#productElementNames-0" t="n" class="documentableName ">productElementNames</a>: <span data-unresolved-link="" t="t">Iterator</span>[<span data-unresolved-link="" t="t">String</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <span data-unresolved-link="">Product</span>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="productIterator-0" data-f-inherited="Product">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ExpressionParser$Term.html#productIterator-0" t="n" class="documentableName ">productIterator</a>: <span data-unresolved-link="" t="t">Iterator</span>[<span data-unresolved-link="" t="t">Any</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <span data-unresolved-link="">Product</span>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </section>
+     </div>
+    </section>
+   </div>
+  </div>
+ </div>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Value parameters</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Value-members">Value members</a><ul><li><a href="#Concrete-methods">Concrete methods</a></li><li><a href="#Inherited-methods">Inherited methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>

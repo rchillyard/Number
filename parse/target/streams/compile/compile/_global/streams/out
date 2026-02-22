@@ -1,0 +1,11 @@
+[0m[[0m[31merror[0m] [0m[0m[31m[31m-- [E008] Not Found Error: /Users/rhillyard/IdeaProjects/Number2026/parse/src/main/scala/com/phasmidsoftware/number/parse/LaTeXParser.scala:176:63 [0m[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m176 |[0m    (implicitMul ~ ((ws ~> ([31m"*"[0m | [31m"/"[0m)) ~ (ws ~> implicitMul)).rep) ^^ {[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m    |[0m                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0mvalue rep is not a member of com.phasmidsoftware.number.parse.LaTeXParser.Parser[String ~[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m  com.phasmidsoftware.number.expression.expr.Expression][0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m-- [E008] Not Found Error: /Users/rhillyard/IdeaProjects/Number2026/parse/src/main/scala/com/phasmidsoftware/number/parse/LaTeXParser.scala:188:49 [0m[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m188 |[0m    (term ~ ((ws ~> ([31m"+"[0m | [31m"-"[0m)) ~ (ws ~> term)).rep) ^^ {[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m    |[0m            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0mvalue rep is not a member of com.phasmidsoftware.number.parse.LaTeXParser.Parser[String ~[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m  com.phasmidsoftware.number.expression.expr.Expression][0m
+[0m[[0m[31merror[0m] [0m[0mtwo errors found[0m

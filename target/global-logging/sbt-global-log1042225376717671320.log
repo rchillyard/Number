@@ -1,0 +1,38 @@
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(generateMermaidDiagrams, None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0mEvaluating tasks: generateMermaidDiagrams[0m
+[0m[[0m[0mdebug[0m] [0m[0mRunning task... Cancel: Signal, check cycles: false, forcegc: true[0m
+[0m[[0m[0minfo[0m] [0m[0mScanning source directories: /Users/rhillyard/IdeaProjects/Number2026/core/src/main/scala, /Users/rhillyard/IdeaProjects/Number2026/algebra/src/main/scala, /Users/rhillyard/IdeaProjects/Number2026/expression/src/main/scala, /Users/rhillyard/IdeaProjects/Number2026/parse/src/main/scala, /Users/rhillyard/IdeaProjects/Number2026/top/src/main/scala, /Users/rhillyard/IdeaProjects/Number2026/dimensions/src/main/scala[0m
+[0m[[0m[0minfo[0m] [0m[0mFound 164 Scala files[0m
+[0m[[0m[0minfo[0m] [0m[0mDEBUG Rational.scala: Found Rational extends NumberLike[0m
+[0m[[0m[0minfo[0m] [0m[0mDEBUG Rational.scala: Found RationalHelper extends AnyVal[0m
+[0m[[0m[0minfo[0m] [0m[0mDEBUG Rational.scala: Found RationalFractional extends RationalIsFractional[0m
+[0m[[0m[0minfo[0m] [0m[0mDEBUG Rational.scala: Found RationalIsOrdering extends Ordering[0m
+[0m[[0m[0minfo[0m] [0m[0mDEBUG Rational.scala: Found RationalIsNumeric extends RationalIsOrdering[0m
+[0m[[0m[0minfo[0m] [0m[0mDEBUG Rational.scala: Found RationalIsFractional extends RationalIsNumeric[0m
+[0m[[0m[0minfo[0m] [0m[0mDEBUG Rational.scala: Found RationalException extends Exception[0m
+[0m[[0m[0minfo[0m] [0m[0mDEBUG Numerical.scala: Found Numerical extends NumberLike[0m
+[0m[[0m[0minfo[0m] [0m[0mDEBUG Solution.scala: Found Solution extends NumberLike[0m
+[0m[[0m[0minfo[0m] [0m[0mDEBUG Expression.scala: Found Expression extends NumberLike[0m
+[0m[[0m[0minfo[0m] [0m[0mFound 292 traits/classes[0m
+[0m[[0m[0minfo[0m] [0m[0mSimple name index has 193 entries[0m
+[0m[[0m[0minfo[0m] [0m[0mGenerating diagram group: CoreTypes[0m
+[0m[[0m[33mwarn[0m] [0m[0m  No subclasses found for com.phasmidsoftware.number.core.numerical.NumberLike[0m
+[0m[[0m[0minfo[0m] [0m[0m  Found 4 subclasses for Factor: Scalar, Logarithmic, InversePower, Composite[0m
+[0m[[0m[0minfo[0m] [0m[0mGenerated diagram: /Users/rhillyard/IdeaProjects/Number2026/docs/diagrams/CoreTypes.mmd[0m
+[0m[[0m[0minfo[0m] [0m[0mGenerating diagram group: ExpressionTypes[0m
+[0m[[0m[0minfo[0m] [0m[0m  Found 1 subclasses for Expression: AtomicExpression[0m
+[0m[[0m[0minfo[0m] [0m[0mGenerated diagram: /Users/rhillyard/IdeaProjects/Number2026/docs/diagrams/ExpressionTypes.mmd[0m
+[0m[[0m[0minfo[0m] [0m[0mGenerating diagram group: AlgebraTypes[0m
+[0m[[0m[33mwarn[0m] [0m[0m  No subclasses found for com.phasmidsoftware.number.algebra.core.Numeric[0m
+[0m[[0m[0minfo[0m] [0m[0m  Found 1 subclasses for Renderable: MaybeFuzzy[0m
+[0m[[0m[33mwarn[0m] [0m[0m  No subclasses found for com.phasmidsoftware.number.algebra.core.TypeSafe[0m
+[0m[[0m[0minfo[0m] [0m[0mGenerated diagram: /Users/rhillyard/IdeaProjects/Number2026/docs/diagrams/AlgebraTypes.mmd[0m
+[0m[[0m[0minfo[0m] [0m[0mGenerating diagram group: TopLevelTypes[0m
+[0m[[0m[33mwarn[0m] [0m[0m  Type not found in hierarchy map: com.phasmidsoftware.number.top.Quantity[0m
+[0m[[0m[33mwarn[0m] [0m[0mNo hierarchies found for group: TopLevelTypes[0m
+[0m[[0m[0minfo[0m] [0m[0mGenerating diagram group: DimensionTypes[0m
+[0m[[0m[33mwarn[0m] [0m[0m  Type not found in hierarchy map: com.phasmidsoftware.number.dimensions.core.Dimension[0m
+[0m[[0m[33mwarn[0m] [0m[0mNo hierarchies found for group: DimensionTypes[0m
+[0m[[0m[0minfo[0m] [0m[0mDiagrams written to /Users/rhillyard/IdeaProjects/Number2026/docs/diagrams[0m
+[0m[[0m[32msuccess[0m] [0m[0mTotal time: 1 s, completed Jan 30, 2026, 10:17:43 AM[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(idea-shell, None, None)[0m

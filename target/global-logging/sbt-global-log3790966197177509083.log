@@ -1,0 +1,109 @@
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(sonaUpload, None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0mRunning task... Cancel: Signal, check cycles: false, forcegc: true[0m
+[0m[[0m[0mdebug[0m] [0m[0mRunning task... Cancel: Signal, check cycles: false, forcegc: true[0m
+[0m[[0m[0minfo[0m] [0m[0muploading bundle to the Central Portal (attempt: 1)[0m
+[0m[[0m[0minfo[0m] [0m[0muploading...[0m
+[0m[[0m[0minfo[0m] [0m[0muploading...[0m
+[0m[[0m[0minfo[0m] [0m[0mdeployment com.phasmidsoftware:number:1.5.7:7ca8cb70 VALIDATING 1/n[0m
+[0m[[0m[0minfo[0m] [0m[0mdeployment com.phasmidsoftware:number:1.5.7:7ca8cb70 VALIDATING 2/n[0m
+[0m[[0m[0minfo[0m] [0m[0mdeployment com.phasmidsoftware:number:1.5.7:7ca8cb70 FAILED 3/n[0m
+[0m[[0m[31merror[0m] [0m[0mjava.lang.RuntimeException: deployment 5cae9eff-82dc-4de2-9fef-57a969805278 failed with validation errors:[0m
+[0m[[0m[31merror[0m] [0m[0m  - pkg:maven/com.phasmidsoftware/number-parse_3@1.5.5[0m
+[0m[[0m[31merror[0m] [0m[0m    - Component with package url: 'pkg:maven/com.phasmidsoftware/number-parse_3@1.5.5' already exists[0m
+[0m[[0m[31merror[0m] [0m[0m  - pkg:maven/com.phasmidsoftware/number-expression_3@1.5.6[0m
+[0m[[0m[31merror[0m] [0m[0m    - Component with package url: 'pkg:maven/com.phasmidsoftware/number-expression_3@1.5.6' already exists[0m
+[0m[[0m[31merror[0m] [0m[0m  - pkg:maven/com.phasmidsoftware/number-parse_3@1.5.6[0m
+[0m[[0m[31merror[0m] [0m[0m    - Component with package url: 'pkg:maven/com.phasmidsoftware/number-parse_3@1.5.6' already exists[0m
+[0m[[0m[31merror[0m] [0m[0m  - pkg:maven/com.phasmidsoftware/number-core_3@1.5.6[0m
+[0m[[0m[31merror[0m] [0m[0m    - Component with package url: 'pkg:maven/com.phasmidsoftware/number-core_3@1.5.6' already exists[0m
+[0m[[0m[31merror[0m] [0m[0m  - pkg:maven/com.phasmidsoftware/number-expression_3@1.5.5[0m
+[0m[[0m[31merror[0m] [0m[0m    - Component with package url: 'pkg:maven/com.phasmidsoftware/number-expression_3@1.5.5' already exists[0m
+[0m[[0m[31merror[0m] [0m[0m  - pkg:maven/com.phasmidsoftware/number-core_3@1.5.5[0m
+[0m[[0m[31merror[0m] [0m[0m    - Component with package url: 'pkg:maven/com.phasmidsoftware/number-core_3@1.5.5' already exists[0m
+[0m[[0m[31merror[0m] [0m[0m  - pkg:maven/com.phasmidsoftware/number-algebra_3@1.5.6[0m
+[0m[[0m[31merror[0m] [0m[0m    - Component with package url: 'pkg:maven/com.phasmidsoftware/number-algebra_3@1.5.6' already exists[0m
+[0m[[0m[31merror[0m] [0m[0m  - pkg:maven/com.phasmidsoftware/number-top_3@1.5.5[0m
+[0m[[0m[31merror[0m] [0m[0m    - Component with package url: 'pkg:maven/com.phasmidsoftware/number-top_3@1.5.5' already exists[0m
+[0m[[0m[31merror[0m] [0m[0m  - pkg:maven/com.phasmidsoftware/number-algebra_3@1.5.5[0m
+[0m[[0m[31merror[0m] [0m[0m    - Component with package url: 'pkg:maven/com.phasmidsoftware/number-algebra_3@1.5.5' already exists[0m
+[0m[[0m[31merror[0m] [0m[0m  - pkg:maven/com.phasmidsoftware/number-top_3@1.5.6[0m
+[0m[[0m[31merror[0m] [0m[0m    - Component with package url: 'pkg:maven/com.phasmidsoftware/number-top_3@1.5.6' already exists[0m
+[0m[[0m[31merror[0m] [0m[0m	at scala.sys.package$.error(package.scala:30)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.internal.sona.SonaClient.waitForDeploy(Sona.scala:113)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.internal.sona.SonaClient.waitForDeploy(Sona.scala:116)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.internal.sona.SonaClient.waitForDeploy(Sona.scala:116)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.internal.sona.Sona.uploadBundle(Sona.scala:37)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.internal.librarymanagement.Publishing$.sonatypeReleaseAction(Publishing.scala:57)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.internal.librarymanagement.Publishing$.$anonfun$sonaUpload$1(Publishing.scala:27)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.Command$.$anonfun$command$2(Command.scala:98)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.Command$.process(Command.scala:194)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.MainLoop$.$anonfun$processCommand$7(MainLoop.scala:267)[0m
+[0m[[0m[31merror[0m] [0m[0m	at scala.Option.getOrElse(Option.scala:189)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.MainLoop$.process$1(MainLoop.scala:267)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.MainLoop$.processCommand(MainLoop.scala:312)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.MainLoop$.$anonfun$next$5(MainLoop.scala:171)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.State$StateOpsImpl$.runCmd$1(State.scala:290)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.State$StateOpsImpl$.process$extension(State.scala:326)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.MainLoop$.$anonfun$next$4(MainLoop.scala:171)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.internal.util.ErrorHandling$.wideConvert(ErrorHandling.scala:24)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.MainLoop$.next(MainLoop.scala:171)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.MainLoop$.run(MainLoop.scala:152)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.MainLoop$.$anonfun$runWithNewLog$1(MainLoop.scala:127)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.io.Using.apply(Using.scala:41)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.MainLoop$.runWithNewLog(MainLoop.scala:120)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.MainLoop$.runAndClearLast(MainLoop.scala:74)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.MainLoop$.runLoggedLoop(MainLoop.scala:59)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.MainLoop$.runLogged(MainLoop.scala:50)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.StandardMain$.runManaged(Main.scala:225)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.xMain$.$anonfun$run$11(Main.scala:136)[0m
+[0m[[0m[31merror[0m] [0m[0m	at scala.util.DynamicVariable.withValue(DynamicVariable.scala:62)[0m
+[0m[[0m[31merror[0m] [0m[0m	at scala.Console$.withIn(Console.scala:230)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.internal.util.Terminal$.withIn(Terminal.scala:620)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.internal.util.Terminal$.$anonfun$withStreams$1(Terminal.scala:400)[0m
+[0m[[0m[31merror[0m] [0m[0m	at scala.util.DynamicVariable.withValue(DynamicVariable.scala:62)[0m
+[0m[[0m[31merror[0m] [0m[0m	at scala.Console$.withOut(Console.scala:167)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.internal.util.Terminal$.$anonfun$withOut$2(Terminal.scala:610)[0m
+[0m[[0m[31merror[0m] [0m[0m	at scala.util.DynamicVariable.withValue(DynamicVariable.scala:62)[0m
+[0m[[0m[31merror[0m] [0m[0m	at scala.Console$.withErr(Console.scala:196)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.internal.util.Terminal$.withOut(Terminal.scala:610)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.internal.util.Terminal$.withStreams(Terminal.scala:400)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.xMain$.withStreams$1(Main.scala:89)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.xMain$.run(Main.scala:124)[0m
+[0m[[0m[31merror[0m] [0m[0m	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)[0m
+[0m[[0m[31merror[0m] [0m[0m	at java.base/java.lang.reflect.Method.invoke(Method.java:580)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.internal.XMainConfiguration.run(XMainConfiguration.java:59)[0m
+[0m[[0m[31merror[0m] [0m[0m	at sbt.xMain.run(Main.scala:48)[0m
+[0m[[0m[31merror[0m] [0m[0m	at xsbt.boot.Launch$.$anonfun$run$1(Launch.scala:149)[0m
+[0m[[0m[31merror[0m] [0m[0m	at xsbt.boot.Launch$.withContextLoader(Launch.scala:176)[0m
+[0m[[0m[31merror[0m] [0m[0m	at xsbt.boot.Launch$.run(Launch.scala:149)[0m
+[0m[[0m[31merror[0m] [0m[0m	at xsbt.boot.Launch$.$anonfun$apply$1(Launch.scala:44)[0m
+[0m[[0m[31merror[0m] [0m[0m	at xsbt.boot.Launch$.launch(Launch.scala:159)[0m
+[0m[[0m[31merror[0m] [0m[0m	at xsbt.boot.Launch$.apply(Launch.scala:44)[0m
+[0m[[0m[31merror[0m] [0m[0m	at xsbt.boot.Launch$.apply(Launch.scala:21)[0m
+[0m[[0m[31merror[0m] [0m[0m	at xsbt.boot.Boot$.runImpl(Boot.scala:78)[0m
+[0m[[0m[31merror[0m] [0m[0m	at xsbt.boot.Boot$.run(Boot.scala:73)[0m
+[0m[[0m[31merror[0m] [0m[0m	at xsbt.boot.Boot$.main(Boot.scala:21)[0m
+[0m[[0m[31merror[0m] [0m[0m	at xsbt.boot.Boot.main(Boot.scala)[0m
+[0m[[0m[31merror[0m] [0m[0mdeployment 5cae9eff-82dc-4de2-9fef-57a969805278 failed with validation errors:[0m
+[0m[[0m[31merror[0m] [0m[0m  - pkg:maven/com.phasmidsoftware/number-parse_3@1.5.5[0m
+[0m[[0m[31merror[0m] [0m[0m    - Component with package url: 'pkg:maven/com.phasmidsoftware/number-parse_3@1.5.5' already exists[0m
+[0m[[0m[31merror[0m] [0m[0m  - pkg:maven/com.phasmidsoftware/number-expression_3@1.5.6[0m
+[0m[[0m[31merror[0m] [0m[0m    - Component with package url: 'pkg:maven/com.phasmidsoftware/number-expression_3@1.5.6' already exists[0m
+[0m[[0m[31merror[0m] [0m[0m  - pkg:maven/com.phasmidsoftware/number-parse_3@1.5.6[0m
+[0m[[0m[31merror[0m] [0m[0m    - Component with package url: 'pkg:maven/com.phasmidsoftware/number-parse_3@1.5.6' already exists[0m
+[0m[[0m[31merror[0m] [0m[0m  - pkg:maven/com.phasmidsoftware/number-core_3@1.5.6[0m
+[0m[[0m[31merror[0m] [0m[0m    - Component with package url: 'pkg:maven/com.phasmidsoftware/number-core_3@1.5.6' already exists[0m
+[0m[[0m[31merror[0m] [0m[0m  - pkg:maven/com.phasmidsoftware/number-expression_3@1.5.5[0m
+[0m[[0m[31merror[0m] [0m[0m    - Component with package url: 'pkg:maven/com.phasmidsoftware/number-expression_3@1.5.5' already exists[0m
+[0m[[0m[31merror[0m] [0m[0m  - pkg:maven/com.phasmidsoftware/number-core_3@1.5.5[0m
+[0m[[0m[31merror[0m] [0m[0m    - Component with package url: 'pkg:maven/com.phasmidsoftware/number-core_3@1.5.5' already exists[0m
+[0m[[0m[31merror[0m] [0m[0m  - pkg:maven/com.phasmidsoftware/number-algebra_3@1.5.6[0m
+[0m[[0m[31merror[0m] [0m[0m    - Component with package url: 'pkg:maven/com.phasmidsoftware/number-algebra_3@1.5.6' already exists[0m
+[0m[[0m[31merror[0m] [0m[0m  - pkg:maven/com.phasmidsoftware/number-top_3@1.5.5[0m
+[0m[[0m[31merror[0m] [0m[0m    - Component with package url: 'pkg:maven/com.phasmidsoftware/number-top_3@1.5.5' already exists[0m
+[0m[[0m[31merror[0m] [0m[0m  - pkg:maven/com.phasmidsoftware/number-algebra_3@1.5.5[0m
+[0m[[0m[31merror[0m] [0m[0m    - Component with package url: 'pkg:maven/com.phasmidsoftware/number-algebra_3@1.5.5' already exists[0m
+[0m[[0m[31merror[0m] [0m[0m  - pkg:maven/com.phasmidsoftware/number-top_3@1.5.6[0m
+[0m[[0m[31merror[0m] [0m[0m    - Component with package url: 'pkg:maven/com.phasmidsoftware/number-top_3@1.5.6' already exists[0m
+[0m[[0m[31merror[0m] [0m[0mUse 'last' for the full log.[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(idea-shell, None, None)[0m

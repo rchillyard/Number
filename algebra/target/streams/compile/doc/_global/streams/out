@@ -1,0 +1,106 @@
+[0m[[0m[0minfo[0m] [0m[0mMain Scala API documentation to /Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/api...[0m
+[0m[[0m[0mdebug[0m] [0m[0mReturning already retrieved and compiled bridge: /Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-sbt-bridge/3.7.3/scala3-sbt-bridge-3.7.3.jar.[0m
+[0m[[0m[0mdebug[0m] [0m[0mCalling Dottydoc with arguments  (ScaladocInterface):[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-d[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/api[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-encoding[0m
+[0m[[0m[0mdebug[0m] [0m[0m	UTF-8[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-unchecked[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-deprecation[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-feature[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-Wvalue-discard[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-Wnonunit-statement[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-explain[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-Wunused:imports[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-Wunused:privates[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-Wunused:locals[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-Wconf:msg=Couldn't resolve a member:s[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-project[0m
+[0m[[0m[0mdebug[0m] [0m[0m	number-algebra[0m
+[0m[[0m[0mdebug[0m] [0m[0m	-classpath[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/core/target/scala-3.7.3/classes:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/typesafe/config/1.4.5/config-1.4.5.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.7.3/scala3-library_3-3.7.3.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.5.29/logback-classic-1.5.29.jar:/Users/rhillyard/.ivy2/local/com.phasmidsoftware/flog_3/1.0.12/jars/flog_3.jar:/Users/rhillyard/.ivy2/local/com.phasmidsoftware/matchers_3/1.0.13/jars/matchers_3.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_3/2.4.0/scala-parser-combinators_3-2.4.0.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/spire_3/0.18.0/spire_3-0.18.0.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.13.0/cats-kernel_3-2.13.0.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.13.0/cats-core_3-2.13.0.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.29/logback-core-1.5.29.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/spire-macros_3/0.18.0/spire-macros_3-0.18.0.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/spire-platform_3/0.18.0/spire-platform_3-0.18.0.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/spire-util_3/0.18.0/spire-util_3-0.18.0.jar:/Users/rhillyard/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/algebra_3/2.8.0/algebra_3-2.8.0.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/AnyContext.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/Approximate.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/Branched.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/C.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/Can.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/CanAdd.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/CanAddAndSubtract.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/CanMultiply.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/CanMultiplyAndDivide.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/CanNegate.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/CanNormalize.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/CanPower.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/Circle.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/Context.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/Convertible.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/DyadicOperator.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/DyadicOps.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/Exactitude.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/FuzzyEq.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/ImpossibleContext.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/Lazy.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/MaybeFuzzy.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/N.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/Nameable.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/Negatable.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/Normalizable.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/Numeric.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/Q.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/R.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/RationalPowers.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/Renderable.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/RestrictedContext.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/Scalable.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/TypeSafe.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/Unitary.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/Valuable.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/Z.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/core/Zeroable.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/Algebraic.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/Angle.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/BinaryExponential.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/Complex.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/Eager.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/Exact.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/ExactNumber.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/Exponential.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/Extractors.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/Functional.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/InversePower.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/IsInteger.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/IsUnity.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/IsZero.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/LinearSolution.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/Nat.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/NatZero.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/NaturalExponential.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/NoScalar.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/Number.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/QuadraticSolution.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/Radians.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/RationalNumber.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/Real.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/Scalar.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/Solution.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/Structure.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/Succ.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/Transformed.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/eager/WholeNumber.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/util/AlgebraException.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/util/Converters.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/util/FP.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/util/LatexRenderer.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	/Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/classes/com/phasmidsoftware/number/algebra/util/TryUsing.tasty[0m
+[0m[[0m[0minfo[0m] [0m[0mSkipping unused scalacOptions: -Wvalue-discard, -Wnonunit-statement, -Wconf[0m
+[0m[[0m[33mwarn[0m] [0m[0mFlag -classpath set repeatedly[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: algebra/src/main/scala/com/phasmidsoftware/number/algebra/core/Can.scala:317:6 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m317 |[0m  [33mdef[0m [36masT[0m: [35mT[0m = {[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m      ^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m  Couldn't resolve a member for the given link query: AlgebraException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/InversePower.scala:566:6 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m566 |[0m  [33mdef[0m [36mnormalizeIntegralRoot[0m([36mradicand[0m: [35mInt[0m, [36mrootDegree[0m: [35mInt[0m): ([35mInt[0m, [35mInt[0m) = {[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m      ^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m  Couldn't resolve a member for the given link query: AlgebraException[0m
+[0m[[0m[33mwarn[0m] [0m[0mthree warnings found[0m
+[0m[[0m[0minfo[0m] [0m[0mMain Scala API documentation successful.[0m

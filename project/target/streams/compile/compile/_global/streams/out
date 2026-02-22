@@ -1,0 +1,7 @@
+[0m[[0m[31merror[0m] [0m[0m/Users/rhillyard/IdeaProjects/Number2026/project/MermaidDiagramGenerator.scala:7:6: classes cannot be lazy[0m
+[0m[[0m[31merror[0m] [0m[0mlazy val generateMermaidDiagrams = taskKey[Unit]("Generate Mermaid class diagrams from sealed traits")[0m
+[0m[[0m[31merror[0m] [0m[0m     ^[0m
+[0m[[0m[31merror[0m] [0m[0m/Users/rhillyard/IdeaProjects/Number2026/project/MermaidDiagramGenerator.scala:9:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mgenerateMermaidDiagrams := {[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0mtwo errors found[0m

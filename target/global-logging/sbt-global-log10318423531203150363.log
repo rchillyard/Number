@@ -1,0 +1,432 @@
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(publishSigned, None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0mEvaluating tasks: expression / publishSigned, parse / publishSigned, top / publishSigned, algebra / publishSigned, core / publishSigned, publishSigned[0m
+[0m[[0m[0mdebug[0m] [0m[0mRunning task... Cancel: Signal, check cycles: false, forcegc: true[0m
+[0m[[0m[0minfo[0m] [0m[0mWrote /Users/rhillyard/IdeaProjects/Number2026/core/target/scala-3.7.3/number-core_3-1.5.6.pom[0m
+[0m[[0m[0minfo[0m] [0m[0mWrote /Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/number-algebra_3-1.5.6.pom[0m
+[0m[[0m[0minfo[0m] [0m[0mWrote /Users/rhillyard/IdeaProjects/Number2026/expression/target/scala-3.7.3/number-expression_3-1.5.6.pom[0m
+[0m[[0m[0minfo[0m] [0m[0mWrote /Users/rhillyard/IdeaProjects/Number2026/parse/target/scala-3.7.3/number-parse_3-1.5.6.pom[0m
+[0m[[0m[0minfo[0m] [0m[0mWrote /Users/rhillyard/IdeaProjects/Number2026/top/target/scala-3.7.3/number-top_3-1.5.6.pom[0m
+[0m[[0m[0minfo[0m] [0m[0mcompiling 86 Scala sources and 1 Java source to /Users/rhillyard/IdeaProjects/Number2026/core/target/scala-3.7.3/classes ...[0m
+[0m[[0m[0minfo[0m] [0m[0mdone compiling[0m
+[0m[[0m[33mwarn[0m] [0m[0mmultiple main classes detected: run 'show discoveredMainClasses' to see the list[0m
+[0m[[0m[0minfo[0m] [0m[0mTest Scala API documentation to /Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/test-api...[0m
+[0m[[0m[33mwarn[0m] [0m[0mmultiple main classes detected: run 'show discoveredMainClasses' to see the list[0m
+[0m[[0m[0minfo[0m] [0m[0mMain Scala API documentation to /Users/rhillyard/IdeaProjects/Number2026/algebra/target/scala-3.7.3/api...[0m
+[0m[[0m[0minfo[0m] [0m[0mMain Scala API documentation to /Users/rhillyard/IdeaProjects/Number2026/parse/target/scala-3.7.3/api...[0m
+[0m[[0m[0minfo[0m] [0m[0mMain Scala API documentation to /Users/rhillyard/IdeaProjects/Number2026/expression/target/scala-3.7.3/api...[0m
+[0m[[0m[0minfo[0m] [0m[0mTest Scala API documentation to /Users/rhillyard/IdeaProjects/Number2026/core/target/scala-3.7.3/test-api...[0m
+[0m[[0m[0minfo[0m] [0m[0mTest Scala API documentation to /Users/rhillyard/IdeaProjects/Number2026/expression/target/scala-3.7.3/test-api...[0m
+[0m[[0m[0minfo[0m] [0m[0mMain Scala API documentation to /Users/rhillyard/IdeaProjects/Number2026/top/target/scala-3.7.3/api...[0m
+[0m[[0m[0minfo[0m] [0m[0mSkipping unused scalacOptions: -Wvalue-discard, -Wconf[0m
+[0m[[0m[33mwarn[0m] [0m[0mFlag -classpath set repeatedly[0m
+[0m[[0m[0minfo[0m] [0m[0mSkipping unused scalacOptions: -Wvalue-discard, -Wnonunit-statement, -Wconf[0m
+[0m[[0m[33mwarn[0m] [0m[0mFlag -classpath set repeatedly[0m
+[0m[[0m[0minfo[0m] [0m[0mSkipping unused scalacOptions: -Wvalue-discard, -Wnonunit-statement, -Wconf[0m
+[0m[[0m[33mwarn[0m] [0m[0mFlag -classpath set repeatedly[0m
+[0m[[0m[0minfo[0m] [0m[0mSkipping unused scalacOptions: -Wvalue-discard, -Wconf[0m
+[0m[[0m[33mwarn[0m] [0m[0mFlag -classpath set repeatedly[0m
+[0m[[0m[0minfo[0m] [0m[0mSkipping unused scalacOptions: -Wvalue-discard, -Wnonunit-statement, -Wconf[0m
+[0m[[0m[33mwarn[0m] [0m[0mFlag -classpath set repeatedly[0m
+[0m[[0m[0minfo[0m] [0m[0mTest Scala API documentation to /Users/rhillyard/IdeaProjects/Number2026/parse/target/scala-3.7.3/test-api...[0m
+[0m[[0m[0minfo[0m] [0m[0mSkipping unused scalacOptions: -Wvalue-discard, -Wconf[0m
+[0m[[0m[33mwarn[0m] [0m[0mFlag -classpath set repeatedly[0m
+[0m[[0m[0minfo[0m] [0m[0mSkipping unused scalacOptions: -Wvalue-discard, -Wnonunit-statement, -Wconf[0m
+[0m[[0m[33mwarn[0m] [0m[0mFlag -classpath set repeatedly[0m
+[0m[[0m[33mwarn[0m] [0m[0mone warning found[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1195:6 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:531:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:472:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1301:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestPendingException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/flatspec/target/scala-3/src_managed/main/org/scalatest/flatspec/AnyFlatSpecLike.scala:1828:15 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:632:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:579:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestCanceledException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/flatspec/target/scala-3/src_managed/main/org/scalatest/flatspec/AnyFlatSpecLike.scala:1709:25 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:983:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:959:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1091:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1072:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1053:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/flatspec/target/scala-3/src_managed/main/org/scalatest/flatspec/AnyFlatSpecLike.scala:1784:25 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1153:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1134:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1115:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/target/scala-3/src_managed/main/org/scalatest/Suite.scala:758:12 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:757:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:818:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: algebra/src/main/scala/com/phasmidsoftware/number/algebra/core/Can.scala:319:6 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m319 |[0m  [33mdef[0m [36masT[0m: [35mT[0m = {[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m      ^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m  Couldn't resolve a member for the given link query: AlgebraException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: top/src/main/scala/com/phasmidsoftware/number/top/QuantityParser.scala:69:6 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m69 |[0m  [33mdef[0m [36mdoParseNumber[0m([36mnumStr[0m: [35mString[0m): [35mExpression[0m =[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m      ^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0mCouldn't resolve a member for the given link query: LaTeXParserException[0m
+[0m[[0m[33mwarn[0m] [0m[0mtwo warnings found[0m
+[0m[[0m[0minfo[0m] [0m[0mSkipping unused scalacOptions: -Wvalue-discard, -Wconf[0m
+[0m[[0m[33mwarn[0m] [0m[0mFlag -classpath set repeatedly[0m
+[0m[[0m[33mwarn[0m] [0m[0mtwo warnings found[0m
+[0m[[0m[0minfo[0m] [0m[0mMain Scala API documentation successful.[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1195:6 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:531:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:472:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1301:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestPendingException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/flatspec/target/scala-3/src_managed/main/org/scalatest/flatspec/AnyFlatSpecLike.scala:1828:15 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:632:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:579:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestCanceledException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/flatspec/target/scala-3/src_managed/main/org/scalatest/flatspec/AnyFlatSpecLike.scala:1709:25 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:983:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:959:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[0minfo[0m] [0m[0mMain Scala API documentation successful.[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1091:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1072:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1053:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/flatspec/target/scala-3/src_managed/main/org/scalatest/flatspec/AnyFlatSpecLike.scala:1784:25 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1153:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1134:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1115:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/target/scala-3/src_managed/main/org/scalatest/Suite.scala:758:12 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:757:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:818:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1195:6 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:531:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:472:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1301:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestPendingException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/flatspec/target/scala-3/src_managed/main/org/scalatest/flatspec/AnyFlatSpecLike.scala:1828:15 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:632:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:579:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestCanceledException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/flatspec/target/scala-3/src_managed/main/org/scalatest/flatspec/AnyFlatSpecLike.scala:1709:25 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:983:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:959:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1091:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1072:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1053:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/flatspec/target/scala-3/src_managed/main/org/scalatest/flatspec/AnyFlatSpecLike.scala:1784:25 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1153:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1134:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1115:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/target/scala-3/src_managed/main/org/scalatest/Suite.scala:758:12 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:757:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:818:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m21 warnings found[0m
+[0m[[0m[33mwarn[0m] [0m[0m21 warnings found[0m
+[0m[[0m[33mwarn[0m] [0m[0mone warning found[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1195:6 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:531:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:472:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1301:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestPendingException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/flatspec/target/scala-3/src_managed/main/org/scalatest/flatspec/AnyFlatSpecLike.scala:1828:15 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/target/scala-3/src_managed/main/org/scalatest/BeforeAndAfter.scala:157:16 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NotAllowedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/target/scala-3/src_managed/main/org/scalatest/BeforeAndAfter.scala:137:16 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NotAllowedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:632:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:579:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestCanceledException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/flatspec/target/scala-3/src_managed/main/org/scalatest/flatspec/AnyFlatSpecLike.scala:1709:25 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[0minfo[0m] [0m[0mMain Scala API documentation successful.[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:983:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:959:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[0minfo[0m] [0m[0mTest Scala API documentation successful.[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1091:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1072:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1053:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/flatspec/target/scala-3/src_managed/main/org/scalatest/flatspec/AnyFlatSpecLike.scala:1784:25 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1153:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1134:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1115:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/target/scala-3/src_managed/main/org/scalatest/Suite.scala:758:12 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:757:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:818:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/target/scala-3/src_managed/main/org/scalatest/prop/Configuration.scala:73:13 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: org.scalatest.prop.PropertyCheckResult.Exhausted[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: scalatestPlusScalaCheck/src/main/scala/org/scalatestplus/scalacheck/Checkers.scala:369:6 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: scalatestPlusScalaCheck/src/main/scala/org/scalatestplus/scalacheck/Checkers.scala:359:6 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: scalatestPlusScalaCheck/src/main/scala/org/scalatestplus/scalacheck/Checkers.scala:335:6 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: scalatestPlusScalaCheck/src/main/scala/org/scalatestplus/scalacheck/Checkers.scala:313:6 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: scalatestPlusScalaCheck/src/main/scala/org/scalatestplus/scalacheck/Checkers.scala:292:6 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: scalatestPlusScalaCheck/src/main/scala/org/scalatestplus/scalacheck/Checkers.scala:272:6 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: scalatestPlusScalaCheck/src/main/scala/org/scalatestplus/scalacheck/Checkers.scala:253:6 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: scalatestPlusScalaCheck/src/main/scala/org/scalatestplus/scalacheck/Checkers.scala:235:6 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/funsuite/target/scala-3/src_managed/main/org/scalatest/funsuite/AnyFunSuiteLike.scala:252:15 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/funsuite/target/scala-3/src_managed/main/org/scalatest/funsuite/AnyFunSuiteLike.scala:171:11 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: DuplicateTestNameException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/funsuite/target/scala-3/src_managed/main/org/scalatest/funsuite/AnyFunSuiteLike.scala:142:11 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: DuplicateTestNameException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/target/scala-3/src_managed/main/org/scalatest/prop/Configuration.scala:103:13 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: PropertyCheckResult.Success[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/target/scala-3/src_managed/main/org/scalatest/prop/Configuration.scala:154:13 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: org.scalatest.prop.PropertyCheckResult.Exhausted[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/funsuite/target/scala-3/src_managed/main/org/scalatest/funsuite/AnyFunSuiteLike.scala:198:25 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/funsuite/target/scala-3/src_managed/main/org/scalatest/funsuite/AnyFunSuiteLike.scala:248:25 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[0minfo[0m] [0m[0mTest Scala API documentation successful.[0m
+[0m[[0m[0minfo[0m] [0m[0mTest Scala API documentation to /Users/rhillyard/IdeaProjects/Number2026/top/target/scala-3.7.3/test-api...[0m
+[0m[[0m[0minfo[0m] [0m[0mSkipping unused scalacOptions: -Wvalue-discard, -Wconf[0m
+[0m[[0m[33mwarn[0m] [0m[0mFlag -classpath set repeatedly[0m
+[0m[[0m[0minfo[0m] [0m[0mMain Scala API documentation successful.[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/target/scala-3/src_managed/main/org/scalatest/PrivateMethodTester.scala:280:15 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/target/scala-3/src_managed/main/org/scalatest/PrivateMethodTester.scala:136:14 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/target/scala-3/src_managed/main/org/scalatest/PrivateMethodTester.scala:95:14 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/target/scala-3/src_managed/main/org/scalatest/BeforeAndAfter.scala:157:16 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NotAllowedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/target/scala-3/src_managed/main/org/scalatest/BeforeAndAfter.scala:137:16 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NotAllowedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1195:6 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:531:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:472:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1301:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestPendingException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/flatspec/target/scala-3/src_managed/main/org/scalatest/flatspec/AnyFlatSpecLike.scala:1828:15 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:632:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:579:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestCanceledException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/flatspec/target/scala-3/src_managed/main/org/scalatest/flatspec/AnyFlatSpecLike.scala:1709:25 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:983:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:959:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1091:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1072:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1053:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/flatspec/target/scala-3/src_managed/main/org/scalatest/flatspec/AnyFlatSpecLike.scala:1784:25 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1153:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1134:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:1115:13 ---[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/target/scala-3/src_managed/main/org/scalatest/Suite.scala:758:12 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NullArgumentException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:757:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/src/main/scala/org/scalatest/Assertions.scala:818:13 ----[0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: TestFailedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m23 warnings found[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/target/scala-3/src_managed/main/org/scalatest/BeforeAndAfter.scala:157:16 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NotAllowedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: dotty/core/target/scala-3/src_managed/main/org/scalatest/BeforeAndAfter.scala:137:16 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0mCouldn't resolve a member for the given link query: NotAllowedException[0m
+[0m[[0m[33mwarn[0m] [0m[0m23 warnings found[0m
+[0m[[0m[0minfo[0m] [0m[0mTest Scala API documentation successful.[0m
+[0m[[0m[0minfo[0m] [0m[0mTest Scala API documentation successful.[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[33mwarn[0m] [0m[0m42 warnings found[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mTest Scala API documentation successful.[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-parse_3/1.5.6.part/number-parse_3-1.5.6.pom[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-parse_3/1.5.6.part/number-parse_3-1.5.6-tests-sources.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-parse_3/1.5.6.part/number-parse_3-1.5.6-tests-javadoc.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-parse_3/1.5.6.part/number-parse_3-1.5.6-tests-javadoc.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-parse_3/1.5.6.part/number-parse_3-1.5.6-javadoc.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-parse_3/1.5.6.part/number-parse_3-1.5.6.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-parse_3/1.5.6.part/number-parse_3-1.5.6.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-parse_3/1.5.6.part/number-parse_3-1.5.6-tests-sources.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-parse_3/1.5.6.part/number-parse_3-1.5.6-javadoc.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-parse_3/1.5.6.part/number-parse_3-1.5.6-sources.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-parse_3/1.5.6.part/number-parse_3-1.5.6-tests.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-parse_3/1.5.6.part/number-parse_3-1.5.6.pom.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-parse_3/1.5.6.part/number-parse_3-1.5.6-sources.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-parse_3/1.5.6.part/number-parse_3-1.5.6-tests.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	publish commited: moved /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-parse_3/1.5.6.part [0m
+[0m[[0m[0minfo[0m] [0m[0m		to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-parse_3/1.5.6[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-expression_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-expression_3/1.5.6.part/number-expression_3-1.5.6.pom[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-expression_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-expression_3/1.5.6.part/number-expression_3-1.5.6-tests-javadoc.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-expression_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-expression_3/1.5.6.part/number-expression_3-1.5.6.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-expression_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-expression_3/1.5.6.part/number-expression_3-1.5.6-sources.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-expression_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-expression_3/1.5.6.part/number-expression_3-1.5.6-tests.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-expression_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-expression_3/1.5.6.part/number-expression_3-1.5.6-tests-sources.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-expression_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-expression_3/1.5.6.part/number-expression_3-1.5.6.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-expression_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-expression_3/1.5.6.part/number-expression_3-1.5.6.pom.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-expression_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-expression_3/1.5.6.part/number-expression_3-1.5.6-tests-sources.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-expression_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-expression_3/1.5.6.part/number-expression_3-1.5.6-tests-javadoc.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-expression_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-expression_3/1.5.6.part/number-expression_3-1.5.6-javadoc.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-expression_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-expression_3/1.5.6.part/number-expression_3-1.5.6-tests.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-expression_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-expression_3/1.5.6.part/number-expression_3-1.5.6-javadoc.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-expression_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-expression_3/1.5.6.part/number-expression_3-1.5.6-sources.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	publish commited: moved /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-expression_3/1.5.6.part [0m
+[0m[[0m[0minfo[0m] [0m[0m		to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-expression_3/1.5.6[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-algebra_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-algebra_3/1.5.6.part/number-algebra_3-1.5.6-tests-sources.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-algebra_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-algebra_3/1.5.6.part/number-algebra_3-1.5.6-tests-javadoc.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-algebra_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-algebra_3/1.5.6.part/number-algebra_3-1.5.6-javadoc.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-algebra_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-algebra_3/1.5.6.part/number-algebra_3-1.5.6.pom.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-algebra_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-algebra_3/1.5.6.part/number-algebra_3-1.5.6-sources.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-algebra_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-algebra_3/1.5.6.part/number-algebra_3-1.5.6-tests-sources.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-algebra_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-algebra_3/1.5.6.part/number-algebra_3-1.5.6.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-algebra_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-algebra_3/1.5.6.part/number-algebra_3-1.5.6-tests.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-algebra_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-algebra_3/1.5.6.part/number-algebra_3-1.5.6-tests.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-algebra_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-algebra_3/1.5.6.part/number-algebra_3-1.5.6.pom[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-algebra_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-algebra_3/1.5.6.part/number-algebra_3-1.5.6.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-algebra_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-algebra_3/1.5.6.part/number-algebra_3-1.5.6-sources.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-algebra_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-algebra_3/1.5.6.part/number-algebra_3-1.5.6-javadoc.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-algebra_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-algebra_3/1.5.6.part/number-algebra_3-1.5.6-tests-javadoc.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	publish commited: moved /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-algebra_3/1.5.6.part [0m
+[0m[[0m[0minfo[0m] [0m[0m		to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-algebra_3/1.5.6[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-top_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-top_3/1.5.6.part/number-top_3-1.5.6.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0mgpg: using "B8B0077E1C085958" as default secret key for signing[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-top_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-top_3/1.5.6.part/number-top_3-1.5.6-tests.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-top_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-top_3/1.5.6.part/number-top_3-1.5.6-javadoc.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-top_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-top_3/1.5.6.part/number-top_3-1.5.6-tests.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-top_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-top_3/1.5.6.part/number-top_3-1.5.6.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-top_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-top_3/1.5.6.part/number-top_3-1.5.6-tests-sources.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-top_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-top_3/1.5.6.part/number-top_3-1.5.6-tests-javadoc.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-top_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-top_3/1.5.6.part/number-top_3-1.5.6-javadoc.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-top_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-top_3/1.5.6.part/number-top_3-1.5.6-tests-javadoc.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-top_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-top_3/1.5.6.part/number-top_3-1.5.6.pom[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-top_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-top_3/1.5.6.part/number-top_3-1.5.6-tests-sources.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-top_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-top_3/1.5.6.part/number-top_3-1.5.6-sources.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-top_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-top_3/1.5.6.part/number-top_3-1.5.6.pom.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-top_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-top_3/1.5.6.part/number-top_3-1.5.6-sources.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	publish commited: moved /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-top_3/1.5.6.part [0m
+[0m[[0m[0minfo[0m] [0m[0m		to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-top_3/1.5.6[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-core_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-core_3/1.5.6.part/number-core_3-1.5.6.pom.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-core_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-core_3/1.5.6.part/number-core_3-1.5.6-tests-javadoc.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-core_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-core_3/1.5.6.part/number-core_3-1.5.6-javadoc.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-core_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-core_3/1.5.6.part/number-core_3-1.5.6-sources.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-core_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-core_3/1.5.6.part/number-core_3-1.5.6-tests.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-core_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-core_3/1.5.6.part/number-core_3-1.5.6.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-core_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-core_3/1.5.6.part/number-core_3-1.5.6-javadoc.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-core_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-core_3/1.5.6.part/number-core_3-1.5.6.pom[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-core_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-core_3/1.5.6.part/number-core_3-1.5.6-tests.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-core_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-core_3/1.5.6.part/number-core_3-1.5.6-tests-sources.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-core_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-core_3/1.5.6.part/number-core_3-1.5.6-sources.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-core_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-core_3/1.5.6.part/number-core_3-1.5.6.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-core_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-core_3/1.5.6.part/number-core_3-1.5.6-tests-sources.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-core_3 to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-core_3/1.5.6.part/number-core_3-1.5.6-tests-javadoc.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	publish commited: moved /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-core_3/1.5.6.part [0m
+[0m[[0m[0minfo[0m] [0m[0m		to /Users/rhillyard/IdeaProjects/Number2026/target/sona-staging/com/phasmidsoftware/number-core_3/1.5.6[0m
+[0m[[0m[32msuccess[0m] [0m[0mTotal time: 183 s (0:03:03.0), completed Jan 20, 2026, 2:01:52 PM[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(idea-shell, None, None)[0m

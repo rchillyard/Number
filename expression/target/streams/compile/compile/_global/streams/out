@@ -1,0 +1,9 @@
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/Expression.scala:486:51 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m486 |[0m  [33mimplicit[0m [33mdef[0m [36mfromString[0m([36mw[0m: [35mString[0m): [35mExpression[0m = apply(w)[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m                                                   ^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m[33mmethod[0m [35mapply[0m in [33mobject[0m [35mExpression[0m is deprecated since 1.6.5: Use puremath or lazymath string interpolators instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number2026/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/ExpressionPrelude.scala:25:46 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m25 |[0m  [33mgiven[0m [35mConversion[0m[[35mString[0m, [35mExpression[0m] = [36ms[0m => Expression(s)[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                                              ^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mmethod[0m [35mapply[0m in [33mobject[0m [35mExpression[0m is deprecated since 1.6.5: Use puremath or lazymath string interpolators instead[0m
+[0m[[0m[33mwarn[0m] [0m[0mtwo warnings found[0m
