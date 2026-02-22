@@ -12,3 +12,5 @@ logs/
 /expression/src/com/
 
 circleCIfile
+
+**/mcp.json
