@@ -63,3 +63,4 @@ rm -rf ~/unidoc-temp
 - The docs will be live at: https://rchillyard.github.io/Number/
 - GitHub Pages may take a minute or two to update after pushing.
 - If the Scala version changes from `3.7.3`, update the path in Step 2 accordingly.
+- If you need a new token for GitHub, go to https://github.com/settings/tokens.
