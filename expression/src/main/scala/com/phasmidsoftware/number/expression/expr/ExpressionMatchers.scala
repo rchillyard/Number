@@ -311,6 +311,10 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
   def complementaryTermsEliminatorBiFunction(complementaryPredicate: (ExpressionBiFunction, Expression, Expression) => Boolean): Matcher[BiFunction, Expression] = Matcher[BiFunction, Expression]("complementaryTermsEliminatorBiFunction") {
     case BiFunction(a, b, f) if complementaryPredicate(f, a, b) && a.maybeFactor(AnyContext).contains(Radian) =>
       Match(Literal(Angle.zero))
+    case BiFunction(BiFunction(a1, a2, f), b, g) if f == g && complementaryPredicate(f, a2, b) =>
+      Match(a1)
+    case BiFunction(BiFunction(a1, a2, f), b, g) if f == g && complementaryPredicate(f, a1, b) =>
+      Match(a2)
     case BiFunction(a, b, f) if complementaryPredicate(f, a, b) =>
       f.maybeIdentityL match {
         case Some(field) =>

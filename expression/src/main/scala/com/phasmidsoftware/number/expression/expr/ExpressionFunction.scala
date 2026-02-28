@@ -9,8 +9,8 @@ import com.phasmidsoftware.number.algebra.core.Context.{AnyLog, AnyRoot, AnyScal
 import com.phasmidsoftware.number.algebra.core.{AnyContext, ImpossibleContext, RestrictedContext, *}
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
-import com.phasmidsoftware.number.algebra.eager.{Algebraic, Angle, Eager, RationalNumber, Solution}
-import com.phasmidsoftware.number.algebra.util.FP
+import com.phasmidsoftware.number.algebra.eager.{Algebraic, Angle, Eager, RationalNumber, Solution, Structure}
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical.{Real, *}
 import com.phasmidsoftware.number.core.{inner, numerical}
@@ -78,6 +78,42 @@ object ExpressionFunction {
 }
 
 /**
+  * Represents the parity of a number.
+  *
+  * Parity can either be:
+  * - `Odd`: Indicates the given `ExpressionMonoFunction` is odd.
+  * - `Even`: Indicates the given `ExpressionMonoFunction` is even.
+  * - `Neither`: Indicates the given `ExpressionMonoFunction` does not have a defined parity,
+  *   such as in the case of certain non-integral or undefined inputs.
+  */
+enum Parity {
+  case Odd, Even, Neither
+}
+
+/**
+  * An extractor object for identifying whether a given `ExpressionMonoFunction`
+  * has an odd parity. This is determined by evaluating the `parity` property of
+  * the provided function and checking if it is `Parity.Odd`.
+  */
+object Odd {
+  def unapply(f: ExpressionMonoFunction): Boolean = f.parity == Parity.Odd
+}
+
+/**
+  * An extractor object used to identify whether a given `ExpressionMonoFunction`
+  * has a parity of `Parity.Even`.
+  *
+  * This is useful in scenarios where the specific parity attribute of an
+  * `ExpressionMonoFunction` needs to be matched or validated.
+  *
+  * The `unapply` method returns `true` if the `parity` field of the provided
+  * `ExpressionMonoFunction` is equal to `Parity.Even`; otherwise, it returns `false`.
+  */
+object Even {
+  def unapply(f: ExpressionMonoFunction): Boolean = f.parity == Parity.Even
+}
+
+/**
   * A lazy monadic expression function.
   *
   * TODO need to mark whether this function is exact or not (but I can't think of many which are exact).
@@ -87,7 +123,7 @@ object ExpressionFunction {
   * @param f    the function Number => Number.
   * @param name the name of this function.
   */
-sealed abstract class ExpressionMonoFunction(val name: String, val f: Eager => Eager) extends ExpressionFunction[Eager] {
+sealed abstract class ExpressionMonoFunction(val name: String, val f: Eager => Eager, val parity: Parity) extends ExpressionFunction[Eager] {
 
   /**
     * Specifies the context in which the parameter of the function `f` must be evaluated.
@@ -465,7 +501,7 @@ case object Log extends ExpressionBiFunction("log", lift2(Real.log), false, None
   * This object provides functionality to compute the natural logarithm (ln) of a given Number.
   * The underlying implementation utilizes the `log` method of the Number type.
   */
-case object Ln extends ExpressionMonoFunction("ln", lift1(x => x.ln)) {
+case object Ln extends ExpressionMonoFunction("ln", lift1(x => x.ln), Parity.Neither) {
   /**
     * Regardless of the value of `context`, the required `Context` for the parameter is `PureNumber`.
     *
@@ -505,7 +541,7 @@ case object Ln extends ExpressionMonoFunction("ln", lift1(x => x.ln)) {
   * This case object extends ExpressionMonoFunction and applies the exp operation on a given number.
   * It defines the exponential operation for transformation or evaluation within expressions.
   */
-case object Exp extends ExpressionMonoFunction("exp", lift1(x => x.exp)) {
+case object Exp extends ExpressionMonoFunction("exp", lift1(x => x.exp), Parity.Neither) {
   /**
     * Ignores the provided `context` and returns `AnyScalar`.
     *
@@ -547,7 +583,7 @@ case object Exp extends ExpressionMonoFunction("exp", lift1(x => x.exp)) {
   *
   * The function is exact and operates lazily.
   */
-case object Negate extends ExpressionMonoFunction("-", lift1(x => -x)) {
+case object Negate extends ExpressionMonoFunction("-", lift1(x => -x), Parity.Odd) {
   /**
     * Ignores the specified `context` and returns `AnyScalar`.
     *
@@ -585,7 +621,7 @@ case object Negate extends ExpressionMonoFunction("-", lift1(x => -x)) {
   *
   * The operation is performed lazily and adheres to the behavior defined in its parent class.
   */
-case object Reciprocal extends ExpressionMonoFunction("rec", lift1(x => x.invert)) {
+case object Reciprocal extends ExpressionMonoFunction("rec", lift1(x => x.invert), Parity.Odd) {
   /**
     * Attempts to compute the reciprocal (exact inverse) of the given `Valuable`.
     * For specific cases of `Real` representations, such as `ExactNumber` with pure, logarithmic, or root factors,
@@ -865,7 +901,7 @@ case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)
   *
   * @param sine a boolean indicating whether the sine function should be used (`true` for sine, `false` for cosine).
   */
-abstract class SineCos(sine: Boolean) extends ExpressionMonoFunction(if sine then "sin" else "cos", lift1(x => if sine then x.sin else x.cos)) {
+abstract class SineCos(sine: Boolean, parity: Parity) extends ExpressionMonoFunction(if sine then "sin" else "cos", lift1(SineCos.evaluate(sine)), parity) {
   /**
     * Regardless of the value of `context`, the required `Context` for the parameter is `Radian`.
     *
@@ -903,6 +939,9 @@ abstract class SineCos(sine: Boolean) extends ExpressionMonoFunction(if sine the
   }
 }
 
+object SineCos {
+  def evaluate(sine: Boolean)(x: Field): Field = if sine then x.sin else x.cos
+}
 /**
   * Represents the sine trigonometric function.
   *
@@ -912,7 +951,7 @@ abstract class SineCos(sine: Boolean) extends ExpressionMonoFunction(if sine the
   * It applies the sine function to a given mathematical expression and inherits all behavior
   * defined in the `SineCos` abstract class.
   */
-case object Sine extends SineCos(true)
+case object Sine extends SineCos(true, Parity.Odd)
 
 /**
   * Represents the cosine trigonometric function.
@@ -920,5 +959,78 @@ case object Sine extends SineCos(true)
   * `Cosine` is a specific instance of the `SineCos` class with `sine` set to `false`,
   * meaning it applies the cosine (`cos`) function to an `Expression`.
   */
-case object Cosine extends SineCos(false)
+case object Cosine extends SineCos(false, Parity.Even)
+
+/**
+  * Represents a hyperbolic trigonometric function (`sinh` or `cosh`) as a specialized
+  * monadic expression. This abstract class extends the `ExpressionMonoFunction` and
+  * defines behavior specific to hyperbolic sine (`sinh`) or hyperbolic cosine (`cosh`)
+  * operations. The choice between `sinh` and `cosh` is determined by the `sinh` parameter.
+  *
+  * @constructor Creates a new instance of the `Hyperbolic` class.
+  * @param sinh   A boolean value indicating whether the function represents `sinh` (`true`)
+  *               or `cosh` (`false`).
+  *
+  * @param parity The parity of the function, which can be odd, even, or neither.
+  *               For example, `sinh` has odd parity, while `cosh` has even parity.
+  */
+abstract class Hyperbolic(sinh: Boolean, parity: Parity) extends ExpressionMonoFunction(if sinh then "sinh" else "cosh", Hyperbolic.evaluate(sinh), parity) {
+  /**
+    * Regardless of the value of `context`, the required `Context` for the parameter is `Radian`.
+    *
+    * @param context ignored.
+    * @return a new `RestrictedContext` instance configured with the `Radian` factor.
+    */
+  def paramContext(context: Context): Context =
+    RestrictedContext(Radian)
+
+  /**
+    * Applies the sine or cosine function to a given `Valuable` value if the value matches specific constants.
+    * Returns an exact result for known trigonometric values of zero, π/2, π, and 3π/2.
+    *
+    * @param x the input `Valuable` value to be evaluated.
+    * @return an `Option[Valuable]` containing the result of the sine or cosine function if the input matches a known constant,
+    *         or `None` if the input does not match any predefined constants.
+    */
+  def applyExact(x: Eager): Option[Eager] = x match {
+    case IsZero(x) =>
+      Some(if sinh then Eager.zero else Eager.one)
+    case _ =>
+      None
+  }
+}
+
+object Hyperbolic {
+  def evaluate(sinh: Boolean)(x: Eager): Eager = x match {
+    case s: Structure =>
+      val y = Exp(s.negate) match {
+        case t if !sinh => t
+        case t: Structure => t.negate
+        case _ => throw AlgebraException(s"Hyperbolic.evaluate: ${Exp(s.negate)} cannot be negated")
+      }
+      (for {
+        a <- Exp(s) add y
+        b <- a divide Eager.two
+      } yield b).getOrElse(throw AlgebraException(s"Hyperbolic.evaluate($sinh)($x)"))
+  }
+}
+
+/**
+  * Represents the sine trigonometric function.
+  *
+  * `Sine` is a case object of the `SineCos` abstract class with the `sine` parameter set to `true`,
+  * which designates that the sine (`sin`) function is to be applied to expressions.
+  *
+  * It applies the sine function to a given mathematical expression and inherits all behavior
+  * defined in the `SineCos` abstract class.
+  */
+case object Sinh extends Hyperbolic(true, Parity.Odd)
+
+/**
+  * Represents the cosine trigonometric function.
+  *
+  * `Cosine` is a specific instance of the `SineCos` class with `sine` set to `false`,
+  * meaning it applies the cosine (`cos`) function to an `Expression`.
+  */
+case object Cosh extends Hyperbolic(false, Parity.Even)
 

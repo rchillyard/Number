@@ -98,8 +98,8 @@ sealed trait CompositeExpression extends Expression {
     *         exact expressions. The result contains the simplified `Expression` if successful,
     *         or indicates no simplification was possible.
     */
-  lazy val simplifyExact: em.AutoMatcher[Expression] =
-    em.Matcher("CompositeExpression: simplifyExact") {
+  lazy val simplifyLazy: em.AutoMatcher[Expression] =
+    em.Matcher("CompositeExpression: simplifyLazy") {
       (expr: Expression) =>
         // Don't evaluate if this expression should stay symbolic.
         if (CompositeExpression.shouldStaySymbolic(expr))
@@ -107,9 +107,11 @@ sealed trait CompositeExpression extends Expression {
         else
           expr.evaluateAsIs match {
             case Some(value) =>
-              em.Match(ValueExpression(value)).filter(_.isExact) // NOTE double-check that the result is actually exact.
+              // NOTE double-check that the result is actually exact.
+              // CONSIDER is this necessary now what we have redefined this method as simplifyLazy?
+              em.Match(ValueExpression(value)).filter(_.isExact)
             case None =>
-              em.Miss[Expression, Expression]("CompositeExpression: simplifyExact: no simplifications", this)
+              em.Miss[Expression, Expression]("CompositeExpression: simplifyLazy: no simplifications", this)
           }
     }
 
@@ -318,6 +320,10 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     */
   lazy val identitiesMatcher: em.AutoMatcher[Expression] =
     em.Matcher("UniFunction: identitiesMatcher") {
+      case UniFunction(Zero, f@Odd()) if f != Reciprocal => // NOTE if the function has odd parity, then f(0) = 0.
+        em.Match(Zero)
+      case UniFunction(Zero, Cosh | Cosine) if f != Reciprocal =>
+        em.Match(One)
       // XXX Take care of the cases whereby the inverse of a log expression is a log expression with operand and base swapped.
       case UniFunction(UniFunction(x, Ln), Reciprocal) =>
         em.Match(BiFunction(E, x, Log))
@@ -347,6 +353,8 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     em.Matcher("structuralMatcher") {
       case UniFunction(UniFunction(x, f), g) if em.complementaryMonadic(f, g) =>
         em.Match(x)
+      case UniFunction(UniFunction(x, Negate), Exp) =>
+        em.Match(UniFunction(UniFunction(x, Exp), Reciprocal))
       case x: Expression =>
         em.Miss[Expression, Expression]("UniFunction.structuralMatcher: not complementary", x)
     }
@@ -387,7 +395,8 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
   def canEqual(other: Any): Boolean =
     other.isInstanceOf[UniFunction]
 
-  override def toString: String = f.toString + "(" + x + ")"
+  override def toString: String =
+    s"$f(${x.show})"
 }
 
 /**
@@ -549,7 +558,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       em.Match((a ∧ p) * (b ∧ p))
     case BiFunction(BiFunction(a, b, Power), p, Power) =>
       em.Match(a ∧ (b * p))
-    // In structuralMatcher - truly structural
+    case BiFunction(UniFunction(x, f@Odd()), UniFunction(y, g@Odd()), Sum) if f == g && (x + y).isZero =>
+      em.Match(Zero)
+    case BiFunction(UniFunction(x, f@Even()), UniFunction(y, g@Even()), Sum) if f == g && (x + y).isZero =>
+      em.Match(Two * UniFunction(x, f))
     case BiFunction(NthRoot(radicand, n, _), IsIntegral(exp), Power) if n == exp =>
       em.Match(Literal(radicand, None))
     // TODO the following attempt to use a commutative extractor (as a substitute for the following two cases) fails miserably.
@@ -601,11 +613,11 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return a String showing a, f, and b in parentheses (or in braces if not exact).
     */
   override def toString: String = f match {
-    case Log => s"log_$a($b)"
-    case Power => s"($a ^ $b)"
-    case Sum => s"($a + $b)"
-    case Product => s"($a * $b)"
-    case Atan => s"atan($a,$b)"
+    case Log => s"log_${a.show}(${b.show})"
+    case Power => s"(${a.show} ^ ${b.show})"
+    case Sum => s"(${a.show} + ${b.show})"
+    case Product => s"(${a.show} * ${b.show})"
+    case Atan => s"atan(${a.show},${b.show})"
   }
 
   /**
@@ -648,7 +660,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   }
 
   private def minusXSquared(x: Expression) = {
-    val xSq = Expression.simplifyExact(BiFunction(x, Two, Power)).getOrElse(BiFunction(x, Two, Power)) // x²
+    val xSq = Expression.simplifyLazy(BiFunction(x, Two, Power)).getOrElse(BiFunction(x, Two, Power)) // x²
     em.Match(-xSq)
   }
 

@@ -49,6 +49,19 @@ trait Expression extends Lazy with Approximate {
   def evaluate(context: Context): Option[Eager]
 
   /**
+    * Computes the fuzzy (approximate) value of this `Expression`.
+    * If the current `Expression` can be matched to a simpler form via `matchSimpler`,
+    * its fuzzy value is derived from the simplified expression. Otherwise, the `fuzzy` result
+    * is delegated to the superclass implementation.
+    *
+    * @return an `eager.Real` representing the approximate value of this `Expression`
+    */
+  override def fuzzy: eager.Real = matchSimpler(this) match {
+    case em.Match(e: Expression) => e.fuzzy
+    case _ => super.fuzzy
+  }
+
+  /**
     * Method to determine if this `Expression` can be evaluated as is.
     * If so, then `materialize` will not lose any precision because no approximation will be required.
     * NOTE that, it is conceivable that simplifying `this` `Expression` first might result in an eager value
@@ -465,6 +478,30 @@ object Expression {
       BiFunction(x, b, Log)
 
     /**
+      * Method to lazily get the sine of x.
+      *
+      * @return an Expression representing the sin(x).
+      */
+    def sinh: Expression =
+      UniFunction(x, Sinh)
+
+    /**
+      * Method to lazily get the cosine of x.
+      *
+      * @return an Expression representing the cos(x).
+      */
+    def cosh: Expression =
+      UniFunction(x, Cosh)
+
+    /**
+      * Method to lazily get the tangent of x.
+      *
+      * @return an Expression representing the tan(x).
+      */
+    def tanh: Expression =
+      sinh :* cosh.reciprocal
+
+    /**
       * Eagerly compare this expression with y.
       *
       * XXX this appears to be recursive! But it isn't
@@ -661,7 +698,7 @@ object Expression {
       em.eitherOr(simplifyOperands,
         em.eitherOr(simplifyStructural,
           em.eitherOr(simplifyIdentities,
-            em.eitherOr(simplifyExact,
+            em.eitherOr(simplifyLazy,
               simplifyByEvaluation))))(x)
     case x =>
       em.Error(ExpressionException(s"matchSimpler unsupported expression type: $x"))
@@ -685,29 +722,33 @@ object Expression {
 
   /**
     * Attempts to simplify an `Expression` exactly based on specific rules for composite expressions.
-    * If the expression is of type `CompositeExpression`, it applies the `simplifyExact` method
+    * If the expression is of type `CompositeExpression`, it applies the `simplifyLazy` method
     * specific to that type. For other expression types, it returns a miss, indicating that simplification
     * is not applicable for the given type.
     *
     * @return an `em.AutoMatcher[Expression]` that matches and simplifies exact cases for composite expressions
     *         or signals when simplification is not applicable to non-composite expressions.
     */
-  def simplifyExact: em.AutoMatcher[Expression] =
-    em.Matcher[Expression, Expression]("simplifyExact") {
-      // Special cases that need exact evaluation
+  def simplifyLazy: em.AutoMatcher[Expression] =
+    em.Matcher[Expression, Expression]("simplifyLazy") {
+      // Special cases that need simplification
       case UniFunction(Two, Ln) =>
         em.Match(L2) `flatMap` matchSimpler
+      case UniFunction(x, Sinh) =>
+        em.Match((E ∧ x - E ∧ (-x)) / Two) `flatMap` matchSimpler
+      case UniFunction(x, Cosh) =>
+        em.Match((E ∧ x + E ∧ (-x)) / Two) `flatMap` matchSimpler
 
       case BiFunction(Literal(ComplexPolar(r, theta, n), _), Two, Power)
         if n == 2 && theta.isZero =>
         em.Match(Literal(r.power(2)))
 
-      // Delegate to composite types for their specific exact simplifications
+      // Delegate to composite types for their specific lazy simplifications
       case c: CompositeExpression =>
-        c.simplifyExact(c)
+        c.simplifyLazy(c)
 
       case x =>
-        em.Miss("simplifyExact: cannot simplify exactly", x)
+        em.Miss("simplifyLazy: cannot simplify exactly", x)
     }
 
   /**

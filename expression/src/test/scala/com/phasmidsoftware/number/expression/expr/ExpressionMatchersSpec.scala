@@ -341,8 +341,9 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val e: Eager = Eager.e
     val x: Expression = Literal(e, Some("e")) * Eager.two
     val y: Expression = Expression(Eager.two).reciprocal
-    val z = p(Product ~ x ~ y)
-    z shouldBe em.Match(Expression(e))
+    val actual = p(Product ~ x ~ y)
+    val expected = Expression(e)
+    actual shouldBe em.Match(expected)
   }
   it should "simplify root3 * 2 / 2" in {
     import BiFunction.*

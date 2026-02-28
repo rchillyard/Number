@@ -75,6 +75,7 @@
         <option value="com.phasmidsoftware.number.expression.expr.ExpressionMatchersSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.ExpressionSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.ExtractorsSpec" />
+          <option value="com.phasmidsoftware.number.expression.expr.HyperbolicSpec"/>
         <option value="com.phasmidsoftware.number.expression.expr.InversePowerSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.LiteralSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.NamedConstantSpec" />
@@ -82,11 +83,6 @@
         <option value="com.phasmidsoftware.number.expression.expr.RootSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.TranscendentalSpec" />
         <option value="com.phasmidsoftware.number.problems.PotHolesSpec" />
-        <option value="com.phasmidsoftware.number.dimensions.core.DimensionSpec" />
-        <option value="com.phasmidsoftware.number.dimensions.core.DimensionWitnessSpec" />
-        <option value="com.phasmidsoftware.number.dimensions.core.PowerUnitSpec" />
-        <option value="com.phasmidsoftware.number.dimensions.core.TRationalSpec" />
-        <option value="com.phasmidsoftware.number.dimensions.core.UnitsSpec" />
         <option value="com.phasmidsoftware.number.algebra.util.LatexRendererInstancesSpec" />
         <option value="com.phasmidsoftware.number.algebra.util.LatexRendererSpec" />
         <option value="com.phasmidsoftware.number.algebra.eager.AngleSpec" />
@@ -107,6 +103,11 @@
         <option value="com.phasmidsoftware.number.algebra.eager.WholeNumberSpec" />
         <option value="com.phasmidsoftware.number.algebra.core.FuzzyNumberIsProbablyZeroSpec" />
         <option value="com.phasmidsoftware.number.algebra.core.MaybeFuzzySpec" />
+          <option value="com.phasmidsoftware.number.dimensions.core.DimensionSpec"/>
+          <option value="com.phasmidsoftware.number.dimensions.core.DimensionWitnessSpec"/>
+          <option value="com.phasmidsoftware.number.dimensions.core.PowerUnitSpec"/>
+          <option value="com.phasmidsoftware.number.dimensions.core.TRationalSpec"/>
+          <option value="com.phasmidsoftware.number.dimensions.core.UnitsSpec"/>
         <option value="com.phasmidsoftware.number.core.numerical.BaseComplexSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.ComplexSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.ConstantsSpec" />
@@ -158,6 +159,7 @@
         <option value="com.phasmidsoftware.number.core.misc.LazyNumberFuzzySpec" />
         <option value="com.phasmidsoftware.number.core.misc.LazyNumberRationalSpec" />
         <option value="com.phasmidsoftware.number.core.misc.NewtonSpec" />
+          <option value="com.phasmidsoftware.number.core.misc.OurOwnLazyListSpec"/>
         <option value="com.phasmidsoftware.number.core.misc.RandomLongSpec" />
         <option value="com.phasmidsoftware.number.core.misc.VarianceSpec" />
         <option value="com.phasmidsoftware.number.core.inner.ContextSpec" />

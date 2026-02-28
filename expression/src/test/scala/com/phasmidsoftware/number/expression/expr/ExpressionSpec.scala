@@ -355,19 +355,19 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "simplifyConstant"
   // TODO Issue #140
-  // TODO move this into behavior of "simplifyExact"
+  // TODO move this into behavior of "simplifyLazy"
   it should "simplify biFunction expressions" in {
     val em: ExpressionMatchers = Expression.em
-    Expression.simplifyExact(BiFunction(Two, MinusOne, Product)) shouldBe em.Match(Expression(-2))
+    Expression.simplifyLazy(BiFunction(Two, MinusOne, Product)) shouldBe em.Match(Expression(-2))
     BiFunction(Two, MinusOne, Product).simplify shouldBe Expression(-2)
     BiFunction(BiFunction(Two, MinusOne, Product), Two, Sum).evaluateAsIs shouldBe Some(Eager.zero)
   }
 
-  behavior of "simplifyExact"
+  behavior of "simplifyLazy"
   // TODO Issue #140
   it should "simplify biFunction expressions" in {
     val em: ExpressionMatchers = Expression.em
-    Expression.simplifyExact(BiFunction(Literal(Angle.twoPi, None), RationalNumber.half, Product)) should matchPattern { case em.Match(Literal(Angle.pi, _)) => }
+    Expression.simplifyLazy(BiFunction(Literal(Angle.twoPi, None), RationalNumber.half, Product)) should matchPattern { case em.Match(Literal(Angle.pi, _)) => }
   }
 
   behavior of "simplify"
@@ -523,17 +523,17 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   }
 
-  behavior of "simplifyExact"
-  it should "simplifyExact 1" in {
+  behavior of "simplifyLazy"
+  it should "simplifyLazy 1" in {
     val x1 = Eager.one
     val x2 = Eager.pi
     val e = BiFunction(Literal(x1), Literal(x2), Sum)
-    e.simplifyExact(e).successful shouldBe false
+    e.simplifyLazy(e).successful shouldBe false
   }
   // NOTE Test case for Issue #142
   // NOTE This is actually Issue #143
   // It involves deprecated code.
-  it should "simplifyExact 2" in {
+  it should "simplifyLazy 2" in {
     Expression("sin(𝛑) * (1 chs)") match {
       case expression: CompositeExpression =>
         val simplified = expression.simplify
@@ -542,9 +542,9 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
         fail(s"expected CompositeExpression, got $x")
     }
   }
-  it should "simplifyExact 3" in {
+  it should "simplifyLazy 3" in {
     val e: CompositeExpression = ((Expression(3) :+ 5) * (7 - 2)).asInstanceOf[CompositeExpression]
-    val m = e.simplifyExact(e)
+    val m = e.simplifyLazy(e)
     m.successful shouldBe true
     val expected = Expression(40)
     m.get should matchPattern { case `expected` => }

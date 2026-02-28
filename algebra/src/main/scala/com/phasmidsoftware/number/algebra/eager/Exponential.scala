@@ -325,7 +325,8 @@ case class NaturalExponential(exponent: Number)(val maybeName: Option[String] = 
     * @return a `Structure` representing the negation of this instance
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input is not a Real number.
     */
-  def negate: Structure = throw AlgebraException(s"NaturalExponential.negate: not supported")
+  def negate: Structure =
+    throw AlgebraException(s"NaturalExponential.negate: not supported")
 
   /**
     * Compares the current `Exponential` instance with another `Number` to determine their exact order.
