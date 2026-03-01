@@ -56,10 +56,11 @@ trait Expression extends Lazy with Approximate {
     *
     * @return an `eager.Real` representing the approximate value of this `Expression`
     */
-  override def fuzzy: eager.Eager = matchSimpler(this) match {
-    case em.Match(Literal(eager.Complex(c), _)) => Eager(c)
-    case em.Match(e: Expression) => e.fuzzy
-    case _ => super.fuzzy
+  def fuzzy: eager.Eager = simplify match { // CONSIDER this looks wrong!
+    case Literal(eager.Complex(c), _) =>
+      Eager(c)
+    case _ =>
+      materialize.fuzzy
   }
 
   /**
@@ -759,7 +760,6 @@ object Expression {
         em.Match((E ∧ x - E ∧ (-x)) / Two) `flatMap` matchSimpler
       case UniFunction(x, Cosh) =>
         em.Match((E ∧ x + E ∧ (-x)) / Two) `flatMap` matchSimpler
-
       case BiFunction(Literal(ComplexPolar(r, theta, n), _), Two, Power)
         if n == 2 && theta.isZero =>
         em.Match(Literal(r.power(2)))

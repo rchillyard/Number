@@ -9,6 +9,7 @@ import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.core.Valuable.valuableToMaybeField
+import com.phasmidsoftware.number.algebra.util.FP.recover
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core.inner.Rational
@@ -24,17 +25,11 @@ import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
 
 /**
-  * Trait `Eager` extends `Valuable` and is used to represent entities that evaluate their values eagerly.
-  * That's to say, `Valuable` objects that do not extend `Expression`.
-  * At present, `Eager` is extended by `Structure, Complex`, and `Nat`.
-  * CONSIDER splitting this off into its own file.
-  *
-  * Unlike lazy evaluation, eager evaluation computes and stores the value immediately when the entity is created
-  * or instantiated. This behavior can be useful in scenarios where prompt computation is essential, and
-  * deferred or lazy evaluation may introduce undesired complexities or delays.
-  *
-  * `Eager` does not introduce additional properties or methods but serves as a marker trait
-  * that confirms the eager nature of an extending type.
+  * A trait representing `Eager` computations or values, which are eagerly 
+  * evaluated and have a canonical form. The `Eager` trait provides mechanisms 
+  * for operations such as normalization, comparisons, and arithmetic operations 
+  * on values. It also includes methods to handle approximate values 
+  * (`fuzzy` operations) and exact ones.
   */
 trait Eager extends Valuable with Approximate with DyadicOps {
 
@@ -67,6 +62,15 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     * @return the normalized instance of `Eager` as `Self`
     */
   def normalize: Eager
+
+  /**
+    * Attempts to convert the current object to an instance of `Eager` using an approximation method.
+    * If the conversion fails, it recovers by throwing an `AlgebraException` with a descriptive error message.
+    *
+    * @return An instance of `Eager` if the approximation is successful.
+    */
+  def fuzzy: Eager =
+    recover(approximation(true))(AlgebraException(s"fuzzy: unable to convert a ${this.getClass.getSimpleName} (${this.toString}) to Eager"))
 
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
@@ -484,16 +488,39 @@ object Eager {
   /**
     * Computes the imaginary representation of the given number by squaring it, negating the result,
     * and attempting to convert it into a valid imaginary number.
+    * It cannot be used for negative imaginary numbers or any multiple of i𝛑.
+    *
+    * The purpose of this method is to provide a convenient way to construct a simple imaginary number.
     *
     * @param x the input value of type `Number` to be transformed into an imaginary representation.
     *          It is expected to be a valid numerical value.
-    *
     * @return an `Eager` instance representing the imaginary conversion of the input number.
     * @throws AlgebraException if the conversion fails or the resulting value cannot be represented as an imaginary number.
     */
-  def imaginary(x: Scalar): InversePower = {
-    val triedPower = tryImaginary(x)
-    triedPower.getOrElse(throw AlgebraException(s"Eager.imaginary: Cannot convert $x to an imaginary number"))
+  def imaginary(x: Scalar): InversePower =
+    tryImaginary(x).getOrElse(throw AlgebraException(s"Eager.imaginary: Cannot convert $x to an imaginary number"))
+
+
+  /**
+    * Provides an implicit conversion from an `Int` to an imaginary number representation.
+    *
+    * This class allows integers to be interpreted as imaginary numbers by appending `.i`
+    * to an integer. The imaginary number is constructed using the square of the integer
+    * negated, combined with the square root notation.
+    *
+    * @param x the integer to be converted into an imaginary number
+    */
+  implicit class IntToImaginary(x: Int) {
+    /**
+      * Converts an integer to its imaginary number representation.
+      *
+      * This method creates an imaginary number by negating the square of the integer
+      * and associating it with the square root operator.
+      *
+      * @return a `Number` instance representing the imaginary number constructed
+      *         from the integer.
+      */
+    lazy val i: Eager = imaginary(WholeNumber(x))
   }
 
   /**

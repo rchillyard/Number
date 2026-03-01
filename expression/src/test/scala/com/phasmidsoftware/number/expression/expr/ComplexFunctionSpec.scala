@@ -4,7 +4,8 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.eager.Eager
+import com.phasmidsoftware.number.algebra.eager.{Complex, Eager, InversePower, WholeNumber}
+import com.phasmidsoftware.number.core.numerical.ComplexCartesian
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -36,18 +37,19 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "evaluate exp(iπ/2) = i" in {
-    pending // Issue #189
     val expression = (E ∧ iPiBy2).simplify
     println(expression)
-    expression.fuzzy.toDouble shouldBe 0.0 +- 1e-10 // real part
-    // imaginary part should be 1
+    val materialized = expression.materialize
+    materialized should matchPattern { case InversePower(2, WholeNumber(-1)) => }
   }
 
   it should "evaluate exp(i) approximately" in {
-    pending // Issue #189
-    // exp(i) = cos(1) + i·sin(1) ≈ 0.5403 + 0.8415i
-    val result = (E ∧ iOne).fuzzy
-    result.toDouble shouldBe Math.cos(1.0) +- 1e-10
+    val simplified = (E ∧ I).simplify
+    val materialized = simplified.materialize
+    materialized shouldBe a[Complex]
+    materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian(0.5403, 0.8415)) shouldBe true
+    val result: Eager = simplified.fuzzy
+    result.toDouble shouldBe (1.0) +- 1e-10
   }
 
   behavior of "log for complex arguments"
@@ -68,9 +70,11 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   it should "evaluate sin(i) = i·sinh(1)" in {
     pending // Issue #189
     // sin(i) = i·sinh(1) ≈ 1.1752i
-    val result = iOne.sin
-    result.fuzzy.toDouble shouldBe 0.0 +- 1e-10 // real part = 0
-    // imaginary part ≈ 1.1752
+    val actual = I.sin.simplify
+    val expected = (I * One.sinh).simplify
+    val materialized = actual.materialize
+    materialized shouldBe a[Complex]
+    materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian(0.5403, 0.8415)) shouldBe true
   }
 
   it should "satisfy sin(ix) = i·sinh(x)" in {
@@ -84,8 +88,12 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   it should "evaluate sin(1 + i) approximately" in {
     pending // Issue #189
     // sin(1+i) ≈ 1.2985 + 0.6350i
-    val z = One + iOne
-    z.sin.fuzzy.toDouble shouldBe 1.2985 +- 1e-3
+    val z = One + I
+    //    z.sin.fuzzy.toDouble shouldBe 1.2985 +- 1e-3
+    val materialized = z.materialize
+    materialized shouldBe a[Complex]
+    materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian(1.2985, 0.6350)) shouldBe true
+
   }
 
   behavior of "cos for complex arguments"
@@ -93,7 +101,11 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   it should "evaluate cos(i) = cosh(1)" in {
     pending // Issue #189
     // cos(i) = cosh(1) ≈ 1.5431
-    val result = iOne.cos
+    val result = I.cos
+    val materialized = result.materialize
+    materialized shouldBe a[Complex]
+    materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian(1.5431, 0)) shouldBe true
+
     result.fuzzy.toDouble shouldBe Math.cosh(1.0) +- 1e-10
   }
 

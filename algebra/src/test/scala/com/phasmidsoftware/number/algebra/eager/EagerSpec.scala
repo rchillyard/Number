@@ -106,17 +106,42 @@ class EagerSpec extends AnyFlatSpec with should.Matchers {
   it should "work for i" in {
     Eager.i match {
       case Imaginary(IsUnity(x)) =>
-      case _ => fail("should be Imaginary")
+        x.isExact shouldBe true
+      case _ =>
+        fail("should be Imaginary")
     }
   }
   it should "work for 2i" in {
     Eager.imaginary(2) match {
-      case Imaginary(x) => x should ===(WholeNumber(2))
-      case _ => fail("should be Imaginary")
+      case Imaginary(x) =>
+        x.isExact shouldBe true
+        x should ===(WholeNumber(2))
+      case _ =>
+        fail("should be Imaginary")
+    }
+  }
+  it should "work for 2.i" in {
+    import Eager.IntToImaginary
+    val y = 2.i // to give 2i
+    y match {
+      case Imaginary(x) =>
+        x.isExact shouldBe true
+        x should ===(WholeNumber(2))
+      case _ =>
+        fail("should be Imaginary")
     }
   }
   it should "not work for -2i" in {
     an[AlgebraException] should be thrownBy (Eager.imaginary(-2))
+  }
+  it should "not provide an exact value i𝛑" in {
+    Eager.imaginary(𝛑) match {
+      case Imaginary(x) =>
+        x.isExact shouldBe false
+        x.toDouble shouldBe math.Pi +- 1E-8
+      case _ =>
+        fail("should be Imaginary")
+    }
   }
 
   behavior of "asComplex"

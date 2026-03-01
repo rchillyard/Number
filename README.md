@@ -146,6 +146,16 @@ All algebraic types extend `Structure`, which provides:
 - Type-safe conversions: `convert[T <: Structure](t: T): Option[T]`
 - Java interop: `asJavaNumber: Option[java.lang.Number]`
 
+### Imaginary Numbers
+
+The `algebra` module supports the creation of imaginary numbers using the `i` suffix on integers.
+For example, `2.i` represents the imaginary number $2i$.
+
+```scala
+import Eager.IntToImaginary
+
+val y = 2.i // to give 2i
+```
 
 ## Mermaid Diagrams
 
@@ -633,6 +643,8 @@ val x = Number.i
 import SquareRoot.IntToImaginary
 val y = 2.i // to give 2i
 ```
+
+See under Algebra/Imaginary Numbers for the new way of defining imaginary values.
 
 ### Algebraic
 An _Algebraic_ is a particular root of some polynomial function.

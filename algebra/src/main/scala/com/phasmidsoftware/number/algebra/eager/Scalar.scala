@@ -272,7 +272,7 @@ object Scalar {
     * the appropriate numerical representation (e.g., `WholeNumber`, `Real`, `RationalNumber`)
     * and associates it with the provided factor (e.g., `PureNumber`, `Radian`).
     *
-    * CONSIDER this should return a Scalar.
+    * CONSIDER this should return a Scalar. Alternatively, it shoul be moved to Structure and renamed to createStructure.
     *
     * @param value  the numerical value, which can either be a right value for exact numbers
     *               (e.g., integers, floating-point values) or a left value for rational

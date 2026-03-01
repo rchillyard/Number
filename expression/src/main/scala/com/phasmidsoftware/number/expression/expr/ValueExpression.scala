@@ -681,7 +681,9 @@ case object I extends NamedConstant(Eager.i, "i") {
     *
     * @return an `Option[Field]` containing the evaluated `Field` if evaluation is successful, or `None` otherwise.
     */
-  override lazy val evaluateAsIs: Option[Eager] = Some(InversePower(2, -1))
+  override lazy val evaluateAsIs: Option[InversePower] = Some(InversePower(2, -1))
+
+  lazy val asComplex: Option[Complex] = evaluateAsIs flatMap (_.asComplex)
 
   /**
     * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
