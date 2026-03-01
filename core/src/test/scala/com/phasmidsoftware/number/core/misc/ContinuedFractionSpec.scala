@@ -397,7 +397,7 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
   }
 
   it should "implement toNominalRational(Double)" in {
-    val cf: ContinuedFraction = ContinuedFraction.createInfinite(1)
+    val cf: ContinuedFraction = ContinuedFraction.phi
 
     import Rational.RationalHelper
     cf.toRational(0.05) shouldBe Some(r"5/3")

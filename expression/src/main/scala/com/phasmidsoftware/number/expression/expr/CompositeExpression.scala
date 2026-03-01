@@ -98,8 +98,8 @@ sealed trait CompositeExpression extends Expression {
     *         exact expressions. The result contains the simplified `Expression` if successful,
     *         or indicates no simplification was possible.
     */
-  lazy val simplifyExact: em.AutoMatcher[Expression] =
-    em.Matcher("CompositeExpression: simplifyExact") {
+  lazy val simplifyLazy: em.AutoMatcher[Expression] =
+    em.Matcher("CompositeExpression: simplifyLazy") {
       (expr: Expression) =>
         // Don't evaluate if this expression should stay symbolic.
         if (CompositeExpression.shouldStaySymbolic(expr))
@@ -107,9 +107,11 @@ sealed trait CompositeExpression extends Expression {
         else
           expr.evaluateAsIs match {
             case Some(value) =>
-              em.Match(ValueExpression(value)).filter(_.isExact) // NOTE double-check that the result is actually exact.
+              // NOTE double-check that the result is actually exact.
+              // CONSIDER is this necessary now what we have redefined this method as simplifyLazy?
+              em.Match(ValueExpression(value)).filter(_.isExact)
             case None =>
-              em.Miss[Expression, Expression]("CompositeExpression: simplifyExact: no simplifications", this)
+              em.Miss[Expression, Expression]("CompositeExpression: simplifyLazy: no simplifications", this)
           }
     }
 
@@ -158,20 +160,25 @@ sealed trait CompositeExpression extends Expression {
 }
 
 /**
-  * Companion object for the `Aggregate` case class.
+  * Companion object for the `CompositeExpression` case class.
   *
-  * Provides a utility method to create an `Aggregate` instance by converting a sequence of `Field` inputs
-  * into `Literal` expressions and wrapping them in an `Aggregate`.
+  * Provides a utility method to create an `Expression` from a function and a sequence of `Expression`s.
   */
 object CompositeExpression {
 
   /**
-    * Creates an `Aggregate` instance from the given sequence of `Field` inputs.
-    * Each `Field` is converted to a `Literal` expression and combined into an `Aggregate`.
+    * Applies a given `ExpressionBiFunction` to a sequence of `Expression` instances and
+    * returns a corresponding `Expression` based on the sequence's contents.
     *
-    * @param f  The function to be applied to all elements of the result.
-    * @param xs The sequence of `Field` instances used to create the `Aggregate`.
-    * @return An `Aggregate` instance containing the converted `Literal` expressions.
+    * @param f  The `ExpressionBiFunction` used to combine or process the given expressions.
+    * @param xs The sequence of `Expression` instances to which the function is applied.
+    *           The sequence must not be empty.
+    *
+    * @return An `Expression` resulting from the specified processing:
+    *         - If the sequence is empty, an `IllegalArgumentException` is thrown.
+    *         - If the sequence contains a single element, that element is returned.
+    *         - If the sequence contains two elements, a `BiFunction` expression is returned.
+    *         - Otherwise, an `Aggregate` expression is created from the sequence.
     */
   def apply(f: ExpressionBiFunction, xs: Seq[Expression]): Expression =
     xs.toList match {
@@ -186,12 +193,20 @@ object CompositeExpression {
     }
 
   /**
-    * Creates a `Aggregate` instance from the given sequence of `Field` inputs.
-    * Each `Field` is converted to a `Literal` expression and combined into a `Aggregate`.
+    * Creates a composite expression by applying a given `ExpressionBiFunction`
+    * to a sequence of eager values.
     *
-    * @param f  the `ExpressionBiFunction` to be used to combine all the given elements.
-    * @param xs The sequence of `Field` instances used to create the `Aggregate`.
-    * @return An `Aggregate` instance containing the converted `Literal` expressions.
+    * This method maps each `Eager` value to a literal expression and then applies
+    * the provided function to generate the resulting expression.
+    *
+    * @param f  The `ExpressionBiFunction` used to combine or process the expressions
+    *           derived from the given eager values.
+    *
+    * @param xs A variable-length argument list of `Eager` values which will be
+    *           converted into literal expressions before applying the function.
+    *
+    * @return An `Expression` resulting from applying the function to the sequence
+    *         of literal expressions.
     */
   def create(f: ExpressionBiFunction, xs: Eager*): Expression =
     apply(f, xs map (x => Literal(x, Some(x.render))))
@@ -318,6 +333,10 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     */
   lazy val identitiesMatcher: em.AutoMatcher[Expression] =
     em.Matcher("UniFunction: identitiesMatcher") {
+      case UniFunction(Zero, f@Odd()) if f != Reciprocal => // NOTE if the function has odd parity, then f(0) = 0.
+        em.Match(Zero)
+      case UniFunction(Zero, Cosh | Cosine) if f != Reciprocal =>
+        em.Match(One)
       // XXX Take care of the cases whereby the inverse of a log expression is a log expression with operand and base swapped.
       case UniFunction(UniFunction(x, Ln), Reciprocal) =>
         em.Match(BiFunction(E, x, Log))
@@ -347,6 +366,8 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     em.Matcher("structuralMatcher") {
       case UniFunction(UniFunction(x, f), g) if em.complementaryMonadic(f, g) =>
         em.Match(x)
+      case UniFunction(UniFunction(x, Negate), Exp) =>
+        em.Match(UniFunction(UniFunction(x, Exp), Reciprocal))
       case x: Expression =>
         em.Miss[Expression, Expression]("UniFunction.structuralMatcher: not complementary", x)
     }
@@ -387,7 +408,8 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
   def canEqual(other: Any): Boolean =
     other.isInstanceOf[UniFunction]
 
-  override def toString: String = f.toString + "(" + x + ")"
+  override def toString: String =
+    s"$f(${x.show})"
 }
 
 /**
@@ -428,13 +450,53 @@ object UniFunction {
 }
 
 /**
+  * Represents a composite expression consisting of multiple terms.
+  * `Multiple` is a specialized trait that inherits from `CompositeExpression`
+  * and provides functionality to manage a sequence of sub-expressions.
+  */
+sealed trait Multiple extends CompositeExpression {
+  /**
+    * Provides the terms that comprise this `Multiple`.
+    *
+    * @return xs.
+    */
+  def terms: Seq[Expression]
+}
+
+/**
+  * An extractor for the `Multiple` trait, allowing deconstruction into its sequence of terms.
+  *
+  * This object provides a pattern matching mechanism for `Multiple`,
+  * enabling access to its underlying sequence of sub-expressions.
+  */
+object Multiple {
+  /**
+    * Deconstructs a `Multiple` instance into its components if it matches
+    * a binary function or an aggregate structure.
+    *
+    * This extractor enables pattern matching on `Multiple` to access its underlying
+    * binary function or aggregation operation along with the associated sequence
+    * of sub-expressions.
+    *
+    * @param m the `Multiple` instance to be deconstructed.
+    * @return an `Option` containing a tuple with the `ExpressionBiFunction` and
+    *         a sequence of `Expression` terms if the input matches a `BiFunction`
+    *         or `Aggregate` structure; otherwise, `None`.
+    */
+  def unapply(m: Multiple): Option[(ExpressionBiFunction, Seq[Expression])] = m match {
+    case BiFunction(a, b, f) => Some((f, Seq(a, b)))
+    case Aggregate(f, xs) => Some((f, xs))
+  }
+}
+
+/**
   * This class represents a dyadic function of the two given expressions.
   *
   * @param a the first expression being operated on.
   * @param b the second expression being operated on.
   * @param f the function to be applied to a and b.
   */
-case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) extends CompositeExpression {
+case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) extends Multiple {
   /**
     * Attempts to retrieve a factor based on the provided context.
     * This method evaluates whether there is an applicable factor within the given context.
@@ -541,6 +603,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       em.Match(w ∧ (x + z))
     case BiFunction(a, Literal(b, _), Sum) if a.materialize.add(b).toOption.exists(_.isZero) && a.maybeFactor(AnyContext).contains(Radian) =>
       em.Match(Literal(Angle.zero))
+    case BiFunction(BiFunction(x, k1, Product), BiFunction(y, k2, Product), Sum) if k1 == k2 =>
+      em.Match(BiFunction(BiFunction(x, y, Sum), k1, Product))
     case BiFunction(a, b, Product) if a == b =>
       em.Match(a ∧ Two)
     case BiFunction(BiFunction(w, x, Sum), BiFunction(y, UniFunction(z, Negate), Sum), Product) if w == y && x == z =>
@@ -549,7 +613,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       em.Match((a ∧ p) * (b ∧ p))
     case BiFunction(BiFunction(a, b, Power), p, Power) =>
       em.Match(a ∧ (b * p))
-    // In structuralMatcher - truly structural
     case BiFunction(NthRoot(radicand, n, _), IsIntegral(exp), Power) if n == exp =>
       em.Match(Literal(radicand, None))
     // TODO the following attempt to use a commutative extractor (as a substitute for the following two cases) fails miserably.
@@ -592,7 +655,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return a sequence of `Expression` objects representing the individual terms of this `CompositeExpression`.
     */
-  def terms: Seq[Expression] =
+  lazy val terms: Seq[Expression] =
     Seq(a, b)
 
   /**
@@ -600,12 +663,12 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return a String showing a, f, and b in parentheses (or in braces if not exact).
     */
-  override def toString: String = f match {
-    case Log => s"log_$a($b)"
-    case Power => s"($a ^ $b)"
-    case Sum => s"($a + $b)"
-    case Product => s"($a * $b)"
-    case Atan => s"atan($a,$b)"
+  override lazy val toString: String = f match {
+    case Log => s"log_${a.show}(${b.show})"
+    case Power => s"(${a.show} ^ ${b.show})"
+    case Sum => s"(${a.show} + ${b.show})"
+    case Product => s"(${a.show} * ${b.show})"
+    case Atan => s"atan(${a.show},${b.show})"
   }
 
   /**
@@ -648,7 +711,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   }
 
   private def minusXSquared(x: Expression) = {
-    val xSq = Expression.simplifyExact(BiFunction(x, Two, Power)).getOrElse(BiFunction(x, Two, Power)) // x²
+    val xSq = Expression.simplifyLazy(BiFunction(x, Two, Power)).getOrElse(BiFunction(x, Two, Power)) // x²
     em.Match(-xSq)
   }
 
@@ -947,17 +1010,16 @@ object BiFunction {
     *         cannot be interpreted as an aggregate.
     */
   def asAggregate(b: BiFunction): Option[Expression] = b match {
+    case BiFunction(Multiple(f, xs), Multiple(g, ys), Commutes(h)) if f == g && g == h =>
+      Some(Aggregate(f, xs ++ ys))
+    case BiFunction(Multiple(f, xs), y, Commutes(h)) if f == h =>
+      Some(Aggregate(f, xs :+ y))
+    case BiFunction(x, Multiple(f, ys), Commutes(h)) if f == h =>
+      Some(Aggregate(f, x +: ys))
     case BiFunction(BiFunction(w, x, Sum), BiFunction(y, z, Sum), Product) =>
-      Some(Aggregate(Sum, Seq(w :* y, w :* z, x :* y, x :* z)).simplify)
-    // TODO add simplify to the following matches like the one above.
-    case BiFunction(BiFunction(w, x, f), BiFunction(y, z, g), h) if f == g && g == h =>
-      Some(Aggregate(f, Seq(w, x, y, z)))
+      Some(Aggregate(Sum, Seq(w :* y, w :* z, x :* y, x :* z)).simplify) // TODO why simplify?
     case BiFunction(BiFunction(w, x, Power), y, Power) =>
       Some(Aggregate(Power, Seq(w, x :* y)))
-    case BiFunction(BiFunction(w, x, f), y, h) if f == h =>
-      Some(Aggregate(f, Seq(w, x, y)))
-    case BiFunction(x, BiFunction(y, z, f), h) if f == h =>
-      Some(Aggregate(f, Seq(x, y, z)))
     case x =>
       None
   }
@@ -983,7 +1045,7 @@ object BiFunction {
   * @constructor Constructs an Aggregate instance with a sequence of expressions.
   * @param xs A non-empty sequence of expressions to be totaled.
   */
-case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extends CompositeExpression {
+case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extends Multiple {
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.
     *
@@ -1144,14 +1206,14 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     *
     * @return xs.
     */
-  def terms: Seq[Expression] = xs
+  lazy val terms: Seq[Expression] = xs
 
   /**
     * Method to determine the depth of this Expression.
     *
     * @return the depth (an atomic expression has depth of 1).
     */
-  def depth: Int =
+  lazy val depth: Int =
     xs.map(_.depth).max + 1
 
   /**
@@ -1178,7 +1240,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @return a String
     */
   override def toString: String =
-    xs.mkString(s"Aggregate{${function.toString},", ",", "}")
+    xs.map(_.show).mkString(s"Aggregate{${function.toString},", ",", "}")
 }
 
 /**

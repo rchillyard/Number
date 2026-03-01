@@ -141,7 +141,7 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     * @param y the `Eager` instance to be added to this `Eager` instance
     * @return a `Try[Eager]` containing the result of the addition if successful, or a failure if the operation fails
     */
-  def add(y: Eager): Try[Eager] =
+  infix def add(y: Eager): Try[Eager] =
     summon[DyadicOperator[Eager]].op[Eager, Eager](addEagers)(this, y)
 
   /**
@@ -154,7 +154,7 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     * @return a `Try[Eager]` containing the result of the multiplication if successful,
     *         or a failure if the operation cannot be performed
     */
-  def multiply(y: Eager): Try[Eager] =
+  infix def multiply(y: Eager): Try[Eager] =
     summon[DyadicOperator[Eager]].op[Eager, Eager](multiplyEagers)(this, y)
 
   /**
@@ -166,7 +166,7 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     * @return a `Try[Eager]` containing the result of the subtraction if successful,
     *         or a failure if the operation fails
     */
-  def subtract(y: Eager): Try[Eager] =
+  infix def subtract(y: Eager): Try[Eager] =
     summon[DyadicOperator[Eager]].op[Eager, Eager](subtractEagers)(this, y)
 
   /**
@@ -178,7 +178,7 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     * @return a `Try[Eager]` containing the result of the division if successful,
     *         or a failure if the operation cannot be performed
     */
-  def divide(y: Eager): Try[Eager] =
+  infix def divide(y: Eager): Try[Eager] =
     summon[DyadicOperator[Eager]].op[Eager, Eager](divideEagers)(this, y)
 
   /**

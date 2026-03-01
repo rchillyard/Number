@@ -108,7 +108,7 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
 
   it should "render exact InversePower with asAbsolute" in {
     val ip = InversePower(2, Real(2).fuzzy) // √2
-    ip.toString shouldBe "InversePower(2,Real(2.0,None))"
+    ip.toString shouldBe "InversePower(2,Real(2.0))"
     ip.render shouldBe "√2.0*"
     ip.asAbsolute shouldBe ip.render
   }

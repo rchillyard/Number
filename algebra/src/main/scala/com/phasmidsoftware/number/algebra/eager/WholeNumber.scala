@@ -244,6 +244,8 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
     */
   private def toReal[T <: Structure : ClassTag] =
     Real(x.toDouble, None)
+
+  override def toString: String = s"WholeNumber($x)"
 }
 
 /**

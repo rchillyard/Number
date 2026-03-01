@@ -413,8 +413,6 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     */
   private lazy val toMaybeReal: Option[Real] =
     number.approximation(true).map(x => x.scaleByPi)
-
-  //  override def toString: String = s"Angle($number,$degrees)($maybeName)"
 }
 
 /**

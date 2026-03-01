@@ -101,6 +101,8 @@ object PhysicalConstants {
 
   /** Fine structure constant: α = 7.2973525693(11) × 10⁻³ (dimensionless)
     * Relative uncertainty: 1.5 × 10⁻¹⁰
+    *
+    * NOTE: not to be confused with 1/137 which is 0.<00729927> the eight digits are recurring.
     */
   lazy val alpha =
     Quantity("7.2973525693(11)e-3", Dimensionless)

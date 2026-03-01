@@ -283,6 +283,11 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
   override lazy val show: String = // CONSIDER isn't this just the same as in supertype?
     maybeName getOrElse toFuzzyNumber(PureNumber).show
 
+  override lazy val toString: String = {
+    val tolerance = fuzz.map(f => s"±$f")
+    s"""Real($value${tolerance.getOrElse("")})"""
+  }
+
   /**
     * Subtracts the specified `Real` value from this `Real` value.
     *

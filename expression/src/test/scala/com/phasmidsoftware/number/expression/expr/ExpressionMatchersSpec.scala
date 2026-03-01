@@ -341,8 +341,9 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val e: Eager = Eager.e
     val x: Expression = Literal(e, Some("e")) * Eager.two
     val y: Expression = Expression(Eager.two).reciprocal
-    val z = p(Product ~ x ~ y)
-    z shouldBe em.Match(Expression(e))
+    val actual = p(Product ~ x ~ y)
+    val expected = Expression(e)
+    actual shouldBe em.Match(expected)
   }
   it should "simplify root3 * 2 / 2" in {
     import BiFunction.*
@@ -807,7 +808,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
       case biFunction: BiFunction =>
         val result = em.matchBiFunctionAsAggregate(biFunction)
         result.successful shouldBe true
-        result.get shouldBe Aggregate(Sum, Seq(One * Pi, Two * MinusOne, Two))
+        result.get shouldBe Pi
     }
   }
   it should "simplify aggregate 1" in {
@@ -942,7 +943,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
       case _ => em.Miss("not a BiFunction chain", x)
     }
     result.successful shouldBe true
-    result shouldBe em.Match(Aggregate.total(7, Two, -3))
+    result shouldBe em.Match(Literal(6))
     result.get.materialize shouldBe Eager(6)
   }
   it should "work for 7 * 2 * -3" in {
@@ -954,7 +955,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
       case b: BiFunction => em.matchBiFunctionAsAggregate(b)
       case _ => em.Miss("not a BiFunction chain", x)
     }
-    result shouldBe em.Match(Aggregate.product(7, Two, -3))
+    result shouldBe em.Match(Literal(-42))
   }
 
   behavior of "biFunctionSimplifier"
@@ -1581,6 +1582,106 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val maybeExpression: Option[Expression] = ExpressionMatchers.complementaryExpressions(Sum, Pi, -Pi)
     val someLiteral = Some(Literal(Angle.zero))
     maybeExpression shouldBe someLiteral
+  }
+  behavior of "asAggregate with Multiple"
+
+  it should "flatten BiFunction + BiFunction into Aggregate" in {
+    val e = BiFunction(BiFunction(One, Two, Sum), BiFunction(Expression(3), Expression(4), Sum), Sum)
+    BiFunction.asAggregate(e).get shouldBe Aggregate(Sum, Seq(One, Two, Expression(3), Expression(4)))
+  }
+
+  it should "flatten Aggregate + Aggregate into Aggregate" in {
+    val e = BiFunction(Aggregate(Sum, Seq(One, Two)), Aggregate(Sum, Seq(Expression(3), Expression(4))), Sum)
+    BiFunction.asAggregate(e).get shouldBe Aggregate(Sum, Seq(One, Two, Expression(3), Expression(4)))
+  }
+
+  it should "flatten Aggregate + BiFunction into Aggregate" in {
+    val e = BiFunction(Aggregate(Sum, Seq(One, Two)), BiFunction(Expression(3), Expression(4), Sum), Sum)
+    BiFunction.asAggregate(e).get shouldBe Aggregate(Sum, Seq(One, Two, Expression(3), Expression(4)))
+  }
+
+  it should "flatten BiFunction + Aggregate into Aggregate" in {
+    val e = BiFunction(BiFunction(One, Two, Sum), Aggregate(Sum, Seq(Expression(3), Expression(4))), Sum)
+    BiFunction.asAggregate(e).get shouldBe Aggregate(Sum, Seq(One, Two, Expression(3), Expression(4)))
+  }
+
+  it should "not flatten Power" in {
+    val e = BiFunction(BiFunction(Two, Expression(3), Power), Expression(4), Power)
+    BiFunction.asAggregate(e).get shouldBe Aggregate(Power, Seq(Two, Expression(3) :* Expression(4)))
+  }
+
+  it should "return None for mixed operators" in {
+    val e = BiFunction(BiFunction(One, Two, Sum), Expression(3), Product)
+    BiFunction.asAggregate(e) shouldBe None
+  }
+
+  it should "flatten nested Aggregate within Aggregate" in {
+    val p = Expression.matchSimpler
+    val inner = Aggregate(Sum, Seq(Two, 3))
+    val outer = Aggregate(Sum, Seq(One, inner, 4))
+    val result = p(outer)
+    result.successful shouldBe true
+    result.get shouldBe Literal(10)
+  }
+
+  it should "not flatten Power into Aggregate" in {
+    val p = Expression.matchSimpler
+    val e = BiFunction(BiFunction(Two, 3, Power), 4, Power)
+    val result = p(e)
+    result.successful shouldBe true
+    result.get shouldBe Literal(4096) // (2^3)^4 = 2^(3*4)
+  }
+
+  it should "simplify (1 + 2) * 3" in {
+    val p = Expression.matchSimpler
+    val e = BiFunction(BiFunction(One, Two, Sum), Expression(3), Product)
+    val result = p(e)
+    result.successful shouldBe true
+    result.get shouldBe ValueExpression(9)
+  }
+
+  behavior of "complementary terms in Aggregate"
+
+  it should "cancel x and -x in Aggregate Sum" in {
+    val p = Expression.matchSimpler
+    val e = Aggregate(Sum, Seq(Pi, Two, -Pi))
+    val result = p(e)
+    result.successful shouldBe true
+    result.get shouldBe Two
+  }
+
+  it should "cancel x and 1/x in Aggregate Product" in {
+    val p = Expression.matchSimpler
+    val e = Aggregate(Product, Seq(Pi, Two, UniFunction(Pi, Reciprocal)))
+    val result = p(e)
+    result.successful shouldBe true
+    result.get shouldBe Two
+  }
+  
+  behavior of "simplifyParity"
+
+  it should "simplify sinh(x) + sinh(-x) to zero" in {
+    val x = Two
+    val result = Expression.simplifyParity(BiFunction(UniFunction(x, Sinh), UniFunction(-x, Sinh), Sum))
+    result shouldBe em.Match(Zero)
+  }
+
+  it should "simplify sin(x) + sin(-x) to zero" in {
+    val x = Two
+    val result = Expression.simplifyParity(BiFunction(UniFunction(x, Sine), UniFunction(-x, Sine), Sum))
+    result shouldBe em.Match(Zero)
+  }
+
+  it should "simplify cosh(x) + cosh(-x) to 2*cosh(x)" in {
+    val x = Two
+    val result = Expression.simplifyParity(BiFunction(UniFunction(x, Cosh), UniFunction(-x, Cosh), Sum))
+    result shouldBe em.Match(Two * UniFunction(x, Cosh))
+  }
+
+  it should "not simplify exp(x) + exp(-x)" in {
+    val x = Two
+    val result = Expression.simplifyParity(BiFunction(UniFunction(x, Exp), UniFunction(-x, Exp), Sum))
+    result should matchPattern { case em.Miss(_, _) => }
   }
 }
 

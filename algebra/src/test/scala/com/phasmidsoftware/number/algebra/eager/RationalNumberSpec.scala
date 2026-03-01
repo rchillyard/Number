@@ -40,8 +40,8 @@ class RationalNumberSpec extends AnyFlatSpec with Matchers with AssertionHelpers
     RationalNumber.percentage(r"171/4").render shouldBe "42.75%"
   }
   it should "toString" in {
-    RationalNumber(42).toString shouldBe "RationalNumber(42,false)"
-    RationalNumber(42, true)().toString shouldBe "RationalNumber(42,true)"
+    RationalNumber(42).toString shouldBe "RationalNumber(42)"
+    RationalNumber(42, true)().toString shouldBe "RationalNumber(42(%))"
   }
   it should "parse" in {
     val maybeTheAnswer: Option[Number] = RationalNumber.parse("42")

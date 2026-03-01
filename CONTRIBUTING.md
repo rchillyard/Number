@@ -335,8 +335,8 @@ When adding new features:
 
 ## License
 
-By contributing to Number, you agree that your contributions will be licensed under the same license as the project (
-Apache License 2.0).
+By contributing to Number, you agree that your contributions will be licensed
+under the same license as the project (MIT License).
 
 ---
 

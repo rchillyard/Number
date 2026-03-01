@@ -447,6 +447,6 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
 
   it should "not delegate to render" in {
     val solution = phi
-    solution.toString shouldBe "QuadraticSolution(RationalNumber(½,false),InversePower(2,RationalNumber(5/4,false)),1,false)"
+    solution.toString shouldBe "QuadraticSolution(RationalNumber(½),InversePower(2,RationalNumber(1.25)),1,false)"
   }
 }

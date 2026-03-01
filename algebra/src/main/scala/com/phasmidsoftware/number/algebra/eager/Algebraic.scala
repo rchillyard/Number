@@ -799,7 +799,7 @@ case class LinearSolution(value: Structure)(val maybeName: Option[String] = None
     *
     * @return a new instance of `QuadraticSolution` representing the negated version of the current solution
     */
-  def negate: Algebraic = LinearSolution(value.negate)
+  def negate: LinearSolution = LinearSolution(value.negate)
 
   /**
     * Adds the specified `Solution` to the current `LinearSolution` and returns a new `Solution`
