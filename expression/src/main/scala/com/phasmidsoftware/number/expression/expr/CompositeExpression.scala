@@ -613,10 +613,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       em.Match((a ∧ p) * (b ∧ p))
     case BiFunction(BiFunction(a, b, Power), p, Power) =>
       em.Match(a ∧ (b * p))
-    case BiFunction(UniFunction(x, f@Odd()), UniFunction(y, g@Odd()), Sum) if f == g && (x + y).isZero =>
-      em.Match(Zero)
-    case BiFunction(UniFunction(x, f@Even()), UniFunction(y, g@Even()), Sum) if f == g && (x + y).isZero =>
-      em.Match(Two * UniFunction(x, f))
     case BiFunction(NthRoot(radicand, n, _), IsIntegral(exp), Power) if n == exp =>
       em.Match(Literal(radicand, None))
     // TODO the following attempt to use a commutative extractor (as a substitute for the following two cases) fails miserably.

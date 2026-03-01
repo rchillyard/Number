@@ -698,8 +698,9 @@ object Expression {
       em.eitherOr(simplifyOperands,
         em.eitherOr(simplifyStructural,
           em.eitherOr(simplifyIdentities,
-            em.eitherOr(simplifyLazy,
-              simplifyByEvaluation))))(x)
+            em.eitherOr(simplifyParity,
+              em.eitherOr(simplifyLazy,
+                simplifyByEvaluation)))))(x)
     case x =>
       em.Error(ExpressionException(s"matchSimpler unsupported expression type: $x"))
   }
@@ -719,6 +720,25 @@ object Expression {
     case x =>
       em.Miss("simplifyOperands: not a Composite expression type", x)
   }
+
+  /**
+    * Attempts to simplify expressions involving parity (odd/even functions) within binary
+    * operations such as summation. If specific patterns matching the parity rules
+    * are found, it produces a simplified result. Otherwise, no change is applied.
+    *
+    * @return An AutoMatcher that applies parity simplifications to expressions. Returns a
+    *         simplified expression if a match is found, or a miss with a message
+    *         indicating no simplification was possible for the provided expression.
+    */
+  def simplifyParity: em.AutoMatcher[Expression] =
+    em.Matcher[Expression, Expression]("simplifyParity") {
+      case BiFunction(UniFunction(x, f@Odd()), UniFunction(y, g@Odd()), Sum) if f == g && (x + y).isZero =>
+        em.Match(Zero)
+      case BiFunction(UniFunction(x, f@Even()), UniFunction(y, g@Even()), Sum) if f == g && (x + y).isZero =>
+        em.Match(Two * UniFunction(x, f))
+      case x =>
+        em.Miss("simplifyParity: no parity simplification", x)
+    }
 
   /**
     * Attempts to simplify an `Expression` exactly based on specific rules for composite expressions.

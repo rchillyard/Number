@@ -1657,6 +1657,32 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result.successful shouldBe true
     result.get shouldBe Two
   }
+  
+  behavior of "simplifyParity"
+
+  it should "simplify sinh(x) + sinh(-x) to zero" in {
+    val x = Two
+    val result = Expression.simplifyParity(BiFunction(UniFunction(x, Sinh), UniFunction(-x, Sinh), Sum))
+    result shouldBe em.Match(Zero)
+  }
+
+  it should "simplify sin(x) + sin(-x) to zero" in {
+    val x = Two
+    val result = Expression.simplifyParity(BiFunction(UniFunction(x, Sine), UniFunction(-x, Sine), Sum))
+    result shouldBe em.Match(Zero)
+  }
+
+  it should "simplify cosh(x) + cosh(-x) to 2*cosh(x)" in {
+    val x = Two
+    val result = Expression.simplifyParity(BiFunction(UniFunction(x, Cosh), UniFunction(-x, Cosh), Sum))
+    result shouldBe em.Match(Two * UniFunction(x, Cosh))
+  }
+
+  it should "not simplify exp(x) + exp(-x)" in {
+    val x = Two
+    val result = Expression.simplifyParity(BiFunction(UniFunction(x, Exp), UniFunction(-x, Exp), Sum))
+    result should matchPattern { case em.Miss(_, _) => }
+  }
 }
 
 case class SBLogger(override val logLevel: LogLevel, sb: StringBuilder) extends MatchLogger(logLevel, { w => sb.append(s"$w\n"); () })
