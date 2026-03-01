@@ -149,7 +149,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     * @return a String representation of this Literal.
     */
   override def toString: String =
-    lazy val string = s"[${value.toString}]"
+    lazy val string = s"[${value.show}]"
     s"${maybeName getOrElse string}"
 
   /**

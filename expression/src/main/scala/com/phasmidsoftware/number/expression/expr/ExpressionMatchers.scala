@@ -52,6 +52,12 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
       Match(r)
     } else
       Match(r)
+  // CONSIDER the following code for MatchCheck which does not always return a Match.
+  //  def MatchCheck[R](r: R)(o: R): MatchResult[R] =
+  //    if r == o then
+  //      Miss(s"MatchCheck: unchanged", o)
+  //    else
+  //      Match(r)
 
   /**
     * Type alias for a dyadic triple (purpose of this is solely for brevity).
@@ -199,7 +205,8 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
   def matchBiFunctionAsAggregate: Matcher[BiFunction, Expression] =
     Matcher[BiFunction, Expression]("matchBiFunctionAsAggregate")(
       biFunction =>
-        matchOptionFunc2(asAggregate)(biFunction))
+        // NOTE that, because we are changing Expression type, we must invoke simplify here.
+        matchOptionFunc2(asAggregate)(biFunction)) `map` (_.simplify)
 
   /**
     * Simplifies a `Aggregate` expression by combining its terms in a more compact form.
@@ -226,6 +233,11 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     case Aggregate(_, x :: Nil) =>
       Match(x) // XXX we should not need to simplify x since simplifyOperands should already have done that
     // NOTE it's important that you do not reintroduce a match into a BiFunction!
+    case Aggregate(f, xs) if xs.exists { case Multiple(`f`, _) => true; case _ => false } =>
+      Match(Aggregate(f, xs.flatMap {
+        case Multiple(`f`, ys) => ys
+        case x => Seq(x)
+      }))
     case a@Aggregate(_, _) =>
       // TODO asInstanceOf
       ((angleEliminatorAggregate | complementaryTermsEliminatorAggregate) & alt(matchSimpler.asInstanceOf[Matcher[Expression, Expression]]))(a)
@@ -419,6 +431,8 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     // CONSIDER writing instead `MatchCheck(CompositeExpression(f, list))` But be careful!
     then
       MatchCheck(Aggregate(f, list))(a)
+    // CONSIDER the following:
+    //      Match(Aggregate(f, list)) `map` (_.simplify)
     else
       Miss(s"complementaryTermsEliminatorAggregate: $a", a)
 

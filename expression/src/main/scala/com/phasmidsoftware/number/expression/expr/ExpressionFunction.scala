@@ -355,6 +355,16 @@ object ExpressionBiFunction {
 }
 
 /**
+  * The `Commutes` object provides a mechanism to extract instances of `ExpressionBiFunction`
+  * that exhibit the property of commutativity. A binary function is considered commutative if
+  * the order of operands does not affect the result of the operation.
+  */
+object Commutes {
+  def unapply(f: ExpressionBiFunction): Option[ExpressionBiFunction] =
+    if f.commutes then Some(f) else None
+}
+
+/**
   * Represents an arctangent operation as a binary function.
   * Calculates the angle (in radians) whose tangent is the quotient of the two provided Valuables.
   * If either input is not a real number, the result will be `NaN` encapsulated in a `Real`.

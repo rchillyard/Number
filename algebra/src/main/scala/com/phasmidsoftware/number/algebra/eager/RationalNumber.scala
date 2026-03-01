@@ -210,6 +210,11 @@ case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeNam
     case _ =>
       super.eqv(that)
   }
+
+  override def toString: String = {
+    val percentage = if (this.percentage) s"($Percent)" else ""
+    s"RationalNumber(${r.show}$percentage)"
+  }
 }
 
 /**

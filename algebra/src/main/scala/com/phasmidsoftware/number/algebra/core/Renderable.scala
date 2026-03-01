@@ -23,12 +23,4 @@ trait Renderable {
     * @return a String
     */
   def render: String
-
-  /**
-    * MORE IMPORTANT NOTE: it really doesn't work to do this. It makes debugging almost useless.
-    * You really do need to avoid having toString invoke render (or show).
-    *
-    * @return the rendered string representation of the object
-    */
-  //  override def toString: String = render
 }
