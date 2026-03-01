@@ -649,9 +649,9 @@ object Eager {
   */
 object Imaginary {
   /**
-    * Extractor method for identifying certain patterns within an `Eager` instance.
-    * This method utilizes pattern matching to attempt extraction and transformation
-    * of complex or quadratic values from the provided input.
+    * Extractor method for optionally extracting the imaginary part of an `Eager` instance.
+    * If the input is a complex number, it returns the imaginary part as an `Eager` instance.
+    * If the input is an InversePower with a negative value, then it returns the square root of the negated value.
     *
     * @param x the input value of type `Eager` to be analyzed and transformed.
     * @return an `Option` containing a transformed `Eager` instance if a match is found,
@@ -668,9 +668,7 @@ object Imaginary {
     case InversePower(2, n) =>
       for {
         z <- n.convert(Real.zero)
-        _ = println(s"z = $z")
         y <- z.negate.power(Rational.half)
-        _ = println(s"y = $y")
       } yield y
     case _ =>
       None

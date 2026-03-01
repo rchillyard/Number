@@ -456,8 +456,12 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     * @return an `Option[Real]` containing the result of the power operation, 
     *         if the computation is successful
     */
-  def power(r: Rational): Option[Real] =
-    Some(Real(math.pow(value, r.toDouble), fuzz.map(Fuzziness.scaleTransform(r.toDouble)))())
+  def power(r: Rational): Option[Real] = {
+    val exp = r.toDouble
+    Option.when(value >= 0 || Rational.toIntOption(r).isDefined)(
+      Real(math.pow(value, exp), fuzz.map(Fuzziness.scaleTransform(exp)))()
+    )
+  }
 
   /**
     * Determines whether this instance is equivalent to another instance of type `Eager`.
