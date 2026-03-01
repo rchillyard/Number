@@ -579,6 +579,8 @@ case object Exp extends ExpressionMonoFunction("exp", lift1(x => x.exp), Parity.
       Some(Eager.one)
     case Eager.one =>
       Some(Eager.e)
+    case Eager.i =>
+      Some(algebra.eager.Complex(ComplexCartesian(numerical.Number.one.cos, numerical.Number.one.sin)))
     case _ =>
       None
   }

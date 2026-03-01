@@ -5,7 +5,11 @@
 package com.phasmidsoftware.number.algebra.eager
 
 import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
+import com.phasmidsoftware.number.algebra.eager.Angle.𝛑
+import com.phasmidsoftware.number.algebra.eager.WholeNumber.convIntWholeNumber
 import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, Functional, NaturalExponential, RationalNumber, Real, WholeNumber}
+import com.phasmidsoftware.number.algebra.util.AlgebraException
+import com.phasmidsoftware.number.core.numerical.ComplexCartesian
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -96,6 +100,37 @@ class EagerSpec extends AnyFlatSpec with should.Matchers {
     val x: Eager = WholeNumber(1)
     x == y shouldBe false
     x.~=(y) shouldBe true
+  }
+
+  behavior of "Imaginary"
+  it should "work for i" in {
+    Eager.i match {
+      case Imaginary(IsUnity(x)) =>
+      case _ => fail("should be Imaginary")
+    }
+  }
+  it should "work for 2i" in {
+    Eager.imaginary(2) match {
+      case Imaginary(x) => x should ===(WholeNumber(2))
+      case _ => fail("should be Imaginary")
+    }
+  }
+  it should "not work for -2i" in {
+    an[AlgebraException] should be thrownBy (Eager.imaginary(-2))
+  }
+
+  behavior of "asComplex"
+  it should "work for i" in {
+    Eager.i.asComplex shouldBe Some(Complex(ComplexCartesian(0, 1)))
+  }
+  it should "work for i𝛑" in {
+    val inversePower = Eager.imaginary(𝛑)
+    val asComplex = inversePower.asComplex
+    asComplex.isDefined shouldBe true
+    asComplex.get.complex.isSame(ComplexCartesian(0, math.Pi)) shouldBe true
+  }
+  it should "work for 2i" in {
+    Eager.imaginary(2).asComplex shouldBe Some(Complex(ComplexCartesian(0, 2)))
   }
 
   behavior of "SUM"

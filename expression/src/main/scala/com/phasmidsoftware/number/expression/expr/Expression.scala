@@ -56,7 +56,8 @@ trait Expression extends Lazy with Approximate {
     *
     * @return an `eager.Real` representing the approximate value of this `Expression`
     */
-  override def fuzzy: eager.Real = matchSimpler(this) match {
+  override def fuzzy: eager.Eager = matchSimpler(this) match {
+    case em.Match(Literal(eager.Complex(c), _)) => Eager(c)
     case em.Match(e: Expression) => e.fuzzy
     case _ => super.fuzzy
   }

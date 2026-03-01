@@ -10,13 +10,14 @@ import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
+import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
 import com.phasmidsoftware.number.algebra.util.FP.recover
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.{LatexRendererOps, nthRoot}
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.inner.Rational.toIntOption
 import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.{Fuzziness, Prime, WithFuzziness}
+import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, Fuzziness, Prime, WithFuzziness}
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.reflect.ClassTag
@@ -268,6 +269,29 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
   }
 
   /**
+    * Attempts to interpret this `InversePower` as a complex value.
+    *
+    * This method evaluates the structure of the expression and returns an optional
+    * Complex value if the expression can be interpreted as such. The possible cases are:
+    * - If the expression is an inverse power of 2 with a positive number, it converts the number
+    *   to a real complex.
+    * - If the expression represents an imaginary number, it converts the number to a real complex
+    *   and applies a rotation to represent the imaginary component.
+    * - For all other cases, it returns `None`.
+    *
+    * @return An `Option[Complex]` representing the interpreted complex value, or `None` if the expression
+    *         cannot be interpreted as a complex.
+    */
+  lazy val asComplex: Option[Complex] = this match {
+    case InversePower(2, x) if x.signum > 0 =>
+      numberToRealComplex(x)
+    case Imaginary(x: Number) =>
+      numberToRealComplex(x).map(_.rotate)
+    case _ =>
+      None
+  }
+
+  /**
     * Checks for equality between the current instance of `Eager` and another `Eager` instance.
     *
     * This method determines equality by comparing the structure of the two instances:
@@ -442,6 +466,19 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     if (isNegative && n % 2 == 1) -value else value
 
   /**
+    * Converts a given number into a complex number representation with a real part
+    * and an imaginary part set to zero.
+    *
+    * @param x the input number to be converted
+    * @return an Option containing the complex number if the conversion is successful,
+    *         otherwise None
+    */
+  private def numberToRealComplex(x: Number): Option[Complex] = {
+    val maybeNumber = eagerToField(x).asNumber
+    maybeNumber map (n => Complex(ComplexCartesian(n, numerical.Number.zero)))
+  }
+
+  /**
     * A lazily evaluated value that provides a simplified instance of `InversePower`.
     * If `doNormalize` results in a `Left`, the contained `number` is used directly.
     * If `doNormalize` results in a `Right`, an `InversePower` instance is created
@@ -548,6 +585,21 @@ object InversePower {
     */
   def apply(n: Int, x: Int): InversePower =
     InversePower(n, WholeNumber(x))
+
+  /**
+    * Creates a new instance of `InversePower` using the provided parameters.
+    *
+    * @param n The integer exponent to be used in the computation.
+    * @param s The input structure to be converted or processed for the inverse power calculation.
+    * @return An instance of `InversePower` computed with the specified parameters.
+    * @throws AlgebraException If the input structure cannot be converted to a `Real`.
+    */
+  def create(n: Int, s: Structure): InversePower = s match {
+    case x: Number =>
+      apply(n, x)
+    case _ =>
+      FP.recover(s.convert(Real.zero).map(x => apply(n, x)))(throw AlgebraException(s"InversePower.create: cannot convert $s to Real"))
+  }
 
   /**
     * Normalizes a given radicand with respect to a specified root degree.

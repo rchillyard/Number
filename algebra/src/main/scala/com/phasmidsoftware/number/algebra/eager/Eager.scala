@@ -12,7 +12,8 @@ import com.phasmidsoftware.number.algebra.core.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, CoreExceptionWithCause, Field}
+import com.phasmidsoftware.number.core.numerical.Complex.convertToCartesian
+import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, CoreExceptionWithCause, Field}
 import com.phasmidsoftware.number.core.parse.NumberParser
 import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.{algebra, core}
@@ -350,7 +351,7 @@ object Eager {
     *
     * The value is lazily initialized, meaning it is computed only when accessed.
     */
-  lazy val i: Eager = InversePower(2, -1)
+  lazy val i: InversePower = InversePower(2, -1)
 
   /**
     * Exact value of iPi.
@@ -481,6 +482,21 @@ object Eager {
     }
 
   /**
+    * Computes the imaginary representation of the given number by squaring it, negating the result,
+    * and attempting to convert it into a valid imaginary number.
+    *
+    * @param x the input value of type `Number` to be transformed into an imaginary representation.
+    *          It is expected to be a valid numerical value.
+    *
+    * @return an `Eager` instance representing the imaginary conversion of the input number.
+    * @throws AlgebraException if the conversion fails or the resulting value cannot be represented as an imaginary number.
+    */
+  def imaginary(x: Scalar): InversePower = {
+    val triedPower = tryImaginary(x)
+    triedPower.getOrElse(throw AlgebraException(s"Eager.imaginary: Cannot convert $x to an imaginary number"))
+  }
+
+  /**
     * Converts an `Eager` instance into a `Field` representation.
     * If the conversion fails, it recovers by throwing a `AlgebraException`
     * with an appropriate error message indicating the failure.
@@ -489,7 +505,6 @@ object Eager {
     *
     * @param eager the `Eager` instance to be converted into a `Field`.
     *              This is expected to represent a numerical value.
-    *
     * @return the `Field` representation of the input `Valuable`.
     * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]]
     *       If conversion is not possible.
@@ -616,6 +631,48 @@ object Eager {
       Failure(AlgebraException(s"Unexpected tryConvertAndCompare: ${s.getClass.getSimpleName} === ${e.getClass.getSimpleName}"))
   }
 
+  private def tryImaginary(x: Scalar): Try[InversePower] =
+    if (x.signum > 0)
+      for {
+        square <- (x `multiply` x)
+      } yield InversePower.create(2, square.negate)
+    else
+      Failure(AlgebraException(s"Eager.tryImaginary: $x is not negative"))
+
   private def complexToEager(c: Complex): Option[Eager] =
     FP.whenever(c.complex.isReal && c.complex.isExact)(c.complex.asReal.map(Eager(_)))
+}
+
+/**
+  * The `Imaginary` object provides utilities for working with complex mathematical objects,
+  * particularly for extracting and transforming specific patterns in `Eager` instances.
+  */
+object Imaginary {
+  /**
+    * Extractor method for identifying certain patterns within an `Eager` instance.
+    * This method utilizes pattern matching to attempt extraction and transformation
+    * of complex or quadratic values from the provided input.
+    *
+    * @param x the input value of type `Eager` to be analyzed and transformed.
+    * @return an `Option` containing a transformed `Eager` instance if a match is found,
+    *         or `None` if no pattern matches the input.
+    */
+  @tailrec
+  def unapply(x: Eager): Option[Eager] = x match {
+    case Complex(ComplexCartesian(_, i)) =>
+      Some(Eager(numerical.Real(i)))
+    case Complex(cp: ComplexPolar) =>
+      unapply(Complex(convertToCartesian(cp)))
+    case InversePower(2, q: Q) =>
+      q.toRational.negate.sqrt.toOption.map(Eager(_))
+    case InversePower(2, n) =>
+      for {
+        z <- n.convert(Real.zero)
+        _ = println(s"z = $z")
+        y <- z.negate.power(Rational.half)
+        _ = println(s"y = $y")
+      } yield y
+    case _ =>
+      None
+  }
 }

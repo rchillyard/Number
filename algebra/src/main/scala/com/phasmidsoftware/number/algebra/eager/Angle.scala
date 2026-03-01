@@ -400,6 +400,8 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
       super.eqv(that)
   }
 
+  override def toString: String = s"Angle(${number.show})"
+
   /**
     * Converts the current instance to an optional scaled representation as a `Real`.
     * TODO normalize before conversion

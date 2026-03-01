@@ -64,6 +64,7 @@
         <option value="com.phasmidsoftware.number.expression.parse.ShuntingYardParserSpec" />
         <option value="com.phasmidsoftware.number.expression.parse.SignificantSpaceParsersSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.AtomicExpressionSpec" />
+          <option value="com.phasmidsoftware.number.expression.expr.ComplexFunctionSpec"/>
         <option value="com.phasmidsoftware.number.expression.expr.ComplexRootSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.ComplexRootTableSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.CompositeExpressionSpec" />

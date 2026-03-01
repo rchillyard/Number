@@ -18,12 +18,12 @@ class HyperbolicSpec extends AnyFlatSpec with should.Matchers {
 
   it should "evaluate sinh(1) approximately" in {
     val result = One.sinh
-    result.fuzzy.asDouble shouldBe Math.sinh(1.0) +- 1e-10
+    result.fuzzy.toDouble shouldBe Math.sinh(1.0) +- 1e-10
   }
 
   it should "evaluate sinh(-1) approximately" in {
     val result = MinusOne.sinh
-    result.fuzzy.asDouble shouldBe Math.sinh(-1.0) +- 1e-10
+    result.fuzzy.toDouble shouldBe Math.sinh(-1.0) +- 1e-10
   }
 
   it should "satisfy sinh(-x) = -sinh(x)" in {
@@ -55,12 +55,12 @@ class HyperbolicSpec extends AnyFlatSpec with should.Matchers {
 
   it should "evaluate cosh(1) approximately" in {
     val result = One.cosh
-    result.fuzzy.asDouble shouldBe Math.cosh(1.0) +- 1e-10
+    result.fuzzy.toDouble shouldBe Math.cosh(1.0) +- 1e-10
   }
 
   it should "evaluate cosh(-1) approximately" in {
     val result = MinusOne.cosh
-    result.fuzzy.asDouble shouldBe Math.cosh(-1.0) +- 1e-10
+    result.fuzzy.toDouble shouldBe Math.cosh(-1.0) +- 1e-10
   }
 
   it should "satisfy cosh(-x) = cosh(x)" in {

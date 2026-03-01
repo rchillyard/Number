@@ -37,7 +37,9 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
 
   it should "evaluate exp(iπ/2) = i" in {
     pending // Issue #189
-    (E ∧ iPiBy2).fuzzy.asDouble shouldBe 0.0 +- 1e-10 // real part
+    val expression = (E ∧ iPiBy2).simplify
+    println(expression)
+    expression.fuzzy.toDouble shouldBe 0.0 +- 1e-10 // real part
     // imaginary part should be 1
   }
 
@@ -45,7 +47,7 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
     pending // Issue #189
     // exp(i) = cos(1) + i·sin(1) ≈ 0.5403 + 0.8415i
     val result = (E ∧ iOne).fuzzy
-    result.asDouble shouldBe Math.cos(1.0) +- 1e-10
+    result.toDouble shouldBe Math.cos(1.0) +- 1e-10
   }
 
   behavior of "log for complex arguments"
@@ -67,7 +69,7 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
     pending // Issue #189
     // sin(i) = i·sinh(1) ≈ 1.1752i
     val result = iOne.sin
-    result.fuzzy.asDouble shouldBe 0.0 +- 1e-10 // real part = 0
+    result.fuzzy.toDouble shouldBe 0.0 +- 1e-10 // real part = 0
     // imaginary part ≈ 1.1752
   }
 
@@ -83,7 +85,7 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
     pending // Issue #189
     // sin(1+i) ≈ 1.2985 + 0.6350i
     val z = One + iOne
-    z.sin.fuzzy.asDouble shouldBe 1.2985 +- 1e-3
+    z.sin.fuzzy.toDouble shouldBe 1.2985 +- 1e-3
   }
 
   behavior of "cos for complex arguments"
@@ -92,7 +94,7 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
     pending // Issue #189
     // cos(i) = cosh(1) ≈ 1.5431
     val result = iOne.cos
-    result.fuzzy.asDouble shouldBe Math.cosh(1.0) +- 1e-10
+    result.fuzzy.toDouble shouldBe Math.cosh(1.0) +- 1e-10
   }
 
   it should "satisfy cos(ix) = cosh(x)" in {
@@ -107,7 +109,7 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
     pending // Issue #189
     // cos(1+i) ≈ 0.8337 - 0.9889i
     val z = One + iOne
-    z.cos.fuzzy.asDouble shouldBe 0.8337 +- 1e-3
+    z.cos.fuzzy.toDouble shouldBe 0.8337 +- 1e-3
   }
 
   behavior of "sinh for complex arguments"
@@ -137,7 +139,7 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
     pending // Issue #189
     // sinh(1+i) ≈ 0.6350 + 1.2985i
     val z = One + iOne
-    z.sinh.fuzzy.asDouble shouldBe 0.6350 +- 1e-3
+    z.sinh.fuzzy.toDouble shouldBe 0.6350 +- 1e-3
   }
 
   behavior of "cosh for complex arguments"
@@ -166,7 +168,7 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
     pending // Issue #189
     // cosh(1+i) ≈ 0.8337 + 0.9889i
     val z = One + iOne
-    z.cosh.fuzzy.asDouble shouldBe 0.8337 +- 1e-3
+    z.cosh.fuzzy.toDouble shouldBe 0.8337 +- 1e-3
   }
 
   behavior of "cross-checks between circular and hyperbolic functions"
