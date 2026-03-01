@@ -2,6 +2,7 @@
 
 ## Versions
 
+* Version 1.7.1: Implemented hyperbolic functions (at least for real arguments).
 * Version 1.7.0: Replaced all the fastparse-based parsers with Scala's parser combinators.
 * Version 1.6.9:
   * Refactored rendering, making a distinction between render and show;

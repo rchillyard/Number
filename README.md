@@ -40,8 +40,8 @@ Number is organized into multiple modules:
 
 #### Current Version
 
-This version is 1.7.0. 
-The latest published version is 1.6.9 (see [HISTORY](docs/HISTORY.md)).
+This version is 1.7.1. 
+The latest published version is 1.7.1 (see [HISTORY](docs/HISTORY.md)).
 That should match the version of the latest release on Maven Central in the badge at the top.
 
 To use Number in your project, add the following dependency:
