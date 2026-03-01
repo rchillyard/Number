@@ -1,15 +1,17 @@
 = Number: A Scala Mathematical Library =
 
-Number is a comprehensive Scala 3 library providing exact and fuzzy arithmetic with sophisticated type hierarchies and lazy evaluation.
+Number is a comprehensive Scala 3 library providing exact and fuzzy arithmetic
+with sophisticated type hierarchies, lazy evaluation, and units and dimensions.
 
 == Modules ==
 
-The library is organized into five modules:
+The library is organized into six modules:
 
  - [[com.phasmidsoftware.number.core `core`]]: Core type hierarchy including `Number`, `Eager`, `Structure`, and basic arithmetic operations
  - [[com.phasmidsoftware.number.algebra `algebra`]]: Algebraic types including `WholeNumber`, `RationalNumber`, `Real`, `Angle`, `Complex`
  - [[com.phasmidsoftware.number.expression `expression`]]: Expression types for lazy evaluation and symbolic computation
- - [[com.phasmidsoftware.number.parse `parse`]]: LaTeX expression parsing using FastParse
+ - [[com.phasmidsoftware.number.parse `parse`]]: LaTeX expression parsing using Scala Parser Combinators
+ - [[com.phasmidsoftware.number.dimensions `dimensions`]]: Quantities with units and dimensions
  - [[com.phasmidsoftware.number.top `top`]]: Top-level convenience APIs and string interpolators
 
 == Key Concepts ==

@@ -2,6 +2,10 @@
 
 ## Versions
 
+* Version 1.7.0: Replaced all the fastparse-based parsers with Scala's parser combinators.
+* Version 1.6.9:
+  * Refactored rendering, making a distinction between render and show;
+  * Fixed issue #184 (repeating sequences of Rational numbers with larget denominator).
 * Version 1.6.8: Added CONTRIBUTING.md; more cleanup.
 * Version 1.6.7: Resolved issue of non-published root module.
 * Version 1.6.6: Implemented trig functions for Complex, thus removing all unimplemented code.

@@ -7,7 +7,7 @@ import com.phasmidsoftware.number.algebra.util.LatexRenderer
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.dimensions.core.*
 import com.phasmidsoftware.number.expression.expr.Expression
-import com.phasmidsoftware.number.parse.{ParseError, UnitsParser}
+import com.phasmidsoftware.number.parse.ParseError
 import com.phasmidsoftware.number.top.Quantity.lazify
 
 type PhysicalUnit[D <: Dimension] = com.phasmidsoftware.number.dimensions.core.Unit[D]
@@ -296,11 +296,9 @@ object Quantity {
     *         or a `Quantity[?]` instance representing the parsed numerical value and unit.
     */
   def parse(value: Valuable, unit: String): Either[ParseError, Quantity[?]] =
-    UnitsParser.parse(unit) match {
-      case Left(s) => 
-        Left(s)
-      case Right(u) => 
-        Right(Quantity(value, u))
+    QuantityParser.parseUnit(unit) match {
+      case Left(s) => Left(s)
+      case Right(u) => Right(Quantity(value, u))
     }
 
   /**
