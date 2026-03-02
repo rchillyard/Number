@@ -40,7 +40,7 @@ Number is organized into multiple modules:
 
 #### Current Version
 
-This version is 1.7.1. 
+This version is 1.7.2. 
 The latest published version is 1.7.1 (see [HISTORY](docs/HISTORY.md)).
 That should match the version of the latest release on Maven Central in the badge at the top.
 
@@ -49,7 +49,7 @@ To use Number in your project, add the following dependency:
 **SBT (Scala 3):**
 
 ```scala
-libraryDependencies += "com.phasmidsoftware" %% "number" % "1.6.9"
+libraryDependencies += "com.phasmidsoftware" %% "number" % "1.7.1"
 ```
 
 **Maven:**
