@@ -26,14 +26,12 @@ import scala.util.{Success, Try}
 /**
   * Represents an eager mathematical root, parameterized with an integral root degree and a base number.
   *
-  * TODO this may be only a temporary class because we can model all roots (and more) as solutions to Algebraic equations.
+  * NOTE do not invoke the constructor directory: all construction should go via the apply method(s) which will normalize as appropriate.
   *
-  * CONSIDER making this an (abstract?) class and having subclasses for square root and cube root.
-  * 
   * TODO there are problems with multiplication (class cast exception, for example).
   * Therefore, we should remove the `CanMultiplyAndDivide` mixin.
   *
-  * NOTE do not invoke the constructor directory: all construction should go via the apply method(s) which will normalize as appropriate.
+  * CONSIDER making this an (abstract?) class and having subclasses for square root and cube root.
   *
   * @param n      the degree of the root, specified as an integer
   * @param number the base `Number` value on which the root operation is defined
@@ -138,6 +136,9 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
           } else None
 
           (rootValue orElse recipRootValue).getOrElse(defaultValue)
+
+        case _ =>
+          normalized
       }
 
     case _ => // For higher roots, use prime factorization
@@ -573,7 +574,14 @@ object InversePower {
     * @param x The base number for the inverse power calculation.
     * @return An instance of InversePower computed with the specified parameters.
     */
-  def apply(n: Int, x: Number): InversePower = new InversePower(n, x)()
+  def apply(n: Int, x: Number): InversePower = {
+    // CONSIDER I'm not sure if we really need this normalization here.
+    val ip = new InversePower(n, x)()
+    ip.normalize match {
+      case p: InversePower => p
+      case p => ip
+    }
+  }
 
   /**
     * Creates an instance of `InversePower` using the given parameters.
