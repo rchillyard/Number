@@ -468,11 +468,11 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "simplify x^(log_x(y)) to y" in {
-    val logExpr = BiFunction(E, Pi, Log)
+    val logExpr = BiFunction(Pi, E, Log) // log_e(π) = ln(π)
     val powerExpr = BiFunction(E, logExpr, Power)
     powerExpr.simplify shouldBe Pi
   }
-
+  
   // ============================================================================
   // BiFunction Tests - Simplification (Log)
   // ============================================================================

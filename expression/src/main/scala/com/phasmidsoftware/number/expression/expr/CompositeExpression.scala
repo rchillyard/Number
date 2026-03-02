@@ -699,7 +699,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return a String showing a, f, and b in parentheses (or in braces if not exact).
     */
   override lazy val toString: String = f match {
-    case Log => s"log_${a.show}(${b.show})"
+    case Log => s"log_${b.show}(${a.show})"
     case Power => s"(${a.show} ^ ${b.show})"
     case Sum => s"(${a.show} + ${b.show})"
     case Product => s"(${a.show} * ${b.show})"
@@ -899,8 +899,12 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(Literal(NaturalExponential(v)))
       case (E, UniFunction(x, Ln)) =>
         em.Match(x)
-      case (E, BiFunction(E, x, Log)) =>
-        em.Match(x)
+      case (E, BiFunction(x, E, Log)) =>
+        em.Match(x) // TESTME
+      case (E, BiFunction(I, Pi, Product)) | (E, BiFunction(Pi, I, Product)) =>
+        em.Match(MinusOne)
+      case (E, Literal(ComplexPolar(Number.pi, Number.piBy2, _), _)) =>
+        em.Match(MinusOne) // TESTME
       case (E, x) =>
         em.Match(UniFunction(x, Exp))
       case (x, BiFunction(y, z, Log)) if x == y =>
@@ -925,10 +929,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       // CONSIDER generalizing this later but beware the general case breaks a lot of tests.
       case (Two, Literal(RationalNumber(r, _), _)) if r == Rational.half =>
         em.Match(Root.squareRoot(Rational(2), 0))
-      case (E, BiFunction(I, Pi, Product)) | (E, BiFunction(Pi, I, Product)) =>
-        em.Match(MinusOne)
-      case (E, Literal(ComplexPolar(Number.pi, Number.piBy2, _), _)) =>
-        em.Match(MinusOne) // TESTME
       case (x, BiFunction(y, z, Log)) if x == z =>
         em.Match(y)
       case _ =>
