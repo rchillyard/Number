@@ -7,21 +7,14 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.*
-import com.phasmidsoftware.number.algebra.util.FP
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian, Rational}
-import com.phasmidsoftware.number.core.misc.Bumperator
-import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Number}
-import com.phasmidsoftware.number.expression.algebraic
-import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
-import com.phasmidsoftware.number.expression.expr.Expression.em.{DyadicTriple, MonadicDuple}
-import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, em, given_LatexRenderer_Expression, matchSimpler}
+import com.phasmidsoftware.number.core.inner.Factor
+import com.phasmidsoftware.number.expression.expr.Expression.em.MonadicDuple
+import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, em}
 import com.phasmidsoftware.number.expression.expr.ExpressionMatchers.componentsSimplifier
-import com.phasmidsoftware.number.{algebra, core, expression}
+import com.phasmidsoftware.number.{algebra, expression}
 
 import java.util.Objects
 import scala.language.implicitConversions
-import scala.util.*
 
 /**
   * This class represents a monadic function of the given expression.
@@ -171,8 +164,25 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     */
   lazy val structuralMatcher: em.AutoMatcher[Expression] =
     em.Matcher("structuralMatcher") {
+      // exp(i·θ)  →  Euler(1, θ)
+      case UniFunction(BiFunction(I, θ, Product), Exp) =>
+        em.Match(Euler(One, θ))
+
+      // exp(i·θ)  →  Euler(1, θ)  (commuted: i on right)
+      case UniFunction(BiFunction(θ, I, Product), Exp) =>
+        em.Match(Euler(One, θ))
+
+      // exp(a + i·b)  →  Euler(exp(a), b)
+      case UniFunction(BiFunction(a, BiFunction(I, b, Product), Sum), Exp) =>
+        em.Match(Euler(UniFunction(a, Exp), b))
+
+      // exp(a + b·i)  →  Euler(exp(a), b)  (commuted inner)
+      case UniFunction(BiFunction(a, BiFunction(b, I, Product), Sum), Exp) =>
+        em.Match(Euler(UniFunction(a, Exp), b))
+
       case UniFunction(UniFunction(x, f), g) if em.complementaryMonadic(f, g) =>
         em.Match(x)
+
       case x: Expression =>
         em.Miss[Expression, Expression]("UniFunction.structuralMatcher: not complementary", x)
     }

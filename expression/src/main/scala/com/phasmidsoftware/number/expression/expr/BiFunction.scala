@@ -135,6 +135,15 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       em.Match(Literal(Angle.zero))
     case BiFunction(BiFunction(x, k1, Product), BiFunction(y, k2, Product), Sum) if k1 == k2 =>
       em.Match(BiFunction(BiFunction(x, y, Sum), k1, Product))
+    // cos(θ) + i·sin(θ)  →  Euler(1, θ)  (either operand order via EulerSumCommutative)
+    case SumExpression(EulerSumCommutative(θ1, θ2)) if θ1 == θ2 =>
+      em.Match(Euler(One, θ1))
+    // cos(θ) - i·sin(θ)  →  Euler(1, -θ)  (conjugate)
+    case BiFunction(Cos(θ1), UniFunction(BiFunction(I, Sin(θ2), Product), Negate), Sum) if θ1 == θ2 =>
+      em.Match(Euler(One, -θ1))
+    // r * exp(i·θ)  →  Euler(r, θ)  (either operand order via EulerProductCommutative)
+    case ProductExpression(EulerProductCommutative(r, θ)) =>
+      em.Match(Euler(r, θ))
     case BiFunction(a, b, Product) if a == b =>
       em.Match(a ∧ Two)
     case BiFunction(BiFunction(w, x, Sum), BiFunction(y, UniFunction(z, Negate), Sum), Product) if w == y && x == z =>
@@ -145,10 +154,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       em.Match(a ∧ (b * p))
     case BiFunction(NthRoot(radicand, n, _), IsIntegral(exp), Power) if n == exp =>
       em.Match(Literal(radicand, None))
-    // TODO the following attempt to use a commutative extractor (as a substitute for the following two cases) fails miserably.
-    //  But I can't figure out why.
-    //    case ProductExpression(ExpressionComplementaryCommutative(a, b)) if a == b =>
-    //      minusXSquared(a)
     case BiFunction(a, UniFunction(b, Negate), Product) if a == b =>
       minusXSquared(a)
     case BiFunction(UniFunction(b, Negate), a, Product) if b == a =>
@@ -574,17 +579,77 @@ object BiFunction {
 
 object ProductExpression {
   /**
-    * Extractor method to match an `Expression` that evaluates to zero.
-    * If the given `Expression` has a zero value, the method returns `Some(expr)`;
-    * otherwise, it returns `None`.
+    * Extractor for `BiFunction(a, b, Product)` — returns `(a, b)` as a tuple
+    * suitable for use with `CommutativeExtractor` subtypes.
     *
-    * @param expr the `Expression` to check for a zero value
-    * @return an `Option[Expression]` containing the input `expr` if it evaluates to zero, or `None` otherwise
+    * @param expr the `Expression` to match
+    * @return `Some((a, b))` if the expression is a Product, `None` otherwise
     */
   def unapply(expr: Expression): Option[(Expression, Expression)] =
     expr match {
       case BiFunction(a, b, Product) => Some((a, b))
+      case _ => None
     }
+}
+
+/**
+  * Extractor for `BiFunction(a, b, Sum)` — returns `(a, b)` as a tuple
+  * suitable for use with `CommutativeExtractor` subtypes.
+  */
+object SumExpression {
+  def unapply(expr: Expression): Option[(Expression, Expression)] =
+    expr match {
+      case BiFunction(a, b, Sum) => Some((a, b))
+      case _ => None
+    }
+}
+
+/**
+  * Commutative extractor for the Euler recognition pattern cos(θ) + i·sin(θ).
+  *
+  * Matches a pair `(left, right)` where one side is `cos(θ)` and the other is
+  * `i·sin(θ)` (in either multiplication order), returning `(θ_from_cos, θ_from_sin)`.
+  * The caller guards with `θ1 == θ2`.
+  *
+  * `extractLeft` excludes the `i·sin` shape so the two roles are mutually exclusive,
+  * preventing the swap path from producing spurious matches.
+  */
+object EulerSumCommutative extends CommutativeExtractor[Expression, Expression] {
+  protected def extractLeft(e: Expression): Option[Expression] = e match {
+    case BiFunction(I, Sin(_), Product) => None // belongs on the right
+    case BiFunction(Sin(_), I, Product) => None // belongs on the right
+    case Cos(θ) => Some(θ)
+    case _ => None
+  }
+
+  protected def extractRight(e: Expression): Option[Expression] = e match {
+    case BiFunction(I, Sin(θ), Product) => Some(θ)
+    case BiFunction(Sin(θ), I, Product) => Some(θ)
+    case _ => None
+  }
+}
+
+/**
+  * Commutative extractor for the Euler recognition pattern `r * exp(i·θ)`.
+  *
+  * Matches a pair `(left, right)` where one side is any modulus expression `r`
+  * and the other is `exp(i·θ)`, returning `(r, θ)`.
+  *
+  * `extractLeft` excludes the `exp(i·…)` shape so the two roles are mutually
+  * exclusive, preventing the swap path from producing spurious matches.
+  */
+object EulerProductCommutative extends CommutativeExtractor[Expression, Expression] {
+  protected def extractLeft(e: Expression): Option[Expression] = e match {
+    case UniFunction(BiFunction(I, _, Product), Exp) => None // belongs on the right
+    case UniFunction(BiFunction(_, I, Product), Exp) => None // belongs on the right
+    case r => Some(r)
+  }
+
+  protected def extractRight(e: Expression): Option[Expression] = e match {
+    case UniFunction(BiFunction(I, θ, Product), Exp) => Some(θ)
+    case UniFunction(BiFunction(θ, I, Product), Exp) => Some(θ)
+    case _ => None
+  }
 }
 
 /**
@@ -658,19 +723,27 @@ object ExpressionNegationCommutative extends CommutativeExtractor[Expression, Ex
 
 /**
   * Extractor object for handling negation expressions in a commutative manner.
-  * Matches pairs of expressions where one is an `Expression` and the other is
-  * a negated `ValueExpression(-1)`.
+  * Matches pairs of expressions where one is a plain `Expression` and the other
+  * is its negation `UniFunction(x, Negate)`.
   *
-  * This object extends the `CommutativeExtractor` to allow the extraction
-  * of operands in any order (i.e., it supports both (A, B) and (B, A) configurations).
+  * `extractLeft` excludes negated expressions so that the two roles are mutually
+  * exclusive. This prevents the swap path in `CommutativeExtractor` from binding
+  * `a` to a negated expression and producing a spurious `a == b` match.
+  *
+  * With this fix the commented-out shorthand in `structuralMatcher` works correctly:
+  * {{{
+  *   case ProductExpression(ExpressionComplementaryCommutative(a, b)) if a == b =>
+  *     minusXSquared(a)
+  * }}}
   */
 object ExpressionComplementaryCommutative extends CommutativeExtractor[Expression, Expression] {
   protected def extractLeft(e: Expression): Option[Expression] = e match {
-    case x: Expression => Some(x)
+    case UniFunction(_, Negate) => None // negated expressions belong on the right
+    case x => Some(x)
   }
 
   protected def extractRight(e: Expression): Option[Expression] = e match {
-    case y@UniFunction(x, Negate) => Some(x)
+    case UniFunction(x, Negate) => Some(x) // return the inner (un-negated) expression
     case _ => None
   }
 }
