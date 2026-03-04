@@ -449,7 +449,7 @@ class EulerSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "simplify exp(i*π/2)^2 to -1 via de Moivre" in {
-    pending
+    pending // TODO Issue #191
     val expIHalfPi = UniFunction(BiFunction(I, halfPi, Product), Exp)
     val squared = BiFunction(expIHalfPi, Two, Power)
     squared.simplify.simplify shouldBe MinusOne

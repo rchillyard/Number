@@ -183,10 +183,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case BiFunction(Euler(One, θ), r, Product) =>
       em.Match(Euler(r, θ))
 
-    // FIXME: exp(i*θ)^n recognition fails when exp(i*θ) is simplified to a special value
+    // TODO: (Issue #191) exp(i*θ)^n recognition fails when exp(i*θ) is simplified to a special value
     // (e.g. Euler(1,π/2) → I) before the outer Power expression is processed.
     // The following cases only fire when exp(i*θ) remains unsimplified.
-    // See also: pending test "simplify exp(i*π/2)^2 to -1 via de Moivre" in EulerSpec.
+    // See also: pending test "simplify exp(i*π/2)^2 to -1 via de Moivre" in EulerSpec (Issue #XXX).
     case BiFunction(UniFunction(BiFunction(I, θ, Product), Exp), n, Power) =>
       em.Match(Euler(One, θ * n).simplify)
     case BiFunction(UniFunction(BiFunction(θ, I, Product), Exp), n, Power) =>

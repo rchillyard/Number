@@ -73,10 +73,10 @@ class HyperbolicSpec extends AnyFlatSpec with should.Matchers {
   behavior of "sinh and cosh together"
 
   it should "satisfy cosh²(x) - sinh²(x) = 1" in {
+    pending // TODO Issue #187 or #193
     val x = Literal(Rational(3, 2))
     val c = x.cosh
     val s = x.sinh
-    //    ((c * c) - (s * s)).simplify shouldBe One
-    pending // TODO Issue #187
+    ((c * c) - (s * s)).simplify shouldBe One
   }
 }
