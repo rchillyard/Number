@@ -89,7 +89,7 @@ lazy val core = (project in file("core"))
 
     libraryDependencies ++= Seq(
       "com.phasmidsoftware" %% "flog" % flogVersion,
-      "com.phasmidsoftware" %% "matchers" % "1.0.13",
+      "com.phasmidsoftware" %% "matchers" % "1.0.14-SNAPSHOT",
       "org.apache.commons" % "commons-math3" % apacheCommonsVersion,
       "org.scala-lang.modules" %% "scala-parser-combinators" % scalaParserCombinatorsVersion,
       "org.typelevel" %% "spire" % "0.18.0",

@@ -278,7 +278,7 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
     * @return an `em.AutoMatcher[Expression]` that simplifies literal constants to their predefined values
     *         or returns a miss if no simplification is applicable.
     */
-  def simplifyAtomic: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyAtomic") {
+  def simplifyAtomic: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("Literal:simplifyAtomic") {
     case Literal(Eager.zero, _) =>
       em.Match(Zero)
     case Literal(Eager.one, _) =>
@@ -449,7 +449,7 @@ sealed abstract class NamedConstant(x: Eager, name: String) extends ValueExpress
   }
 
   def simplifyAtomic: em.AutoMatcher[Expression] =
-    em.Matcher[Expression, Expression]("simplifyAtomic")(
+    em.Matcher[Expression, Expression]("NamedConstant:simplifyAtomic")(
       _ =>
         em.Miss[Expression, Expression]("AtomicExpression: simplifyAtomic: NamedConstant", this)
     )
@@ -467,7 +467,19 @@ sealed abstract class NamedConstant(x: Eager, name: String) extends ValueExpress
   * @param x    the `Valuable` instance representing the value of the scalar constant.
   * @param name the name associated with the scalar constant.
   */
-sealed abstract class ScalarConstant(x: Eager, val name: String) extends NamedConstant(x, name)
+sealed abstract class ScalarConstant(x: Eager, val name: String) extends NamedConstant(x, name) {
+  /**
+    * Determines if the name is protected, for example, it represents a mathematical symbol
+    * for a transcendental value (e.g., pi), or a commonly used root such as √2.
+    *
+    * This method indicates whether a name associated with an entity is considered
+    * protected. The protection status could influence how the name is accessed or
+    * utilized by external systems.
+    *
+    * @return `true` if the name is protected, otherwise `false`
+    */
+  //  override lazy val protectedName: Boolean = true
+}
 
 /**
   * Represents the mathematical constant zero.

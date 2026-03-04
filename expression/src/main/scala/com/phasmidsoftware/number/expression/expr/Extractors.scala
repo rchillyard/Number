@@ -25,6 +25,11 @@ object IsZero {
     */
   def unapply(expr: Expression): Option[Expression] =
     Option.when(expr.isZero)(expr)
+  //    expr match {
+  //      case Zero => Some(Zero)
+  //      case ValueExpression(z: Zeroable, _) if z.isZero => Some(expr)
+  //      case _ => None
+  //    }
 }
 
 /**
@@ -198,12 +203,12 @@ object CubeRoot {
 }
 
 /**
-  * Companion object providing an extractor for identifying expressions involving 
+  * Companion object providing an extractor for identifying expressions involving
   * specific patterns with mathematical constants `i` (imaginary unit) and `π` (pi).
   */
 object IPi {
   /**
-    * Extractor method to determine if a given expression matches specific patterns 
+    * Extractor method to determine if a given expression matches specific patterns
     * involving mathematical constants and operations.
     *
     * @param e The input expression to be checked.
@@ -259,5 +264,14 @@ abstract class CommutativeExtractor[A, B] {
           case _ => None
         }
     }
+  }
+}
+
+object HasEuler {
+  def unapply(e: Expression): Boolean = e match {
+    case BiFunction(_: Euler, _, _) | BiFunction(_, _: Euler, _) =>
+      true
+    case _ =>
+      false
   }
 }

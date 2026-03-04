@@ -693,7 +693,7 @@ object Expression {
     * @return an `ExpressionTransformer` that matches and applies the appropriate
     *         simplifications or transformations to the provided expression.
     */
-  def matchSimpler: ExpressionTransformer = em.Matcher[Expression, Expression]("matchSimpler") {
+  def matchSimpler: ExpressionTransformer = em.Matcher[Expression, Expression]("Expression:matchSimpler") {
     case x: AtomicExpression =>
       x.simplifyAtomic(x)
     case x: CompositeExpression =>
@@ -716,7 +716,7 @@ object Expression {
     *
     * @see docs/SimplificationPipeline.md for complete pipeline documentation
     */
-  def simplifyOperands: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyOperands") {
+  def simplifyOperands: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("Expression:simplifyOperands") {
     case c: CompositeExpression =>
       c.operandsMatcher(c)
     case x =>
@@ -733,7 +733,7 @@ object Expression {
     *         indicating no simplification was possible for the provided expression.
     */
   def simplifyParity: em.AutoMatcher[Expression] =
-    em.Matcher[Expression, Expression]("simplifyParity") {
+    em.Matcher[Expression, Expression]("Expression:simplifyParity") {
       case BiFunction(UniFunction(x, f@Odd()), UniFunction(y, g@Odd()), Sum) if f == g && (x + y).isZero =>
         em.Match(Zero)
       case BiFunction(UniFunction(x, f@Even()), UniFunction(y, g@Even()), Sum) if f == g && (x + y).isZero =>
@@ -752,7 +752,7 @@ object Expression {
     *         or signals when simplification is not applicable to non-composite expressions.
     */
   def simplifyLazy: em.AutoMatcher[Expression] =
-    em.Matcher[Expression, Expression]("simplifyLazy") {
+    em.Matcher[Expression, Expression]("Expression:simplifyLazy") {
       // Special cases that need simplification
       case UniFunction(Two, Ln) =>
         em.Match(L2) `flatMap` matchSimpler
@@ -779,7 +779,7 @@ object Expression {
     *
     * @return an instance of `em.AutoMatcher[Expression]` that identifies and simplifies trivial cases in composite expressions.
     */
-  def simplifyIdentities: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("Expression.identitiesMatcher") {
+  def simplifyIdentities: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("Expression:simplifyIdentities") {
     case c: CompositeExpression =>
       c.identitiesMatcher(c)
     case x =>
@@ -798,7 +798,7 @@ object Expression {
     *         matching and optionally simplifies an expression by evaluating it.
     */
   def simplifyByEvaluation: em.AutoMatcher[Expression] =
-    em.Matcher[Expression, Expression]("Expression.simplifyByEvaluation") {
+    em.Matcher[Expression, Expression]("Expression:simplifyByEvaluation") {
       case BiFunction(ValueExpression(x: eager.Number, _), ValueExpression(q: Q, _), Power) if q.toRational.invert.isWhole =>
         val root = q.toRational.invert.toInt
         em.Match(Literal(InversePower(root, x))) `flatMap` matchSimpler
@@ -858,11 +858,11 @@ object Expression {
     * @return an `AutoMatcher` for `Expression` that matches and simplifies composite expressions,
     *         or returns the input expression unchanged if no simplifications are applicable.
     */
-  private def simplifyStructural: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("structuralMatcher") {
+  private def simplifyStructural: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("Expression:simplifyStructural") {
     case c: CompositeExpression =>
       c.structuralMatcher(c)
     case x =>
-      em.Miss("structuralMatcher: not a Composite expression type", x)
+      em.Miss("simplifyStructural: not a Composite expression type", x)
   }
 
   /**

@@ -38,7 +38,6 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
 
   it should "evaluate exp(iπ/2) = i" in {
     val expression = (E ∧ iPiBy2).simplify
-    println(expression)
     val materialized = expression.materialize
     materialized should matchPattern { case InversePower(2, WholeNumber(-1)) => }
   }

@@ -265,6 +265,15 @@ object Eager {
     * Delegates its value to `Number.zero`, a predefined numerical constant.
     */
   lazy val zero: Eager = Number.zero
+
+  /**
+    * Represents the zero value for an angle, lazily evaluated.
+    *
+    * This lazy value provides an `Eager` instance corresponding to the `Angle.zero` constant.
+    * It is part of the predefined constants within the `Eager` type for convenient mathematical operations.
+    */
+  lazy val zeroAngle: Eager = Angle.zero
+
   /**
     * A lazily initialized constant value `one` within the `Eager` class.
     * This value corresponds to the numerical representation of one.
@@ -336,6 +345,15 @@ object Eager {
     * @return A constant `Eager` representation of π/4.
     */
   lazy val piBy4: Eager = Angle.piBy4
+
+  /**
+    * Represents an eagerly evaluated lazy value corresponding to the negative half of π (-π/2).
+    *
+    * This value is initialized using the `Angle.negPiBy2` constant from the `Angle` object,
+    * conveniently making it available within the `Eager` type system.
+    */
+  lazy val negPiBy2: Eager = Angle.negPiBy2
+
   /**
     * A lazily initialized constant `e` in an `Eager` representation.
     *

@@ -92,7 +92,7 @@ trait CompositeExpression extends Expression {
     *         or indicates no simplification was possible.
     */
   lazy val simplifyLazy: em.AutoMatcher[Expression] =
-    em.Matcher("CompositeExpression: simplifyLazy") {
+    em.Matcher("CompositeExpression:simplifyLazy") {
       (expr: Expression) =>
         // Don't evaluate if this expression should stay symbolic.
         if (CompositeExpression.shouldStaySymbolic(expr))
@@ -136,7 +136,7 @@ trait CompositeExpression extends Expression {
     *
     * @return a String
     */
-  lazy val render: String = matchSimpler(this) match {
+  def render: String = matchSimpler(this) match {
     case em.Match(e) =>
       e.render
     case _ =>
@@ -216,12 +216,21 @@ object CompositeExpression {
     * @return `true` if all components of the expression are named, otherwise `false`.
     */
   def shouldStaySymbolic(expr: Expression): Boolean = expr match {
+    case _: Euler =>
+      true
     case n: Nameable =>
-      n.keepSymbolic
+      val symbolic1 = n.keepSymbolic
+      symbolic1
     case BiFunction(x: Nameable, y: Nameable, _) =>
-      (x.keepSymbolic || y.keepSymbolic) && x.maybeName.isDefined && y.maybeName.isDefined
+      val ySymbolic = y.keepSymbolic
+      val symbolic2 = (x.keepSymbolic || ySymbolic) && x.maybeName.isDefined && y.maybeName.isDefined
+      symbolic2
+    case Euler(x: Nameable, y: Nameable) =>
+      val symbolic3 = (x.keepSymbolic || y.keepSymbolic) && x.maybeName.isDefined && y.maybeName.isDefined
+      symbolic3
     case c: CompositeExpression =>
-      c.terms.forall(shouldStaySymbolic)
+      val symbolic4 = c.terms.exists(shouldStaySymbolic)
+      symbolic4
     case _ =>
       false // Anything unnamed breaks the chain
   }

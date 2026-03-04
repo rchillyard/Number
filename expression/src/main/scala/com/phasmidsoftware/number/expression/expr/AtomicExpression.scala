@@ -177,7 +177,7 @@ case class Noop(w: String) extends AtomicExpression {
   /**
     *
     */
-  def simplifyAtomic: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyAtomic")(
+  def simplifyAtomic: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("AtomicExpression:simplifyAtomic")(
     _ => em.Miss[Expression, Expression]("simplifyAtomic: ", this)
   )
 

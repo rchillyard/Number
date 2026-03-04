@@ -291,6 +291,8 @@ object WholeNumber {
     */
   lazy val two: WholeNumber = WholeNumber(2L)(Some("2"))
 
+  lazy val three: WholeNumber = WholeNumber(3L)(Some("3"))
+
   /**
     * Provides an implicit `Show` instance for the `WholeNumber` class, enabling conversion
     * of an `WholeNumber` instance to a string representation using its `render` method.

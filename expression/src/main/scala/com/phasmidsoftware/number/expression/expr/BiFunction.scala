@@ -66,8 +66,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return An `AutoMatcher` for the `Expression` type that matches and simplifies `BiFunction` expressions.
     */
-  def operandsMatcher: em.AutoMatcher[Expression] =
-    em.Matcher("BiFunction: simplifyOperands") {
+  lazy val operandsMatcher: em.AutoMatcher[Expression] =
+    em.Matcher("BiFunction:operandsMatcher") {
+      case x@HasEuler() =>
+        em.Miss(s"BiFunction:simplifyOperands: Euler should not be simplified here: $x", this)
       case b: BiFunction =>
         b.simplifyComponents
     }
@@ -92,7 +94,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *         if simplification was possible, or a "miss" if no trivial simplification could be applied.
     */
   lazy val identitiesMatcher: em.AutoMatcher[Expression] =
-    em.Matcher[Expression, Expression]("BiFunction: identitiesMatcher") {
+    em.Matcher[Expression, Expression]("BiFunction:identitiesMatcher") {
       // TODO these identity checks should use the isComplementary method for consistency
       case BiFunction(a, b, f) if matchingIdentity(a, f, left = true).contains(true) =>
         em.Match(b)
@@ -126,7 +128,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return an `em.AutoMatcher[Expression]` that encapsulates the logic for simplifying the `BiFunction`.
     *         It provides either the simplified `Expression` or indicates that no simplification was possible.
     */
-  lazy val structuralMatcher: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: structuralMatcher") {
+  lazy val structuralMatcher: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction:structuralMatcher") {
     case BiFunction(a, b, Sum) if a == b =>
       em.Match(a * Two)
     case BiFunction(BiFunction(w, x, Power), BiFunction(y, z, Power), Product) if w == y =>
@@ -160,7 +162,47 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       minusXSquared(a)
     case b@BiFunction(r1: Root, r2: Root, Sum) =>
       em.matchIfDefined(r1 add r2)(b)
-    // CONSIDER: identity patterns might be missed if aggregation happens before they're caught
+
+    // de Moivre rules — must come before HasEuler guard
+    case BiFunction(Euler(r1, t1), Euler(r2, t2), Product) =>
+      em.Match(Euler(r1 * r2, t1 + t2).simplify)
+    case BiFunction(Euler(r1, t1), UniFunction(Euler(r2, t2), Reciprocal), Product) =>
+      em.Match(Euler(r1 * UniFunction(r2, Reciprocal), t1 - t2).simplify)
+    case BiFunction(Euler(r, t), n, Power) =>
+      val result = Euler(r ∧ n, t * n)
+      val simplified = result.simplify
+      em.Match(simplified)
+    case BiFunction(Euler(r1, t), Euler(r2, UniFunction(t2, Negate)), Sum) if r1 == r2 && t == t2 =>
+      em.Match(Two * r1 * UniFunction(t, Cosine))
+    case BiFunction(Euler(r1, t), UniFunction(Euler(r2, UniFunction(t2, Negate)), Negate), Sum) if r1 == r2 && t == t2 =>
+      em.Match(Two * I * r1 * UniFunction(t, Sine))
+
+    // r * Euler(1, θ)  →  Euler(r, θ)
+    case BiFunction(r, Euler(One, θ), Product) =>
+      em.Match(Euler(r, θ))
+    case BiFunction(Euler(One, θ), r, Product) =>
+      em.Match(Euler(r, θ))
+
+    // FIXME: exp(i*θ)^n recognition fails when exp(i*θ) is simplified to a special value
+    // (e.g. Euler(1,π/2) → I) before the outer Power expression is processed.
+    // The following cases only fire when exp(i*θ) remains unsimplified.
+    // See also: pending test "simplify exp(i*π/2)^2 to -1 via de Moivre" in EulerSpec.
+    case BiFunction(UniFunction(BiFunction(I, θ, Product), Exp), n, Power) =>
+      em.Match(Euler(One, θ * n).simplify)
+    case BiFunction(UniFunction(BiFunction(θ, I, Product), Exp), n, Power) =>
+      em.Match(Euler(One, θ * n).simplify)
+
+    // I^n cycles with period 4
+    // CONSIDER not sure if we need these here (as well as in identityMatchers)
+    //    case BiFunction(I, IsIntegral(n), Power) => n % 4 match {
+    //      case 0 => em.Match(One)
+    //      case 1 => em.Match(I)
+    //      case 2 => em.Match(MinusOne)
+    //      case 3 => em.Match(UniFunction(I, Negate))
+    //    }
+
+    case x@HasEuler() =>
+      em.Miss("structuralMatcher: deferred — has Euler operand", x)
     case x@BiFunction(_, _, _) =>
       x.genericStructuralSimplification
     case x =>
@@ -198,12 +240,17 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return a String showing a, f, and b in parentheses (or in braces if not exact).
     */
-  override lazy val toString: String = f match {
-    case Log => s"log_${b.show}(${a.show})"
-    case Power => s"(${a.show} ^ ${b.show})"
-    case Sum => s"(${a.show} + ${b.show})"
-    case Product => s"(${a.show} * ${b.show})"
-    case Atan => s"atan(${a.show},${b.show})"
+  override lazy val toString: String = this match {
+    case x@HasEuler() =>
+      s"BiFunction(${x.a}, ${x.b}, ${x.f})"
+    case BiFunction(a, b, f) =>
+      f match {
+        case Log => s"log_${b.show}(${a.show})"
+        case Power => s"(${a.show} ^ ${b.show})"
+        case Sum => s"(${a.show} + ${b.show})"
+        case Product => s"(${a.show} * ${b.show})"
+        case Atan => s"atan(${a.show},${b.show})"
+      }
   }
 
   /**
@@ -401,6 +448,12 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(x)
       case (E, BiFunction(x, E, Log)) =>
         em.Match(x) // TESTME
+      case (I, IsIntegral(n)) => em.Match(n % 4 match {
+        case 0 => One
+        case 1 => I
+        case 2 => MinusOne
+        case 3 => UniFunction(I, Negate)
+      })
       case (E, BiFunction(I, Pi, Product)) | (E, BiFunction(Pi, I, Product)) =>
         em.Match(MinusOne)
       case (E, Literal(ComplexPolar(Number.pi, Number.piBy2, _), _)) =>

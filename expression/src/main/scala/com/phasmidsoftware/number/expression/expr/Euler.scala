@@ -5,10 +5,11 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.core.*
+import com.phasmidsoftware.number.algebra.core.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.eager
-import com.phasmidsoftware.number.algebra.eager.{Complex, Eager}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, WholeNumber}
 import com.phasmidsoftware.number.core.inner.{Factor, Radian}
-import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Number}
+import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Field}
 import com.phasmidsoftware.number.expression.expr.Expression.em
 import com.phasmidsoftware.number.expression.expr.ExpressionMatchers.componentsSimplifier
 
@@ -54,6 +55,8 @@ case class Euler(r: Expression, θ: Expression) extends CompositeExpression {
   lazy val renderAsExpression: String =
     r.render + "*e^(i*" + θ.render + ")"
 
+  override lazy val toString: String = s"Euler(${r.show}, ${θ.show})"
+
   lazy val terms: Seq[Expression] = Seq(r, θ)
 
   lazy val depth: Int = 1 + math.max(r.depth, θ.depth)
@@ -69,10 +72,13 @@ case class Euler(r: Expression, θ: Expression) extends CompositeExpression {
     for {
       rVal <- r.evaluate(context)
       tVal <- θ.evaluate(context)
-      rNum <- asNumber(rVal)
-      tNum <- asNumber(tVal)
+      rField <- valuableToMaybeField(rVal)
+      rNum <- rField.asNumber
+      tField <- valuableToMaybeField(tVal)
+      tNum <- tField.asNumber
       tRad = ensureRadian(tNum)
-    } yield Complex(ComplexPolar(rNum, tRad))()
+    } yield
+      Complex(ComplexPolar(rNum, tRad))()
 
   /**
     * Approximates this Euler expression via ComplexPolar.
@@ -85,39 +91,46 @@ case class Euler(r: Expression, θ: Expression) extends CompositeExpression {
     */
   lazy val operandsMatcher: em.AutoMatcher[Expression] =
     em.Matcher("Euler: operandsMatcher") {
-      case e: Euler =>
+      case e: Euler if !e.terms.exists(_.isInstanceOf[Euler]) =>
         componentsSimplifier(e.terms, { xs => val Seq(newR, newTheta) = xs; Euler(newR, newTheta) })
+      case e: Euler =>
+        em.Miss("Euler: operandsMatcher: contains Euler operand", e)
     }
 
   /**
     * Materialisation rules: special values of r or theta that reduce to simpler forms.
     */
   lazy val identitiesMatcher: em.AutoMatcher[Expression] =
-    em.Matcher("Euler: identitiesMatcher") {
+    em.Matcher("Euler:identitiesMatcher") {
+      // Literal(Angle) r = 1 special cases
+      case Euler(One, Literal(a: Angle, _)) if a.normalize.isZero => em.Match(One)
+      case Euler(One, Literal(a: Angle, _)) if a.normalize == Angle.pi => em.Match(MinusOne)
+      case Euler(One, Literal(a: Angle, _)) if a.normalize == Angle.piBy2 => em.Match(I)
+      case Euler(One, Literal(a: Angle, _)) if a.normalize == Angle.negPiBy2 => em.Match.of(UniFunction(I, Negate))
+      // Literal(Angle) general r cases
+      case Euler(r, Literal(a: Angle, _)) if a.normalize.isZero => em.Match(r)
+      case Euler(r, Literal(a: Angle, _)) if a.normalize == Angle.pi => em.Match.of(UniFunction(r, Negate))
+      case Euler(r, Literal(a: Angle, _)) if a.normalize == Angle.piBy2 => em.Match.of(BiFunction(r, I, Product))
+      case Euler(r, Literal(a: Angle, _)) if a.normalize == Angle.negPiBy2 => em.Match.of(UniFunction(BiFunction(r, I, Product), Negate))
       // Zero modulus => 0 regardless of angle
-      case Euler(Zero, _) =>
-        em.Match(Zero)
-      // Angle = 0 => result is just r (real)
-      case Euler(r, Zero) =>
-        em.Match(r)
-      // Angle = Pi => result is -r (negative real)
-      case Euler(r, Pi) =>
-        em.Match(-r)
-      // Angle = Pi/2 => result is i*r (pure imaginary)
-      case Euler(r, Euler.HalfPi()) =>
-        em.Match(r * I)
-      // Angle = -Pi/2 => result is -i*r
-      case Euler(r, Euler.MinusHalfPi()) =>
-        em.Match(-(r * I))
-      // r = 1 special cases (Euler's identity and friends)
-      case Euler(One, Pi) =>
-        em.Match(MinusOne)
-      case Euler(One, Zero) =>
-        em.Match(One)
-      case Euler(One, Euler.HalfPi()) =>
-        em.Match(I)
-      case Euler(One, Euler.MinusHalfPi()) =>
-        em.Match(-I)
+      case Euler(Zero, _) => em.Match(Zero)
+      // General r, structural angle cases
+      case Euler(r, Zero) => em.Match(r)
+      case Euler(r, Pi) => em.Match.of(UniFunction(r, Negate))
+      case Euler(r, Euler.HalfPi()) => em.Match.of(BiFunction(r, I, Product))
+      case Euler(r, Euler.MinusHalfPi()) => em.Match.of(UniFunction(BiFunction(r, I, Product), Negate))
+      // Structural angle = 2π (full rotation = 0)
+      case Euler(r, BiFunction(Pi, Two, Product)) => em.Match(r)
+      case Euler(r, BiFunction(Two, Pi, Product)) => em.Match(r)
+      // Structural angle = -2π
+      case Euler(r, UniFunction(BiFunction(Pi, Two, Product), Negate)) => em.Match(r)
+      case Euler(r, UniFunction(BiFunction(Two, Pi, Product), Negate)) => em.Match(r)
+      // Structural angle = 3π (= π after normalization)
+      case Euler(r, BiFunction(Pi, Literal(WholeNumber.three), Product)) => em.Match.of(UniFunction(r, Negate))
+
+      // TODO option 2: evaluate angle to Literal(Angle) in operandsMatcher for uniform handling
+
+      case Euler(r, BiFunction(Literal(WholeNumber.three), Pi, Product)) => em.Match.of(UniFunction(r, Negate))
       case x =>
         em.Miss("Euler: identitiesMatcher: no special value", x)
     }
@@ -130,7 +143,7 @@ case class Euler(r: Expression, θ: Expression) extends CompositeExpression {
     * is expressed as Sum with Negate applied to the subtrahend.
     */
   lazy val structuralMatcher: em.AutoMatcher[Expression] =
-    em.Matcher("Euler: structuralMatcher") {
+    em.Matcher("Euler:structuralMatcher") {
       // Multiplication: add angles, multiply moduli
       case BiFunction(Euler(r1, t1), Euler(r2, t2), Product) =>
         em.Match(Euler(r1 * r2, t1 + t2))
@@ -156,19 +169,20 @@ case class Euler(r: Expression, θ: Expression) extends CompositeExpression {
   // ---------------------------------------------------------------------------
 
   /**
-    * Extracts a Number from an Eager value.
-    * Euler materialisation requires both r and theta to be plain Numbers.
+    * Extracts a core.numerical.Number from a core.numerical.Field.
+    * ComplexPolar requires core.numerical.Number for both r and theta.
     */
-  private def asNumber(e: Eager): Option[Number] = e match {
-    case n: Number => Some(n)
+  private def asNumber(f: Field): Option[com.phasmidsoftware.number.core.numerical.Number] = f match {
+    case n: com.phasmidsoftware.number.core.numerical.Number => Some(n)
     case _ => None
   }
 
   /**
-    * Ensures the given Number carries the Radian factor required by ComplexPolar.
-    * If it is already in Radian, it is returned unchanged; otherwise it is scaled.
+    * Ensures the given core.numerical.Number carries the Radian factor
+    * required by ComplexPolar. If already in Radian, returned unchanged;
+    * otherwise scaled.
     */
-  private def ensureRadian(n: Number): Number =
+  private def ensureRadian(n: com.phasmidsoftware.number.core.numerical.Number): com.phasmidsoftware.number.core.numerical.Number =
     if (n.factor == Radian) n else n.scale(Radian)
 }
 

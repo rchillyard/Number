@@ -111,7 +111,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     *         of this `Expression` using the `matchSimpler` logic.
     */
   lazy val operandsMatcher: em.AutoMatcher[Expression] =
-    em.Matcher("UniFunction: simplifyOperands") {
+    em.Matcher("UniFunction:operandsMatcher") {
       case u@UniFunction(_, f) =>
         componentsSimplifier(u.terms, { xs => val Seq(newX) = xs; UniFunction(newX, f) })
     }
@@ -124,7 +124,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     *         as no trivial simplifications are possible.
     */
   lazy val identitiesMatcher: em.AutoMatcher[Expression] =
-    em.Matcher("UniFunction: identitiesMatcher") {
+    em.Matcher("UniFunction:identitiesMatcher") {
       case UniFunction(Zero, f@Odd()) if f != Reciprocal => // NOTE if the function has odd parity, then f(0) = 0.
         em.Match(Zero)
       case UniFunction(Zero, Cosh | Cosine) if f != Reciprocal =>
@@ -163,7 +163,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     *         indicate a miss if no simplification can be applied.
     */
   lazy val structuralMatcher: em.AutoMatcher[Expression] =
-    em.Matcher("structuralMatcher") {
+    em.Matcher("UniFunction:structuralMatcher") {
       // exp(i·θ)  →  Euler(1, θ)
       case UniFunction(BiFunction(I, θ, Product), Exp) =>
         em.Match(Euler(One, θ))
