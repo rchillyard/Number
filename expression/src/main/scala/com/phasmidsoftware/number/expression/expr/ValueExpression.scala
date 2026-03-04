@@ -279,23 +279,23 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
     *         or returns a miss if no simplification is applicable.
     */
   def simplifyAtomic: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("Literal:simplifyAtomic") {
-    case Literal(Eager.zero, _) =>
+    case IsEager(Eager.zero) =>
       em.Match(Zero)
-    case Literal(Eager.one, _) =>
+    case IsEager(Eager.one) =>
       em.Match(One)
-    case Literal(Eager.minusOne, _) =>
+    case IsEager(Eager.minusOne) =>
       em.Match(MinusOne)
-    case Literal(Eager.two, _) =>
+    case IsEager(Eager.two) =>
       em.Match(Two)
-    case Literal(Eager.half, _) =>
+    case IsEager(Eager.half) =>
       em.Match(Half)
-    case Literal(Eager.pi, _) | Literal(Angle.pi, _) =>
+    case IsEager(Eager.pi) | IsEager(Angle.pi) =>
       em.Match(Pi)
-    case Literal(Eager.e, _) =>
+    case IsEager(Eager.e) =>
       em.Match(E)
-    case Literal(RationalNumber(r, _), _) if r.isWhole =>
+    case IsEager(RationalNumber(r, _)) if r.isWhole =>
       em.Match(Literal(WholeNumber(r.toBigInt)))
-    case Literal(Eager.infinity, _) =>
+    case IsEager(Eager.infinity) =>
       em.Match(Infinity)
     case x =>
       em.Miss("simplifyAtomic: cannot be simplified", x)

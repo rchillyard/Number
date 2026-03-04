@@ -8,18 +8,12 @@ import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.algebra.util.FP
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian, Rational}
+import com.phasmidsoftware.number.core.inner.Factor
 import com.phasmidsoftware.number.core.misc.Bumperator
-import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Number}
-import com.phasmidsoftware.number.expression.algebraic
-import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
-import com.phasmidsoftware.number.expression.expr.Expression.em.{DyadicTriple, MonadicDuple}
-import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, em, given_LatexRenderer_Expression, matchSimpler}
+import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, em}
 import com.phasmidsoftware.number.expression.expr.ExpressionMatchers.componentsSimplifier
-import com.phasmidsoftware.number.{algebra, core, expression}
+import com.phasmidsoftware.number.{algebra, expression}
 
-import java.util.Objects
 import scala.language.implicitConversions
 import scala.util.*
 
@@ -288,14 +282,14 @@ object Aggregate {
     *         and other non-angle expressions.
     */
   def getAnglesEtc(xs: Seq[Expression]): Seq[Expression] = {
-    val angles: Seq[Expression] = xs.collect { case Literal(Angle(n, _), _) => Seq(Literal(n), Pi) }.flatten
+    val angles: Seq[Expression] = xs.collect { case IsEager(Angle(n, _)) => Seq(Literal(n), Pi) }.flatten
     val others = xs.filterNot {
-      case Literal(_: Angle, _) => true
+      case IsEager(_: Angle) => true
       case _ => false
     }
-    val reciprocalAngles = others.collect { case UniFunction(Literal(Angle(n, _), _), Reciprocal) => Seq(Literal(n).reciprocal, Pi.reciprocal) }.flatten
+    val reciprocalAngles = others.collect { case UniFunction(IsEager(Angle(n, _)), Reciprocal) => Seq(Literal(n).reciprocal, Pi.reciprocal) }.flatten
     val nonAngles = others.filterNot {
-      case UniFunction(Literal(_: Angle, _), Reciprocal) => true
+      case UniFunction(IsEager(_: Angle), Reciprocal) => true
       case _ => false
     }
     angles ++ reciprocalAngles ++ nonAngles
@@ -313,7 +307,7 @@ object Aggregate {
     */
   def hasReciprocalAngles(xs: Seq[Expression]): Boolean =
     xs.exists {
-      case UniFunction(Literal(_: Angle, _), Reciprocal) => true
+      case UniFunction(IsEager(_: Angle), Reciprocal) => true
       case _ => false
     }
 
@@ -329,6 +323,7 @@ object Aggregate {
     */
   def hasAngles(xs: Seq[Expression]): Boolean =
     xs.exists {
+      // NOTE this must say as Literal: do not replace with IsEager.
       case Literal(_: Angle, _) => true
       case _ => false
     }

@@ -25,6 +25,7 @@ import scala.language.implicitConversions
 case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends CompositeExpression {
   /**
     * Method to determine what `Factor`, if there is such, this `Structure` object is based on.
+    * TODO implement this in CompositeExpression (then can remove all the overrides).
     *
     * @return an optional `Factor`.
     */

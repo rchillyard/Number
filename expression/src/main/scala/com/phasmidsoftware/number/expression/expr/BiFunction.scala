@@ -133,7 +133,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       em.Match(a * Two)
     case BiFunction(BiFunction(w, x, Power), BiFunction(y, z, Power), Product) if w == y =>
       em.Match(w ∧ (x + z))
-    case BiFunction(a, Literal(b, _), Sum) if a.materialize.add(b).toOption.exists(_.isZero) && a.maybeFactor(AnyContext).contains(Radian) =>
+    case BiFunction(a, IsEager(b), Sum) if a.materialize.add(b).toOption.exists(_.isZero) && a.maybeFactor(AnyContext).contains(Radian) =>
       em.Match(Literal(Angle.zero))
     case BiFunction(BiFunction(x, k1, Product), BiFunction(y, k2, Product), Sum) if k1 == k2 =>
       em.Match(BiFunction(BiFunction(x, y, Sum), k1, Product))
@@ -143,9 +143,9 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     // cos(θ) - i·sin(θ)  →  Euler(1, -θ)  (conjugate)
     case BiFunction(Cos(θ1), UniFunction(BiFunction(I, Sin(θ2), Product), Negate), Sum) if θ1 == θ2 =>
       em.Match(Euler(One, -θ1))
-    // r * exp(i·θ)  →  Euler(r, θ)  (either operand order via EulerProductCommutative)
-    case ProductExpression(EulerProductCommutative(r, θ)) =>
-      em.Match(Euler(r, θ))
+    // NOTE: EulerProductCommutative was attempted here but never matched because
+    // exp(i*θ) is always simplified to Euler(1, θ) before structuralMatcher runs.
+    // The r * Euler(1, θ) cases below handle both orderings instead.
     case BiFunction(a, b, Product) if a == b =>
       em.Match(a ∧ Two)
     case BiFunction(BiFunction(w, x, Sum), BiFunction(y, UniFunction(z, Negate), Sum), Product) if w == y && x == z =>
@@ -193,13 +193,12 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       em.Match(Euler(One, θ * n).simplify)
 
     // I^n cycles with period 4
-    // CONSIDER not sure if we need these here (as well as in identityMatchers)
-    //    case BiFunction(I, IsIntegral(n), Power) => n % 4 match {
-    //      case 0 => em.Match(One)
-    //      case 1 => em.Match(I)
-    //      case 2 => em.Match(MinusOne)
-    //      case 3 => em.Match(UniFunction(I, Negate))
-    //    }
+    case BiFunction(I, IsIntegral(n), Power) => n % 4 match {
+      case 0 => em.Match(One)
+      case 1 => em.Match(I)
+      case 2 => em.Match(MinusOne)
+      case 3 => em.Match(UniFunction(I, Negate))
+    }
 
     case x@HasEuler() =>
       em.Miss("structuralMatcher: deferred — has Euler operand", x)
@@ -351,7 +350,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *         or failure (Miss with additional debug information)
     */
   private def matchLiteral(l: Expression, x: Expression, f: ExpressionBiFunction): em.MatchResult[Expression] = (l, x, f) match {
-    case (Literal(a: CanPower[Structure] @unchecked, _), Literal(b: RationalNumber, _), Power) =>
+    case (IsEager(a: CanPower[Structure] @unchecked), IsEager(b: RationalNumber), Power) =>
       em.matchIfDefined(a.pow(b).map(x => Literal(x)))(this)
     case (a, b, Power) =>
       val qqq: Option[Expression] = for {
@@ -448,21 +447,15 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(x)
       case (E, BiFunction(x, E, Log)) =>
         em.Match(x) // TESTME
-      case (I, IsIntegral(n)) => em.Match(n % 4 match {
-        case 0 => One
-        case 1 => I
-        case 2 => MinusOne
-        case 3 => UniFunction(I, Negate)
-      })
       case (E, BiFunction(I, Pi, Product)) | (E, BiFunction(Pi, I, Product)) =>
         em.Match(MinusOne)
-      case (E, Literal(ComplexPolar(Number.pi, Number.piBy2, _), _)) =>
+      case (E, IsEager(ComplexPolar(Number.pi, Number.piBy2, _))) =>
         em.Match(MinusOne) // TESTME
       case (E, x) =>
         em.Match(UniFunction(x, Exp))
       case (x, BiFunction(y, z, Log)) if x == y =>
         em.Match(z)
-      case (r@Literal(QuadraticSolution.phi, _), IsIntegral(w)) if w >= 1 =>
+      case (r@IsEager(QuadraticSolution.phi), IsIntegral(w)) if w >= 1 =>
         em.Match((r + One) ∧ (w - 1))
       case (r@QuadraticRoot(algebraic.QuadraticEquation(p, q), branch, _), exp) if p.negate.isUnity =>
         exp.evaluate(RestrictedContext(PureNumber)) match {
@@ -480,7 +473,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         val expression = (r + q) ∧ (w - 1)
         em.Match(expression)
       // CONSIDER generalizing this later but beware the general case breaks a lot of tests.
-      case (Two, Literal(RationalNumber(r, _), _)) if r == Rational.half =>
+      case (Two, IsEager(RationalNumber(r, _))) if r == Rational.half =>
         em.Match(Root.squareRoot(Rational(2), 0))
       case (x, BiFunction(y, z, Log)) if x == z =>
         em.Match(y)
@@ -678,29 +671,6 @@ object EulerSumCommutative extends CommutativeExtractor[Expression, Expression] 
   protected def extractRight(e: Expression): Option[Expression] = e match {
     case BiFunction(I, Sin(θ), Product) => Some(θ)
     case BiFunction(Sin(θ), I, Product) => Some(θ)
-    case _ => None
-  }
-}
-
-/**
-  * Commutative extractor for the Euler recognition pattern `r * exp(i·θ)`.
-  *
-  * Matches a pair `(left, right)` where one side is any modulus expression `r`
-  * and the other is `exp(i·θ)`, returning `(r, θ)`.
-  *
-  * `extractLeft` excludes the `exp(i·…)` shape so the two roles are mutually
-  * exclusive, preventing the swap path from producing spurious matches.
-  */
-object EulerProductCommutative extends CommutativeExtractor[Expression, Expression] {
-  protected def extractLeft(e: Expression): Option[Expression] = e match {
-    case UniFunction(BiFunction(I, _, Product), Exp) => None // belongs on the right
-    case UniFunction(BiFunction(_, I, Product), Exp) => None // belongs on the right
-    case r => Some(r)
-  }
-
-  protected def extractRight(e: Expression): Option[Expression] = e match {
-    case UniFunction(BiFunction(I, θ, Product), Exp) => Some(θ)
-    case UniFunction(BiFunction(θ, I, Product), Exp) => Some(θ)
     case _ => None
   }
 }

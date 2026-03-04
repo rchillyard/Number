@@ -5,7 +5,30 @@ import com.phasmidsoftware.number.algebra.eager.{Eager, InversePower, QuadraticS
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.expression.algebraic.{Equation, QuadraticEquation}
 
+/**
+  * This `Extractors` object is for extractors of `Expression`.
+  * There is another `Extractors` object in the `algebra` module.
+  */
 object Extractors
+
+/**
+  * Companion object providing an extractor for retrieving the `Eager` value associated with a given `Expression`.
+  * The extractor is used to match on `Expression` instances and specifically identify instances
+  * that are `ValueExpression` containing an `Eager` component.
+  */
+object IsEager {
+  /**
+    * Extractor method to deconstruct an `Expression` and retrieve the associated `Eager` value if applicable.
+    * This will match both `Literal` and `NamedConstant` cases.
+    *
+    * @param expression the `Expression` instance to be analyzed and matched.
+    * @return an `Option` containing the `Eager` value if the input is a `ValueExpression` with an `Eager` component; `None` otherwise.
+    */
+  def unapply(expression: Expression): Option[Eager] = expression match {
+    case ValueExpression(e: Eager, _) => Some(e)
+    case _ => None
+  }
+}
 
 /**
   * Companion object for the `IsZero` extractor.
@@ -125,7 +148,7 @@ object QuadraticValue {
   def unapply(expr: Expression): Option[(Equation, Int)] = expr match {
     case Root(eq, branch) =>
       Some((eq, branch))
-    case Literal(qs: QuadraticSolution, _) =>
+    case IsEager(qs: QuadraticSolution) =>
       val r = QuadraticRoot(qs)
       Some((r.equation, r.branch))
     case _ =>
@@ -152,7 +175,7 @@ object NthRoot {
   def unapply(expr: Expression): Option[(Eager, Int, Int)] = expr match {
     case Root(QuadraticEquation(Rational.zero, r), branch) =>
       Some((-r, 2, branch))
-    case Literal(v, _) => v match {
+    case IsEager(v) => v match {
       case QuadraticSolution(eager.IsZero(base), InversePower(n, radicand), coeff, imag) =>
         Some((radicand, n, (1 - coeff) / 2))
       // Add other root types if they exist
@@ -215,6 +238,7 @@ object IPi {
     * @return True if the input expression matches predefined patterns, false otherwise.
     */
   def unapply(e: Expression): Boolean = e match {
+    // NOTE leave these as Literal.
     case Literal(Eager.iPi, _) | Literal(InversePower(2, WholeNumber(-1)), _) =>
       true
     case BiFunction(I, Pi, Product) | BiFunction(Pi, I, Product) =>

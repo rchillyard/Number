@@ -268,30 +268,30 @@ object WholeNumber {
     *
     * This is a lazily evaluated instance of `WholeNumber` initialized with the value 0.
     */
-  lazy val zero: WholeNumber = WholeNumber(0L)(Some("0"))
+  val zero: WholeNumber = WholeNumber(0L)(Some("0"))
   /**
     * Represents the whole number value `1` as an instance of `WholeNumber`.
     *
     * This is a lazy value, ensuring that the object is not instantiated until it is accessed,
     * and thereafter remains constant for the duration of the application's lifecycle.
     */
-  lazy val one: WholeNumber = WholeNumber(1L)(Some("1"))
+  val one: WholeNumber = WholeNumber(1L)(Some("1"))
   /**
     * Represents the constant whole number value of -1.
     *
     * This is a lazily computed instance of the `WholeNumber` type,
     * initialized with the value -1.
     */
-  lazy val minusOne: WholeNumber = WholeNumber(-1L)(Some("-1"))
+  val minusOne: WholeNumber = WholeNumber(-1L)(Some("-1"))
   /**
     * Represents the whole number two as a lazy value of type `WholeNumber`.
     *
     * This is a predefined constant for convenient access to the numeric value 2
     * in the context of `WholeNumber` operations and conversions.
     */
-  lazy val two: WholeNumber = WholeNumber(2L)(Some("2"))
+  val two: WholeNumber = WholeNumber(2L)(Some("2"))
 
-  lazy val three: WholeNumber = WholeNumber(3L)(Some("3"))
+  val three: WholeNumber = WholeNumber(3L)(Some("3"))
 
   /**
     * Provides an implicit `Show` instance for the `WholeNumber` class, enabling conversion

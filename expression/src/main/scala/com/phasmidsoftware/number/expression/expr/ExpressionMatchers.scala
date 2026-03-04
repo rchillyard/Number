@@ -181,7 +181,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * @return an ExpressionMatcher[Field].
     */
   def value: ExpressionMatcher[Valuable] = {
-    case Literal(v, _) =>
+    case IsEager(v) =>
       Match(v)
     case ValueExpression(v, _) =>
       Match(v)
@@ -472,7 +472,7 @@ object ExpressionMatchers {
   def componentsSimplifier(xs: Seq[Expression], grouper: Seq[Expression] => Expression): em.MatchResult[Expression] = {
     val simplifiedExpressions = xs.map(_.simplify)
     if (simplifiedExpressions == xs)
-      em.Miss("components unchanged", grouper(xs))
+      em.Miss("components unchanged", xs)
     else
       em.Match(grouper(simplifiedExpressions))
   }

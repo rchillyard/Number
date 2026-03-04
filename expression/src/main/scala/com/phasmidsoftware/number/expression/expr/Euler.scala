@@ -9,7 +9,7 @@ import com.phasmidsoftware.number.algebra.core.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, WholeNumber}
 import com.phasmidsoftware.number.core.inner.{Factor, Radian}
-import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Field}
+import com.phasmidsoftware.number.core.numerical.ComplexPolar
 import com.phasmidsoftware.number.expression.expr.Expression.em
 import com.phasmidsoftware.number.expression.expr.ExpressionMatchers.componentsSimplifier
 
@@ -98,39 +98,58 @@ case class Euler(r: Expression, θ: Expression) extends CompositeExpression {
     }
 
   /**
-    * Materialisation rules: special values of r or theta that reduce to simpler forms.
+    * Materialization rules: special values of r or theta that reduce to simpler forms.
     */
   lazy val identitiesMatcher: em.AutoMatcher[Expression] =
     em.Matcher("Euler:identitiesMatcher") {
       // Literal(Angle) r = 1 special cases
-      case Euler(One, Literal(a: Angle, _)) if a.normalize.isZero => em.Match(One)
-      case Euler(One, Literal(a: Angle, _)) if a.normalize == Angle.pi => em.Match(MinusOne)
-      case Euler(One, Literal(a: Angle, _)) if a.normalize == Angle.piBy2 => em.Match(I)
-      case Euler(One, Literal(a: Angle, _)) if a.normalize == Angle.negPiBy2 => em.Match.of(UniFunction(I, Negate))
+      case Euler(One, IsEager(a: Angle)) if a.normalize.isZero =>
+        em.Match(One)
+      case Euler(One, IsEager(a: Angle)) if a.normalize == Angle.pi =>
+        em.Match(MinusOne)
+      case Euler(One, IsEager(a: Angle)) if a.normalize == Angle.piBy2 =>
+        em.Match(I)
+      case Euler(One, IsEager(a: Angle)) if a.normalize == Angle.negPiBy2 =>
+        em.Match.of(UniFunction(I, Negate))
       // Literal(Angle) general r cases
-      case Euler(r, Literal(a: Angle, _)) if a.normalize.isZero => em.Match(r)
-      case Euler(r, Literal(a: Angle, _)) if a.normalize == Angle.pi => em.Match.of(UniFunction(r, Negate))
-      case Euler(r, Literal(a: Angle, _)) if a.normalize == Angle.piBy2 => em.Match.of(BiFunction(r, I, Product))
-      case Euler(r, Literal(a: Angle, _)) if a.normalize == Angle.negPiBy2 => em.Match.of(UniFunction(BiFunction(r, I, Product), Negate))
+      case Euler(r, IsEager(a: Angle)) if a.normalize.isZero =>
+        em.Match(r)
+      case Euler(r, IsEager(a: Angle)) if a.normalize == Angle.pi =>
+        em.Match.of(UniFunction(r, Negate))
+      case Euler(r, IsEager(a: Angle)) if a.normalize == Angle.piBy2 =>
+        em.Match.of(BiFunction(r, I, Product))
+      case Euler(r, IsEager(a: Angle)) if a.normalize == Angle.negPiBy2 =>
+        em.Match.of(UniFunction(BiFunction(r, I, Product), Negate))
       // Zero modulus => 0 regardless of angle
-      case Euler(Zero, _) => em.Match(Zero)
+      case Euler(Zero, _) =>
+        em.Match(Zero)
       // General r, structural angle cases
-      case Euler(r, Zero) => em.Match(r)
-      case Euler(r, Pi) => em.Match.of(UniFunction(r, Negate))
-      case Euler(r, Euler.HalfPi()) => em.Match.of(BiFunction(r, I, Product))
-      case Euler(r, Euler.MinusHalfPi()) => em.Match.of(UniFunction(BiFunction(r, I, Product), Negate))
+      case Euler(r, Zero) =>
+        em.Match(r)
+      case Euler(r, Pi) =>
+        em.Match.of(UniFunction(r, Negate))
+      case Euler(r, Euler.HalfPi()) =>
+        em.Match.of(BiFunction(r, I, Product))
+      case Euler(r, Euler.MinusHalfPi()) =>
+        em.Match.of(UniFunction(BiFunction(r, I, Product), Negate))
       // Structural angle = 2π (full rotation = 0)
-      case Euler(r, BiFunction(Pi, Two, Product)) => em.Match(r)
-      case Euler(r, BiFunction(Two, Pi, Product)) => em.Match(r)
+      case Euler(r, BiFunction(Pi, Two, Product)) =>
+        em.Match(r)
+      case Euler(r, BiFunction(Two, Pi, Product)) =>
+        em.Match(r)
       // Structural angle = -2π
-      case Euler(r, UniFunction(BiFunction(Pi, Two, Product), Negate)) => em.Match(r)
-      case Euler(r, UniFunction(BiFunction(Two, Pi, Product), Negate)) => em.Match(r)
+      case Euler(r, UniFunction(BiFunction(Pi, Two, Product), Negate)) =>
+        em.Match(r)
+      case Euler(r, UniFunction(BiFunction(Two, Pi, Product), Negate)) =>
+        em.Match(r)
       // Structural angle = 3π (= π after normalization)
-      case Euler(r, BiFunction(Pi, Literal(WholeNumber.three), Product)) => em.Match.of(UniFunction(r, Negate))
+      case Euler(r, BiFunction(Pi, IsEager(WholeNumber.three), Product)) =>
+        em.Match.of(UniFunction(r, Negate))
 
       // TODO option 2: evaluate angle to Literal(Angle) in operandsMatcher for uniform handling
 
-      case Euler(r, BiFunction(Literal(WholeNumber.three), Pi, Product)) => em.Match.of(UniFunction(r, Negate))
+      case Euler(r, BiFunction(IsEager(WholeNumber.three), Pi, Product)) =>
+        em.Match.of(UniFunction(r, Negate))
       case x =>
         em.Miss("Euler: identitiesMatcher: no special value", x)
     }
@@ -167,15 +186,6 @@ case class Euler(r: Expression, θ: Expression) extends CompositeExpression {
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
-
-  /**
-    * Extracts a core.numerical.Number from a core.numerical.Field.
-    * ComplexPolar requires core.numerical.Number for both r and theta.
-    */
-  private def asNumber(f: Field): Option[com.phasmidsoftware.number.core.numerical.Number] = f match {
-    case n: com.phasmidsoftware.number.core.numerical.Number => Some(n)
-    case _ => None
-  }
 
   /**
     * Ensures the given core.numerical.Number carries the Radian factor

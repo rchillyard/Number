@@ -81,7 +81,7 @@ object AtomicExpression {
       Some(c) // CONSIDER eliminate this?
     case ValueExpression(x, _) =>
       Some(x) // NOTE we lose the name here.
-    case Literal(x, _) =>
+    case IsEager(x) =>
       Some(x) // NOTE we lose the name here.
     case r: Root =>
       r.evaluateAsIs

@@ -1047,7 +1047,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = Literal(Eager.pi)
     val y = -x
     val result = p(BiFunction(x, y, Sum))
-    result should matchPattern { case em.Match(Literal(Angle.zero, _)) => }
+    result should matchPattern { case em.Match(IsEager(Angle.zero)) => }
   }
 
   behavior of "matchDyadicTrivial"
