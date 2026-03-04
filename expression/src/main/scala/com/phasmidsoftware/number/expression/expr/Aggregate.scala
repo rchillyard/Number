@@ -40,6 +40,15 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
   lazy val isExact: Boolean = xs.forall(_.isExact)
 
   /**
+    * Checks if the given element is contained within the collection of expressions.
+    *
+    * @param elem the element of type `E` to be checked for presence in the collection.
+    *             The type `E` must be a supertype of `Expression`.
+    * @return `true` if the element is present in the collection, otherwise `false`.
+    */
+  def contains[E >: Expression](elem: E): Boolean = xs.contains(elem)
+
+  /**
     * Renders the `CompositeExpression` as a string representation of the expression itself,
     * typically in a structured or human-readable mathematical format.
     *

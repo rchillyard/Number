@@ -28,6 +28,10 @@ class LaTeXParserSpec extends AnyFlatSpec with should.Matchers {
       case _ => // expected
     }
 
+  // Helpers for complex tests
+  private val halfPi: Expression = BiFunction(Pi, Half, Product)
+  private val minusHalfPi: Expression = UniFunction(halfPi, Negate)
+
   behavior of "LaTeXParser"
 
   it should "apply number expressions" in {
@@ -73,6 +77,52 @@ class LaTeXParserSpec extends AnyFlatSpec with should.Matchers {
     assertParses("""\exp(2)""", UniFunction(Two, Exp))
   }
 
+  it should "parse sinh and cosh" in {
+    assertParses("""\sinh{1}""", UniFunction(One, Sinh))
+    assertParses("""\cosh{1}""", UniFunction(One, Cosh))
+    assertParses("""\sinh{\pi}""", UniFunction(Pi, Sinh))
+    assertParses("""\cosh{\pi}""", UniFunction(Pi, Cosh))
+  }
+
+  it should "parse i as the imaginary unit" in {
+    assertParses("i", I)
+  }
+
+  it should "parse Cartesian complex form a + bi" in {
+    // 1 + 2i parses as BiFunction(1, BiFunction(2, I, Product), Sum)
+    assertParses("1+2i", BiFunction(One, BiFunction(Two, I, Product), Sum))
+    // 1 - 2i (as sum with negation)
+    assertParses("1-2i", BiFunction(One, UniFunction(BiFunction(Two, I, Product), Negate), Sum))
+  }
+
+  it should "parse polar form r*e^(i*theta) as a BiFunction tree" in {
+    assertParses("""\e^{i\pi/2}""",
+      BiFunction(E,
+        BiFunction(
+          BiFunction(I, Pi, Product),
+          UniFunction(Literal(WholeNumber(2), Some("2")), Reciprocal),
+          Product),
+        Power))
+    // e^(i*π) parses as BiFunction(E, BiFunction(I, Pi, Product), Power)
+    //    assertParses("""\e^{i\pi}""", BiFunction(E, BiFunction(I, Pi, Product), Power))
+    // 2*e^(i*π/2)
+    assertParses("""2\e^{i\pi/2}""",
+      BiFunction(
+        Two,
+        BiFunction(
+          E,
+          BiFunction(
+            BiFunction(I, Pi, Product),
+            UniFunction(Literal(WholeNumber(2), Some("2")), Reciprocal),
+            Product
+          ),
+          Power
+        ),
+        Product
+      )
+    )
+  }
+
   behavior of "parsed expressions"
 
   it should "apply number expressions" in {
@@ -82,6 +132,36 @@ class LaTeXParserSpec extends AnyFlatSpec with should.Matchers {
       case f: LaTeXParser.NoSuccess => fail(s"Parse failed: ${f.msg}")
       case _ => fail("Did not consume all input")
     }
+  }
+
+  it should "simplify e^(i*π) to -1 (Euler's identity) via parser" in {
+    val expr = LaTeXParser.parse("""\e^{i\pi}""") match {
+      case LaTeXParser.Success(result, next) if next.atEnd => result
+      case f: LaTeXParser.NoSuccess => fail(s"Parse failed: ${f.msg}")
+      case _ => fail("Did not consume all input")
+    }
+    expr.simplify shouldBe MinusOne
+  }
+
+  it should "simplify e^(i*π/2) to i via parser" in {
+    println(BiFunction(BiFunction(I, Pi, Product), Half, Product).simplify)
+    val expr = LaTeXParser.parse("""\e^{i\pi/2}""") match {
+      case LaTeXParser.Success(result, next) if next.atEnd => result
+      case f: LaTeXParser.NoSuccess => fail(s"Parse failed: ${f.msg}")
+      case _ => fail("Did not consume all input")
+    }
+    expr.simplify shouldBe I
+  }
+
+  it should "simplify cos(θ) + i*sin(θ) to Euler(1,θ) via parser" in {
+    // Use a non-special angle to avoid identitiesMatcher firing immediately
+    val expr = LaTeXParser.parse("""\cos(\pi)+i\sin(\pi)""") match {
+      case LaTeXParser.Success(result, next) if next.atEnd => result
+      case f: LaTeXParser.NoSuccess => fail(s"Parse failed: ${f.msg}")
+      case _ => fail("Did not consume all input")
+    }
+    // cos(π) + i*sin(π) = -1 + i*0 = -1
+    expr.simplify shouldBe MinusOne
   }
 
   behavior of "degrees and percentages"

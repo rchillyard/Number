@@ -173,6 +173,14 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
       case UniFunction(BiFunction(θ, I, Product), Exp) =>
         em.Match(Euler(One, θ))
 
+      // exp((i·θ) * k)  →  Euler(1, θ*k)  (parser produces this form for e.g. e^{i\pi/2})
+      case UniFunction(BiFunction(BiFunction(I, θ, Product), k, Product), Exp) =>
+        em.Match(Euler(One, θ * k))
+
+      // exp(k * (i·θ))  →  Euler(1, θ*k)  (commuted outer)
+      case UniFunction(BiFunction(k, BiFunction(I, θ, Product), Product), Exp) =>
+        em.Match(Euler(One, θ * k))
+
       // exp(a + i·b)  →  Euler(exp(a), b)
       case UniFunction(BiFunction(a, BiFunction(I, b, Product), Sum), Exp) =>
         em.Match(Euler(UniFunction(a, Exp), b))
@@ -180,6 +188,13 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
       // exp(a + b·i)  →  Euler(exp(a), b)  (commuted inner)
       case UniFunction(BiFunction(a, BiFunction(b, I, Product), Sum), Exp) =>
         em.Match(Euler(UniFunction(a, Exp), b))
+
+      // exp(Aggregate{*, i, ...terms})  →  Euler(1, product of remaining terms)
+      // (operandsMatcher flattens (i*π)*½ to Aggregate{*,i,π,½} before structuralMatcher runs)
+      case UniFunction(Aggregate(Product, terms), Exp) if terms.contains(I) =>
+        val remaining = terms.filterNot(_ == I)
+        val theta = remaining.reduce((a, b) => BiFunction(a, b, Product))
+        em.Match(Euler(One, theta))
 
       case UniFunction(UniFunction(x, f), g) if em.complementaryMonadic(f, g) =>
         em.Match(x)
