@@ -26,8 +26,8 @@ import org.scalatest.matchers.should
 class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
 
   // i·π/2 expressed in the expression layer
-  private lazy val iPi = Literal(Eager.iPi)
-  private lazy val iPiBy2 = iPi / Two
+  private lazy val iPi = BiFunction(I, Pi, Product)
+  private lazy val iPiBy2 = BiFunction(I, BiFunction(Pi, Half, Product), Product)
   private lazy val iOne = I * One
 
   behavior of "exp for complex arguments"
@@ -125,6 +125,9 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   it should "evaluate sinh(iπ/2) = i" in {
     pending // TODO Issue #189 and/or #192
     // sinh(iπ/2) = i·sin(π/2) = i
+    println(iPiBy2)
+    println(BiFunction(Pi, Half, Product).sin.simplify)
+    println(BiFunction(Pi, Half, Product).simplify)
     val result = iPiBy2.sinh.simplify
     result shouldBe I
   }

@@ -126,10 +126,26 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     */
   lazy val identitiesMatcher: em.AutoMatcher[Expression] =
     em.Matcher("UniFunction:identitiesMatcher") {
+      // Zero special cases
       case UniFunction(Zero, f@Odd()) if f != Reciprocal => // NOTE if the function has odd parity, then f(0) = 0.
         em.Match(Zero)
       case UniFunction(Zero, Cosh | Cosine) if f != Reciprocal =>
         em.Match(One)
+
+      // Non-zero special cases
+      case UniFunction(Euler.HalfPi(), Sine) =>
+        em.Match(One)
+      case UniFunction(Euler.HalfPi(), Cosine) =>
+        em.Match(Zero)
+      case UniFunction(Euler.MinusHalfPi(), Sine) =>
+        em.Match(MinusOne)
+      case UniFunction(Euler.MinusHalfPi(), Cosine) =>
+        em.Match(Zero)
+      case UniFunction(Pi, Sine) =>
+        em.Match(Zero)
+      case UniFunction(Pi, Cosine) =>
+        em.Match(MinusOne)
+
       case UniFunction(IsEuler(Euler(r, θ)), Ln) =>
         em.Match((UniFunction(r, Ln) + (I * θ)).simplify)
       // XXX Take care of the cases whereby the inverse of a log expression is a log expression with operand and base swapped.
