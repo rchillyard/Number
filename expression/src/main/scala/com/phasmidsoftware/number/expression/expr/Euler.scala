@@ -233,3 +233,30 @@ object Euler {
     }
   }
 }
+
+/**
+  * The `IsEuler` object provides functionality to extract an instance
+  * of `Euler` from a given `Expression` if the expression conforms to a
+  * known form of Euler's representation. It enables pattern matching
+  * for expressions representing Euler's equation or its variations.
+  */
+object IsEuler {
+  /**
+    * Extracts an instance of Euler from a given Expression, if the expression matches
+    * a known Euler form.
+    *
+    * @param e the expression to be evaluated for extraction
+    * @return an Option containing the extracted Euler instance if the expression matches;
+    *         None otherwise
+    */
+  def unapply(e: Expression): Option[Euler] = e match {
+    case MinusOne =>
+      Some(Euler(One, Pi))
+    case I =>
+      Some(Euler(One, BiFunction(Pi, Half, Product)))
+    case UniFunction(IsEuler(eu), Negate) =>
+      Some(Euler(eu.r, UniFunction(eu.θ, Negate)))
+    case _ =>
+      None
+  }
+}

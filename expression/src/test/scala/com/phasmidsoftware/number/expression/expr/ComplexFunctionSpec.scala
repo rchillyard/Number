@@ -54,14 +54,11 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   behavior of "log for complex arguments"
 
   it should "evaluate log(-1) = iπ" in {
-    pending // TODO Issue #189 and/or #192
-    // log(-1) = iπ
-    MinusOne.log shouldBe iPi
+    MinusOne.ln.simplify shouldBe (I * Pi).simplify
   }
 
   it should "evaluate log(i) = iπ/2" in {
-    pending // TODO Issue #189 and/or #192
-    I.log shouldBe iPiBy2
+    I.ln.simplify shouldBe (I * Pi * Half).simplify
   }
 
   behavior of "sin for complex arguments"

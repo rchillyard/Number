@@ -71,7 +71,7 @@
         <option value="com.phasmidsoftware.number.expression.expr.EagerOpsIntegrationSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.EagerOpsSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.EmptySpec" />
-          <option value="com.phasmidsoftware.number.expression.expr.EulerSpec"/>
+        <option value="com.phasmidsoftware.number.expression.expr.EulerSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.ExpressionEdgeCasesSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.ExpressionEqSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.ExpressionMatchersSpec" />

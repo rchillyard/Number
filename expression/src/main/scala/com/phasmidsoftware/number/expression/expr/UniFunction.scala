@@ -130,6 +130,8 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
         em.Match(Zero)
       case UniFunction(Zero, Cosh | Cosine) if f != Reciprocal =>
         em.Match(One)
+      case UniFunction(IsEuler(Euler(r, θ)), Ln) =>
+        em.Match((UniFunction(r, Ln) + (I * θ)).simplify)
       // XXX Take care of the cases whereby the inverse of a log expression is a log expression with operand and base swapped.
       case UniFunction(UniFunction(x, Ln), Reciprocal) =>
         em.Match(BiFunction(E, x, Log))

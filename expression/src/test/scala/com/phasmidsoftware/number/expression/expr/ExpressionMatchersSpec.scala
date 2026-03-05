@@ -13,7 +13,7 @@ import com.phasmidsoftware.number.core.inner.Rational.infinity
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Number.{piBy2, root2, root3, √}
-import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Constants, Field, FuzzyNumber}
+import com.phasmidsoftware.number.core.numerical.{Constants, Field, FuzzyNumber}
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.BiFunction.asAggregate
 import com.phasmidsoftware.number.expression.expr.Expression
@@ -1447,7 +1447,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val r = p(Ln ~ MinusOne)
     r.successful shouldBe true
     val actual = r.get
-    val expected = Literal(Eager(ComplexPolar(numerical.Number.pi, numerical.Number.piBy2.makeNegative, 1)))
+    val expected = (I * Pi).simplify
     actual shouldBe expected
   }
 
