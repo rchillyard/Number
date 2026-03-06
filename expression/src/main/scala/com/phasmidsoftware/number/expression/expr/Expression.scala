@@ -120,12 +120,12 @@ trait Expression extends Lazy with Approximate {
   lazy val simplify: Expression = {
     @tailrec
     def inner(x: Expression): Expression = matchSimpler(x) match { // XXX this does match all cases (need version 1.0.16 of Matchers to resolve the warning)
-      case em.Match(e: Expression) =>
+      case em.Match(e) =>
         Expression.logger(s"simplification of $x: $e")
         inner(e)
-      case em.Miss(msg, e: Expression) =>
+      case em.Miss(msg, e) =>
         Expression.logger(s"simplification of $x terminated by: $msg")
-        e
+        e.asInstanceOf[Expression]
       case em.Error(e) =>
         throw ExpressionException(s"simplify.inner($x): Error:", e)
     }
