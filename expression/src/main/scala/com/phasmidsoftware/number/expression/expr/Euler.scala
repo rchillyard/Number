@@ -250,7 +250,7 @@ object IsEuler {
     *         None otherwise
     */
   def unapply(e: Expression): Option[Euler] = e match {
-    case MinusOne =>
+    case IsMinusOne(_) =>
       Some(Euler(One, Pi))
     case I =>
       Some(Euler(One, BiFunction(Pi, Half, Product)))

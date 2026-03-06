@@ -435,7 +435,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     (a, b) match {
       case (_, Zero) =>
         em.Match(One)
-      case (_, MinusOne) =>
+      case (_, IsMinusOne(_)) =>
         em.Match(a.reciprocal)
       case (_, Infinity) =>
         em.Match(Infinity)
@@ -692,9 +692,9 @@ object EulerSumCommutative extends CommutativeExtractor[Expression, Expression] 
   * manner, ensuring symmetry in the analysis of multiplicative operations.
   */
 object MultiplicativeIdentityCommutative extends CommutativeExtractor[Expression, Expression] {
-  protected def extractLeft(e: Expression) = Some(e)
+  protected def extractLeft(e: Expression): Option[Expression] = Some(e)
 
-  protected def extractRight(e: Expression) = e match {
+  protected def extractRight(e: Expression): Option[Expression] = e match {
     case IsUnity(x) => Some(x)
     case _ => None
   }

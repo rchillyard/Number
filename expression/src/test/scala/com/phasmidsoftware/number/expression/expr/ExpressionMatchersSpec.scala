@@ -19,6 +19,7 @@ import com.phasmidsoftware.number.expression.expr.BiFunction.asAggregate
 import com.phasmidsoftware.number.expression.expr.Expression
 import com.phasmidsoftware.number.expression.expr.Expression.em.DyadicTriple
 import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, matchSimpler, zero}
+import com.phasmidsoftware.number.expression.expr.Noop.TEST_STRING
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
@@ -1682,6 +1683,11 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = Two
     val result = Expression.simplifyParity(BiFunction(UniFunction(x, Exp), UniFunction(-x, Exp), Sum))
     result should matchPattern { case em.Miss(_, _) => }
+  }
+
+  behavior of "Error match"
+  it should "propagate Error through simplify" in {
+    an[ExpressionException] shouldBe thrownBy(Noop(TEST_STRING).simplify)
   }
 }
 

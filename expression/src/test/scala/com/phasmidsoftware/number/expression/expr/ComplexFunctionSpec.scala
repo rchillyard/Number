@@ -64,13 +64,8 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   behavior of "sin for complex arguments"
 
   it should "evaluate sin(i) = i·sinh(1)" in {
-    pending // TODO Issue #189 and/or #192
-    // sin(i) = i·sinh(1) ≈ 1.1752i
-    val actual = I.sin.simplify
-    val expected = (I * One.sinh).simplify
-    val materialized = actual.materialize
-    materialized shouldBe a[Complex]
-    materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian(0.5403, 0.8415)) shouldBe true
+    val p = Expression.matchSimpler
+    p(I.sin).get shouldBe (I * UniFunction(One, Sinh))
   }
 
   it should "satisfy sin(ix) = i·sinh(x)" in {
@@ -123,7 +118,7 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   behavior of "sinh for complex arguments"
 
   it should "evaluate sinh(iπ/2) = i" in {
-    pending // TODO Issue #189 and/or #192
+    //    pending // TODO Issue #189 and/or #192
     // sinh(iπ/2) = i·sin(π/2) = i
     println(iPiBy2)
     println(BiFunction(Pi, Half, Product).sin.simplify)
@@ -133,7 +128,7 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "evaluate sinh(iπ) = 0" in {
-    pending // TODO Issue #189 and/or #192
+    //    pending // TODO Issue #189 and/or #192
     val result = iPi.sinh.simplify
     result shouldBe Zero
   }
@@ -156,7 +151,7 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   behavior of "cosh for complex arguments"
 
   it should "evaluate cosh(iπ) = -1" in {
-    pending // TODO Issue #189 and/or #192
+    //    pending // TODO Issue #189 and/or #192
     val result = iPi.cosh.simplify
     result shouldBe MinusOne
   }

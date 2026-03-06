@@ -174,12 +174,23 @@ case class Noop(w: String) extends AtomicExpression {
     */
   val maybeName: Option[String] = Some(w) // CONSIDER returning None here instead
 
+  import com.phasmidsoftware.number.expression.expr.Noop.TEST_STRING
+
   /**
+    * Simplifies atomic expressions using the `Matcher` mechanism.
+    * This method provides a matcher for the transformation of atomic-level expressions
+    * within the `Expression` structure. The transformation is limited to atomic operations
+    * and may propagate errors for testing and validation purposes.
     *
+    * @return an AutoMatcher for `Expression` that simplifies atomic expressions or propagates an error
     */
-  def simplifyAtomic: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("AtomicExpression:simplifyAtomic")(
-    _ => em.Miss[Expression, Expression]("simplifyAtomic: ", this)
-  )
+  def simplifyAtomic: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("AtomicExpression:simplifyAtomic") {
+    case Noop(TEST_STRING) =>
+      // NOTE is an error purely for testing the `Matcher` mechanism for propagating `Error`s
+      em.Error(new IllegalArgumentException("Noop"))
+    case _ =>
+      em.Miss[Expression, Expression]("simplifyAtomic: ", this)
+  }
 
   /**
     * Provides an approximation of this number, if applicable.
@@ -193,4 +204,8 @@ case class Noop(w: String) extends AtomicExpression {
     *         of this `Number`, or `None` if no approximation is available.
     */
   def approximation(force: Boolean): Option[Real] = None
+}
+
+object Noop {
+  val TEST_STRING = "Error tester"
 }

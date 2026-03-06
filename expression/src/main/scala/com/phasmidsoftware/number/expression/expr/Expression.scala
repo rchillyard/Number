@@ -119,15 +119,15 @@ trait Expression extends Lazy with Approximate {
     */
   lazy val simplify: Expression = {
     @tailrec
-    def inner(x: Expression): Expression = matchSimpler(x) match {
-      case em.Miss(msg, e: Expression) =>
-        Expression.logger(s"simplification of $x terminated by: $msg")
-        e
+    def inner(x: Expression): Expression = matchSimpler(x) match { // XXX this does match all cases (need version 1.0.16 of Matchers to resolve the warning)
       case em.Match(e: Expression) =>
         Expression.logger(s"simplification of $x: $e")
         inner(e)
-      case m =>
-        throw ExpressionException(s"simplify.inner($x): logic error on $m")
+      case em.Miss(msg, e: Expression) =>
+        Expression.logger(s"simplification of $x terminated by: $msg")
+        e
+      case em.Error(e) =>
+        throw ExpressionException(s"simplify.inner($x): Error:", e)
     }
 
     inner(this)
@@ -193,6 +193,33 @@ trait Expression extends Lazy with Approximate {
     * @return the depth (an atomic expression has a depth of 1).
     */
   def depth: Int
+
+  /**
+    * Method to use when debugging to know exactly what an Expression is in tree form.
+    * This is needed because toString and other renderers all use some sort of syntactic sugar to make things look nice for us humans.
+    *
+    * Creates a string representation of this `Expression` for debugging purposes.
+    * Depending on the type of this `Expression`, the output format varies:
+    * - For atomic `Product` instances (arity 0), the `productPrefix` is returned.
+    * - For non-atomic `Product` instances, the `productPrefix` is combined with the `debug` representation
+    *   of contained sub-expressions (if they are `Expression`s) or their `toString` representation otherwise.
+    * - For all other cases, the default `toString` implementation is used.
+    *
+    * @return a `String` representation useful for debugging.
+    */
+  def debug: String = this match {
+    case p: Product if p.productArity == 0 =>
+      p.productPrefix
+    case p: Product =>
+      s"${p.productPrefix}(${
+        p.productIterator.map {
+          case e: Expression => e.debug
+          case x => x.toString
+        }.mkString(", ")
+      })"
+    case _ =>
+      toString
+  }
 
   /**
     * Normalizes the given `Eager` instance if it is not of type `Angle`.
@@ -694,8 +721,10 @@ object Expression {
     *         simplifications or transformations to the provided expression.
     */
   def matchSimpler: ExpressionTransformer = em.Matcher[Expression, Expression]("Expression:matchSimpler") {
+
     case x: AtomicExpression =>
       x.simplifyAtomic(x)
+
     case x: CompositeExpression =>
       em.eitherOr(simplifyOperands,
         em.eitherOr(simplifyStructural,
@@ -811,7 +840,7 @@ object Expression {
           case _ =>
             em.Miss("Expression.simplifyByEvaluation: cannot evaluate", c)
         }
-      case a: AtomicExpression =>
+      case a: AtomicExpression => // TODO there is no reason for this case!
         em.Miss("Expression.simplifyByEvaluation: atomic expression already simplified", a)
       case e =>
         em.Miss("Expression.simplifyByEvaluation: cannot simplify", e)
@@ -890,4 +919,4 @@ object Expression {
   *
   * @param str The error message providing details about the expression error.
   */
-case class ExpressionException(str: String) extends Exception(str)
+case class ExpressionException(str: String, x: Throwable = null) extends Exception(str, x)

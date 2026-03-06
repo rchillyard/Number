@@ -113,6 +113,8 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     */
   lazy val operandsMatcher: em.AutoMatcher[Expression] =
     em.Matcher("UniFunction:operandsMatcher") {
+      case u@UniFunction(_, Sinh | Cosh | Sine | Cosine) if u.x.isInstanceOf[BiFunction] && u.x.contains(I) =>
+        em.Miss("UniFunction:operandsMatcher: deferring trig with BiFunction arg", u)
       case u@UniFunction(_, f) =>
         componentsSimplifier(u.terms, { xs => val Seq(newX) = xs; UniFunction(newX, f) })
     }
@@ -159,11 +161,11 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
         em.Match(Infinity)
       case UniFunction(x, Exp) =>
         matchExponential(x)
+      case UniFunction(I, Reciprocal) =>
+        em.Match(-I)
       // XXX we check for certain exact literal function results
       case UniFunction(e: ValueExpression, f) if e.monadicFunction(f).isDefined =>
         em.matchIfDefined(e.monadicFunction(f))(e)
-      case UniFunction(I, Reciprocal) =>
-        em.Match(-I)
       case UniFunction(r: Root, Reciprocal) =>
         em.Match(r.reciprocal)
       case UniFunction(r: Root, Negate) =>
@@ -206,6 +208,46 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
       // exp(a + b·i)  →  Euler(exp(a), b)  (commuted inner)
       case UniFunction(BiFunction(a, BiFunction(b, I, Product), Sum), Exp) =>
         em.Match(Euler(UniFunction(a, Exp), b))
+
+      // sin(i·x) = i·sinh(x)
+      case UniFunction(BiFunction(I, x, Product), Sine) =>
+        em.Match(I * UniFunction(x, Sinh))
+      case UniFunction(BiFunction(x, I, Product), Sine) =>
+        em.Match(I * UniFunction(x, Sinh))
+
+      // cos(i·x) = cosh(x)
+      case UniFunction(BiFunction(I, x, Product), Cosine) =>
+        em.Match(UniFunction(x, Cosh))
+      case UniFunction(BiFunction(x, I, Product), Cosine) =>
+        em.Match(UniFunction(x, Cosh))
+
+      // sinh(i·x) = i·sin(x)
+      case UniFunction(BiFunction(I, x, Product), Sinh) =>
+        em.Match(I * UniFunction(x, Sine))
+      case UniFunction(BiFunction(x, I, Product), Sinh) =>
+        em.Match(I * UniFunction(x, Sine))
+
+      // cosh(i·x) = cos(x)
+      case UniFunction(BiFunction(I, x, Product), Cosh) =>
+        em.Match(UniFunction(x, Cosine))
+      case UniFunction(BiFunction(x, I, Product), Cosh) =>
+        em.Match(UniFunction(x, Cosine))
+
+      // sin(i) = i·sinh(1)
+      case UniFunction(I, Sine) =>
+        em.Match(I * UniFunction(One, Sinh))
+
+      // cos(i) = cosh(1)
+      case UniFunction(I, Cosine) =>
+        em.Match(UniFunction(One, Cosh))
+
+      // sinh(i) = i·sin(1)
+      case UniFunction(I, Sinh) =>
+        em.Match(I * UniFunction(One, Sine))
+
+      // cosh(i) = cos(1)
+      case UniFunction(I, Cosh) =>
+        em.Match(UniFunction(One, Cosine))
 
       // exp(Aggregate{*, i, ...terms})  →  Euler(1, product of remaining terms)
       // (operandsMatcher flattens (i*π)*½ to Aggregate{*,i,π,½} before structuralMatcher runs)

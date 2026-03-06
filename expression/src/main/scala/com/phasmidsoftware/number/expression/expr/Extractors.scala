@@ -79,17 +79,15 @@ object IsUnity {
   */
 object IsMinusOne {
   /**
-    * Extracts an `Expression` if it represents unity.
+    * Extractor method to determine if the given `Expression` represents the value -1.
     *
-    * This method serves as an extractor that can be used in pattern matching
-    * to determine if the provided `Expression` is unity, as defined by its `isUnity` property.
-    * If the `Expression` is unity, it is returned wrapped in an `Option`. Otherwise, `None` is returned.
-    *
-    * @param expr the `Expression` to be checked and potentially extracted
-    * @return an `Option` of the `Expression` if it represents unity, or `None` otherwise
+    * @param expr the input `Expression` to be checked and extracted
+    * @return an `Option[Expression]` containing the matched expression if it represents -1, 
+    *         or `None` if it does not match
     */
   def unapply(expr: Expression): Option[Expression] =
     expr match {
+      case MinusOne => Some(MinusOne)
       case ValueExpression(WholeNumber(-1), _) => Some(expr)
       case UniFunction(IsUnity(_), Negate) => Some(MinusOne)
       case _ => None
