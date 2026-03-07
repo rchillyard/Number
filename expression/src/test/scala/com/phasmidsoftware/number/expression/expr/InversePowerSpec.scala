@@ -134,7 +134,7 @@ class InversePowerSpec extends AnyFlatSpec with Matchers {
 
   behavior of "normalize"
   it should "normalize the cube root of 8" in {
-    InversePower(3, 8).normalize
+    InversePower.cubeRoot(8).normalize
   }
 
   it should "handle fifth root" in {

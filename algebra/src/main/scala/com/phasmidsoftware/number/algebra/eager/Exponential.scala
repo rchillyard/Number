@@ -153,7 +153,7 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
     *
     * @return the simplest `Valuable` representation of this value
     */
-  def normalize: Eager = number.normalize match {
+  lazy val normalize: Eager = number.normalize match {
     case WholeNumber(0) =>
       WholeNumber.one
     case x if x == number =>

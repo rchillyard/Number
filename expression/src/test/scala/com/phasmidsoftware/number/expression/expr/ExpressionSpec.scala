@@ -53,20 +53,20 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "evaluate i * 2" in {
     val x: Expression = I * 2
     val result: Eager = x.materialize
-    val expected = InversePower(2, WholeNumber(-4))
+    val expected = InversePower.squareRoot(-4)
     result shouldBe expected
   }
 
   it should "evaluate 2 * i" in {
     val x: Expression = Two * I
     val result: Eager = x.materialize
-    val expected = InversePower(2, WholeNumber(-4))
+    val expected = InversePower.squareRoot(-4)
     result shouldBe expected
   }
 
   it should "evaluate ∅ * 3 * i" in {
     val x: Expression = ∅ * 3 * I
-    x.materialize shouldBe InversePower(2, WholeNumber(-9))
+    x.materialize shouldBe InversePower.squareRoot(-9)
   }
   behavior of "parse"
   //  private val syp: ShuntingYardParser.type = ShuntingYardParser

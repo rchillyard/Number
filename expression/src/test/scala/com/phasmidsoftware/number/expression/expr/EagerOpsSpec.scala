@@ -236,7 +236,7 @@ class EagerOpsSpec extends AnyFlatSpec with Matchers {
   behavior of "EagerOps with special types"
 
   it should "work with InversePower" in {
-    val ip: Eager = InversePower(1, WholeNumber(5))
+    val ip: Eager = InversePower(1, 5)
     val result = ip + 3
 
     result shouldBe WholeNumber(8)

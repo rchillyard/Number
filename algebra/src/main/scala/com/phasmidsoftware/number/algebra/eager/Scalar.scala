@@ -344,7 +344,7 @@ case object NoScalar extends Scalar with Exact {
     *
     * @return the normalized `Valuable` representation of this instance
     */
-  def normalize: Scalar = this
+  lazy val normalize: Scalar = this
 
   /**
     * Compares this `Scalar` with another `Scalar` for exact equivalence.

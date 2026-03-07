@@ -234,7 +234,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
     *
     * @return the simplest `Valuable` representation of this value
     */
-  def normalize: Eager = (base.normalize, offset.normalize) match {
+  lazy val normalize: Eager = (base.normalize, offset.normalize) match {
     case (x: eager.Number, y: eager.Number) =>
       x + y.scale(coefficient).asInstanceOf[eager.Number]
     case (x: Structure, y: Scalar) if x.isZero =>
@@ -714,7 +714,7 @@ case class LinearSolution(value: Structure)(val maybeName: Option[String] = None
     *
     * @return the simplest `Valuable` representation of this value.
     */
-  def normalize: Eager = value.normalize
+  lazy val normalize: Eager = value.normalize
 
   /**
     * Retrieves the base value of the solution.

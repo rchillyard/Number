@@ -47,7 +47,7 @@ case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeNam
     * @return a simplified version of the object as a `Valuable`,
     *         either as a `WholeNumber` or the current object.
     */
-  def normalize: ExactNumber =
+  lazy val normalize: ExactNumber =
     if (r.isInteger && !percentage)
       WholeNumber(r.n)
     else

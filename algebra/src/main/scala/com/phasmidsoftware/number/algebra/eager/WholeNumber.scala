@@ -32,7 +32,7 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
     *
     * @return A normalized instance of the current object represented as a Valuable.
     */
-  def normalize: WholeNumber = this
+  lazy val normalize: WholeNumber = this
 
   /**
     * Scales the current instance by the given factor.

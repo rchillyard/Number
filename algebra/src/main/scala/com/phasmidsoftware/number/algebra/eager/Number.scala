@@ -29,13 +29,10 @@ import scala.util.{Failure, Success, Try}
 trait Number extends Scalar with Unitary with Ordered[Scalar] {
 
   /**
-    * Normalizes this `T` to its simplest equivalent form where T is the supertype of all possible results.
+    * Normalizes this `Number` to its simplest equivalent form.
     * This may change the type (e.g., RationalNumber → WholeNumber, Complex(5,0) → WholeNumber(5)).
     *
-    * For Expression types, this will attempt to simplify and materialize if the result is exact.
-    * For Eager types, this will reduce to the simplest type representation.
-    *
-    * @return the simplest representation of this value that is a subtype of `T`.
+    * @return the simplest representation of this value that is a subtype of `Number`.
     */
   def normalize: Number
 

@@ -294,7 +294,7 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers with TableDr
   }
 
   // ============================================================================
-  // I Tests (Imaginary Unit)
+  // I Tests (imaginary Unit)
   // ============================================================================
 
   behavior of "I"

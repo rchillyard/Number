@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.algebra.core
 
-import com.phasmidsoftware.number.algebra.eager.{Angle, InversePower, NaturalExponential, Real}
+import com.phasmidsoftware.number.algebra.eager.InversePower.squareRoot
+import com.phasmidsoftware.number.algebra.eager.{Angle, NaturalExponential, Real}
 import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box, Gaussian, RelativeFuzz}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -107,32 +108,32 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
   behavior of "MaybeFuzzy extension methods for InversePower"
 
   it should "render exact InversePower with asAbsolute" in {
-    val ip = InversePower(2, Real(2).fuzzy.asNumber.get) // √2
+    val ip = squareRoot(Real(2).fuzzy.asNumber.get) // √2
     ip.toString shouldBe "InversePower(2,Real(2.0))"
     ip.render shouldBe "√2.0*"
     ip.asAbsolute shouldBe ip.render
   }
 
   it should "render fuzzy InversePower with absolute fuzz using asAbsolute" in {
-    val ip = InversePower(2, Real(2, Some(AbsoluteFuzz(0.001, Gaussian))))
+    val ip = squareRoot(Real(2, Some(AbsoluteFuzz(0.001, Gaussian))))
     ip.render shouldBe "√2.000(1)"
     ip.asAbsolute shouldBe "1.4142(5)"
   }
 
   it should "render fuzzy InversePower with relative fuzz using asAbsolute" in {
-    val ip = InversePower(2, Real(2, Some(RelativeFuzz(0.05, Gaussian))))
+    val ip = squareRoot(Real(2, Some(RelativeFuzz(0.05, Gaussian))))
     ip.render shouldBe "√2.0±5%"
     ip.asAbsolute shouldBe "1.414(35)"
   }
 
   it should "render fuzzy InversePower with asRelative" in {
-    val ip = InversePower(2, Real(2, Some(RelativeFuzz(0.05, Gaussian))))
+    val ip = squareRoot(Real(2, Some(RelativeFuzz(0.05, Gaussian))))
     ip.render shouldBe "√2.0±5%"
     ip.show shouldBe "√2.0±5%"
   }
 
   it should "render fuzzy InversePower with asPercentage" in {
-    val ip = InversePower(2, Real(2, Some(RelativeFuzz(0.05, Gaussian))))
+    val ip = squareRoot(Real(2, Some(RelativeFuzz(0.05, Gaussian))))
     ip.show shouldBe "√2.0±5%"
   }
 

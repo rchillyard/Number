@@ -33,8 +33,6 @@ import scala.util.{Failure, Success, Try}
   *
   * NOTE that a Real with empty fuzz is considered to be exact.
   *
-  * CONSIDER defining an Imaginary type to represent imaginary numbers.
-  *
   * @param value the central numeric value of the fuzzy number
   * @param fuzz  the optional fuzziness associated with the numeric value
   */
@@ -219,6 +217,13 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
     */
   lazy val signum: Int = compare(zero)
+
+  /**
+    * Computes the negation of this `Real` instance.
+    *
+    * @return A new `Real` instance representing the negated value of this instance.
+    */
+  override lazy val negate: Real = Real(-value)
 
   /**
     * Compares the current `Number` instance with another `Number` instance exactly.
@@ -456,7 +461,8 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     * @return an `Option[Real]` containing the result of the power operation, 
     *         if the computation is successful
     */
-  def power(r: Rational): Option[Real] = {
+  infix def power(r: Rational): Option[Real] = {
+    // TODO use pow instead
     val exp = r.toDouble
     Option.when(value >= 0 || Rational.toIntOption(r).isDefined)(
       Real(math.pow(value, exp), fuzz.map(Fuzziness.scaleTransform(exp)))()

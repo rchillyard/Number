@@ -166,7 +166,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     case _ =>
       false
   }
-  
+
   /**
     * Computes the hash code for this `ValueExpression` instance.
     *
@@ -685,6 +685,8 @@ case object I extends NamedConstant(Eager.i, "i") {
 
   override val protectedName: Boolean = true
 
+  import com.phasmidsoftware.number.algebra.eager.WholeNumber.convIntWholeNumber
+
   /**
     * Evaluates this `Expression` in the context of `AnyContext` without simplification or factor-based conversion.
     * This allows obtaining a direct evaluation of the `Expression` as a `Field`, if possible.
@@ -692,7 +694,7 @@ case object I extends NamedConstant(Eager.i, "i") {
     *
     * @return an `Option[Field]` containing the evaluated `Field` if evaluation is successful, or `None` otherwise.
     */
-  override lazy val evaluateAsIs: Option[InversePower] = Some(InversePower(2, -1))
+  override lazy val evaluateAsIs: Option[InversePower] = Some(Eager.imaginary(1))
 
   lazy val asComplex: Option[Complex] = evaluateAsIs flatMap (_.asComplex)
 
