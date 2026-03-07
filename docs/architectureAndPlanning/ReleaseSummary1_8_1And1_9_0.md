@@ -27,30 +27,54 @@
 
 ### Test Suite
 
-- 3,772+ tests passing, 0 failures
+- 3,772 tests passing, 0 failures
 - 15 pending tests (12 in `ComplexFunctionSpec`, all deferred to 1.9.0)
 
 ---
 
-## Version 1.9.0 — Planned
+## Version 1.9.0 — In Progress
 
-### Acceptance Criterion
+### Current State (as of March 2026)
 
-Un-pending all 12 remaining pending tests in `ComplexFunctionSpec`.
+- 3,778 tests passing, 0 failures, 14 pending
+- Layer 1 of Work Item 10 complete (complex trig/hyperbolic in algebra layer)
+- Key bug fix: `InversePowerTimesNumberCommutative` guard prevents `i*2`
+  being collapsed to `√(-4)`
 
-### Planned Work
+### Completed Work
 
-- **Work Item 10: Complex approximation** (Tier 3) — approximate evaluation
-  of complex-valued expressions via a new `approximationComplex` path:
-    - Complex trig/hyperbolic operations in the algebra layer (`ComplexCartesian`)
-    - `applyComplex` on `ExpressionMonoFunction` and `ExpressionBiFunction`
-    - `approximationComplex` on `UniFunction`, `BiFunction`, `ValueExpression`, `Euler`
-    - Updated `materialize` to try the complex approximation path as fallback
+- **`sinh`/`cosh`/`tanh` in algebra layer** — `MonadicOperationSinh/Cosh/Tanh`
+  in `Operations`, `Number`, `Real`, `Field`, `BaseComplex` (with correct
+  fuzz propagation via derivative)
+- **`InversePowerTimesNumberCommutative` guard** — prevents imaginary
+  `InversePower` values from being incorrectly multiplied as real
+- **`IsEuler.unapply`** — uses `IsMinusOne(_)` for generality
+- **`IsMinusOne.unapply`** — fixed to match `MinusOne` case object
+- **`Real.negate`** — returns `Real` directly, avoiding cast
+- **`InversePower` extractors** — new extractor objects for positive and
+  imaginary square roots
+- **`render` fix** — `CompositeExpression.render` uses `simplify` rather
+  than repeated `matchSimpler` calls
+- **`ValueExpression.equals`** — short-circuits with `eq` before `===`
+- **`operandsMatcher` guard** — restored `&& u.x.contains(I)` in
+  `UniFunction.operandsMatcher`
+
+### Remaining Work
+
+- **Work Item 10: Complex approximation** (Layers 2–4) — approximate
+  evaluation of complex-valued expressions via a new `approximationComplex`
+  path:
+  - `approximationComplex` on `UniFunction`, `BiFunction`, `ValueExpression`, `Euler`
+  - Updated `materialize` to try the complex approximation path as fallback
 
 - **Issue C: Pythagorean identities** — symbolic verification that
   `sin²(z) + cos²(z) = 1` and `cosh²(z) - sinh²(z) = 1`
 
-### Pending Tests Carried Forward
+### Acceptance Criterion
+
+Un-pending all remaining pending tests in `ComplexFunctionSpec`.
+
+### Pending Tests
 
 | Test | Issue | Work Item |
 |---|---|---|
@@ -66,3 +90,5 @@ Un-pending all 12 remaining pending tests in `ComplexFunctionSpec`.
 | `sin²(z) + cos²(z) = 1` | #193 | Issue C |
 | `cosh²(z) - sinh²(z) = 1` | #193 | Issue C |
 | `sin(ix) = i·sinh(x)` symbolically | #189/#192 | Work Item 10 |
+| `i * 2` materialisation | #149 | Work Item 10 |
+| `cosh(iπ/2) = 0` | #189/#192 | Work Item 10 |
