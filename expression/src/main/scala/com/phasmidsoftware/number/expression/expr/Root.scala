@@ -245,7 +245,7 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int, maybeName: Option
     *         the process of handling or matching the atomic expression.
     */
   def simplifyAtomic: em.AutoMatcher[Expression] =
-    em.Matcher[Expression, Expression]("Root.simplifyAtomic") {
+    em.Matcher[Expression, Expression]("Root:simplifyAtomic") {
       case n: Nameable if n.keepSymbolic =>
         em.Miss(s"Root.simplifyAtomic: named: $n", this)
       case QuadraticRoot(QuadraticEquation(p, q), _, _) if p.isZero =>

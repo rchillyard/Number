@@ -94,7 +94,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * @return A `Matcher` that attempts to match the provided `DyadicTriple` to a simplified `Expression`,
     *         or returns information about a failure to match.
     */
-  def matchComplementaryExpressions: Matcher[DyadicTriple, Expression] = Matcher("matchComplementaryExpressions") {
+  def matchComplementaryExpressions: Matcher[DyadicTriple, Expression] = Matcher("ExpressionMatchers:matchComplementaryExpressions") {
     case Sum ~ x ~ UniFunction(y, Negate) if x == y =>
       matchAdditiveIdentity(x)
     case Sum ~ UniFunction(y, Negate) ~ x if x == y =>
@@ -181,7 +181,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * @return an ExpressionMatcher[Field].
     */
   def value: ExpressionMatcher[Valuable] = {
-    case Literal(v, _) =>
+    case IsEager(v) =>
       Match(v)
     case ValueExpression(v, _) =>
       Match(v)
@@ -203,7 +203,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     *         does not meet the required conditions, it returns a Miss.
     */
   def matchBiFunctionAsAggregate: Matcher[BiFunction, Expression] =
-    Matcher[BiFunction, Expression]("matchBiFunctionAsAggregate")(
+    Matcher[BiFunction, Expression]("ExpressionMatchers:matchBiFunctionAsAggregate")(
       biFunction =>
         // NOTE that, because we are changing Expression type, we must invoke simplify here.
         matchOptionFunc2(asAggregate)(biFunction)) `map` (_.simplify)
@@ -223,7 +223,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * @return A `ExpressionTransformer` that matches and simplifies `Aggregate` expressions efficiently.
     * @note Throws java.util.NoSuchElementException due to invocation of get on Option (very unlikely).
     */
-  def simplifyAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("simplifyAggregate") {
+  def simplifyAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("ExpressionMatchers:simplifyAggregate") {
     case Aggregate(Sum, Nil) =>
       Match(Zero)
     case Aggregate(Product, Nil) =>
@@ -258,7 +258,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     *         expression with reduced complementary terms or returns a miss description
     *         if no reduction takes place.
     */
-  def complementaryTermsEliminatorAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("complementaryTermsEliminatorAggregate") {
+  def complementaryTermsEliminatorAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("ExpressionMatchers:complementaryTermsEliminatorAggregate") {
     a =>
       a.eliminateComplementaryTerms(isComplementary) match {
         case Success(list) =>
@@ -277,7 +277,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     *         are successfully combined, or `Miss` if no literals are found or they cannot
     *         be combined.
     */
-  def literalsCombiner: Matcher[Expression, Expression] = Matcher[Expression, Expression]("literalsCombiner") {
+  def literalsCombiner: Matcher[Expression, Expression] = Matcher[Expression, Expression]("ExpressionMatchers:literalsCombiner") {
     case g@Aggregate(f, xs) =>
       // XXX first, we partition `xs` according to which terms can be exactly combined because they are all pure numbers (the "literals").
       // The other terms may also be literal constants but not evaluatable in the `PureNumber` context.
@@ -320,7 +320,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     *         - If the terms are not complementary, it returns a `Miss` with a message
     *         indicating this and the input term.
     */
-  def complementaryTermsEliminatorBiFunction(complementaryPredicate: (ExpressionBiFunction, Expression, Expression) => Boolean): Matcher[BiFunction, Expression] = Matcher[BiFunction, Expression]("complementaryTermsEliminatorBiFunction") {
+  def complementaryTermsEliminatorBiFunction(complementaryPredicate: (ExpressionBiFunction, Expression, Expression) => Boolean): Matcher[BiFunction, Expression] = Matcher[BiFunction, Expression]("ExpressionMatchers:complementaryTermsEliminatorBiFunction") {
     case BiFunction(a, b, f) if complementaryPredicate(f, a, b) && a.maybeFactor(AnyContext).contains(Radian) =>
       Match(Literal(Angle.zero))
     case BiFunction(BiFunction(a1, a2, f), b, g) if f == g && complementaryPredicate(f, a2, b) =>
@@ -379,7 +379,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * @return A `Matcher[Aggregate, Expression]` that matches aggregates with angle and reciprocal
     *         angle expressions, restructuring them accordingly. Returns a `Miss` otherwise.
     */
-  private def angleEliminatorAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("angleEliminatorAggregate") {
+  private def angleEliminatorAggregate: Matcher[Aggregate, Expression] = Matcher[Aggregate, Expression]("ExpressionMatchers:angleEliminatorAggregate") {
     case a@Aggregate(Product, xs) =>
       if (Aggregate.hasAngles(xs) && Aggregate.hasReciprocalAngles(xs))
         Match(Aggregate(Product, Aggregate.getAnglesEtc(xs)))
@@ -397,7 +397,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * @return a `AutoMatcher[Field]` which matches only on x.
     */
   private def matchNumber(x: Valuable): AutoMatcher[Valuable] =
-    Matcher("matchNumber") {
+    Matcher("ExpressionMatchers:matchNumber") {
       case `x` =>
         Match(x)
       case e =>
@@ -472,7 +472,7 @@ object ExpressionMatchers {
   def componentsSimplifier(xs: Seq[Expression], grouper: Seq[Expression] => Expression): em.MatchResult[Expression] = {
     val simplifiedExpressions = xs.map(_.simplify)
     if (simplifiedExpressions == xs)
-      em.Miss("components unchanged", grouper(xs))
+      em.Miss("components unchanged", xs)
     else
       em.Match(grouper(simplifiedExpressions))
   }

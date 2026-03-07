@@ -343,13 +343,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "Zero be equal to zero" in {
     val target = Literal(Eager.zero)
     target shouldBe Zero
-    target should matchPattern { case Literal(Eager.zero, _) => }
+    target should matchPattern { case IsEager(Eager.zero) => }
     target should matchPattern { case ValueExpression(Eager.zero, _) => }
   }
   it should "One be equal to one" in {
     val target = Literal(Eager.one)
     target shouldBe One
-    target should matchPattern { case Literal(Eager.one, _) => }
+    target should matchPattern { case IsEager(Eager.one) => }
     target should matchPattern { case ValueExpression(Eager.one, _) => }
   }
 
@@ -367,7 +367,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   // TODO Issue #140
   it should "simplify biFunction expressions" in {
     val em: ExpressionMatchers = Expression.em
-    Expression.simplifyLazy(BiFunction(Literal(Angle.twoPi, None), RationalNumber.half, Product)) should matchPattern { case em.Match(Literal(Angle.pi, _)) => }
+    Expression.simplifyLazy(BiFunction(Literal(Angle.twoPi, None), RationalNumber.half, Product)) should matchPattern { case em.Match(IsEager(Angle.pi)) => }
   }
 
   behavior of "simplify"

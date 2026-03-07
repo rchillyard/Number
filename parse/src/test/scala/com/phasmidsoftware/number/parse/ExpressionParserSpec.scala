@@ -76,6 +76,12 @@ class ExpressionParserSpec extends AnyFlatSpec with should.Matchers {
     puremath"""\sin(\pi * -1)""" shouldBe UniFunction(BiFunction(Pi, UniFunction(One, Negate), Product), Sine)
   }
   it should "lazymath functions" in {
+    val result = UniFunction(BiFunction(Pi, UniFunction(One, Negate), Product), Sine).operandsMatcher(
+      UniFunction(BiFunction(Pi, UniFunction(One, Negate), Product), Sine)
+    )
+    result.successful shouldBe true
+    println(result.get.debug)
+
     lazymath"""\sqrt{2}""" shouldBe QuadraticRoot(QuadraticEquation(0, -2), 0)
     lazymath"√2" shouldBe QuadraticRoot(QuadraticEquation(0, -2), 0)
     lazymath"""\sin(\pi)""" shouldBe Zero
@@ -83,7 +89,11 @@ class ExpressionParserSpec extends AnyFlatSpec with should.Matchers {
     lazymath"""\tan(\pi)""" shouldBe Zero
     lazymath"""\ln(\e)""" shouldBe One
     math"""\sin(\pi * -1)""" shouldBe Eager.zero
-    lazymath"""\sin(\pi * -1)""" shouldBe UniFunction(UniFunction(Pi, Negate), Sine) // NOTE that we accept that this does not simplify down to Zero
+    val actual = lazymath"""\sin(\pi * -1)"""
+    val expected = UniFunction(UniFunction(Pi, Negate), Sine)
+    withClue(s"actual: ${actual.debug}\nexpected: ${expected.debug}\n") {
+      actual shouldBe expected // NOTE that we accept that this does not simplify down to Zero
+    }
     lazymath"""\exp(2)""" shouldBe UniFunction(Two, Exp)
   }
   it should "puremath symbols" in {

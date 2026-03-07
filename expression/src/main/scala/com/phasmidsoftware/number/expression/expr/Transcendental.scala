@@ -110,8 +110,8 @@ sealed abstract class AbstractTranscendental(val name: String, val expression: E
     *         the process of handling or matching the atomic expression.
     */
   def simplifyAtomic: em.AutoMatcher[Expression] =
-    em.Matcher[Expression, Expression]("simplifyAtomic")(x =>
-      em.Miss[Expression, Expression]("AbstractTranscendental.simplifyAtomic: ", x))
+    em.Matcher[Expression, Expression]("AbstractTranscendental:simplifyAtomic")(x =>
+      em.Miss[Expression, Expression]("AbstractTranscendental:simplifyAtomic: ", x))
 
   /**
     * Applies a given `ExpressionMonoFunction` to create a new instance of `Transcendental`.

@@ -4,7 +4,7 @@ import MermaidDiagramGenerator.autoImport.generateMermaidDiagrams
 
 ThisBuild / organization := "com.phasmidsoftware"
 
-ThisBuild / version := "1.7.1"
+ThisBuild / version := "1.8.1"
 
 val scalaVersionNumber = "3.7.3"
 val catsVersion = "2.13.0"
@@ -12,6 +12,7 @@ val scalaTestVersion = "3.2.19"
 val scalaParserCombinatorsVersion = "2.4.0"
 val nScalaTimeVersion = "2.32.0"
 val apacheCommonsVersion = "3.6.1"
+val matchersVersion = "1.0.14"
 val flogVersion = "1.0.12"
 val logbackClassicVersion = "1.5.32"
 val configVersion = "1.4.5"
@@ -89,7 +90,7 @@ lazy val core = (project in file("core"))
 
     libraryDependencies ++= Seq(
       "com.phasmidsoftware" %% "flog" % flogVersion,
-      "com.phasmidsoftware" %% "matchers" % "1.0.13",
+      "com.phasmidsoftware" %% "matchers" % matchersVersion,
       "org.apache.commons" % "commons-math3" % apacheCommonsVersion,
       "org.scala-lang.modules" %% "scala-parser-combinators" % scalaParserCombinatorsVersion,
       "org.typelevel" %% "spire" % "0.18.0",
