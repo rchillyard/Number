@@ -134,7 +134,7 @@ sealed trait Nat extends Eager with N {
     *
     * @return a Rational instance representing the current value
     */
-  def toRational: Rational = Rational(toInt)
+  lazy val toRational: Rational = Rational(toInt)
 
   /**
     * Computes a potential representation of this `Nat` instance as `Z`.

@@ -49,29 +49,28 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     i.evaluateAsIs shouldBe Some(Eager.i)
   }
 
-  // TODO #Issue 149 this has to do with imaginary numbers
+  // Tests for #Issue 149 this has to do with imaginary numbers
   it should "evaluate i * 2" in {
-    pending // TODO #149 requires approximationComplex (Work Item 10)
     val x: Expression = I * 2
     val result: Eager = x.materialize
     result shouldBe algebra.eager.Complex(ComplexCartesian(numerical.Number.zero, numerical.Number.two))
   }
 
   it should "evaluate 2 * i" in {
-    pending // TODO #149 requires approximationComplex (Work Item 10)
     val x: Expression = Two * I
+    println(x.simplify.debug)
     val result: Eager = x.materialize
     result shouldBe algebra.eager.Complex(ComplexCartesian(numerical.Number.zero, numerical.Number.two))
   }
 
   it should "evaluate ∅ * 3 * i" in {
-    pending // TODO #149 requires approximationComplex (Work Item 10)
     val x: Expression = ∅ * 3 * I
     val result: Eager = x.materialize
     result shouldBe algebra.eager.Complex(ComplexCartesian(numerical.Number.zero, numerical.Number.three))
-
   }
+
   behavior of "parse"
+  
   //  private val syp: ShuntingYardParser.type = ShuntingYardParser
   //  it should "parse 1" in {
   //    syp.parseInfix("1") should matchPattern { case Success(Stack(List(Expr(TerminalExpression(Number.one))))) => }

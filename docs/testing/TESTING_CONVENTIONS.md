@@ -551,6 +551,8 @@ Understanding the simplification pipeline helps write better tests. See `Simplif
 - Test full pipeline for integration scenarios
 - Use ExpressionMatchersSpec for phase-specific patterns
 - Use ExpressionSpec for full pipeline tests
+- When asserting equality between two Expression instances, always compare ".simplify" forms unless the test is
+  specifically about the unsimplified structure.
 
 ## Test Maintenance
 

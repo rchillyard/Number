@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.eager
-import com.phasmidsoftware.number.algebra.eager.{Eager, InversePower, QuadraticSolution, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Eager, InversePower, IsImaginary, QuadraticSolution, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.expression.algebraic.{Equation, QuadraticEquation}
 
@@ -221,6 +221,26 @@ object CubeRoot {
     case NthRoot(radicand, 3, branch) => Some(radicand, branch)
     case _ => None
   }
+}
+
+/**
+  * An object that provides pattern matching for determining whether a given `Expression`
+  * represents an imaginary value.
+  *
+  * It attempts to evaluate the `Expression` and checks if it can be identified
+  * as an imaginary value through the `IsImaginary` extractor.
+  */
+object IsImaginaryExpression {
+  /**
+    * Matches an `Expression` and attempts to extract an `Eager` value if it can be 
+    * determined as imaginary.
+    *
+    * @param x the `Expression` to be evaluated and checked for being imaginary.
+    * @return an `Option` containing the extracted `Eager` value if the `Expression`
+    *         is determined to be imaginary, or `None` otherwise.
+    */
+  def unapply(x: Expression): Option[Eager] =
+    x.evaluateAsIs flatMap IsImaginary.unapply
 }
 
 /**

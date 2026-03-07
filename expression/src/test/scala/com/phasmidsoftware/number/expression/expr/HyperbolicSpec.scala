@@ -32,7 +32,6 @@ class HyperbolicSpec extends AnyFlatSpec with should.Matchers {
     val pos = x.sinh
     val neg = (-x).sinh
     (pos + neg).simplify shouldBe Zero
-    //    pending // TODO Issue #187
   }
 
   it should "satisfy sin(-x) = -sin(x)" in {

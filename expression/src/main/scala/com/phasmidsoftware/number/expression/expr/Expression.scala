@@ -134,6 +134,20 @@ trait Expression extends Lazy with Approximate {
   }
 
   /**
+    * Represents the optional approximate evaluation of a complex `Expression`.
+    * The property retrieves the result of invoking the `approximationComplex` method
+    * on the `simplify` field, passing `true` as an argument to indicate that
+    * the result should be computed for complex approximations.
+    *
+    * This lazy value ensures that the computation is deferred until accessed,
+    * and only computed once for performance optimization.
+    *
+    * @return An `Option` of type `Eager`, containing the approximate complex
+    *         representation of this `Expression`, if available. Otherwise, `None`.
+    */
+  lazy val approximationComplex: Option[Eager] = simplify.approximationComplex(true)
+
+  /**
     * Materializes this `Expression` into an `Eager` object by simplifying it, evaluating as-is,
     * optionally approximating it, and recovering with a defined exception in case of failure.
     *
@@ -148,9 +162,12 @@ trait Expression extends Lazy with Approximate {
     *
     * @return an `Eager` representation of this `Expression` achieved through evaluation and/or approximation.
     */
+  // updated materialize:
   lazy val materialize: Eager = {
     val asIs = simplify.evaluateAsIs
-    val maybeValuable = asIs.map(normalizeIfAppropriate) orElse approximation
+    val maybeValuable = asIs.map(normalizeIfAppropriate)
+      .orElse(approximation)
+      .orElse(approximationComplex)
     recover(maybeValuable)(ExpressionException(s"materialize: logic error on $this"))
   }
 

@@ -6,7 +6,8 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.core.numerical.ComplexPolar
+import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -164,7 +165,7 @@ class EulerSpec extends AnyFlatSpec with Matchers {
 
   it should "simplify Euler(r, π/2) to r*i" in {
     val result = Euler(Two, halfPi).simplify
-    result shouldBe Two * I
+    result shouldBe Literal(Complex(ComplexCartesian(numerical.Number.zero, numerical.Number.two)))
   }
 
   behavior of "Euler - identitiesMatcher: angle = -π/2"
@@ -177,9 +178,7 @@ class EulerSpec extends AnyFlatSpec with Matchers {
   it should "simplify Euler(r, -π/2) to -(r*i)" in {
     val result = Euler(Two, minusHalfPi).simplify
     result shouldBe a[UniFunction]
-    val uf = result.asInstanceOf[UniFunction]
-    uf.f shouldBe Negate
-    uf.x shouldBe Two * I
+    result shouldBe (-(Two * I)).simplify
   }
 
   behavior of "Euler - identitiesMatcher: r = 1 special cases"
@@ -444,14 +443,13 @@ class EulerSpec extends AnyFlatSpec with Matchers {
     val iSinTheta = BiFunction(I, UniFunction(theta, Sine), Product)
     val eulerForm = BiFunction(cosTheta, iSinTheta, Sum) // → Euler(1, π/2)
     val powered = BiFunction(eulerForm, Two, Power) // → Euler(1, π) → -1
-    powered.simplify.simplify shouldBe MinusOne
+    powered.simplify shouldBe MinusOne
   }
 
   it should "simplify exp(i*π/2)^2 to -1 via de Moivre" in {
-    pending // TODO Issue #191
     val expIHalfPi = UniFunction(BiFunction(I, halfPi, Product), Exp)
     val squared = BiFunction(expIHalfPi, Two, Power)
-    squared.simplify.simplify shouldBe MinusOne
+    squared.simplify shouldBe MinusOne
   }
 
   it should "evaluate Euler(r,θ) * Euler(r,-θ) = Euler(r^2, 0) = r^2" in {
@@ -459,7 +457,7 @@ class EulerSpec extends AnyFlatSpec with Matchers {
     val e1 = Euler(r, halfPi)
     val e2 = Euler(r, minusHalfPi)
     // Euler(2,π/2) * Euler(2,-π/2) = Euler(4, 0) = 4
-    val product = BiFunction(e1, e2, Product).simplify.simplify
+    val product = BiFunction(e1, e2, Product).simplify
     product.simplify shouldBe Literal(4)
   }
 }

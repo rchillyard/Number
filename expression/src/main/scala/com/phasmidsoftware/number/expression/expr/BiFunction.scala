@@ -6,10 +6,11 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
+import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
 import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, IsInteger, NaturalExponential, QuadraticSolution, RationalNumber, Structure, WholeNumber}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian, Rational}
 import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Number}
+import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, Number, Real}
 import com.phasmidsoftware.number.expression.algebraic
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
 import com.phasmidsoftware.number.expression.expr.Expression.em.DyadicTriple
@@ -271,6 +272,29 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   }
 
   /**
+    * Attempts to compute an approximation of a complex operation defined by `f`
+    * using the approximations of components `a` and `b`. The operation can be
+    * a sum, product, power, or other types defined by `f`.
+    *
+    * @param force A boolean flag indicating whether the approximation should
+    *              forcibly be computed even if conditions might not favor it.
+    *
+    * @return An `Option` containing the computed `Eager` result if successful,
+    *         or `None` if the approximation cannot be determined.
+    */
+  override def approximationComplex(force: Boolean = false): Option[Eager] =
+    for {
+      za <- a.approximationComplex(force)
+      zb <- b.approximationComplex(force)
+      result <- f match {
+        case Sum => Some(Eager(eagerToField(za) + eagerToField(zb)))
+        case Product => Some(Eager(eagerToField(za) `multiply` eagerToField(zb)))
+        case Power => Some(Eager(eagerToField(za) `power` eagerToField(zb)))
+        case _ => None
+      }
+    } yield result
+
+  /**
     * Regular hashCode method.
     *
     * @return an Int depending on f, a, and b.
@@ -401,6 +425,29 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(a)
       case ExpressionNegationCommutative(a, _) =>
         em.Match(-a)
+      case (IsImaginaryExpression(m), x) => // TODO use commutative operator
+        em.matchIfDefined(
+          for {
+            xv <- x.evaluateAsIs
+            n <- (xv `multiply` m).toOption
+            z <- Eager.eagerToField(n) match {
+              case Real(x) => Some(x)
+              case _ => None
+            }
+          } yield Literal(algebra.eager.Complex(ComplexCartesian(numerical.Number.zero, z)))
+        )(x)
+
+      case (x, IsImaginaryExpression(m)) =>
+        em.matchIfDefined(
+          for {
+            xv <- x.evaluateAsIs
+            n <- (xv `multiply` m).toOption
+            z <- Eager.eagerToField(n) match {
+              case Real(x) => Some(x)
+              case _ => None
+            }
+          } yield Literal(algebra.eager.Complex(ComplexCartesian(numerical.Number.zero, z)))
+        )(x)
       case InversePowerTimesNumberCommutative(ip, b) if ip.number.signum >= 0 =>
         em.matchIfDefined(simplifyInversePowerTimesNumber(ip, b))(this)
       case (q1@QuadraticRoot(quadratic: QuadraticEquation, b1, _), q2@QuadraticRoot(e2, b2, _)) if quadratic == e2 && b1 != b2 =>

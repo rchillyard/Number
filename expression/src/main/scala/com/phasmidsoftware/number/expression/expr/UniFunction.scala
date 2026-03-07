@@ -89,7 +89,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     * @return an `Option[Real]` containing the approximate representation
     *         of this `Number`, or `None` if no approximation is available.
     */
-  def approximation(force: Boolean): Option[eager.Real] = {
+  def approximation(force: Boolean): Option[eager.Real] =
     // CONSIDER is this correct? Shouldn't we try to evaluate first?
     x.approximation(force) flatMap (
       x =>
@@ -101,7 +101,23 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
 
         }
       )
-  }
+
+  /**
+    * Attempts to compute an approximate representation of a complex number for this object.
+    * The method uses the underlying implementation of `approximationComplex` on the `x` value 
+    * and, if applicable, applies further processing using the provided function `f`.
+    *
+    * @param force a boolean flag which, if true, forces the computation of the approximation 
+    *              regardless of any conditions that might otherwise skip it.
+    *
+    * @return an `Option[Eager]` containing the result of the complex number approximation,
+    *         or `None` if no approximation is possible or applicable.
+    */
+  override def approximationComplex(force: Boolean = false): Option[Eager] =
+    x.approximationComplex(force) flatMap {
+      case z: algebra.eager.Complex => f.applyComplex(z)
+      case _ => None
+    }
 
   /**
     * Simplifies the components of this `Expression` by transforming it using the `matchSimpler`

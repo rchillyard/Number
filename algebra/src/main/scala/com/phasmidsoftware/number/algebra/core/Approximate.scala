@@ -47,6 +47,24 @@ trait Approximate {
   def approximation(force: Boolean = false): Option[Real]
 
   /**
+    * Attempts to compute an approximate complex representation of the current value.
+    *
+    * This method provides an optional approximation in the form of an `Eager` type.
+    * By default, it does not perform the computation unless explicitly requested
+    * through the `force` flag. The method may return `None` if no approximation
+    * can be computed or if the operation fails.
+    *
+    * @param force a boolean flag indicating whether to force computation of the 
+    *              approximation. If `true`, the method will attempt to perform
+    *              a complex approximation even if it is resource-intensive or
+    *              otherwise unwarranted.
+    *
+    * @return an `Option` containing the approximate value as an `Eager` if successful, 
+    *         or `None` if no approximation is available.
+    */
+  def approximationComplex(force: Boolean = false): Option[Eager] = None
+
+  /**
     * Converts the approximate representation of this number into a `Double`.
     *
     * This method attempts to approximate the value of this number by invoking 

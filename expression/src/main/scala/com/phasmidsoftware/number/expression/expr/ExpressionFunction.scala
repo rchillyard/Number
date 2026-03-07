@@ -158,6 +158,29 @@ sealed abstract class ExpressionMonoFunction(val name: String, val f: Eager => E
   def applyExact(x: Eager): Option[Eager]
 
   /**
+    * Applies the mathematical operation encapsulated by this `ExpressionMonoFunction` to the given complex number.
+    * The operation is determined based on the specific subtype or case of this function instance.
+    *
+    * @param z the input complex number of type `algebra.eager.Complex` to which the operation will be applied
+    * @return an `Option[Eager]` containing the result of applying the operation as an `Eager` instance,
+    *         or `None` if the operation is not supported for this function instance
+    */
+  def applyComplex(z: algebra.eager.Complex): Option[Eager] = {
+    val result: Field = this match {
+      case Sine => z.complex.sin
+      case Cosine => z.complex.cos
+      case Sinh => z.complex.sinh
+      case Cosh => z.complex.cosh
+      case Exp => z.complex.exp
+      case Negate => -eagerToField(z)
+      case Reciprocal => eagerToField(z).invert
+      case Ln => z.complex.ln
+      case _ => return None
+    }
+    Some(Eager(result))
+  }
+  
+  /**
     * Evaluate this function on Valuable x.
     *
     * @param x the parameter to the function.
@@ -954,6 +977,7 @@ abstract class SineCos(sine: Boolean, parity: Parity) extends ExpressionMonoFunc
 object SineCos {
   def evaluate(sine: Boolean)(x: Field): Field = if sine then x.sin else x.cos
 }
+
 /**
   * Represents the sine trigonometric function.
   *

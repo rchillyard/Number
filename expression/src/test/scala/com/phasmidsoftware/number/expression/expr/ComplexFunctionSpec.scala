@@ -75,40 +75,37 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "evaluate sin(1 + i) approximately" in {
-    pending // TODO Work Item 10 — requires approximationComplex
     // sin(1+i) ≈ 1.2985 + 0.6350i
     val z = One + I
-    val materialized = z.materialize
-    materialized shouldBe a[Complex]
-    materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian(1.2985, 0.6350)) shouldBe true
+    val result = UniFunction(z, Sine).materialize
+    result shouldBe a[Complex]
+    result.asInstanceOf[Complex].complex.isSame(ComplexCartesian(1.2985, 0.6350)) shouldBe true
   }
 
   behavior of "cos for complex arguments"
 
   it should "evaluate cos(i) = cosh(1)" in {
-    pending // TODO Work Item 10 — requires approximationComplex
-    // cos(i) = cosh(1) ≈ 1.5431
     val result = I.cos
     val materialized = result.materialize
-    materialized shouldBe a[Complex]
-    materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian(1.5431, 0)) shouldBe true
-
+    materialized.fuzzy.toDouble shouldBe Math.cosh(1.0) +- 1e-4
     result.fuzzy.toDouble shouldBe Math.cosh(1.0) +- 1e-10
   }
 
   it should "satisfy cos(ix) = cosh(x)" in {
-    pending // TODO Work Item 10 — requires approximationComplex
+    //    pending // TODO Work Item 10 — requires approximationComplex
     val x = Two
     val lhs = (I * x).cos
+    println(lhs.simplify.debug)
     val rhs = x.cosh
-    lhs shouldBe rhs
+    println(rhs.simplify.debug)
+    lhs.simplify shouldBe rhs.simplify
   }
 
   it should "evaluate cos(1 + i) approximately" in {
-    pending // TODO Work Item 10 — requires approximationComplex
-    // cos(1+i) ≈ 0.8337 - 0.9889i
-    val z = One + iOne
-    z.cos.fuzzy.toDouble shouldBe 0.8337 +- 1e-3
+    val z = One + I
+    val materialized = z.cos.materialize
+    materialized shouldBe a[Complex]
+    materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian(0.8337, -0.9889)) shouldBe true
   }
 
   behavior of "sinh for complex arguments"
@@ -134,10 +131,10 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "evaluate sinh(1 + i) approximately" in {
-    pending // TODO Work Item 10 — requires approximationComplex
-    // sinh(1+i) ≈ 0.6350 + 1.2985i
-    val z = One + iOne
-    z.sinh.fuzzy.toDouble shouldBe 0.6350 +- 1e-3
+    val z = One + I
+    val materialized = z.sinh.materialize
+    materialized shouldBe a[Complex]
+    materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian(0.6350, 1.2985)) shouldBe true
   }
 
   behavior of "cosh for complex arguments"
@@ -148,7 +145,6 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "evaluate cosh(iπ/2) = 0" in {
-    //    pending // TODO Issue #189 and/or #192
     val result = iPiBy2.cosh.simplify
     result shouldBe Zero
   }
@@ -160,17 +156,17 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "evaluate cosh(1 + i) approximately" in {
-    pending // TODO Work Item 10 — requires approximationComplex
-    // cosh(1+i) ≈ 0.8337 + 0.9889i
-    val z = One + iOne
-    z.cosh.fuzzy.toDouble shouldBe 0.8337 +- 1e-3
+    val z = One + I
+    val materialized = z.cosh.materialize
+    materialized shouldBe a[Complex]
+    materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian(0.8337, 0.9889)) shouldBe true
   }
 
   behavior of "cross-checks between circular and hyperbolic functions"
 
   it should "satisfy sin²(z) + cos²(z) = 1 for z = 1 + i" in {
-    pending // Issue #193
-    val z = One + iOne
+    pending // Issue #193 — requires symbolic Pythagorean identity simplification
+    val z = One + I
     val s = z.sin
     val c = z.cos
     (s * s) + (c * c) shouldBe One
@@ -178,7 +174,7 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
 
   it should "satisfy cosh²(z) - sinh²(z) = 1 for z = 1 + i" in {
     pending // Issue #193
-    val z = One + iOne
+    val z = One + I
     val c = z.cosh
     val s = z.sinh
     (c * c) - (s * s) shouldBe One
