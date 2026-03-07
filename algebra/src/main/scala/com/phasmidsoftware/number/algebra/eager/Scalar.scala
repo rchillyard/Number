@@ -44,6 +44,26 @@ trait Scalar extends Structure {
   def compareExact(that: Scalar): Option[Int]
 
   /**
+    * Compares two instances of `Eager` and determines their relative ordering.
+    * This method is not yet implemented and will raise an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if called.
+    *
+    * @param x the first `Eager` instance to compare
+    * @param y the second `Eager` instance to compare
+    * @return a `Try[Int]` that contains the comparison result:
+    *         - `0` if `x` and `y` are equal,
+    *         - a negative result if `x` is less than `y`,
+    *         - and a positive result if `x` is greater than `y`.
+    *         As the method is unimplemented, it will always return a failure with an `AlgebraException`.
+    */
+  override def compare(x: Eager, y: Eager): Try[Int] = (x, y) match {
+    case (s: Scalar, t: Scalar) =>
+      FP.toTry(s.compareExact(t))(Failure(AlgebraException(s"compare: unsupported comparison of $this and $y")))
+    case _ =>
+      Failure(AlgebraException(s"compare: unsupported comparison of $this and $y"))
+  }
+
+
+  /**
     * Represents the scaleFactor of a scalar value as a `Double`.
     * This value indicates the magnitude by which a scalar is scaled,
     * and the conversion factor to yield a `PureNumber`.
@@ -138,8 +158,7 @@ trait Scalar extends Structure {
     case (a: Number, b: Number) =>
       a.multiply(b)
     case (a: Angle, b: Angle) =>
-      a.multiply(b) // TODO remove this as it only returns a Failure
-
+      FP.recover(for (p <- a.convert(Real.zero); q <- b.convert(Real.zero)) yield p.multiply(q))(AlgebraException(s"multiplyScalars: unable to convert Angles $a and $b to Real"))
     // Cross-type operations - dimensionless scaling
     case (n: Number, a: Angle) =>
       a.multiply(n) // TODO remove this as it only returns a Failure
@@ -253,7 +272,7 @@ object Scalar {
     * the appropriate numerical representation (e.g., `WholeNumber`, `Real`, `RationalNumber`)
     * and associates it with the provided factor (e.g., `PureNumber`, `Radian`).
     *
-    * CONSIDER this should return a Scalar.
+    * CONSIDER this should return a Scalar. Alternatively, it shoul be moved to Structure and renamed to createStructure.
     *
     * @param value  the numerical value, which can either be a right value for exact numbers
     *               (e.g., integers, floating-point values) or a left value for rational

@@ -248,6 +248,8 @@ object Valuable {
       Some(numerical.Real(numberToField(radians).x.make(inner.Radian)))
     case l@NaturalExponential(x) =>
       Some(numerical.Real(numberToField(x).x.make(inner.NatLog)))
+    case i@InversePower(2, x) if x.signum == -1 =>
+      i.asComplex.map(_.complex)
     case InversePower(n, x) =>
       Some(numberToField(x).power(ExactNumber(Value.fromRational(Rational(n).invert), PureNumber)))
     case _ =>

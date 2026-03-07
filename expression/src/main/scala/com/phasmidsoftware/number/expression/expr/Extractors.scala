@@ -198,6 +198,32 @@ object CubeRoot {
 }
 
 /**
+  * Companion object providing an extractor for identifying expressions involving 
+  * specific patterns with mathematical constants `i` (imaginary unit) and `π` (pi).
+  */
+object IPi {
+  /**
+    * Extractor method to determine if a given expression matches specific patterns 
+    * involving mathematical constants and operations.
+    *
+    * @param e The input expression to be checked.
+    * @return True if the input expression matches predefined patterns, false otherwise.
+    */
+  def unapply(e: Expression): Boolean = e match {
+    case Literal(Eager.iPi, _) | Literal(InversePower(2, WholeNumber(-1)), _) =>
+      true
+    case BiFunction(I, Pi, Product) | BiFunction(Pi, I, Product) =>
+      true
+    case UniFunction(BiFunction(I, Pi, Product), Negate) | UniFunction(BiFunction(Pi, I, Product), Negate) =>
+      true
+    case BiFunction(I, UniFunction(Pi, Negate), Product) | BiFunction(UniFunction(Pi, Negate), I, Product) =>
+      true
+    case _ =>
+      false
+  }
+}
+
+/**
   * Abstract extractor for commutative binary operations.
   * Handles trying both (left, right) and (right, left) orderings automatically.
   *

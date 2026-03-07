@@ -230,6 +230,11 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
   }
 
   /**
+    * @return this `Eager`.
+    */
+  override def fuzzy: Eager = this
+
+  /**
     * Attempts to compute an approximate representation of the current value.
     *
     * This method provides an optional approximation of the value represented by

@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.algebra.core
 
-import com.phasmidsoftware.number.algebra.eager.Real
+import com.phasmidsoftware.number.algebra.eager.{Complex, Eager, Real}
 import com.phasmidsoftware.number.algebra.util.AlgebraException
 import com.phasmidsoftware.number.algebra.util.FP.recover
 
@@ -18,18 +18,16 @@ import com.phasmidsoftware.number.algebra.util.FP.recover
   */
 trait Approximate {
   /**
-    * Attempts to recover a `Real` value using the `approximation` method of the current instance.
+    * Attempts to yield an `Eager` value from the current `Approximate`.
     *
-    * If an approximation is available, it will be converted to a `Real`. Otherwise, an 
-    * `AlgebraException` is thrown, indicating that the conversion to a `Real` was not possible
-    * for the current class instance.
+    * This method leverages the `approximation` mechanism to compute an eager evaluation
+    * of the value represented by the instance. It handles potential errors during the
+    * conversion process by raising an `AlgebraException` if the approximation fails.
     *
-    * @return the recovered `Real` value based on an available approximation, or throws an
-    *         `AlgebraException` if no valid approximation is found.
+    * @return an `Eager` representation of the approximated value if recovery is successful;
+    *         otherwise, an `AlgebraException` is thrown indicating the failure to convert to `Real`.
     */
-  def fuzzy: Real =
-    recover(approximation(true))(AlgebraException(s"fuzzy: unable to convert a ${this.getClass.getSimpleName} to Real (${this.toString})"))
-
+  def fuzzy: Eager
   /**
     * Attempts to compute an approximate representation of the current value.
     *
@@ -59,8 +57,11 @@ trait Approximate {
     * @return the approximate value as a `Double`.
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if no approximation can be obtained.
     */
-  lazy val toDouble: Double = {
-    // NOTE: it is possible for this to recurse infinitely if approximation(true) returns `Some(this)`.
-    recover(approximation(true).map(_.toDouble))(AlgebraException("Approximate.toDouble: logic error"))
+  lazy val toDouble: Double = this match {
+    case x: Complex =>
+      x.complex.modulus.toNominalDouble.getOrElse(throw AlgebraException(s"Complex.toDouble: no approximation: $x"))
+    case _ =>
+      // NOTE: it is possible for this to recurse infinitely if approximation(true) returns `Some(this)`.
+      recover(approximation(true).map(_.toDouble))(AlgebraException("Approximate.toDouble: logic error"))
   }
 }

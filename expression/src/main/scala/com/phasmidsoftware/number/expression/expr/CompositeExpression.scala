@@ -306,9 +306,19 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     * @return an `Option[Real]` containing the approximate representation
     *         of this `Number`, or `None` if no approximation is available.
     */
-  def approximation(force: Boolean): Option[eager.Real] =
-    // TODO asInstanceOf
-    x.approximation(force) map (x => f.apply(x).asInstanceOf[eager.Real])
+  def approximation(force: Boolean): Option[eager.Real] = {
+    // CONSIDER is this correct? Shouldn't we try to evaluate first?
+    x.approximation(force) flatMap (
+      x =>
+        f.apply(x) match {
+          case r: eager.Real =>
+            Some(r)
+          case _ =>
+            None
+
+        }
+      )
+  }
 
   /**
     * Simplifies the components of this `Expression` by transforming it using the `matchSimpler`
@@ -340,11 +350,19 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
       // XXX Take care of the cases whereby the inverse of a log expression is a log expression with operand and base swapped.
       case UniFunction(UniFunction(x, Ln), Reciprocal) =>
         em.Match(BiFunction(E, x, Log))
+      case UniFunction(UniFunction(x, Exp), Reciprocal) =>
+        em.Match(UniFunction(-x, Exp))
       case UniFunction(BiFunction(x, b, Log), Reciprocal) =>
         em.Match(BiFunction(b, x, Log))
+      case UniFunction(Infinity, Exp) =>
+        em.Match(Infinity)
+      case UniFunction(x, Exp) =>
+        matchExponential(x)
       // XXX we check for certain exact literal function results
       case UniFunction(e: ValueExpression, f) if e.monadicFunction(f).isDefined =>
         em.matchIfDefined(e.monadicFunction(f))(e)
+      case UniFunction(I, Reciprocal) =>
+        em.Match(-I)
       case UniFunction(r: Root, Reciprocal) =>
         em.Match(r.reciprocal)
       case UniFunction(r: Root, Negate) =>
@@ -366,8 +384,6 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     em.Matcher("structuralMatcher") {
       case UniFunction(UniFunction(x, f), g) if em.complementaryMonadic(f, g) =>
         em.Match(x)
-      case UniFunction(UniFunction(x, Negate), Exp) =>
-        em.Match(UniFunction(UniFunction(x, Exp), Reciprocal))
       case x: Expression =>
         em.Miss[Expression, Expression]("UniFunction.structuralMatcher: not complementary", x)
     }
@@ -410,6 +426,25 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
 
   override def toString: String =
     s"$f(${x.show})"
+
+  /**
+    * Matches the given expression to specific exponential cases and provides a simplification if applicable.
+    *
+    * @param x the input expression to be matched and potentially simplified.
+    * @return an `em.MatchResult[Expression]` indicating either a successful match with the simplified expression or a failure with an explanation.
+    */
+  private def matchExponential(x: Expression): em.MatchResult[Expression] = x match {
+    case Zero =>
+      em.Match(One)
+    case One =>
+      em.Match(E)
+    case IPi() =>
+      em.Match(MinusOne)
+    case BiFunction(IPi(), Half, Product) | BiFunction(Half, IPi(), Product) =>
+      em.Match(I)
+    case _ =>
+      em.Miss("UniFunction: matchExponential: no trivial simplifications", x)
+  }
 }
 
 /**
@@ -664,7 +699,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return a String showing a, f, and b in parentheses (or in braces if not exact).
     */
   override lazy val toString: String = f match {
-    case Log => s"log_${a.show}(${b.show})"
+    case Log => s"log_${b.show}(${a.show})"
     case Power => s"(${a.show} ^ ${b.show})"
     case Sum => s"(${a.show} + ${b.show})"
     case Product => s"(${a.show} * ${b.show})"
@@ -862,6 +897,16 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(MinusOne)
       case (E, ValueExpression(v: eager.Number, _)) =>
         em.Match(Literal(NaturalExponential(v)))
+      case (E, UniFunction(x, Ln)) =>
+        em.Match(x)
+      case (E, BiFunction(x, E, Log)) =>
+        em.Match(x) // TESTME
+      case (E, BiFunction(I, Pi, Product)) | (E, BiFunction(Pi, I, Product)) =>
+        em.Match(MinusOne)
+      case (E, Literal(ComplexPolar(Number.pi, Number.piBy2, _), _)) =>
+        em.Match(MinusOne) // TESTME
+      case (E, x) =>
+        em.Match(UniFunction(x, Exp))
       case (x, BiFunction(y, z, Log)) if x == y =>
         em.Match(z)
       case (r@Literal(QuadraticSolution.phi, _), IsIntegral(w)) if w >= 1 =>
@@ -884,10 +929,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       // CONSIDER generalizing this later but beware the general case breaks a lot of tests.
       case (Two, Literal(RationalNumber(r, _), _)) if r == Rational.half =>
         em.Match(Root.squareRoot(Rational(2), 0))
-      case (E, BiFunction(I, Pi, Product)) | (E, BiFunction(Pi, I, Product)) =>
-        em.Match(MinusOne)
-      case (E, Literal(ComplexPolar(Number.pi, Number.piBy2, _), _)) =>
-        em.Match(MinusOne) // TESTME
       case (x, BiFunction(y, z, Log)) if x == z =>
         em.Match(y)
       case _ =>
@@ -910,7 +951,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(Zero)
       case (a, b) if a == b =>
         em.Match(One)
-      case (a, E) =>
+      case (a, E) => // TODO check that this is the correct order: value followed by the base
         em.Match(UniFunction(a, Ln))
       case _ =>
         em.Miss[Expression, Expression]("BiFunction: matchBiFunctionLog: no trivial simplifications for Log", this)

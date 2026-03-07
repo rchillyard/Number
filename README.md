@@ -40,7 +40,7 @@ Number is organized into multiple modules:
 
 #### Current Version
 
-This version is 1.7.1. 
+This version is 1.7.2. 
 The latest published version is 1.7.1 (see [HISTORY](docs/HISTORY.md)).
 That should match the version of the latest release on Maven Central in the badge at the top.
 
@@ -49,7 +49,7 @@ To use Number in your project, add the following dependency:
 **SBT (Scala 3):**
 
 ```scala
-libraryDependencies += "com.phasmidsoftware" %% "number" % "1.6.9"
+libraryDependencies += "com.phasmidsoftware" %% "number" % "1.7.1"
 ```
 
 **Maven:**
@@ -146,6 +146,16 @@ All algebraic types extend `Structure`, which provides:
 - Type-safe conversions: `convert[T <: Structure](t: T): Option[T]`
 - Java interop: `asJavaNumber: Option[java.lang.Number]`
 
+### Imaginary Numbers
+
+The `algebra` module supports the creation of imaginary numbers using the `i` suffix on integers.
+For example, `2.i` represents the imaginary number $2i$.
+
+```scala
+import Eager.IntToImaginary
+
+val y = 2.i // to give 2i
+```
 
 ## Mermaid Diagrams
 
@@ -633,6 +643,8 @@ val x = Number.i
 import SquareRoot.IntToImaginary
 val y = 2.i // to give 2i
 ```
+
+See under Algebra/Imaginary Numbers for the new way of defining imaginary values.
 
 ### Algebraic
 An _Algebraic_ is a particular root of some polynomial function.
