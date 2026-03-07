@@ -6,7 +6,6 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.core.inner.SquareRoot.IntToImaginary
 import com.phasmidsoftware.number.core.numerical.ComplexPolar
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -165,7 +164,7 @@ class EulerSpec extends AnyFlatSpec with Matchers {
 
   it should "simplify Euler(r, π/2) to r*i" in {
     val result = Euler(Two, halfPi).simplify
-    result shouldBe Literal(2.i)
+    result shouldBe Two * I
   }
 
   behavior of "Euler - identitiesMatcher: angle = -π/2"
@@ -180,7 +179,7 @@ class EulerSpec extends AnyFlatSpec with Matchers {
     result shouldBe a[UniFunction]
     val uf = result.asInstanceOf[UniFunction]
     uf.f shouldBe Negate
-    uf.x shouldBe Literal(2.i)
+    uf.x shouldBe Two * I
   }
 
   behavior of "Euler - identitiesMatcher: r = 1 special cases"

@@ -69,28 +69,24 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "satisfy sin(ix) = i·sinh(x)" in {
-    pending // TODO Issue #189 and/or #192
     val x = Two
-    val lhs = (I * x).sin
-    val rhs = I * x.sinh
-    lhs shouldBe rhs
+    val result = Expression.matchSimpler(UniFunction(BiFunction(I, x, Product), Sine))
+    result.get shouldBe I * UniFunction(x, Sinh)
   }
 
   it should "evaluate sin(1 + i) approximately" in {
-    pending // TODO Issue #189 and/or #192
+    pending // TODO Work Item 10 — requires approximationComplex
     // sin(1+i) ≈ 1.2985 + 0.6350i
     val z = One + I
-    //    z.sin.fuzzy.toDouble shouldBe 1.2985 +- 1e-3
     val materialized = z.materialize
     materialized shouldBe a[Complex]
     materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian(1.2985, 0.6350)) shouldBe true
-
   }
 
   behavior of "cos for complex arguments"
 
   it should "evaluate cos(i) = cosh(1)" in {
-    pending // TODO Issue #189 and/or #192
+    pending // TODO Work Item 10 — requires approximationComplex
     // cos(i) = cosh(1) ≈ 1.5431
     val result = I.cos
     val materialized = result.materialize
@@ -101,7 +97,7 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "satisfy cos(ix) = cosh(x)" in {
-    pending // TODO Issue #189 and/or #192
+    pending // TODO Work Item 10 — requires approximationComplex
     val x = Two
     val lhs = (I * x).cos
     val rhs = x.cosh
@@ -109,7 +105,7 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "evaluate cos(1 + i) approximately" in {
-    pending // TODO Issue #189 and/or #192
+    pending // TODO Work Item 10 — requires approximationComplex
     // cos(1+i) ≈ 0.8337 - 0.9889i
     val z = One + iOne
     z.cos.fuzzy.toDouble shouldBe 0.8337 +- 1e-3
@@ -118,7 +114,6 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   behavior of "sinh for complex arguments"
 
   it should "evaluate sinh(iπ/2) = i" in {
-    //    pending // TODO Issue #189 and/or #192
     // sinh(iπ/2) = i·sin(π/2) = i
     println(iPiBy2)
     println(BiFunction(Pi, Half, Product).sin.simplify)
@@ -128,21 +123,18 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "evaluate sinh(iπ) = 0" in {
-    //    pending // TODO Issue #189 and/or #192
     val result = iPi.sinh.simplify
     result shouldBe Zero
   }
 
   it should "satisfy sinh(ix) = i·sin(x)" in {
-    pending // TODO Issue #189 and/or #192
     val x = Two
-    val lhs = (I * x).sinh
-    val rhs = I * x.sin
-    lhs shouldBe rhs
+    val result = Expression.matchSimpler(UniFunction(BiFunction(I, x, Product), Sinh))
+    result.get shouldBe I * UniFunction(x, Sine)
   }
 
   it should "evaluate sinh(1 + i) approximately" in {
-    pending // TODO Issue #189 and/or #192
+    pending // TODO Work Item 10 — requires approximationComplex
     // sinh(1+i) ≈ 0.6350 + 1.2985i
     val z = One + iOne
     z.sinh.fuzzy.toDouble shouldBe 0.6350 +- 1e-3
@@ -151,27 +143,24 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   behavior of "cosh for complex arguments"
 
   it should "evaluate cosh(iπ) = -1" in {
-    //    pending // TODO Issue #189 and/or #192
     val result = iPi.cosh.simplify
     result shouldBe MinusOne
   }
 
   it should "evaluate cosh(iπ/2) = 0" in {
-    pending // TODO Issue #189 and/or #192
-    val result = iPiBy2.cosh
+    //    pending // TODO Issue #189 and/or #192
+    val result = iPiBy2.cosh.simplify
     result shouldBe Zero
   }
 
   it should "satisfy cosh(ix) = cos(x)" in {
-    pending // TODO Issue #189 and/or #192
     val x = Two
-    val lhs = (I * x).cosh
-    val rhs = x.cos
-    lhs shouldBe rhs
+    val result = Expression.matchSimpler(UniFunction(BiFunction(I, x, Product), Cosh))
+    result.get shouldBe UniFunction(x, Cosine)
   }
 
   it should "evaluate cosh(1 + i) approximately" in {
-    pending // TODO Issue #189 and/or #192
+    pending // TODO Work Item 10 — requires approximationComplex
     // cosh(1+i) ≈ 0.8337 + 0.9889i
     val z = One + iOne
     z.cosh.fuzzy.toDouble shouldBe 0.8337 +- 1e-3

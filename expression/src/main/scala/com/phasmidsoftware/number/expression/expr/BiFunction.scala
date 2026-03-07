@@ -401,7 +401,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(a)
       case ExpressionNegationCommutative(a, _) =>
         em.Match(-a)
-      case InversePowerTimesNumberCommutative(ip, b) =>
+      case InversePowerTimesNumberCommutative(ip, b) if ip.number.signum >= 0 =>
         em.matchIfDefined(simplifyInversePowerTimesNumber(ip, b))(this)
       case (q1@QuadraticRoot(quadratic: QuadraticEquation, b1, _), q2@QuadraticRoot(e2, b2, _)) if quadratic == e2 && b1 != b2 =>
         em.Match(quadratic.conjugateProduct)

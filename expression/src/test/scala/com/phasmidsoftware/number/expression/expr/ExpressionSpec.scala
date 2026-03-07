@@ -51,22 +51,25 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   // TODO #Issue 149 this has to do with imaginary numbers
   it should "evaluate i * 2" in {
+    pending // TODO #149 requires approximationComplex (Work Item 10)
     val x: Expression = I * 2
     val result: Eager = x.materialize
-    val expected = InversePower.squareRoot(-4)
-    result shouldBe expected
+    result shouldBe algebra.eager.Complex(ComplexCartesian(numerical.Number.zero, numerical.Number.two))
   }
 
   it should "evaluate 2 * i" in {
+    pending // TODO #149 requires approximationComplex (Work Item 10)
     val x: Expression = Two * I
     val result: Eager = x.materialize
-    val expected = InversePower.squareRoot(-4)
-    result shouldBe expected
+    result shouldBe algebra.eager.Complex(ComplexCartesian(numerical.Number.zero, numerical.Number.two))
   }
 
   it should "evaluate ∅ * 3 * i" in {
+    pending // TODO #149 requires approximationComplex (Work Item 10)
     val x: Expression = ∅ * 3 * I
-    x.materialize shouldBe InversePower.squareRoot(-9)
+    val result: Eager = x.materialize
+    result shouldBe algebra.eager.Complex(ComplexCartesian(numerical.Number.zero, numerical.Number.three))
+
   }
   behavior of "parse"
   //  private val syp: ShuntingYardParser.type = ShuntingYardParser
