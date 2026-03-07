@@ -217,6 +217,10 @@ case class Real(x: Number) extends Field {
   lazy val tan: Field =
     Real(x.tan)
 
+  lazy val sinh: Field = Real(x.sinh)
+  lazy val cosh: Field = Real(x.cosh)
+  lazy val tanh: Field = Real(x.tanh)
+  
   /**
     * Calculate the angle whose opposite length is y and whose adjacent length is this.
     *

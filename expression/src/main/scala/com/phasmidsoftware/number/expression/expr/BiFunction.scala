@@ -57,7 +57,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return a string representation of the `CompositeExpression` as an expression.
     */
-  def renderAsExpression: String =
+  lazy val renderAsExpression: String =
     s"(${a.render} $f ${b.render})"
 
   /**

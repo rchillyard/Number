@@ -317,6 +317,66 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
   }
 
   /**
+    * Computes the hyperbolic sine (sinh) of this Complex number.
+    *
+    * This method is defined for both Cartesian and Polar representations of complex numbers:
+    *
+    * - For a complex number in Cartesian form (x + i·y), the formula used is:
+    * sinh(x + i·y) = sinh(x)·cos(y) + i·cosh(x)·sin(y)
+    *
+    * - For a complex number in Polar form, it is first converted to Cartesian form
+    * and the computation is then performed using the Cartesian formula.
+    *
+    * @return A new `ComplexCartesian` instance representing the hyperbolic sine
+    *         of this Complex number.
+    */
+  lazy val sinh: Field = this match {
+    case ComplexCartesian(x, y) =>
+      // sinh(x+iy) = sinh(x)·cos(y) + i·cosh(x)·sin(y)
+      // where sinh(x) = (e^x - e^(-x))/2, cosh(x) = (e^x + e^(-x))/2
+      val ex = x.exp
+      val enx = x.makeNegative.exp
+      val sinhX = (ex `doSubtract` enx) `doMultiply` Number.half
+      val coshX = (ex `doAdd` enx) `doMultiply` Number.half
+      ComplexCartesian(sinhX `doMultiply` y.cos, coshX `doMultiply` y.sin)
+    case c@ComplexPolar(_, _, _) =>
+      convertToCartesian(c).sinh
+  }
+
+  /**
+    * Computes the hyperbolic cosine (`cosh`) of this complex number.
+    *
+    * For a complex number expressed in Cartesian form (x + iy), the result is calculated using the formula:
+    * cosh(x + iy) = cosh(x)cos(y) + i·sinh(x)sin(y).
+    *
+    * If the complex number is represented in polar form, it gets converted to Cartesian form, and the `cosh` is computed on the
+    * Cartesian representation.
+    *
+    * @return The hyperbolic cosine of this complex number as a `Field`.
+    */
+  lazy val cosh: Field = this match {
+    case ComplexCartesian(x, y) =>
+      // cosh(x+iy) = cosh(x)·cos(y) + i·sinh(x)·sin(y)
+      val ex = x.exp
+      val enx = x.makeNegative.exp
+      val sinhX = (ex `doSubtract` enx) `doMultiply` Number.half
+      val coshX = (ex `doAdd` enx) `doMultiply` Number.half
+      ComplexCartesian(coshX `doMultiply` y.cos, sinhX `doMultiply` y.sin)
+    case c@ComplexPolar(_, _, _) =>
+      convertToCartesian(c).cosh
+  }
+
+  /**
+    * Represents the hyperbolic tangent (tanh) function as a field element.
+    *
+    * Computed as the division of the hyperbolic sine (sinh) and the hyperbolic cosine (cosh).
+    *
+    * This lazy value ensures the computation is deferred until the tanh field is accessed,
+    * improving efficiency in cases where it is not immediately required.
+    */
+  lazy val tanh: Field = sinh `divide` cosh
+
+  /**
     * Computes the natural logarithm of this Field.
     * For a real number x, this is equivalent to the logarithm base e: ln(x).
     * For a complex number, this computes the multi-valued complex logarithm.
@@ -343,15 +403,6 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
       val eToX = x.exp.scale(PureNumber)
       val cosY = y.cos
       val sinY = y.sin
-
-      // Debug output
-      println(s"exp debug: x=$x, y=$y")
-      println(s"  eToX=$eToX")
-      println(s"  cosY=$cosY")
-      println(s"  sinY=$sinY")
-      println(s"  eToX * cosY = ${eToX `doMultiply` cosY}")
-      println(s"  eToX * sinY = ${eToX `doMultiply` sinY}")
-
       ComplexCartesian(eToX `doMultiply` cosY, eToX `doMultiply` sinY)
     case c@ComplexPolar(r, theta, n) =>
       // For polar form, convert to Cartesian first

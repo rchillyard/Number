@@ -258,6 +258,15 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
   lazy val exp: Number =
     Number.exp(this)
 
+  lazy val sinh: Number =
+    Number.sinh(this)
+
+  lazy val cosh: Number =
+    Number.cosh(this)
+
+  lazy val tanh: Number =
+    Number.tanh(this)
+
   /**
     * Method to yield the absolute value of this Number.
     *

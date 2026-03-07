@@ -162,12 +162,11 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     */
   override def equals(other: Any): Boolean = other match {
     case that: ValueExpression =>
-      that.canEqual(this) &&
-        value === that.value
+      (this eq that) || (that.canEqual(this) && value === that.value)
     case _ =>
       false
   }
-
+  
   /**
     * Computes the hash code for this `ValueExpression` instance.
     *

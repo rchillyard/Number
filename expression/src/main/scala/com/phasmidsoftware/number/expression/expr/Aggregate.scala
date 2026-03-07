@@ -54,7 +54,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     *
     * @return a string representation of the `CompositeExpression` as an expression.
     */
-  def renderAsExpression: String =
+  lazy val renderAsExpression: String =
     s"{$function ${xs.map(_.render).mkString(" ")}}"
 
   /**

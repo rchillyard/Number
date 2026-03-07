@@ -479,6 +479,25 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     */
   def exp: Number
 
+
+  /**
+    * Method to determine the sine of this Number.
+    * The result will be a Number with PureNumber factor.
+    *
+    * @return the sine of this.
+    */
+  def sinh: Number
+
+  /**
+    * Method to determine the cosine of this Number.
+    * The result will be a Number with PureNumber factor.
+    *
+    * @return the cosine.
+    */
+  def cosh: Number
+  
+  def tanh: Number
+  
   /**
     * Method to determine the sense of this number: negative, zero, or positive.
     *
@@ -1533,6 +1552,15 @@ object Number {
     case _ =>
       exp(x.scale(PureNumber))
   }
+
+  def sinh(x: Number): Number =
+    prepareWithSpecialize(x.scale(PureNumber).transformMonadic(PureNumber)(MonadicOperationSinh))
+
+  def cosh(x: Number): Number =
+    prepareWithSpecialize(x.scale(PureNumber).transformMonadic(PureNumber)(MonadicOperationCosh))
+
+  def tanh(x: Number): Number =
+    prepareWithSpecialize(x.scale(PureNumber).transformMonadic(PureNumber)(MonadicOperationTanh))
 
   /**
     * Method to yield the square root of a Number.
