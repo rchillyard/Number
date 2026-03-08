@@ -34,9 +34,9 @@ trait DiFunc[X] {
   * @param ds a variable number of one-functions
   */
 abstract class DiFuncBase[X](g: X => X, ds: (X => Double)*) extends DiFunc[X] {
-  def arity: Int = ds.size
+  lazy val arity: Int = ds.size
 
-  def f: X => X = g
+  lazy val f: X => X = g
 
   def df_dx(i: Int): X => Double =
     if (i < arity) ds(i)

@@ -812,7 +812,7 @@ case object QueryOperationIsZero extends QueryOperation[Boolean] {
     *         - For `Rational`: Checks if the signum of the value is 0.
     *         - For `Double`: Checks if the sign is 0 or -0, accounting for floating-point representation.
     */
-  def getFunctions: BooleanQueryFunctions = new QueryFunctions[Boolean] {
+  lazy val getFunctions: BooleanQueryFunctions = new QueryFunctions[Boolean] {
     val fInt: Int => Try[Boolean] = tryF[Int, Boolean](x => x == 0)
     val fRat: Rational => Try[Boolean] = tryF[Rational, Boolean](x => x.signum == 0)
     val fDouble: Double => Try[Boolean] = tryF[Double, Boolean](x => x.sign == 0 || x.sign == -0)
