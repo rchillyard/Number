@@ -165,11 +165,12 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   behavior of "cross-checks between circular and hyperbolic functions"
 
   it should "satisfy sin²(z) + cos²(z) = 1 for z = 1 + i" in {
-    pending // Issue #193 — requires symbolic Pythagorean identity simplification
     val z = One + I
     val s = z.sin
     val c = z.cos
-    (s * s) + (c * c) shouldBe One
+    val ss = s * s
+    val cc = c * c
+    (ss + cc).simplify shouldBe One
   }
 
   it should "satisfy cosh²(z) - sinh²(z) = 1 for z = 1 + i" in {
@@ -177,6 +178,6 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
     val z = One + I
     val c = z.cosh
     val s = z.sinh
-    (c * c) - (s * s) shouldBe One
+    ((c * c) - (s * s)).simplify shouldBe One
   }
 }

@@ -317,3 +317,47 @@ object HasEuler {
       false
   }
 }
+
+/**
+  * Extractor matching `sin²(z)`, i.e. `BiFunction(UniFunction(z, Sine), Two, Power)`.
+  * Returns the argument `z`.
+  */
+object IsSinSquared {
+  def unapply(e: Expression): Option[Expression] = e match {
+    case BiFunction(UniFunction(z, Sine), Two, Power) => Some(z)
+    case _ => None
+  }
+}
+
+/**
+  * Extractor matching `cos²(z)`, i.e. `BiFunction(UniFunction(z, Cosine), Two, Power)`.
+  * Returns the argument `z`.
+  */
+object IsCosSquared {
+  def unapply(e: Expression): Option[Expression] = e match {
+    case BiFunction(UniFunction(z, Cosine), Two, Power) => Some(z)
+    case _ => None
+  }
+}
+
+/**
+  * Extractor matching `sinh²(z)`, i.e. `BiFunction(UniFunction(z, Sinh), Two, Power)`.
+  * Returns the argument `z`.
+  */
+object IsSinhSquared {
+  def unapply(e: Expression): Option[Expression] = e match {
+    case BiFunction(UniFunction(z, Sinh), Two, Power) => Some(z)
+    case _ => None
+  }
+}
+
+/**
+  * Extractor matching `cosh²(z)`, i.e. `BiFunction(UniFunction(z, Cosh), Two, Power)`.
+  * Returns the argument `z`.
+  */
+object IsCoshSquared {
+  def unapply(e: Expression): Option[Expression] = e match {
+    case BiFunction(UniFunction(z, Cosh), Two, Power) => Some(z)
+    case _ => None
+  }
+}

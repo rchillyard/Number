@@ -104,12 +104,11 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
 
   /**
     * Attempts to compute an approximate representation of a complex number for this object.
-    * The method uses the underlying implementation of `approximationComplex` on the `x` value 
+    * The method uses the underlying implementation of `approximationComplex` on the `x` value
     * and, if applicable, applies further processing using the provided function `f`.
     *
-    * @param force a boolean flag which, if true, forces the computation of the approximation 
+    * @param force a boolean flag which, if true, forces the computation of the approximation
     *              regardless of any conditions that might otherwise skip it.
-    *
     * @return an `Option[Eager]` containing the result of the complex number approximation,
     *         or `None` if no approximation is possible or applicable.
     */

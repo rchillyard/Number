@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.expression.expr
 
+import cats.implicits.catsSyntaxEq
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
@@ -404,6 +405,16 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(quadratic.conjugateSum)
       case (l: Literal, q: QuadraticRoot) => // TODO this should use the commutative extractor
         matchLiteral(l, q, Sum)
+      case SumSymmetricCommutative(x, y) => (x, y) match {
+        case (IsSinSquared(z1), IsCosSquared(z2)) if z1 === z2 =>
+          em.Match(One)
+        case (IsCoshSquared(z1), UniFunction(IsSinhSquared(z2), Negate)) if z1 === z2 =>
+          em.Match(One)
+        case (IsCosSquared(z1), UniFunction(IsSinSquared(z2), Negate)) if z1 === z2 =>
+          em.Match(UniFunction(BiFunction(Two, z1, Product), Cosine))
+        case _ =>
+          em.Miss[Expression, Expression]("BiFunction: matchBiFunctionSum: no Pythagorean simplification for Sum", this)
+      }
       case _ =>
         em.Miss[Expression, Expression]("BiFunction: matchBiFunctionSum: no trivial simplification for Sum", this)
     }
@@ -843,4 +854,17 @@ object InversePowerTimesNumberCommutative extends CommutativeExtractor[InversePo
     case ValueExpression(b: CanPower[eager.Number] @unchecked, _) => Some(b)
     case _ => None
   }
+}
+
+/**
+  * Fully symmetric commutative extractor for Sum expressions.
+  * Both positions accept any `Expression`; the inner match in
+  * `matchBiFunctionIdentitiesSum` applies the specific guards.
+  * Used for Pythagorean and related identities where both operands
+  * are `CompositeExpression` and no asymmetric role distinction applies.
+  */
+object SumSymmetricCommutative extends CommutativeExtractor[Expression, Expression] {
+  protected def extractLeft(e: Expression): Option[Expression] = Some(e)
+
+  protected def extractRight(e: Expression): Option[Expression] = Some(e)
 }
