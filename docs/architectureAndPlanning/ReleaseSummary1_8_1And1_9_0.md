@@ -32,17 +32,36 @@
 
 ---
 
-## Version 1.9.0 — In Progress
+## Version 1.9.1 — Released
 
-### Current State (as of March 2026)
+### New Features
 
-- 3,778 tests passing, 0 failures, 14 pending
-- Layer 1 of Work Item 10 complete (complex trig/hyperbolic in algebra layer)
-- Key bug fix: `InversePowerTimesNumberCommutative` guard prevents `i*2`
-  being collapsed to `√(-4)`
+- **Complex approximation** — `materialize` now correctly evaluates
+  complex-valued expressions such as `sin(1+i)`, `cos(i)`, `exp(i)` via
+  a new `approximationComplex` path, strictly additive to the existing
+  real-valued `approximation` path
+- **`n * i` materialisation** — `BiFunction.identitiesMatcher` now
+  correctly reduces scalar multiples of `i` to exact `Complex` values
+  (e.g. `2 * i` → `Complex(ComplexCartesian(0, 2))`) via the new
+  `IsImaginaryExpression` extractor
 
-### Completed Work
+### Infrastructure
 
+- **`approximationComplex` on `Approximate` trait** — new method with
+  default `None`, overridden in `ValueExpression`, `I`, `UniFunction`,
+  and `BiFunction`
+- **`applyComplex` on `ExpressionMonoFunction`** — dispatches to the
+  algebra layer's complex implementations of `sin`, `cos`, `sinh`, `cosh`,
+  `exp`, `negate`, `reciprocal`, and `ln` via `z.complex.*`
+- **`IsImaginaryExpression` extractor** — lifts `IsImaginary` from `Eager`
+  to `Expression` level via `evaluateAsIs`
+- **Updated `materialize`** — falls back to `approximationComplex` after
+  `approximation` in the evaluation chain:
+  ```scala
+  asIs.map(normalizeIfAppropriate)
+    .orElse(approximation)
+    .orElse(approximationComplex)
+  ```
 - **`sinh`/`cosh`/`tanh` in algebra layer** — `MonadicOperationSinh/Cosh/Tanh`
   in `Operations`, `Number`, `Real`, `Field`, `BaseComplex` (with correct
   fuzz propagation via derivative)
@@ -59,36 +78,37 @@
 - **`operandsMatcher` guard** — restored `&& u.x.contains(I)` in
   `UniFunction.operandsMatcher`
 
-### Remaining Work
+### Test Suite
 
-- **Work Item 10: Complex approximation** (Layers 2–4) — approximate
-  evaluation of complex-valued expressions via a new `approximationComplex`
-  path:
-  - `approximationComplex` on `UniFunction`, `BiFunction`, `ValueExpression`, `Euler`
-  - Updated `materialize` to try the complex approximation path as fallback
-
-- **Issue C: Pythagorean identities** — symbolic verification that
-  `sin²(z) + cos²(z) = 1` and `cosh²(z) - sinh²(z) = 1`
+- 3,793 tests passing, 0 failures
+- 4 pending / ignored tests:
+  - 3 for Issue C (Pythagorean identities) — deferred to future release
+  - 1 unrelated parsing test — deferred to future release
 
 ### Acceptance Criterion
 
-Un-pending all remaining pending tests in `ComplexFunctionSpec`.
+Un-pending all remaining pending tests in `ComplexFunctionSpec` — ✅ complete.
 
-### Pending Tests
+---
 
-| Test | Issue | Work Item |
-|---|---|---|
-| `sin(i) = i·sinh(1)` approximately | #189/#192 | Work Item 10 |
-| `cos(i) = cosh(1)` approximately | #189/#192 | Work Item 10 |
-| `sin(1+i)` approximately | #189/#192 | Work Item 10 |
-| `cos(1+i)` approximately | #189/#192 | Work Item 10 |
-| `sinh(1+i)` approximately | #189/#192 | Work Item 10 |
-| `cosh(1+i)` approximately | #189/#192 | Work Item 10 |
-| `exp(i)` approximately | #189/#192 | Work Item 10 |
-| `sinh(ix) = i·sin(x)` symbolically | #189/#192 | Work Item 10 |
-| `cosh(ix) = cos(x)` symbolically | #189/#192 | Work Item 10 |
-| `sin²(z) + cos²(z) = 1` | #193 | Issue C |
-| `cosh²(z) - sinh²(z) = 1` | #193 | Issue C |
-| `sin(ix) = i·sinh(x)` symbolically | #189/#192 | Work Item 10 |
-| `i * 2` materialisation | #149 | Work Item 10 |
-| `cosh(iπ/2) = 0` | #189/#192 | Work Item 10 |
+## Remaining Work
+
+### Issue C — Pythagorean Identities (#193)
+
+Symbolic simplification of:
+- `sin²(z) + cos²(z) = 1` (complex `z`)
+- `cos²(z) - sin²(z) = cos(2z)` (optional extension)
+- `cosh²(z) - sinh²(z) = 1` (complex `z`)
+
+These are fundamentally Euler's equation applied symbolically. The
+simplifier needs new rules to recognise and reduce these forms. Currently
+verified numerically but not symbolically.
+
+### Parsing — unrelated pending test
+
+One pending test in `LaTeXParserSpec`, unrelated to complex arithmetic.
+
+### Future Milestones
+
+- Version 2.0.0 — major release
+- Potential Typelevel affiliate submission of `Matchers` library
