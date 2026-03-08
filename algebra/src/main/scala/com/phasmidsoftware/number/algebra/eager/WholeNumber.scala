@@ -53,7 +53,7 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
     * @return the integer value corresponding to this instance
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the conversion is not possible.
     */
-  def toInt: Int =
+  lazy val toInt: Int =
     FP.recover(toIntOption(toRational))(AlgebraException("WholeNumber.toInt: cannot convert $this to Int"))
 
   /**
@@ -61,14 +61,14 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
     *
     * @return a Rational representation of the current WholeNumber.
     */
-  def toRational: Rational = Rational(x)
+  lazy val toRational: Rational = Rational(x)
 
   /**
     * Retrieves an `Option` containing this instance as an object of type `Z`.
     *
     * @return an `Option[Z]` that wraps the current instance, which is always `Some(this)`.
     */
-  def maybeZ: Option[Z] = Some(this)
+  lazy val maybeZ: Option[Z] = Some(this)
 
   /**
     * Converts the current instance of `WholeNumber` to an optional `Q`.
@@ -78,7 +78,7 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
     *         will typically encapsulate the `WholeNumber` as a rational
     *         representation.
     */
-  def maybeQ: Option[Q] = Some(RationalNumber(toRational))
+  lazy val maybeQ: Option[Q] = Some(RationalNumber(toRational))
 
   /**
     * Subtracts the specified WholeNumber from this WholeNumber.

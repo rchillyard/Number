@@ -325,7 +325,7 @@ case class NaturalExponential(exponent: Number)(val maybeName: Option[String] = 
     * @return a `Structure` representing the negation of this instance
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input is not a Real number.
     */
-  def negate: Structure =
+  lazy val negate: Structure =
     throw AlgebraException(s"NaturalExponential.negate: not supported")
 
   /**
@@ -414,7 +414,8 @@ case class BinaryExponential(exponent: Number)(val maybeName: Option[String] = N
     *
     * @return a `Structure` representing the negation of this instance
     */
-  def negate: Structure = throw AlgebraException(s"BinaryExponential.negate: not supported")
+  lazy val negate: Structure = 
+    throw AlgebraException(s"BinaryExponential.negate: not supported")
 
   /**
     * Compares the current `Exponential` instance with another `Number` to determine their exact order.

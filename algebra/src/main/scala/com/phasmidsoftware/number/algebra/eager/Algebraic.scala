@@ -300,7 +300,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
     * @return a new QuadraticSolution instance that represents the negation and conjugation
     *         of the current quadratic solution
     */
-  def negate: QuadraticSolution =
+  lazy val negate: QuadraticSolution =
     copy(base = base.negate)(None).conjugate
 
   /**
@@ -310,7 +310,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
     *
     * @return true if both the `base` and `offset` are zero, otherwise false.
     */
-  def isZero: Boolean =
+  lazy val isZero: Boolean =
     base.isZero && isPureNumber
 
   /**
@@ -322,7 +322,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
     *
     * @return true if the offset of the solution is zero, otherwise false.
     */
-  def isPureNumber: Boolean =
+  lazy val isPureNumber: Boolean =
     coefficient == 0 || offset.isZero || offset.maybeFactor(RestrictedContext(PureNumber)).isDefined
 
   /**
@@ -333,7 +333,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
     *
     * @return true if the solution represents unity, otherwise false.
     */
-  def isUnity: Boolean =
+  lazy val isUnity: Boolean =
     isPureNumber && base.isUnity
 
   /**
@@ -346,7 +346,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
     *
     * @return +1 if the solution is positive, -1 if negative, or 0 if it is at the origin.
     */
-  def signum: Int = toDouble.sign.toInt // CHECK
+  lazy val signum: Int = toDouble.sign.toInt // CHECK
 
   import scala.language.implicitConversions
 
@@ -799,7 +799,7 @@ case class LinearSolution(value: Structure)(val maybeName: Option[String] = None
     *
     * @return a new instance of `QuadraticSolution` representing the negated version of the current solution
     */
-  def negate: LinearSolution = LinearSolution(value.negate)
+  lazy val negate: LinearSolution = LinearSolution(value.negate)
 
   /**
     * Adds the specified `Solution` to the current `LinearSolution` and returns a new `Solution`

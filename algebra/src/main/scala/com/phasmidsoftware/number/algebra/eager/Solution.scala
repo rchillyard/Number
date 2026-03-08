@@ -209,7 +209,8 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
     *
     * @return a new `Solution` representing the negated value of this `Complex` instance
     */
-  def negate: Solution = Complex(complex.rotate.rotate)()
+  lazy val negate: Solution = 
+    Complex(complex.rotate.rotate)()
 
   def +(other: Solution): Solution = other match {
     case Complex(c) =>
@@ -232,7 +233,7 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
   /**
     * @return this `Eager`.
     */
-  override def fuzzy: Eager = this
+  override val fuzzy: Eager = this
 
   /**
     * Attempts to compute an approximate representation of the current value.

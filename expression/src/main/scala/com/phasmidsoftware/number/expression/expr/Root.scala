@@ -303,20 +303,7 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int, maybeName: Option
     */
   def approximation(force: Boolean): Option[Real] =
     solution.approximation(force)
-
-  //    solution match {
-  //      case LinearSolution(_) if context.factorQualifies(PureNumber) =>
-  //        Some(solution.base)
-  //      case QuadraticSolution(Value.zero, offset, _, _) if Value.isZero(offset) && context.factorQualifies(PureNumber) =>
-  //        Some(PureNumber)
-  //      case QuadraticSolution(Value.zero, _, factor, _) if context.factorQualifies(factor) =>
-  //        Some(factor)
-  //      case QuadraticSolution(_, Value.zero, _, _) if context.factorQualifies(PureNumber) =>
-  //        Some(PureNumber)
-  //      case _ =>
-  //        None
-  //    }
-
+  
   /**
     * Method to render this Structure in a presentable manner.
     *

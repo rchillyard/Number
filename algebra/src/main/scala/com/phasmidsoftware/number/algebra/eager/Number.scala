@@ -346,7 +346,7 @@ trait ExactNumber extends Number with Exact with Q with Scalable[ExactNumber] wi
     *
     * @return the `Double` value obtained by converting this `WholeNumber` to a `Rational` and then to a `Double`.
     */
-  def asDouble: Double = toRational.toDouble
+  lazy val asDouble: Double = toRational.toDouble
 
   /**
     * Scales the current `WholeNumber` by a given Rational multiplier and returns the result
@@ -491,7 +491,7 @@ object Number {
       *
       * @return the additive identity element for `Number`
       */
-    def zero: Number = Number.zero
+    lazy val zero: Number = Number.zero
 
     /**
       * Adds two `Number` instances together.
@@ -550,7 +550,7 @@ object Number {
       *
       * @return the predefined constant representing the number one
       */
-    def one: Number = Number.one
+    lazy val one: Number = Number.one
 
     /**
       * Multiplies two `Number` instances and returns the resulting `Number`.

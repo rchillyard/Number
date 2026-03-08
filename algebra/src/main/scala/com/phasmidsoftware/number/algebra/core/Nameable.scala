@@ -38,5 +38,5 @@ trait Nameable {
     *
     * @return `true` if symbolic names are kept, otherwise `false`
     */
-  def keepSymbolic: Boolean = protectedName && maybeName.isDefined
+  lazy val keepSymbolic: Boolean = protectedName && maybeName.isDefined
 }

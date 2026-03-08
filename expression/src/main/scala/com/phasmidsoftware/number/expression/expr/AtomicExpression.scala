@@ -26,12 +26,12 @@ trait AtomicExpression extends Expression with Nameable {
     *
     * @return true, as this expression is atomic and cannot be further simplified.
     */
-  def isAtomic: Boolean = true
+  val isAtomic: Boolean = true
 
   /**
     * @return 1.
     */
-  def depth: Int = 1
+  val depth: Int = 1
 
   /**
     * Attempts to simplify an atomic expression, for example,

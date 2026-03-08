@@ -303,7 +303,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     *
     * @return an integer hash code value obtained by hashing the `equ` and `branch` fields.
     */
-  override def hashCode(): Int =
+  override lazy val hashCode: Int =
     Objects.hash(x, f)
 
   /**
@@ -315,7 +315,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
   def canEqual(other: Any): Boolean =
     other.isInstanceOf[UniFunction]
 
-  override def toString: String =
+  override lazy val toString: String =
     s"$f(${x.show})"
 
   /**

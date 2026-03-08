@@ -30,7 +30,7 @@ trait CompositeExpression extends Expression {
     *
     * @return false as the default value, indicating the expression is not atomic.
     */
-  def isAtomic: Boolean = false
+  val isAtomic: Boolean = false
 
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.

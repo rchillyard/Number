@@ -50,7 +50,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return a `Boolean` indicating whether the entity is exact (`true`)
     *         or has an approximation (`false`).
     */
-  def isExact: Boolean = a.isExact && b.isExact
+  lazy val isExact: Boolean = a.isExact && b.isExact
 
   /**
     * Renders the `CompositeExpression` as a string representation of the expression itself,
@@ -214,7 +214,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return the depth (an atomic expression has depth of 1).
     */
-  def depth: Int =
+  lazy val depth: Int =
     1 + math.max(a.depth, b.depth)
 
   /**
@@ -299,7 +299,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return an Int depending on f, a, and b.
     */
-  override def hashCode(): Int =
+  override lazy val hashCode: Int =
     java.util.Objects.hash(f, a, b)
 
   /**

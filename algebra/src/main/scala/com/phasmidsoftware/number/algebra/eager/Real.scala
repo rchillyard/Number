@@ -64,7 +64,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     *
     * @return the normalized form of this object as a `Valuable` instance
     */
-  def normalize: Real = this
+  val normalize: Real = this
 
   /**
     * Converts the current instance to a Double representation.
@@ -82,7 +82,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     *
     * @return The nominal value as a `Double`.
     */
-  def nominalValue: Double = value
+  lazy val nominalValue: Double = value
 
   /**
     * Converts the specified value into an exact rational representation if possible,
@@ -90,14 +90,14 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     *
     * @return Some instance of Q if the conversion is successful, or None if it fails.
     */
-  def maybeQ: Option[Q] = Rational.createExact(value).toOption.map(RationalNumber(_))
+  lazy val maybeQ: Option[Q] = Rational.createExact(value).toOption.map(RationalNumber(_))
 
   /**
     * Determines whether this object represents unity.
     *
     * @return true if the object represents unity, false otherwise
     */
-  def isUnity: Boolean = isExact && value == 1.0
+  lazy val isUnity: Boolean = isExact && value == 1.0
 
   /**
     * Determines whether this `Valuable` is exact, i.e., has no fuzz.
@@ -109,7 +109,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     * @return a `Boolean` indicating whether the entity is exact (`true`)
     *         or has an approximation (`false`).
     */
-  def isExact: Boolean = fuzz.isEmpty
+  lazy val isExact: Boolean = fuzz.isEmpty
 
   /**
     * Represents an optional fuzziness value associated with the implementing entity.
@@ -122,7 +122,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     * @return An `Option` containing a `Fuzziness[Double]` if fuzziness is present,
     *         or `None` if it is not.
     */
-  def maybeFuzz: Option[Fuzziness[Double]] = fuzz
+  lazy val maybeFuzz: Option[Fuzziness[Double]] = fuzz
 
   /**
     * Converts the given numeric value to an optional representation.
@@ -149,7 +149,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     * @return An `Option` containing a `RationalNumber` instance if the conversion is successful,
     *         or `None` if the value cannot be exactly represented as a rational number.
     */
-  def toMaybeRationalNumber: Option[RationalNumber] =
+  lazy val toMaybeRationalNumber: Option[RationalNumber] =
     FP.whenever(isExact)(
       Rational.createExact(value).toOption.map(RationalNumber(_))
     )
@@ -161,7 +161,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     *
     * @return Some(x) where x is a Double if this is exact, else None.
     */
-  override def maybeDouble: Option[Double] =
+  override lazy val maybeDouble: Option[Double] =
     Option.when(isExact)(value)
 
   /**
@@ -181,7 +181,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     *
     * @return true if the number is zero, false otherwise
     */
-  def isZero: Boolean =
+  lazy val isZero: Boolean =
     this === Real.zero
 
   /**
@@ -347,7 +347,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     *
     * @return a new instance of type `T` that is the additive inverse of this instance
     */
-  def unary_- : Real = realIsRing.negate(this)
+  lazy val unary_- : Real = realIsRing.negate(this)
 
   /**
     * Adds the specified `Real` to this `Real` instance.
@@ -438,7 +438,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     *
     * @return a `FuzzyNumber` representation of this `Real` instance
     */
-  def toOldFuzzyNumber: FuzzyNumber =
+  lazy val toOldFuzzyNumber: FuzzyNumber =
     FuzzyNumber(Value.fromDouble(Some(value)), PureNumber, fuzz)
 
   /**

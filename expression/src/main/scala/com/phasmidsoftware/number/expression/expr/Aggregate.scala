@@ -225,7 +225,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     *
     * @return a String
     */
-  override def toString: String =
+  override lazy val toString: String =
     xs.map(_.show).mkString(s"Aggregate{${function.toString},", ",", "}")
 }
 

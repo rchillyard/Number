@@ -56,7 +56,7 @@ trait Expression extends Lazy with Approximate {
     *
     * @return an `eager.Real` representing the approximate value of this `Expression`
     */
-  def fuzzy: eager.Eager = simplify match { // CONSIDER this looks wrong!
+  lazy val fuzzy: eager.Eager = simplify match { // CONSIDER this looks wrong!
     case IsEager(eager.Complex(c)) =>
       Eager(c)
     case _ =>
@@ -224,7 +224,7 @@ trait Expression extends Lazy with Approximate {
     *
     * @return a `String` representation useful for debugging.
     */
-  def debug: String = this match {
+  lazy val debug: String = this match {
     case p: Product if p.productArity == 0 =>
       p.productPrefix
     case p: Product =>
