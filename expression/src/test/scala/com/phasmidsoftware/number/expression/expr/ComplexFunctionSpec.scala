@@ -92,12 +92,9 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "satisfy cos(ix) = cosh(x)" in {
-    //    pending // TODO Work Item 10 — requires approximationComplex
     val x = Two
     val lhs = (I * x).cos
-    println(lhs.simplify.debug)
     val rhs = x.cosh
-    println(rhs.simplify.debug)
     lhs.simplify shouldBe rhs.simplify
   }
 
@@ -112,9 +109,6 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
 
   it should "evaluate sinh(iπ/2) = i" in {
     // sinh(iπ/2) = i·sin(π/2) = i
-    println(iPiBy2)
-    println(BiFunction(Pi, Half, Product).sin.simplify)
-    println(BiFunction(Pi, Half, Product).simplify)
     val result = iPiBy2.sinh.simplify
     result shouldBe I
   }
@@ -174,10 +168,12 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "satisfy cosh²(z) - sinh²(z) = 1 for z = 1 + i" in {
-    pending // Issue #193
     val z = One + I
     val c = z.cosh
     val s = z.sinh
-    ((c * c) - (s * s)).simplify shouldBe One
+    import Expression.ExpressionOps
+    val cc = BiFunction(c, Two, Power)
+    val ss = BiFunction(s, Two, Power)
+    (cc - ss).simplify shouldBe One
   }
 }

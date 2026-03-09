@@ -58,7 +58,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   it should "evaluate 2 * i" in {
     val x: Expression = Two * I
-    println(x.simplify.debug)
     val result: Eager = x.materialize
     result shouldBe algebra.eager.Complex(ComplexCartesian(numerical.Number.zero, numerical.Number.two))
   }
@@ -70,7 +69,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   behavior of "parse"
-  
+
   //  private val syp: ShuntingYardParser.type = ShuntingYardParser
   //  it should "parse 1" in {
   //    syp.parseInfix("1") should matchPattern { case Success(Stack(List(Expr(TerminalExpression(Number.one))))) => }

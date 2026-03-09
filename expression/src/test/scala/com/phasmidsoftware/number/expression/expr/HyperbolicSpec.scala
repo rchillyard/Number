@@ -4,6 +4,8 @@
 
 package com.phasmidsoftware.number.expression.expr
 
+import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
+import com.phasmidsoftware.number.algebra.eager.Eager
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -71,6 +73,12 @@ class HyperbolicSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "sinh and cosh together"
 
+  it should "satisfy cosh²(x) - sinh²(x) ~= 1" in {
+    val x = Literal(Rational(3, 2))
+    val c = x.cosh
+    val s = x.sinh
+    ((c * c) - (s * s)).materialize ~= (Eager.one)
+  }
   it should "satisfy cosh²(x) - sinh²(x) = 1" in {
     pending // TODO Issue #187 or #193
     val x = Literal(Rational(3, 2))

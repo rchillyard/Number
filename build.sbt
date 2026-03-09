@@ -1,7 +1,5 @@
 // build.sbt for the Number project
 
-import MermaidDiagramGenerator.autoImport.generateMermaidDiagrams
-
 ThisBuild / organization := "com.phasmidsoftware"
 
 ThisBuild / version := "1.9.2"
@@ -57,6 +55,8 @@ val scala3Options = Seq(
 val scala3TestSettings = Seq(
   Test / scalacOptions := scalacOptions.value.filterNot(_ == "-Wnonunit-statement")
 )
+
+import MermaidDiagramGenerator.autoImport.generateMermaidDiagrams
 
 // ============================================================================
 // MODULE DEFINITIONS

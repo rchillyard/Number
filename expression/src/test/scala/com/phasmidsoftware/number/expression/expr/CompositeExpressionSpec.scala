@@ -364,7 +364,9 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
 
   it should "simplify x * (-1) to -x" in {
     val prodNeg = BiFunction(Pi, MinusOne, Product)
-    prodNeg.simplify shouldBe UniFunction(Pi, Negate)
+    val actual = prodNeg.simplify
+    val expected = UniFunction(Pi, Negate)
+    actual shouldBe expected
   }
 
   it should "simplify -x to -x" in {

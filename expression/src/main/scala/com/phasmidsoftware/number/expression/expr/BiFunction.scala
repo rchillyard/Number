@@ -211,6 +211,16 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   }
 
   /**
+    * Determines whether to leave operands unchanged based on specific conditions.
+    *
+    * @return true if any of the operands match the conditions `IsCoshSquared` or `IsSinhSquared`, false otherwise.
+    */
+  override def leaveOperandsAsIs: Boolean = this match {
+    case IsCoshSquared(_) | IsSinhSquared(_) => true
+    case _ => super.leaveOperandsAsIs
+  }
+
+  /**
     * Method to determine the depth of this Expression.
     *
     * @return the depth (an atomic expression has depth of 1).

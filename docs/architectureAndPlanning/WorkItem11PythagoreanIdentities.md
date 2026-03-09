@@ -264,7 +264,6 @@ Step 3 (hyperbolic identity `cosh²(z) - sinh²(z) = 1` for complex `z`).
 ## The Problem
 
 The pipeline is:
-
 ```
 simplifyOperands → simplifyStructural → simplifyIdentities → ... → simplifyLazy
 ```

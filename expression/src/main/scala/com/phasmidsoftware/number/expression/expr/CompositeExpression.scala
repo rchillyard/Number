@@ -9,7 +9,7 @@ import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.Eager
 import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.PureNumber
-import com.phasmidsoftware.number.expression.expr.Expression.{em, matchSimpler}
+import com.phasmidsoftware.number.expression.expr.Expression.em
 import com.phasmidsoftware.number.{algebra, expression}
 
 import scala.language.implicitConversions
@@ -31,6 +31,51 @@ trait CompositeExpression extends Expression {
     * @return false as the default value, indicating the expression is not atomic.
     */
   val isAtomic: Boolean = false
+
+  /**
+    * Indicates whether the operands of this `CompositeExpression` should remain unaltered during processing.
+    *
+    * This property determines whether simplification or transformations should be applied to the operands
+    * of the expression, or if they are to be left unchanged. The exact behavior is specific to the context
+    * of the `CompositeExpression`.
+    *
+    * @return `true` if the operands are to remain as is; `false` otherwise.
+    */
+  def leaveOperandsAsIs: Boolean = terms.exists {
+    case c: CompositeExpression => c.leaveOperandsAsIs
+    case _ => false
+  }
+
+  /**
+    * Determines if all components within a given `Expression` are named.
+    *
+    * TODO handle the specific cases at their proper level in the type hierarchy.
+    *
+    * This method recursively checks whether each component of the provided `Expression`
+    * either has a name (in the case of a `Nameable` expression) or, if it is a composite
+    * expression (`CompositeExpression`), ensures that all of its terms also have names.
+    *
+    * @return `true` if all components of the expression are named, otherwise `false`.
+    */
+  def shouldStaySymbolic: Boolean = this match {
+    case _: Euler =>
+      true
+    case n: Nameable =>
+      n.keepSymbolic
+    case BiFunction(x: Nameable, y: Nameable, _) =>
+      (x.keepSymbolic || y.keepSymbolic) && x.maybeName.isDefined && y.maybeName.isDefined
+    case Euler(x: Nameable, y: Nameable) => // TODO unreachable.
+      (x.keepSymbolic || y.keepSymbolic) && x.maybeName.isDefined && y.maybeName.isDefined
+    case c: CompositeExpression =>
+      c.terms.exists {
+        case n: Nameable =>
+          n.keepSymbolic
+        case x: CompositeExpression =>
+          x.shouldStaySymbolic
+        case _ =>
+          false
+      }
+  }
 
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
@@ -93,11 +138,10 @@ trait CompositeExpression extends Expression {
     */
   lazy val simplifyLazy: em.AutoMatcher[Expression] =
     em.Matcher("CompositeExpression:simplifyLazy") {
-      (expr: Expression) =>
+      case expr: CompositeExpression if (expr.shouldStaySymbolic) =>
+        em.Miss[Expression, Expression]("all components named, staying symbolic", this)
+      case expr: Expression =>
         // Don't evaluate if this expression should stay symbolic.
-        if (CompositeExpression.shouldStaySymbolic(expr))
-          em.Miss[Expression, Expression]("all components named, staying symbolic", this)
-        else
           expr.evaluateAsIs match {
             case Some(value) =>
               // NOTE double-check that the result is actually exact.
@@ -206,37 +250,6 @@ object CompositeExpression {
     */
   def create(f: ExpressionBiFunction, xs: Eager*): Expression =
     apply(f, xs map (x => Literal(x, Some(x.render))))
-
-  /**
-    * Determines if all components within a given `Expression` are named.
-    *
-    * This method recursively checks whether each component of the provided `Expression`
-    * either has a name (in the case of a `Nameable` expression) or, if it is a composite
-    * expression (`CompositeExpression`), ensures that all of its terms also have names.
-    *
-    * @param expr The `Expression` to be evaluated. It can be a top-level expression
-    *             or a composite expression containing multiple terms.
-    * @return `true` if all components of the expression are named, otherwise `false`.
-    */
-  def shouldStaySymbolic(expr: Expression): Boolean = expr match {
-    case _: Euler =>
-      true
-    case n: Nameable =>
-      val symbolic1 = n.keepSymbolic
-      symbolic1
-    case BiFunction(x: Nameable, y: Nameable, _) =>
-      val ySymbolic = y.keepSymbolic
-      val symbolic2 = (x.keepSymbolic || ySymbolic) && x.maybeName.isDefined && y.maybeName.isDefined
-      symbolic2
-    case Euler(x: Nameable, y: Nameable) =>
-      val symbolic3 = (x.keepSymbolic || y.keepSymbolic) && x.maybeName.isDefined && y.maybeName.isDefined
-      symbolic3
-    case c: CompositeExpression =>
-      val symbolic4 = c.terms.exists(shouldStaySymbolic)
-      symbolic4
-    case _ =>
-      false // Anything unnamed breaks the chain
-  }
 }
 
 /**

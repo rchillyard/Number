@@ -763,6 +763,8 @@ object Expression {
     * @see docs/SimplificationPipeline.md for complete pipeline documentation
     */
   def simplifyOperands: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("Expression:simplifyOperands") {
+    case c: CompositeExpression if c.leaveOperandsAsIs =>
+      em.Miss("Expression:simplifyOperands: leaving operands as-is", c)
     case c: CompositeExpression =>
       c.operandsMatcher(c)
     case x =>
@@ -850,7 +852,7 @@ object Expression {
         em.Match(Literal(InversePower(root, x))) `flatMap` matchSimpler
       //      case BiFunction(ValueExpression(q: Q, _), ValueExpression(RationalNumber.half, _), Power) =>
       //        em.Match(Root.squareRoot(q.toRational, 0)) // NOTE we arbitrarily choose the positive root
-      case c: CompositeExpression if !CompositeExpression.shouldStaySymbolic(c) =>
+      case c: CompositeExpression if !c.shouldStaySymbolic =>
         c.evaluateAsIs match {
           case Some(f) =>
             em.MatchCheck(Expression(f))(c).map(_.simplify)
