@@ -3,12 +3,10 @@ package com.phasmidsoftware.number.expression.algebraic
 import com.phasmidsoftware.number.expression.expr.{Expression, MinusOne, One}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-import org.scalatest.matchers.should.Matchers.shouldBe
 
 class AlgebraicSpec extends AnyFlatSpec with should.Matchers {
 
-  import com.phasmidsoftware.number.algebra.eager.Eager.half
-  import com.phasmidsoftware.number.algebra.eager.{Eager, QuadraticSolution, Solution}
+  import com.phasmidsoftware.number.algebra.eager.QuadraticSolution
   import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
   import com.phasmidsoftware.number.expression.expr.Root
 
