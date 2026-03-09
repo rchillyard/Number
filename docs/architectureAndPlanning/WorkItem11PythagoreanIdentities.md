@@ -1,7 +1,7 @@
 # Work Item 11 — Pythagorean Identities (Issue C #193)
 
 *Number Library — Architecture & Planning — March 2026*
-*Milestone: Version 1.9.2*
+*Milestone: Version 1.9.2 — **COMPLETE (partial)***
 
 ---
 
@@ -16,9 +16,15 @@ cos²(z) - sin²(z)   →  cos(2z)   (for any expression z)
 tan²(z) + 1         →  1/cos²(z) (see note below)
 ```
 
-These are currently verified numerically (via `materialize`) but not
-symbolically. The three pending tests in `ComplexFunctionSpec` (Issue C)
-are the acceptance criterion for this work item.
+The three originally pending Issue C tests are resolved as follows:
+
+- `sin²(z)+cos²(z)=1` for complex `z` — ✅ green
+- `cosh²(z)-sinh²(z)=1` for complex `z` — ✅ green (via `leaveOperandsAsIs`)
+- `cosh²(x)-sinh²(x)=1` for concrete numeric `x` — pending; symbolic
+  simplification not possible when argument is fully evaluable. Verified
+  numerically via `materialize`. Symbolic case deferred.
+
+Steps 4 (double-angle and secant rules) remain deferred.
 
 ---
 
@@ -65,7 +71,7 @@ The `Negate` wraps the entire `sinh²(z)` term, not just `sinh(z)`.
 
 ### Extractors
 
-Dedicated extractors per trig function, each returning the argument `z`:
+Dedicated extractors in `Extractors.scala`, each returning the argument `z`:
 
 ```scala
 object IsSinSquared {
@@ -76,101 +82,92 @@ object IsSinSquared {
 }
 ```
 
-Analogously for `IsCosSquared`, `IsSinhSquared`, `IsCoshSquared`,
-`IsTanSquared`. The `Negate`-wrapped forms are matched inline as
+Analogously for `IsCosSquared`, `IsSinhSquared`, `IsCoshSquared`.
+The `Negate`-wrapped forms are matched inline as
 `UniFunction(IsSinhSquared(z), Negate)` etc.
 
 ### Symmetry
 
-`CommutativeExtractor` is not currently wired up for Sum in
-`matchBiFunctionIdentitiesSum` (there is an existing `TODO` for the
-`Literal`/`QuadraticRoot` case). Step 1b introduces it. Once in place,
-each Pythagorean rule needs to be written only once — both orderings
-are presented by the extractor.
+`SumSymmetricCommutative` extractor added to `BiFunction.scala` and wired
+into `matchBiFunctionIdentitiesSum`, resolving the existing `TODO`. Each
+Pythagorean rule is written once; both orderings are handled automatically.
 
----
+### `leaveOperandsAsIs` Mechanism
 
-## Implementation Plan
+The hyperbolic identity required a new general mechanism to prevent
+`sinh`/`cosh` from being eagerly expanded to exponential form by
+`Expression.simplifyLazy` before `identitiesMatcher` can fire.
 
-### Step 1a — AST shape ✅
-
-Confirmed (see above).
-
-### Step 1b — Wire `CommutativeExtractor` into `matchBiFunctionIdentitiesSum`
-
-The current implementation:
+**`CompositeExpression.leaveOperandsAsIs`** — default implementation,
+propagates upward through any wrapper:
 
 ```scala
-private def matchBiFunctionIdentitiesSum(a: Expression, b: Expression): em.MatchResult[Expression] =
-  (a, b) match {
-    case AdditiveIdentityCommutative(a, _) =>
-      em.Match(a)
-    case (q1@QuadraticRoot(quadratic: QuadraticEquation, b1, _), q2@QuadraticRoot(e2, b2, _)) if quadratic == e2 && b1 != b2 =>
-      em.Match(quadratic.conjugateSum)
-    case (l: Literal, q: QuadraticRoot) => // TODO this should use the commutative extractor
-      matchLiteral(l, q, Sum)
-    case _ =>
-      em.Miss[Expression, Expression]("BiFunction: matchBiFunctionSum: no trivial simplification for Sum", this)
+def leaveOperandsAsIs: Boolean = terms.exists {
+  case n: Nameable => n.keepSymbolic
+  case c: CompositeExpression => c.leaveOperandsAsIs
+  case _ => false
+}
+```
+
+**`BiFunction.leaveOperandsAsIs`** — base case, delegates to super:
+
+```scala
+override def leaveOperandsAsIs: Boolean = this match {
+  case IsCoshSquared(_) | IsSinhSquared(_) => true
+  case _ => super.leaveOperandsAsIs
+}
+```
+
+**`simplifyOperands`** — checks `leaveOperandsAsIs` before recursing:
+
+```scala
+case c: CompositeExpression if c.leaveOperandsAsIs =>
+  em.Miss("Expression:simplifyOperands: leaving operands as-is", c)
+```
+
+**`componentsSimplifier`** — also checks per operand:
+
+```scala
+xs.map {
+  case c: CompositeExpression if c.leaveOperandsAsIs => c
+  case x => x.simplify
+}
+```
+
+This prevents `cosh(z)` and `sinh(z)` from expanding when they appear
+as operands of `Power(..., Two)`, allowing `identitiesMatcher` to see
+`IsCoshSquared`/`IsSinhSquared` intact.
+
+**Limitation:** Does not help when the argument `z` is a concrete numeric
+value (e.g. `Literal(Rational(3,2))`), since `cosh(z)` is fully evaluated
+before squaring. The symbolic test for concrete `x` remains pending.
+
+### `shouldStaySymbolic` Fix
+
+Moving `shouldStaySymbolic` from a static method to an instance method
+introduced a subtle regression: the `CompositeExpression` case was not
+checking `Nameable` terms, only `CompositeExpression` ones. Fixed by
+adding the `Nameable` case:
+
+```scala
+case c: CompositeExpression =>
+  c.terms.exists {
+    case n: Nameable => n.keepSymbolic
+    case x: CompositeExpression => x.shouldStaySymbolic
+    case _ => false
   }
 ```
 
-Introduce a `SumCommutativeExtractor` (analogous to the existing Product
-one) and route the match through it, resolving the existing `TODO` as a
-side benefit. The `AdditiveIdentityCommutative` case may already handle
-its own symmetry — confirm before restructuring.
+---
 
-### Step 2 — Circular identity rule
+## Implementation Steps
 
-In `matchBiFunctionIdentitiesSum`, via `SumCommutativeExtractor`:
-
-```scala
-// sin²(z) + cos²(z) = 1
-case (IsSinSquared(z1), IsCosSquared(z2)) if z1 === z2 => em.Match(One)
-```
-
-### Step 3 — Hyperbolic identity rule
-
-```scala
-// cosh²(z) - sinh²(z) = 1
-case (IsCoshSquared(z1), UniFunction(IsSinhSquared(z2), Negate)) if z1 === z2 => em.Match(One)
-```
-
-> **Status: blocked for complex `z`.** The rule is in place but cannot fire
-> when `z` is complex (e.g. `z = 1+i`), because `sinh(z)` and `cosh(z)` are
-> unconditionally expanded to exponential form by `Expression.simplifyLazy`
-> before the enclosing Sum ever reaches `identitiesMatcher`. The pipeline has
-> no mechanism to suppress lazy expansion of a subexpression based on its
-> parent context. The test for complex `z` remains pending. See Work Item 13.
-
-### Step 4 — Double-angle and secant rules
-
-```scala
-// cos²(z) - sin²(z) = cos(2z)
-case (IsCosSquared(z1), UniFunction(IsSinSquared(z2), Negate)) if z1 === z2 =>
-  em.Match(UniFunction(BiFunction(Two, z1, Product), Cosine))
-
-// tan²(z) + 1 = 1/cos²(z)
-// Note: sec is not a first-class function; RHS is Power(cos(z), -2).
-// Direction: tan²+1 → 1/cos² is the useful direction for calculus substitutions.
-case (IsTanSquared(z1), One) =>
-  em.Match(BiFunction(UniFunction(z1, Cosine), MinusTwo, Power))
-```
-
-The `tan²+1` rule does not require `CommutativeExtractor` since `One`
-is an `AtomExpression` and will be in canonical position once Work Item
-12 is complete; in the interim, write both orderings if needed.
-
-### Step 5 — Tests
-
-Un-pending the three Issue C tests in `ComplexFunctionSpec` is the
-acceptance criterion. Additionally add tests (in `BiFunctionSpec` or a
-new `PythagoreanIdentitySpec`) covering:
-
-- Real `z` and complex `z`
-- Both orderings for the circular identity (confirming `CommutativeExtractor`)
-- The double-angle result is structurally correct: `cos(2z)`
-- The secant result is structurally correct: `1/cos²(z)`
-- Non-matching cases do not simplify (regression guard)
+### Step 1a — AST shape ✅
+### Step 1b — `SumSymmetricCommutative` + wire into `matchBiFunctionIdentitiesSum` ✅
+### Step 2 — Circular identity `sin²+cos²=1` ✅
+### Step 3 — Hyperbolic identity `cosh²-sinh²=1` ✅ (for non-evaluable `z`)
+### Step 4 — Double-angle and secant rules — deferred
+### Step 5 — Tests ✅ (concrete numeric `x` case pending)
 
 ---
 
@@ -179,20 +176,20 @@ new `PythagoreanIdentitySpec`) covering:
 - Work Item 9 (structural rules framework) — ✅ complete
 - Work Item 10 (complex approximation) — ✅ complete
 - `CommutativeExtractor` for Product — ✅ in place
-- `CommutativeExtractor` for Sum — introduced in Step 1b
+- `CommutativeExtractor` for Sum — ✅ introduced in Step 1b
 
 ---
 
 ## Summary
 
-| Step | Location | Notes |
+| Step | Location | Status |
 |---|---|---|
-| 1a: Confirm AST shape | — | ✅ Done |
-| 1b: `CommutativeExtractor` for Sum | `matchBiFunctionIdentitiesSum` | ✅ Done |
-| 2: Circular identity | `matchBiFunctionIdentitiesSum` | ✅ `sin²+cos²=1` |
-| 3: Hyperbolic identity | `matchBiFunctionIdentitiesSum` | Rule in place; complex `z` test pending (Work Item 13) |
-| 4: Double-angle + secant | `matchBiFunctionIdentitiesSum` | `cos²-sin²=cos(2z)`, `tan²+1=1/cos²` — deferred |
-| 5: Tests | `ComplexFunctionSpec` + new spec | Circular identity ✅; hyperbolic pending |
+| 1a: Confirm AST shape | — | ✅ |
+| 1b: `SumSymmetricCommutative` | `matchBiFunctionIdentitiesSum` | ✅ |
+| 2: Circular identity | `matchBiFunctionIdentitiesSum` | ✅ |
+| 3: Hyperbolic identity | `matchBiFunctionIdentitiesSum` | ✅ (complex `z`); pending (numeric `x`) |
+| 4: Double-angle + secant | `matchBiFunctionIdentitiesSum` | Deferred |
+| 5: Tests | `ComplexFunctionSpec` | ✅ (numeric pending) |
 
 ---
 
@@ -252,26 +249,22 @@ where `make` reconstructs the `BiFunction` with operands swapped.
 
 ## Overview
 
-The current simplification pipeline processes each expression bottom-up,
-with no awareness of parent context. This means that `sinh(z)` and `cosh(z)`
-are unconditionally expanded to exponential form by `Expression.simplifyLazy`
-whenever they are simplified — even when they appear as operands of a `Power`
-inside a `Sum` that could match a Pythagorean identity.
+The `leaveOperandsAsIs` mechanism (introduced in Work Item 11) solves the
+specific case of `cosh²`/`sinh²` by suppressing eager expansion when these
+expressions appear as operands. However, it does not solve the more general
+case where the *argument* of `cosh`/`sinh` is a concrete numeric value — in
+that case, `cosh(z)` is fully evaluated before squaring, so `IsCoshSquared`
+never matches.
 
-This is a fundamental architectural limitation, encountered in Work Item 11
-Step 3 (hyperbolic identity `cosh²(z) - sinh²(z) = 1` for complex `z`).
+More generally, the simplification pipeline processes each expression
+bottom-up with no awareness of parent context, making it impossible to
+suppress expansion based on what an expression's parent intends to do with it.
 
-## The Problem
+## Remaining Limitation
 
-The pipeline is:
-```
-simplifyOperands → simplifyStructural → simplifyIdentities → ... → simplifyLazy
-```
-
-`simplifyOperands` calls `.simplify` on each child expression independently.
-By the time the parent `Sum` reaches `simplifyIdentities`, its children have
-already been expanded into exponential form and the `IsCoshSquared`/`IsSinhSquared`
-pattern no longer matches.
+`cosh²(x) - sinh²(x) = 1` for concrete numeric `x` (e.g. `Rational(3,2)`)
+cannot be simplified symbolically. The test is pending. Verified numerically
+via `materialize` (result is fuzzy since `e^(3/2)` is irrational).
 
 ## Potential Approaches
 
@@ -292,6 +285,6 @@ exponential form of `cosh²-sinh²` directly. Unreadable and brittle.
 
 ## Status
 
-Deferred. The hyperbolic Pythagorean identity test for complex `z` remains
-pending until this work item is addressed. Options A or B appear most
+Partially addressed by `leaveOperandsAsIs` (Work Item 11). The remaining
+case (concrete numeric argument) is deferred. Options A or B appear most
 consistent with the existing `Matchers` design philosophy.
