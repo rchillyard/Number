@@ -137,7 +137,7 @@ trait CompositeExpression extends Expression {
     *         or indicates no simplification was possible.
     */
   lazy val simplifyLazy: em.AutoMatcher[Expression] =
-    em.Matcher("CompositeExpression:simplifyLazy") {
+    em.Matcher("CompositeExpression:simplifyExpand") {
       case expr: CompositeExpression if (expr.shouldStaySymbolic) =>
         em.Miss[Expression, Expression]("all components named, staying symbolic", this)
       case expr: Expression =>
@@ -145,10 +145,10 @@ trait CompositeExpression extends Expression {
           expr.evaluateAsIs match {
             case Some(value) =>
               // NOTE double-check that the result is actually exact.
-              // CONSIDER is this necessary now what we have redefined this method as simplifyLazy?
+              // CONSIDER is this necessary now what we have redefined this method as simplifyExpand?
               em.Match(ValueExpression(value)).filter(_.isExact)
             case None =>
-              em.Miss[Expression, Expression]("CompositeExpression: simplifyLazy: no simplifications", this)
+              em.Miss[Expression, Expression]("CompositeExpression: simplifyExpand: no simplifications", this)
           }
     }
 

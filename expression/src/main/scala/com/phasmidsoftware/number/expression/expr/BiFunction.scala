@@ -327,7 +327,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   }
 
   private def minusXSquared(x: Expression) = {
-    val xSq = Expression.simplifyLazy(BiFunction(x, Two, Power)).getOrElse(BiFunction(x, Two, Power)) // x²
+    val xSq = Expression.simplifyExpand(BiFunction(x, Two, Power)).getOrElse(BiFunction(x, Two, Power)) // x²
     em.Match(-xSq)
   }
 
@@ -388,6 +388,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case (IsEager(a: CanPower[Structure] @unchecked), IsEager(b: RationalNumber), Power) =>
       em.matchIfDefined(a.pow(b).map(x => Literal(x)))(this)
     case (a, b, Power) =>
+      // NOTE this case never seems to fire, but it's here just in case
       val qqq: Option[Expression] = for {
         w <- a.evaluateAsIs
         z <- b.evaluate(RestrictedContext(PureNumber))
