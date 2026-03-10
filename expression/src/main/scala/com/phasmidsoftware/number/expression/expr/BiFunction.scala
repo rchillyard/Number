@@ -369,7 +369,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return true if the operands match the criteria, false otherwise
     */
   private def operandsMatch(op1: Expression, op2: Expression): Boolean =
-    a == op1 && b == op2
+    a === op1 && b === op2
 
   /**
     * Matches a given literal expression against another expression using a specified binary function.
@@ -787,7 +787,7 @@ object MultiplicativeIdentityCommutative extends CommutativeExtractor[Expression
 object AdditiveIdentityCommutative extends CommutativeExtractor[Expression, Expression] {
   protected def extractLeft(e: Expression) = Some(e)
 
-  protected def extractRight(e: Expression) = e match {
+  protected def extractRight(e: Expression): Option[Expression] = e match {
     case IsZero(x) => Some(x)
     case _ => None
   }
