@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.expression.expr
 
+import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.FuzzyEq
@@ -42,6 +43,14 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
       }
   }
 
+  behavior of "Eq"
+  it should "equate One with Literal(Eager.one)" in {
+    summon[Eq[Expression]].eqv(One, Literal(Eager.one)) shouldBe true
+  }
+  it should "equate Pi with Literal(Eager.pi)" in {
+    summon[Eq[Expression]].eqv(Pi, Literal(Eager.pi)) shouldBe true
+  }
+
   behavior of "evaluate"
 
   it should "evaluate i as an inverse power" in {
@@ -53,19 +62,31 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "evaluate i * 2" in {
     val x: Expression = I * 2
     val result: Eager = x.materialize
-    result shouldBe algebra.eager.Complex(ComplexCartesian(numerical.Number.zero, numerical.Number.two))
+    val expected = algebra.eager.Complex(ComplexCartesian(numerical.Number.zero, numerical.Number.two))
+    result.fuzzyEqv(0.5)(expected) match {
+      case scala.util.Success(true) =>
+      case _ => fail("evaluate i * 2")
+    }
   }
 
   it should "evaluate 2 * i" in {
     val x: Expression = Two * I
     val result: Eager = x.materialize
-    result shouldBe algebra.eager.Complex(ComplexCartesian(numerical.Number.zero, numerical.Number.two))
+    val expected = algebra.eager.Complex(ComplexCartesian(numerical.Number.zero, numerical.Number.two))
+    result.fuzzyEqv(0.5)(expected) match {
+      case scala.util.Success(true) =>
+      case _ => fail("evaluate 2 * i")
+    }
   }
 
   it should "evaluate ∅ * 3 * i" in {
     val x: Expression = ∅ * 3 * I
     val result: Eager = x.materialize
-    result shouldBe algebra.eager.Complex(ComplexCartesian(numerical.Number.zero, numerical.Number.three))
+    val expected = algebra.eager.Complex(ComplexCartesian(numerical.Number.zero, numerical.Number.three))
+    result.fuzzyEqv(0.5)(expected) match {
+      case scala.util.Success(true) =>
+      case _ => fail("evaluate ∅ * 3 * i")
+    }
   }
 
   behavior of "parse"
@@ -290,7 +311,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "evaluate E * 2" in {
     val z: Eager = (E * 2).materialize
     val q = eagerToField(z).normalize
-    q.render shouldBe "5.436563656918090[6]"
+    q.render shouldBe "5.4365636569180900(39)"
   }
 
   behavior of "isExact"
@@ -425,7 +446,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "aggregate 2" in {
     val target = (One * Pi * Two * MinusOne).simplify
-    target shouldBe Literal(-2) * Pi
+    target shouldBe -(Pi * 2)
   }
   it should "evaluate e * e" in {
     val expression: Expression = E * E

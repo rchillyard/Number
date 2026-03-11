@@ -25,7 +25,7 @@ class AlgebraicSpec extends AnyFlatSpec with should.Matchers {
 
     val phiSquared = (phi * phi).simplify
 
-    phiSquared.render shouldBe "(\uD835\uDED7 + 1)"
+    phiSquared.render shouldBe "(1 + \uD835\uDED7)"
 
     phiSquared.materialize.render shouldBe "(1.5 + √1.25)"
 

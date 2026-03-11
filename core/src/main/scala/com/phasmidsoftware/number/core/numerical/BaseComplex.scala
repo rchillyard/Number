@@ -65,9 +65,10 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     case (c1@ComplexCartesian(_, _), c2@ComplexPolar(_, _, _)) =>
       c2.isSame(c1)
     case (c1@ComplexPolar(_, _, _), c2@ComplexCartesian(_, _)) =>
-      c1.isSame(convertToPolar(c2))
+      c2.isSame(convertToCartesian(c1))
     case (c1, c2: Complex) =>
-      (c1 `subtract` c2).isZero
+      val diff = c1 `subtract` c2
+      diff.isProbablyZero()
     case (z, x: Number) =>
       z `isSame` Real(x)
     case _ =>
@@ -611,12 +612,23 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
   }
 
   /**
+    * Determines if the current Cartesian complex number is approximately zero based on a given confidence level.
+    *
+    * @param p the confidence level for determining if the number is considered zero.
+    *          A higher value indicates greater certainty. Ignored if the number is exactly zero.
+    *
+    * @return true if both the real and imaginary parts are approximately zero with the given confidence level, false otherwise.
+    */
+  def isProbablyZero(p: Double): Boolean =
+    x.isProbablyZero(p) && y.isProbablyZero(p)
+
+  /**
     * Method to determine if this complex number is probably zero (with probability of 1/2).
     *
     * @return true if the magnitude of this Field is zero.
     */
   lazy val isZero: Boolean =
-    x.isProbablyZero() && y.isProbablyZero()
+    isProbablyZero()
 
   /**
     * Determines if either the real or imaginary part of this Complex number is infinite.
@@ -941,19 +953,28 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
   }
 
   /**
+    * Determines if this ComplexPolar instance is equivalent to zero with at least the given level of confidence.
+    *
+    * @param p the confidence level desired, typically between 0 and 1. Ignored if the instance is already considered zero.
+    * @return true if the instance is equivalent to zero with at least the specified confidence level; false otherwise.
+    */
+  def isProbablyZero(p: Double): Boolean =
+    r.isProbablyZero(p)
+
+  /**
     * Method to determine if this ComplexPolar is zero.
     *
     * @return true if the magnitude of this Field is zero.
     */
-  def isZero: Boolean =
-    r.isZero
+  val isZero: Boolean =
+    isProbablyZero()
 
   /**
     * Determines if the magnitude of this Complex field is infinite.
     *
     * @return true if the magnitude of this Complex field is infinite, otherwise false.
     */
-  def isInfinite: Boolean =
+  val isInfinite: Boolean =
     r.isInfinite
 
   /**
@@ -964,7 +985,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     *
     * @return a Field that represents the normalized form of the Instance.
     */
-  def normalize: Field = (r, Number.modulate(theta), n) match {
+  lazy val normalize: Field = (r, Number.modulate(theta), n) match {
     case (z, ExactNumber(Value(0), Radian), 1) =>
       Real(z)
     case (z, ExactNumber(Value(1), Radian), 1) =>

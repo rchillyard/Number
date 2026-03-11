@@ -11,7 +11,7 @@ import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
 import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, IsInteger, NaturalExponential, QuadraticSolution, RationalNumber, Structure, WholeNumber}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian, Rational}
 import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, Number, Real}
+import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, Number, Real, Complex as CoreComplex}
 import com.phasmidsoftware.number.expression.algebraic
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
 import com.phasmidsoftware.number.expression.expr.Expression.em.DyadicTriple
@@ -131,6 +131,9 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *         It provides either the simplified `Expression` or indicates that no simplification was possible.
     */
   lazy val structuralMatcher: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction:structuralMatcher") {
+    // NOTE: Canonical ordering — swap commutative operands if out of order.
+    case IsCommutative(x, y, f) if summon[Ordering[Expression]].gt(x, y) =>
+      em.Match(BiFunction(y, x, f))
     case BiFunction(a, b, Sum) if a == b =>
       em.Match(a * Two)
     case BiFunction(BiFunction(w, x, Power), BiFunction(y, z, Power), Product) if w == y =>
@@ -138,7 +141,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case BiFunction(a, IsEager(b), Sum) if a.materialize.add(b).toOption.exists(_.isZero) && a.maybeFactor(AnyContext).contains(Radian) =>
       em.Match(Literal(Angle.zero))
     case BiFunction(BiFunction(x, k1, Product), BiFunction(y, k2, Product), Sum) if k1 == k2 =>
-      em.Match(BiFunction(BiFunction(x, y, Sum), k1, Product))
+      em.Match(BiFunction(k1, BiFunction(x, y, Sum), Product))
     // cos(θ) + i·sin(θ)  →  Euler(1, θ)  (either operand order via EulerSumCommutative)
     case SumExpression(EulerSumCommutative(θ1, θ2)) if θ1 == θ2 =>
       em.Match(Euler(One, θ1))
@@ -216,8 +219,12 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return true if any of the operands match the conditions `IsCoshSquared` or `IsSinhSquared`, false otherwise.
     */
   override def leaveOperandsAsIs: Boolean = this match {
-    case IsCoshSquared(_) | IsSinhSquared(_) => true
-    case _ => super.leaveOperandsAsIs
+    case IsCoshSquared(_) | IsSinhSquared(_) =>
+      true
+    case BiFunction(IsHyperbolic(_), IsHyperbolic(_), _) =>
+      true
+    case _ =>
+      super.leaveOperandsAsIs
   }
 
   /**
@@ -298,9 +305,12 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       za <- a.approximationComplex(force)
       zb <- b.approximationComplex(force)
       result <- f match {
-        case Sum => Some(Eager(eagerToField(za) + eagerToField(zb)))
-        case Product => Some(Eager(eagerToField(za) `multiply` eagerToField(zb)))
-        case Power => Some(Eager(eagerToField(za) `power` eagerToField(zb)))
+        case Sum =>
+          Some(Eager(eagerToField(za) + eagerToField(zb)))
+        case Product =>
+          Some(Eager(eagerToField(za) `multiply` eagerToField(zb)))
+        case Power =>
+          Some(Eager(eagerToField(za) `power` eagerToField(zb)))
         case _ => None
       }
     } yield result
@@ -447,29 +457,11 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(a)
       case ExpressionNegationCommutative(a, _) =>
         em.Match(-a)
-      case (IsImaginaryExpression(m), x) => // TODO use commutative operator
-        em.matchIfDefined(
-          for {
-            xv <- x.evaluateAsIs
-            n <- (xv `multiply` m).toOption
-            z <- Eager.eagerToField(n) match {
-              case Real(x) => Some(x)
-              case _ => None
-            }
-          } yield Literal(algebra.eager.Complex(ComplexCartesian(numerical.Number.zero, z)))
-        )(x)
-
-      case (x, IsImaginaryExpression(m)) =>
-        em.matchIfDefined(
-          for {
-            xv <- x.evaluateAsIs
-            n <- (xv `multiply` m).toOption
-            z <- Eager.eagerToField(n) match {
-              case Real(x) => Some(x)
-              case _ => None
-            }
-          } yield Literal(algebra.eager.Complex(ComplexCartesian(numerical.Number.zero, z)))
-        )(x)
+      // TODO determine whether we really need this case--and where does it belong?
+      // CONSIDER move it to simplifyByEvaluation?
+      // CONSIDER what's an appropriate guard? both variables exact?
+      //      case IsImaginaryExpressionCommutative(m, x) =>
+      //        simplifyComplexProduct(m, x)
       case InversePowerTimesNumberCommutative(ip, b) if ip.number.signum >= 0 =>
         em.matchIfDefined(simplifyInversePowerTimesNumber(ip, b))(this)
       case (q1@QuadraticRoot(quadratic: QuadraticEquation, b1, _), q2@QuadraticRoot(e2, b2, _)) if quadratic == e2 && b1 != b2 =>
@@ -482,6 +474,29 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case _ =>
         em.Miss[Expression, Expression]("BiFunction: matchBiFunctionProduct: no trivial simplification for Product", this)
     }
+
+  /**
+    * Simplifies a complex product operation by attempting to evaluate the provided expression
+    * and transform it into a simplified complex literal if possible.
+    *
+    * @param m an Eager instance representing a component of the product to simplify.
+    * @param x an Expression to be evaluated and potentially simplified as part of the product.
+    */
+  private def simplifyComplexProduct(m: Eager, x: Expression) =
+    em.matchIfDefined(
+      for {
+        xv <- x.evaluateAsIs
+        n <- (xv `multiply` m).toOption
+        z <- Eager.eagerToField(n) match {
+          case Real(x) =>
+            Some(Complex(ComplexCartesian(x)))
+          case c: CoreComplex =>
+            Some(Complex(c))
+          case _ =>
+            None
+        }
+      } yield Literal(z)
+    )(x)
 
   /**
     * Simplifies the multiplication of an `InversePower` instance with a number that supports exponentiation.
@@ -502,8 +517,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   private def matchBiFunctionIdentitiesPower(a: Expression, b: Expression): em.MatchResult[Expression] =
     (a, b) match {
-      case (_, Zero) =>
+      case (_, IsZero(_)) | (IsUnity(_), _) =>
         em.Match(One)
+      case (x, IsUnity(_)) =>
+        em.Match(x)
       case (_, IsMinusOne(_)) =>
         em.Match(a.reciprocal)
       case (_, Infinity) =>

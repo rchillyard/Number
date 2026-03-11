@@ -320,8 +320,8 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
     val simplified = doubleSum.simplify
     simplified shouldBe a[BiFunction]
     simplified.asInstanceOf[BiFunction].f shouldBe Product
-    simplified.asInstanceOf[BiFunction].a shouldBe x
-    simplified.asInstanceOf[BiFunction].b shouldBe Two
+    simplified.asInstanceOf[BiFunction].a shouldBe Two
+    simplified.asInstanceOf[BiFunction].b shouldBe x
   }
 
   it should "evaluate (named) constant sum completely" in {

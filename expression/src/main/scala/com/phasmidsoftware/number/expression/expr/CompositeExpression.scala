@@ -64,6 +64,8 @@ trait CompositeExpression extends Expression {
       n.keepSymbolic
     case BiFunction(x: Nameable, y: Nameable, _) =>
       (x.keepSymbolic || y.keepSymbolic) && x.maybeName.isDefined && y.maybeName.isDefined
+    case UniFunction(x, Sine | Cosine | Sinh | Cosh) =>
+      !x.containsI
     case Euler(x: Nameable, y: Nameable) => // TODO unreachable.
       (x.keepSymbolic || y.keepSymbolic) && x.maybeName.isDefined && y.maybeName.isDefined
     case c: CompositeExpression =>
@@ -138,7 +140,7 @@ trait CompositeExpression extends Expression {
     */
   lazy val simplifyLazy: em.AutoMatcher[Expression] =
     em.Matcher("CompositeExpression:simplifyExpand") {
-      case expr: CompositeExpression if (expr.shouldStaySymbolic) =>
+      case expr: CompositeExpression if expr.shouldStaySymbolic =>
         em.Miss[Expression, Expression]("all components named, staying symbolic", this)
       case expr: Expression =>
         // Don't evaluate if this expression should stay symbolic.

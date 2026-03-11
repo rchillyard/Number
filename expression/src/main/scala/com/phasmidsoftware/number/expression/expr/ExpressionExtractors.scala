@@ -80,7 +80,7 @@ object IsMinusOne {
     * Extractor method to determine if the given `Expression` represents the value -1.
     *
     * @param expr the input `Expression` to be checked and extracted
-    * @return an `Option[Expression]` containing the matched expression if it represents -1, 
+    * @return an `Option[Expression]` containing the matched expression if it represents -1,
     *         or `None` if it does not match
     */
   def unapply(expr: Expression): Option[Expression] =
@@ -122,6 +122,18 @@ object IsIntegral {
         case _ => None
       }
     case _ => None
+  }
+}
+
+/** Matches a commutative BiFunction, exposing all three components.
+  * Currently Sum and Product are commutative; Power is not.
+  */
+object IsCommutative {
+  def unapply(e: Expression): Option[(Expression, Expression, ExpressionBiFunction)] = e match {
+    case BiFunction(x, y, f@(Sum | Product)) =>
+      Some((x, y, f))
+    case _ =>
+      None
   }
 }
 
@@ -230,7 +242,7 @@ object CubeRoot {
   */
 object IsImaginaryExpression {
   /**
-    * Matches an `Expression` and attempts to extract an `Eager` value if it can be 
+    * Matches an `Expression` and attempts to extract an `Eager` value if it can be
     * determined as imaginary.
     *
     * @param x the `Expression` to be evaluated and checked for being imaginary.
@@ -241,6 +253,27 @@ object IsImaginaryExpression {
     x.evaluateAsIs flatMap IsImaginary.unapply
 }
 
+/**
+  * An extractor object that determines if a pair of expressions is related through
+  * an imaginary expression in a commutative manner. This means that the imaginary
+  * component can appear on either side of the tuple, and the extractor will match
+  * in both cases.
+  *
+  * The extractor takes a tuple of two `Expression` objects as input and attempts
+  * to find one of the expressions being an `IsImaginaryExpression`. If a match is
+  * found, it extracts the eager value from the `IsImaginaryExpression` and returns
+  * it along with the other expression in the tuple.
+  */
+object IsImaginaryExpressionCommutative {
+  def unapply(e: (Expression, Expression)): Option[(Eager, Expression)] = e match {
+    case (IsImaginaryExpression(m), x) =>
+      Some((m, x))
+    case (x, IsImaginaryExpression(m)) =>
+      Some((m, x))
+    case _ =>
+      None
+  }
+}
 /**
   * Companion object providing an extractor for identifying expressions involving
   * specific patterns with mathematical constants `i` (imaginary unit) and `π` (pi).
@@ -322,8 +355,10 @@ object HasEuler {
   */
 object IsSinSquared {
   def unapply(e: Expression): Option[Expression] = e match {
-    case BiFunction(UniFunction(z, Sine), Two, Power) => Some(z)
-    case _ => None
+    case BiFunction(UniFunction(z, Sine), Two, Power) =>
+      Some(z)
+    case _ =>
+      None
   }
 }
 
@@ -333,8 +368,10 @@ object IsSinSquared {
   */
 object IsCosSquared {
   def unapply(e: Expression): Option[Expression] = e match {
-    case BiFunction(UniFunction(z, Cosine), Two, Power) => Some(z)
-    case _ => None
+    case BiFunction(UniFunction(z, Cosine), Two, Power) =>
+      Some(z)
+    case _ =>
+      None
   }
 }
 
@@ -344,8 +381,10 @@ object IsCosSquared {
   */
 object IsSinhSquared {
   def unapply(e: Expression): Option[Expression] = e match {
-    case BiFunction(UniFunction(z, Sinh), Two, Power) => Some(z)
-    case _ => None
+    case BiFunction(UniFunction(z, Sinh), Two, Power) =>
+      Some(z)
+    case _ =>
+      None
   }
 }
 
@@ -355,8 +394,32 @@ object IsSinhSquared {
   */
 object IsCoshSquared {
   def unapply(e: Expression): Option[Expression] = e match {
-    case BiFunction(UniFunction(z, Cosh), Two, Power) => Some(z)
-    case _ => None
+    case BiFunction(UniFunction(z, Cosh), Two, Power) =>
+      Some(z)
+    case _ =>
+      None
+  }
+}
+
+/**
+  * An extractor object that checks if a given expression is hyperbolic by matching
+  * it against the hyperbolic sine (sinh) or hyperbolic cosine (cosh) functions.
+  *
+  * The object provides an unapply method that takes an Expression as input and 
+  * attempts to extract the inner expression `z` if the input expression matches 
+  * the form of a hyperbolic function.
+  *
+  * Cases:
+  * - Matches expressions of the form UniFunction(z, Sinh) or UniFunction(z, Cosh)
+  *   and returns the inner expression `z` in a Some if matched.
+  * - Returns None if the input expression does not match the hyperbolic form.
+  */
+object IsHyperbolic {
+  def unapply(e: Expression): Option[Expression] = e match {
+    case UniFunction(z, Sinh | Cosh) =>
+      Some(z)
+    case _ =>
+      None
   }
 }
 

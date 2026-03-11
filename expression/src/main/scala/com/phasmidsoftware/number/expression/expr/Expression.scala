@@ -239,6 +239,23 @@ trait Expression extends Lazy with Approximate {
   }
 
   /**
+    * Determines if the current `Expression` or any of its sub-expressions contains the constant `I`.
+    *
+    * For `Expression` instances:
+    * - If the `Expression` is exactly the constant `I`, returns `true`.
+    * - If the `Expression` is a composite of other expressions (`CompositeExpression`), recursively searches
+    *   through the terms to check if any of them contains the constant `I`.
+    * - For all other cases, returns `false`.
+    *
+    * @return `true` if the constant `I` is present in the `Expression` or its components, `false` otherwise.
+    */
+  lazy val containsI: Boolean = this match {
+    case I => true
+    case c: CompositeExpression => c.terms.exists(_.containsI)
+    case _ => false
+  }
+
+  /**
     * Normalizes the given `Eager` instance if it is not of type `Angle`.
     * If the input is already an instance of `Angle`, it is returned as is.
     * For other types of `Eager`, the `normalize` method is invoked to
@@ -331,9 +348,9 @@ object Expression {
       case (_, IsZero(_)) =>
         x
       case (IsUnity(_), _) =>
-        BiFunction(y, One, Sum)
+        BiFunction(One, y, Sum)
       case (_, IsUnity(_)) =>
-        BiFunction(x, One, Sum)
+        BiFunction(One, x, Sum)
       case _ =>
         BiFunction(x, y, Sum)
     }
@@ -893,6 +910,34 @@ object Expression {
       case e =>
         em.Miss("Expression.simplifyByEvaluation: cannot simplify", e)
     }
+
+  /** Canonical ordering for Expressions, used to normalise commutative BiFunction operands.
+    * Primary key: AtomicExpression < CompositeExpression.
+    * Secondary key (atoms): by type rank (see atomRank).
+    * Tertiary key (composites): by structural depth.
+    */
+  given Ordering[Expression] with
+    def compare(x: Expression, y: Expression): Int = (x, y) match
+      case (a: AtomicExpression, b: AtomicExpression) => atomRank(a) - atomRank(b)
+      case (_: AtomicExpression, _: CompositeExpression) => -1
+      case (_: CompositeExpression, _: AtomicExpression) => 1
+      case (a: CompositeExpression, b: CompositeExpression) => a.depth - b.depth
+      case (a, b) => a.compare(b) // This case should never occur
+
+  private def atomRank(e: AtomicExpression): Int = e match
+    case Noop => 0
+    case _: Literal => 1
+    case _: ScalarConstant => 2
+    case E => 3
+    case I => 4
+    case Infinity => 5
+    case PiTranscendental => 6
+    case ETranscendental => 7
+    case L2 => 8
+    case LgE => 9
+    case EulerMascheroni => 10
+    case _: LinearRoot => 11
+    case _: QuadraticRoot => 12
 
   /**
     * Determines whether the provided expression `z` is an identity element

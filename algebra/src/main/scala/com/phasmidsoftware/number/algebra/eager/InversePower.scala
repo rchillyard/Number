@@ -821,6 +821,10 @@ object IsImaginary {
     * Extracts the square root of the negative of the underlying Number of an InversePower if the number
     * is negative and the power is 2.
     *
+    * TODO: extend to match any purely imaginary Complex(0, x) where x != 0
+    * Currently only matches i = (-1)^(1/2)
+    * In this case, we would move this into Extractors.
+    *
     * @param x the `Eager` instance to be matched and extracted.
     * @return an `Option` containing the extracted `Number` if the input matches the expected pattern, or `None` otherwise.
     */

@@ -1,7 +1,7 @@
 # Work Item 12 — Canonical Ordering of `BiFunction` Operands
 
 *Number Library — Architecture & Planning — March 2026*
-*Milestone: Version 1.9.2 — **PLANNED***
+*Milestone: Version 1.9.2 — **COMPLETE***
 
 ---
 
@@ -11,7 +11,7 @@ Add a rule in `BiFunction.structuralMatcher` to canonicalise commutative
 `BiFunction`s so that operands always appear in a defined canonical order:
 
 ```
-BiFunction(x, y, f)  →  BiFunction(y, x, f)   when isCommutative(f) && x > y
+BiFunction(x, y, f)  ->  BiFunction(y, x, f)   when isCommutative(f) && x > y
 ```
 
 where `>` is defined by a new `Ordering[Expression]` in the `Expression`
@@ -28,14 +28,14 @@ canonical form for the atom-vs-composite and atom-vs-atom cases.
 
 ### Commutative Function Extractor
 
-Check whether `IsCommutative` (or equivalent) already exists in the codebase.
-If not, introduce it:
+`IsCommutative` introduced as a new extractor matching on the entire `BiFunction`
+and exposing all three components:
 
 ```scala
 object IsCommutative {
-  def unapply(f: ExpressionBiFunction): Boolean = f match {
-    case Sum | Product => true
-    case _             => false
+  def unapply(e: Expression): Option[(Expression, Expression, ExpressionBiFunction)] = e match {
+    case BiFunction(x, y, f @ (Sum | Product)) => Some((x, y, f))
+    case _                                      => None
   }
 }
 ```
@@ -45,7 +45,7 @@ object IsCommutative {
 ### `Ordering[Expression]`
 
 A single `given Ordering[Expression]` in the `Expression` companion object,
-covering all expression subtypes. The rule in `structuralMatcher` then has no
+covering all expression subtypes. The rule in `structuralMatcher` has no
 special-casing of its own; it simply delegates all ordering decisions here.
 
 #### Primary ordering key: subtype class
@@ -58,44 +58,29 @@ Atoms are always considered simpler than composites and sort first.
 
 #### Within `AtomExpression`: type-class order
 
-A defined total order over atom types, from simplest/most-specific to
-most-general:
-
 ```
-Zero < One < Two < Half < Pi < Literal < Variable < ...
+Noop < Literal < ScalarConstant < E < I < Infinity
+     < PiTranscendental < ETranscendental < L2 < LgE < EulerMascheroni
+     < LinearRoot < QuadraticRoot < ValueExpression
 ```
-
-The precise sequence should be established during implementation by inspecting
-all `AtomExpression` subtypes (including any named constants beyond `Pi`).
-The principle is: named mathematical constants with fixed values precede
-general literals, which precede symbolic variables.
 
 #### Within `CompositeExpression`: structural depth
 
-When both operands are composite, the ordering falls back to a structural
-measure — for example, expression depth (number of nested levels). A shallower
-expression sorts before a deeper one. This is a defined tiebreaker rather than
-a mathematically meaningful order, and is sufficient for the canonicalisation
-goal.
+When both operands are composite, the ordering falls back to the existing
+`depth` method. A shallower expression sorts before a deeper one. This is a
+defined tiebreaker rather than a mathematically meaningful order.
 
 #### Equal expressions
 
-When `compare` returns `0` (structurally identical subexpressions), no swap
-is performed. The `structuralMatcher` guard uses strict `gt`, not `gteq`,
-ensuring the rule does not loop.
+When `compare` returns `0`, no swap is performed. The `structuralMatcher`
+guard uses strict `gt`, not `gteq`, ensuring the rule does not loop.
 
 ### `structuralMatcher` Rule
 
-A single rule, added to `BiFunction.structuralMatcher` for commutative
-functions:
-
 ```scala
-case BiFunction(x, y, IsCommutative()) if summon[Ordering[Expression]].gt(x, y) =>
-  em.Match(make(y, x))
+case IsCommutative(x, y, f) if summon[Ordering[Expression]].gt(x, y) =>
+  em.Match(BiFunction(y, x, f))
 ```
-
-No additional special-casing for atom-vs-composite, atom-vs-atom, or
-composite-vs-composite — all cases are handled by `Ordering[Expression]`.
 
 ### Interaction with `CommutativeExtractor`
 
@@ -109,41 +94,83 @@ in general. The two mechanisms are complementary:
 - `CommutativeExtractor` handles composite-vs-composite cases in
   `identitiesMatcher`, as before.
 
-### Scope Limitation
+### Known Interaction: Equal-depth Composites
 
-This work item does not attempt to define a canonical order between two
-arbitrary composite expressions of equal depth. A finer-grained ordering
-(e.g. by full structural hash or recursive type ordering) is out of scope.
+The depth-based tiebreaker for equal-depth composites can produce unpredictable
+ordering, which may interfere with `SumSymmetricCommutative` matching for
+commuted Pythagorean identity cases (e.g. `cos²(z) + sin²(z)`). This is
+a documented limitation; the non-commuted form is always tested.
+
+---
+
+## Bug Fixes Uncovered During Implementation
+
+The following bugs were discovered and fixed as a direct consequence of WI12
+exposing previously-untested expression orderings:
+
+### 1. `BiFunction.equals` used `==` in `operandsMatch`
+Replaced with `===` (Cats `Eq`) to correctly handle mathematically equivalent
+but differently-constructed expressions (e.g. `MinusOne` vs `Literal(Number(-1))`).
+
+### 2. `matchBiFunctionIdentitiesPower` missing `1∧x -> 1`
+Added explicit cases:
+```scala
+case (_, IsZero(_)) | (IsUnity(_), _) => em.Match(One)
+case (x, IsUnity(_))                  => em.Match(x)
+```
+
+### 3. `isSame` polar/Cartesian conversion was backwards
+`ComplexPolar.isSame(ComplexCartesian)` was converting Cartesian to polar
+before subtracting. Fixed to convert polar to Cartesian instead, avoiding
+unnecessary precision loss.
+
+### 4. `BiFunction.leaveOperandsAsIs` too narrow
+Extended to protect all `BiFunction`s where both operands are hyperbolic
+functions, not just `IsCoshSquared`/`IsSinhSquared`. Introduced `IsHyperbolic`
+extractor:
+```scala
+object IsHyperbolic {
+  def unapply(e: Expression): Option[Expression] = e match {
+    case UniFunction(z, Sinh | Cosh) => Some(z)
+    case _                           => None
+  }
+}
+```
+
+### 5. `shouldStaySymbolic` too broad for trig/hyperbolic with complex arguments
+Added case to `shouldStaySymbolic` to exempt trig/hyperbolic functions when
+their argument contains `I`, allowing `simplifyExpand` to fire correctly:
+```scala
+case UniFunction(x, Sine | Cosine | Sinh | Cosh) => !x.containsI
+```
+Introduced `containsI` method on `Expression` for recursive `I`-detection.
+
+### 6. `IsImaginaryExpressionCommutative` — partially resolved
+The commutative extractor was introduced but the rule is currently commented
+out pending resolution of a pre-existing core bug (Issue #197): asymmetric
+`Complex + Real` addition throws an exception when operands are reordered.
+
+---
+
+## Known Issues / Deferred
+
+- **Issue #196** — `Box`/`Gaussian` fuzz combination in subtraction too strict.
+  Workaround: use `Number("x.xxxx(20)")` notation in affected tests.
+- **Issue #197** — `Complex + Real` asymmetric addition bug exposed by WI12
+  reordering. `IsImaginaryExpressionCommutative` rule commented out pending fix.
+- **`FuzzyNumber` with `None` fuzz** — should be `ExactNumber`. Separate issue.
+- **`IsImaginary` too narrow** — should match any `Complex(0, x)`, not just `i`.
+  Currently uses `HasImaginary` as workaround in `BiFunctionTableSpec`.
 
 ---
 
 ## Implementation Steps
 
-### Step 1 — `IsCommutative` extractor
-Check for existing extractor; add if absent. Cover `Sum` and `Product`.
-
-### Step 2 — `Ordering[Expression]`
-Implement `given Ordering[Expression]` in the `Expression` companion object.
-- Enumerate all `AtomExpression` subtypes and assign type-class rank.
-- Implement depth measure for `CompositeExpression` fallback.
-- Unit-test the ordering directly (not via simplification).
-
-### Step 3 — `structuralMatcher` rule
-Add the canonicalisation rule to `BiFunction.structuralMatcher`.
-Verify with `matchSimpler`-style tests for representative cases.
-
-### Step 4 — Regression check
-Run the full test suite. Confirm no previously-green tests are broken by
-the reordering. Adjust any tests whose expected forms depended on the old
-(non-canonical) ordering.
-
-### Step 5 — Tests
-Add targeted tests:
-- Atom before composite after canonicalisation.
-- Canonical atom ordering (e.g. `Two + Pi` → `Two + Pi`, not `Pi + Two`).
-- Composite-vs-composite: confirm no reordering occurs (handled by
-  `CommutativeExtractor` downstream).
-- `Power`: confirm no reordering occurs.
+### Step 1 — `IsCommutative` extractor ✅
+### Step 2 — `Ordering[Expression]` ✅
+### Step 3 — `structuralMatcher` rule ✅
+### Step 4 — Regression check and fixes ✅
+### Step 5 — `BiFunctionTableSpec` ✅
 
 ---
 
@@ -158,8 +185,8 @@ Add targeted tests:
 
 | Step | Location | Status |
 |---|---|---|
-| 1: `IsCommutative` extractor | `Extractors.scala` (or existing location) | Planned |
-| 2: `Ordering[Expression]` | `Expression` companion object | Planned |
-| 3: `structuralMatcher` rule | `BiFunction.structuralMatcher` | Planned |
-| 4: Regression check | Full test suite | Planned |
-| 5: Tests | `BiFunctionSpec` or equivalent | Planned |
+| 1: `IsCommutative` extractor | `Extractors.scala` | ✅ |
+| 2: `Ordering[Expression]` | `Expression` companion object | ✅ |
+| 3: `structuralMatcher` rule | `BiFunction.structuralMatcher` | ✅ |
+| 4: Regression check and fixes | Full test suite | ✅ |
+| 5: Tests | `BiFunctionTableSpec` | ✅ |

@@ -137,7 +137,6 @@ sealed trait Fuzziness[T] {
     */
   def uncertainty[U >: T : HasValue](u: U): Fuzziness[U] =
     AbsoluteFuzz(u, Gaussian)
-
 }
 
 /**
@@ -209,9 +208,12 @@ case class RelativeFuzz[T: HasValue](tolerance: Double, shape: Shape) extends Fu
   def *(convolute: Fuzziness[T], independent: Boolean): Fuzziness[T] =
     if (this.shape == convolute.shape)
       convolute match {
-        case RelativeFuzz(t, Box) => RelativeFuzz(tolerance + t, shape)
-        case RelativeFuzz(t, _) => RelativeFuzz(Gaussian.convolutionProduct(tolerance, t, independent), shape)
-        case _ => throw FuzzyNumberException("* operation on different styles")
+        case RelativeFuzz(t, Box) =>
+          RelativeFuzz(tolerance + t, shape)
+        case RelativeFuzz(t, _) =>
+          RelativeFuzz(Gaussian.convolutionProduct(tolerance, t, independent), shape)
+        case _ =>
+          throw FuzzyNumberException("* operation on different styles")
       }
     else
       throw FuzzyNumberException("* operation on different shapes")
@@ -220,8 +222,10 @@ case class RelativeFuzz[T: HasValue](tolerance: Double, shape: Shape) extends Fu
     * Yield a Fuzziness[T] that is Gaussian (either this or derivative of this).
     */
   def normalizeShape: Fuzziness[T] = shape match {
-    case Gaussian => this
-    case Box => RelativeFuzz(Box.toGaussianRelative(tolerance), Gaussian)
+    case Gaussian =>
+      this
+    case Box =>
+      RelativeFuzz(Box.toGaussianRelative(tolerance), Gaussian)
   }
 
   /**
@@ -355,8 +359,10 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
       throw FuzzyNumberException("* operation on different shapes")
 
   def normalizeShape: Fuzziness[T] = shape match {
-    case Gaussian => this
-    case Box => AbsoluteFuzz(Box.toGaussianAbsolute(magnitude), Gaussian)
+    case Gaussian =>
+      this
+    case Box =>
+      AbsoluteFuzz(Box.toGaussianAbsolute(magnitude), Gaussian)
   }
 
   /**

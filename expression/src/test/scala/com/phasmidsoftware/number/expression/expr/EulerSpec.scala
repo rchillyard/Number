@@ -6,8 +6,7 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar}
+import com.phasmidsoftware.number.core.numerical.ComplexPolar
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -165,7 +164,7 @@ class EulerSpec extends AnyFlatSpec with Matchers {
 
   it should "simplify Euler(r, π/2) to r*i" in {
     val result = Euler(Two, halfPi).simplify
-    result shouldBe Literal(Complex(ComplexCartesian(numerical.Number.zero, numerical.Number.two)))
+    result shouldBe Two * I
   }
 
   behavior of "Euler - identitiesMatcher: angle = -π/2"
