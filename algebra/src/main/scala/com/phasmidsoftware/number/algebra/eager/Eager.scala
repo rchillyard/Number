@@ -9,6 +9,7 @@ import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.core.Valuable.valuableToMaybeField
+import com.phasmidsoftware.number.algebra.eager.InversePower.squareRoot
 import com.phasmidsoftware.number.algebra.util.FP.recover
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
@@ -265,6 +266,15 @@ object Eager {
     * Delegates its value to `Number.zero`, a predefined numerical constant.
     */
   lazy val zero: Eager = Number.zero
+
+  /**
+    * Represents the zero value for an angle, lazily evaluated.
+    *
+    * This lazy value provides an `Eager` instance corresponding to the `Angle.zero` constant.
+    * It is part of the predefined constants within the `Eager` type for convenient mathematical operations.
+    */
+  lazy val zeroAngle: Eager = Angle.zero
+
   /**
     * A lazily initialized constant value `one` within the `Eager` class.
     * This value corresponds to the numerical representation of one.
@@ -336,6 +346,15 @@ object Eager {
     * @return A constant `Eager` representation of π/4.
     */
   lazy val piBy4: Eager = Angle.piBy4
+
+  /**
+    * Represents an eagerly evaluated lazy value corresponding to the negative half of π (-π/2).
+    *
+    * This value is initialized using the `Angle.negPiBy2` constant from the `Angle` object,
+    * conveniently making it available within the `Eager` type system.
+    */
+  lazy val negPiBy2: Eager = Angle.negPiBy2
+
   /**
     * A lazily initialized constant `e` in an `Eager` representation.
     *
@@ -346,6 +365,8 @@ object Eager {
     */
   lazy val e: Eager = NaturalExponential.e
 
+  import com.phasmidsoftware.number.algebra.eager.WholeNumber.convIntWholeNumber
+
   /**
     * Represents the imaginary unit `i` as an `Eager` instance.
     *
@@ -355,7 +376,7 @@ object Eager {
     *
     * The value is lazily initialized, meaning it is computed only when accessed.
     */
-  lazy val i: InversePower = InversePower(2, -1)
+  lazy val i: InversePower = Eager.imaginary(1)
 
   /**
     * Exact value of iPi.
@@ -389,7 +410,7 @@ object Eager {
     * The `Eager` type supports numerical representations and operations,
     * enabling mathematical expressions and computations involving this constant.
     */
-  lazy val root2: Eager = new InversePower(2, 2)(Some("√2"))
+  lazy val root2: Eager = squareRoot(2)
   /**
     * Represents the square root of 1/2, lazily initialized.
     *
@@ -401,7 +422,7 @@ object Eager {
     * The creation of this value demonstrates the use of lazy initialization
     * to defer computation until it is first accessed.
     */
-  lazy val rootHalf: Eager = new InversePower(2, Eager.half)(Some("√½"))
+  lazy val rootHalf: Eager = squareRoot(Eager.half)
   /**
     * Represents the square root of 3 as a lazy initialization of an `Eager` type.
     *
@@ -409,7 +430,7 @@ object Eager {
     * providing an efficient representation of √3. Optionally tagged with a string
     * descriptor `"√3"` for identification.
     */
-  lazy val root3: Eager = new InversePower(2, 3)(Some("√3"))
+  lazy val root3: Eager = squareRoot(3)
   /**
     * Represents the golden ratio, commonly denoted as φ (phi), in the `Eager` context.
     *
@@ -671,10 +692,10 @@ object Eager {
 }
 
 /**
-  * The `Imaginary` object provides utilities for working with complex mathematical objects,
+  * The `HasImaginary` object provides utilities for working with complex mathematical objects,
   * particularly for extracting and transforming specific patterns in `Eager` instances.
   */
-object Imaginary {
+object HasImaginary {
   /**
     * Extractor method for optionally extracting the imaginary part of an `Eager` instance.
     * If the input is a complex number, it returns the imaginary part as an `Eager` instance.
@@ -690,13 +711,8 @@ object Imaginary {
       Some(Eager(numerical.Real(i)))
     case Complex(cp: ComplexPolar) =>
       unapply(Complex(convertToCartesian(cp)))
-    case InversePower(2, q: Q) =>
-      q.toRational.negate.sqrt.toOption.map(Eager(_))
-    case InversePower(2, n) =>
-      for {
-        z <- n.convert(Real.zero)
-        y <- z.negate.power(Rational.half)
-      } yield y
+    case IsImaginary(z) =>
+      Some(z)
     case _ =>
       None
   }

@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.top
 
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.dimensions.core.*
-import com.phasmidsoftware.number.expression.expr.ValueExpression
+import com.phasmidsoftware.number.expression.expr.{ValueExpression, IsEager}
 import com.phasmidsoftware.number.parse.UnitsParser
 import org.scalactic.Prettifier.default
 import org.scalatest.flatspec.AnyFlatSpec
@@ -17,7 +17,7 @@ class QuantityParserSpec extends AnyFlatSpec with Matchers {
       case Right(quantity) =>
         quantity.unit shouldBe Meter
         quantity.value match {
-          case com.phasmidsoftware.number.expression.expr.Literal(w: WholeNumber, _) => w.toInt shouldBe 5
+          case IsEager(w: WholeNumber) => w.toInt shouldBe 5
           case x => fail(s"Expected WholeNumber but got $x")
         }
       case Left(err) => fail(s"Parse failed: $err")
@@ -29,7 +29,7 @@ class QuantityParserSpec extends AnyFlatSpec with Matchers {
       case Right(quantity) =>
         quantity.unit shouldBe Meter
         quantity.value match {
-          case com.phasmidsoftware.number.expression.expr.Literal(r: Number, _) => r.toDouble shouldBe 3.14 +- 0.001
+          case IsEager(r: Number) => r.toDouble shouldBe 3.14 +- 0.001
           case _ => fail("Expected Real")
         }
       case Left(err) => fail(s"Parse failed: $err")
@@ -41,7 +41,7 @@ class QuantityParserSpec extends AnyFlatSpec with Matchers {
       case Right(quantity) =>
         quantity.unit shouldBe Meter
         quantity.value match {
-          case com.phasmidsoftware.number.expression.expr.Literal(RationalNumber(r, false), _) =>
+          case IsEager(RationalNumber(r, false)) =>
             r.n shouldBe 22
             r.d shouldBe 7
           case _ => fail("Expected RationalNumber")
@@ -135,7 +135,7 @@ class QuantityParserSpec extends AnyFlatSpec with Matchers {
       case Right(quantity) =>
         quantity.unit shouldBe Dimensionless
         quantity.value match {
-          case com.phasmidsoftware.number.expression.expr.Literal(w: WholeNumber, _) => w.toInt shouldBe 42
+          case IsEager(w: WholeNumber) => w.toInt shouldBe 42
           case _ => fail("Expected WholeNumber")
         }
       case Left(err) => fail(s"Parse failed: $err")
@@ -147,7 +147,7 @@ class QuantityParserSpec extends AnyFlatSpec with Matchers {
       case Right(quantity) =>
         quantity.unit shouldBe Kelvin
         quantity.value match {
-          case com.phasmidsoftware.number.expression.expr.Literal(r: ExactNumber, _) => r.toDouble shouldBe -273.15 +- 0.001
+          case IsEager(r: ExactNumber) => r.toDouble shouldBe -273.15 +- 0.001
           case _ => fail("Expected Real")
         }
       case Left(err) => fail(s"Parse failed: $err")

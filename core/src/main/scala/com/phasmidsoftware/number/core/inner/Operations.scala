@@ -391,6 +391,15 @@ case object MonadicOperationSin extends MonadicOperation {
     Try(Math.sin(x * math.Pi))
 }
 
+val MonadicOperationSinh: MonadicOperation =
+  MonadicOperationFunc(Math.sinh, Math.cosh)  // d/dx sinh(x) = cosh(x)
+
+val MonadicOperationCosh: MonadicOperation =
+  MonadicOperationFunc(Math.cosh, Math.sinh)  // d/dx cosh(x) = sinh(x)
+
+val MonadicOperationTanh: MonadicOperation =
+  MonadicOperationFunc(Math.tanh, x => 1.0 / Math.pow(Math.cosh(x), 2))  // d/dx tanh(x) = sech²(x)
+  
 /**
   * MonadicOperation to yield the arctangent of a Number.
   *
@@ -803,7 +812,7 @@ case object QueryOperationIsZero extends QueryOperation[Boolean] {
     *         - For `Rational`: Checks if the signum of the value is 0.
     *         - For `Double`: Checks if the sign is 0 or -0, accounting for floating-point representation.
     */
-  def getFunctions: BooleanQueryFunctions = new QueryFunctions[Boolean] {
+  lazy val getFunctions: BooleanQueryFunctions = new QueryFunctions[Boolean] {
     val fInt: Int => Try[Boolean] = tryF[Int, Boolean](x => x == 0)
     val fRat: Rational => Try[Boolean] = tryF[Rational, Boolean](x => x.signum == 0)
     val fDouble: Double => Try[Boolean] = tryF[Double, Boolean](x => x.sign == 0 || x.sign == -0)

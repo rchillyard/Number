@@ -33,6 +33,17 @@ trait Numerical extends NumberLike {
   def isZero: Boolean
 
   /**
+    * Determines whether the magnitude of this Numerical instance is probably zero
+    * based on a given probability threshold.
+    *
+    * @param p the probability threshold (default is 0.5). A higher value increases
+    *          the confidence needed to determine that the magnitude is zero.
+    *
+    * @return true if the magnitude is considered to be probably zero based on the probability threshold, false otherwise.
+    */
+  def isProbablyZero(p: Double = 0.5): Boolean
+
+  /**
     * Method to determine if this Field has unity magnitude.
     * Unity is the multiplicative identity.
     *

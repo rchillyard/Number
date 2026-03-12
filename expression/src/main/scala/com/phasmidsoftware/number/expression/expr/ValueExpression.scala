@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.expression.expr
 
 import cats.implicits.catsSyntaxEq
 import com.phasmidsoftware.number.algebra.core.*
+import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, Nat, NaturalExponential, Number, RationalNumber, Real, Scalar, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.LatexRenderer
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
@@ -136,6 +137,25 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
   }
 
   /**
+    * Provides an approximation of the `ValueExpression` as an `Eager`, if applicable.
+    *
+    * This method checks if the associated `value` is an instance of `eager.Complex`.
+    * If it is, the method directly returns it wrapped in an `Option`. Otherwise, it
+    * delegates to the `approximation` method to compute a possible approximation.
+    *
+    * @param force a Boolean flag indicating whether the approximation should be forced.
+    *              If true, the method may attempt a broader range of approximations.
+    *              Defaults to false.
+    *
+    * @return an `Option[Eager]` containing the approximation if one exists, or `None`
+    *         if an approximation is not available or applicable.
+    */
+  override def approximationComplex(force: Boolean = false): Option[Eager] = value match {
+    case c: eager.Complex => Some(c)
+    case _ => approximation(force)
+  }
+
+  /**
     * Method to render this Structure in a presentable manner.
     *
     * @return a String
@@ -162,8 +182,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     */
   override def equals(other: Any): Boolean = other match {
     case that: ValueExpression =>
-      that.canEqual(this) &&
-        value === that.value
+      (this eq that) || (that.canEqual(this) && value === that.value)
     case _ =>
       false
   }
@@ -278,24 +297,24 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
     * @return an `em.AutoMatcher[Expression]` that simplifies literal constants to their predefined values
     *         or returns a miss if no simplification is applicable.
     */
-  def simplifyAtomic: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyAtomic") {
-    case Literal(Eager.zero, _) =>
+  def simplifyAtomic: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("Literal:simplifyAtomic") {
+    case IsEager(Eager.zero) =>
       em.Match(Zero)
-    case Literal(Eager.one, _) =>
+    case IsEager(Eager.one) =>
       em.Match(One)
-    case Literal(Eager.minusOne, _) =>
+    case IsEager(Eager.minusOne) =>
       em.Match(MinusOne)
-    case Literal(Eager.two, _) =>
+    case IsEager(Eager.two) =>
       em.Match(Two)
-    case Literal(Eager.half, _) =>
+    case IsEager(Eager.half) =>
       em.Match(Half)
-    case Literal(Eager.pi, _) | Literal(Angle.pi, _) =>
+    case IsEager(Eager.pi) | IsEager(Angle.pi) =>
       em.Match(Pi)
-    case Literal(Eager.e, _) =>
+    case IsEager(Eager.e) =>
       em.Match(E)
-    case Literal(RationalNumber(r, _), _) if r.isWhole =>
+    case IsEager(RationalNumber(r, _)) if r.isWhole =>
       em.Match(Literal(WholeNumber(r.toBigInt)))
-    case Literal(Eager.infinity, _) =>
+    case IsEager(Eager.infinity) =>
       em.Match(Infinity)
     case x =>
       em.Miss("simplifyAtomic: cannot be simplified", x)
@@ -449,7 +468,7 @@ sealed abstract class NamedConstant(x: Eager, name: String) extends ValueExpress
   }
 
   def simplifyAtomic: em.AutoMatcher[Expression] =
-    em.Matcher[Expression, Expression]("simplifyAtomic")(
+    em.Matcher[Expression, Expression]("NamedConstant:simplifyAtomic")(
       _ =>
         em.Miss[Expression, Expression]("AtomicExpression: simplifyAtomic: NamedConstant", this)
     )
@@ -467,7 +486,19 @@ sealed abstract class NamedConstant(x: Eager, name: String) extends ValueExpress
   * @param x    the `Valuable` instance representing the value of the scalar constant.
   * @param name the name associated with the scalar constant.
   */
-sealed abstract class ScalarConstant(x: Eager, val name: String) extends NamedConstant(x, name)
+sealed abstract class ScalarConstant(x: Eager, val name: String) extends NamedConstant(x, name) {
+  /**
+    * Determines if the name is protected, for example, it represents a mathematical symbol
+    * for a transcendental value (e.g., pi), or a commonly used root such as √2.
+    *
+    * This method indicates whether a name associated with an entity is considered
+    * protected. The protection status could influence how the name is accessed or
+    * utilized by external systems.
+    *
+    * @return `true` if the name is protected, otherwise `false`
+    */
+  //  override lazy val protectedName: Boolean = true
+}
 
 /**
   * Represents the mathematical constant zero.
@@ -674,6 +705,8 @@ case object I extends NamedConstant(Eager.i, "i") {
 
   override val protectedName: Boolean = true
 
+  import com.phasmidsoftware.number.algebra.eager.WholeNumber.convIntWholeNumber
+
   /**
     * Evaluates this `Expression` in the context of `AnyContext` without simplification or factor-based conversion.
     * This allows obtaining a direct evaluation of the `Expression` as a `Field`, if possible.
@@ -681,9 +714,21 @@ case object I extends NamedConstant(Eager.i, "i") {
     *
     * @return an `Option[Field]` containing the evaluated `Field` if evaluation is successful, or `None` otherwise.
     */
-  override lazy val evaluateAsIs: Option[InversePower] = Some(InversePower(2, -1))
+  override lazy val evaluateAsIs: Option[InversePower] = Some(Eager.imaginary(1))
 
   lazy val asComplex: Option[Complex] = evaluateAsIs flatMap (_.asComplex)
+
+  /**
+    * Provides an approximation of the current value as a complex number.
+    *
+    * @param force a Boolean flag indicating whether to force the computation, even
+    *              if it would otherwise be skipped (default is false).
+    *
+    * @return an Option containing the approximated complex value as an Eager, or None if
+    *         the approximation cannot be performed.
+    */
+  override def approximationComplex(force: Boolean = false): Option[Eager] =
+    asComplex
 
   /**
     * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`

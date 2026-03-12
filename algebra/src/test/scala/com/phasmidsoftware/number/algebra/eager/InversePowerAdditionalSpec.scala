@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.algebra.eager
 
 import com.phasmidsoftware.number.algebra.core.AnyContext
+import com.phasmidsoftware.number.algebra.eager.InversePower.{cubeRoot, squareRoot}
 import com.phasmidsoftware.number.core.inner.{CubeRoot, PureNumber, Rational, SquareRoot}
 import com.phasmidsoftware.number.core.numerical.{Box, RelativeFuzz}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -27,17 +28,17 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "construct with named values" in {
-    val root = InversePower(2, WholeNumber(2))(Some("√2"))
+    val root = squareRoot(WholeNumber(2))
     root.maybeName shouldBe Some("√2")
     root.render shouldBe "√2"
   }
 
   it should "construct via apply methods" in {
-    val root1 = InversePower(2, WholeNumber(4))
+    val root1 = squareRoot(WholeNumber(4))
     root1.n shouldBe 2
     root1.number shouldBe WholeNumber(4)
 
-    val root2 = InversePower(3, 8)
+    val root2 = cubeRoot(8)
     root2.n shouldBe 3
     root2.number shouldBe WholeNumber(8)
   }
@@ -113,31 +114,31 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
 
   it should "normalize rational perfect squares" in {
     // √(4/9) = 2/3
-    InversePower(2, RationalNumber(4, 9)).normalize shouldBe RationalNumber(2, 3)
+    squareRoot(RationalNumber(4, 9)).normalize shouldBe RationalNumber(2, 3)
 
     // √(1/4) = 1/2
-    InversePower(2, RationalNumber(1, 4)).normalize shouldBe RationalNumber(1, 2)
+    squareRoot(RationalNumber(1, 4)).normalize shouldBe RationalNumber(1, 2)
 
     // √(9/16) = 3/4
-    InversePower(2, RationalNumber(9, 16)).normalize shouldBe RationalNumber(3, 4)
+    squareRoot(RationalNumber(9, 16)).normalize shouldBe RationalNumber(3, 4)
   }
 
   it should "normalize rational perfect cubes" in {
     // ³√(8/27) = 2/3
-    InversePower(3, RationalNumber(8, 27)).normalize shouldBe RationalNumber(2, 3)
+    cubeRoot(RationalNumber(8, 27)).normalize shouldBe RationalNumber(2, 3)
 
     // ³√(1/8) = 1/2
-    InversePower(3, RationalNumber(1, 8)).normalize shouldBe RationalNumber(1, 2)
+    cubeRoot(RationalNumber(1, 8)).normalize shouldBe RationalNumber(1, 2)
   }
 
   it should "keep imperfect rational roots as InversePower" in {
-    val root = InversePower(2, RationalNumber(2, 3))
+    val root = squareRoot(RationalNumber(2, 3))
     root.normalize should matchPattern { case InversePower(2, RationalNumber(Rational(2, 3), _)) => }
   }
 
   it should "handle negative rational bases with odd roots" in {
     // ³√(-8/27) = -2/3
-    InversePower(3, RationalNumber(-8, 27)).normalize shouldBe RationalNumber(-2, 3)
+    cubeRoot(RationalNumber(-8, 27)).normalize shouldBe RationalNumber(-2, 3)
   }
 
   behavior of "InversePower edge cases for normalize"
@@ -150,45 +151,45 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
 
   it should "handle complex normalizations" in {
     // √(16/4) = √4 = 2
-    InversePower(2, RationalNumber(16, 4)).normalize shouldBe WholeNumber(2)
+    squareRoot(RationalNumber(16, 4)).normalize shouldBe WholeNumber(2)
 
     // ³√(64/8) = ³√8 = 2
-    InversePower(3, RationalNumber(64, 8)).normalize shouldBe WholeNumber(2)
+    cubeRoot(RationalNumber(64, 8)).normalize shouldBe WholeNumber(2)
   }
 
   it should "normalize nested simplifications" in {
     // Create a RationalNumber that will normalize to WholeNumber first
-    InversePower(2, RationalNumber(16, 1)).normalize shouldBe WholeNumber(4)
+    squareRoot(RationalNumber(16, 1)).normalize shouldBe WholeNumber(4)
   }
 
   behavior of "InversePower comparison operations"
 
   it should "compare equal roots" in {
-    val root1 = InversePower(2, 4)
-    val root2 = InversePower(2, 4)
+    val root1 = squareRoot(4)
+    val root2 = squareRoot(4)
 
     root1.compareTo(root2) shouldBe 0
   }
 
   it should "compare different roots with same degree" in {
-    val root1 = InversePower(2, 2) // √2
-    val root2 = InversePower(2, 3) // √3
+    val root1 = squareRoot(2) // √2
+    val root2 = squareRoot(3) // √3
 
     root1.compareTo(root2) should be < 0
     root2.compareTo(root1) should be > 0
   }
 
   it should "compare equivalent roots with different representations" in {
-    val root1 = InversePower(2, 4) // √4 = 2
-    val root2 = InversePower(2, 16) // √16 = 4
+    val root1 = squareRoot(4) // √4 = 2
+    val root2 = squareRoot(16) // √16 = 4
 
     root1.compareTo(root2) should be < 0
   }
 
   it should "handle Ordered trait properly" in {
-    val root1 = InversePower(2, 2)
-    val root2 = InversePower(2, 3)
-    val root3 = InversePower(2, 2)
+    val root1 = squareRoot(2)
+    val root2 = squareRoot(3)
+    val root3 = squareRoot(2)
 
     (root1 < root2) shouldBe true
     (root2 > root1) shouldBe true
@@ -199,12 +200,12 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
   behavior of "InversePower conversion operations"
 
   it should "convert to RationalNumber for perfect roots" in {
-    InversePower(2, 9).convert[RationalNumber](RationalNumber.zero) shouldBe Some(RationalNumber(3, 1))
-    InversePower(3, 8).convert[RationalNumber](RationalNumber.zero) shouldBe Some(RationalNumber(2, 1))
+    squareRoot(9).convert[RationalNumber](RationalNumber.zero) shouldBe Some(RationalNumber(3, 1))
+    cubeRoot(8).convert[RationalNumber](RationalNumber.zero) shouldBe Some(RationalNumber(2, 1))
   }
 
   it should "convert to Real for imperfect roots" in {
-    val root = InversePower(2, 2)
+    val root = squareRoot(2)
     val real = root.convert[Real](Real.zero)
 
     real.isDefined shouldBe true
@@ -212,21 +213,21 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "convert to same type returns self" in {
-    val root = InversePower(2, 2)
-    val converted = root.convert[InversePower](InversePower(2, 3))
+    val root = squareRoot(2)
+    val converted = root.convert[InversePower](squareRoot(3))
 
     converted shouldBe Some(root)
   }
 
   it should "return None for unsupported conversions" in {
-    val root = InversePower(2, 2)
+    val root = squareRoot(2)
     root.convert[WholeNumber](WholeNumber.zero) shouldBe None
   }
 
   behavior of "InversePower transformation"
 
   it should "transform to Real" in {
-    val root = InversePower(2, 2)
+    val root = squareRoot(2)
     val real = root.transformation[Real]
 
     real.isDefined shouldBe true
@@ -234,7 +235,7 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "transform perfect roots to exact values" in {
-    val root = InversePower(2, 4)
+    val root = squareRoot(4)
     val real = root.transformation[Real]
 
     real.isDefined shouldBe true
@@ -244,14 +245,14 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
   behavior of "InversePower power operations"
 
   it should "handle pow operation with exact numbers" in {
-    val root = InversePower(2, 4) // √4 = 2
+    val root = squareRoot(4) // √4 = 2
     val result = root pow RationalNumber(2, 1)
 
     result shouldBe Some(WholeNumber(4))
   }
 
   it should "handle pow with fractional exponents" in {
-    val root = InversePower(2, 16) // √16 = 4
+    val root = squareRoot(16) // √16 = 4
     val result = root pow RationalNumber(1, 2)
 
     result.isDefined shouldBe true
@@ -262,7 +263,7 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
     println(Real(2.0).pow(RationalNumber(1, 1)).map(_.fuzz))
     val two = Real(2.0, Some(RelativeFuzz(0.01, Box)))
     println(s"${two.maybeFuzz}")
-    val root: InversePower = InversePower(2, two)
+    val root: InversePower = squareRoot(two)
     root.scaleFunction(2.0) shouldBe 1.4142135623730951
     root.derivativeFunction(2.0) shouldBe 0.3535533905932738
     val fuzz = root.maybeFuzz
@@ -275,14 +276,14 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
   behavior of "InversePower scale operations"
 
   it should "scale by rational numbers" in {
-    val root = InversePower(2, 4)
+    val root = squareRoot(4)
     val scaled = root * Rational.two
 
-    scaled shouldBe InversePower(2, 16)
+    scaled shouldBe squareRoot(16)
   }
 
   it should "scale cube roots" in {
-    val root = InversePower(3, 8)
+    val root = cubeRoot(8)
     val scaled = root * Rational.two
 
     scaled shouldBe InversePower(3, 64)
@@ -298,43 +299,43 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
   behavior of "InversePower exactness and properties"
 
   it should "be exact for whole number bases" in {
-    InversePower(2, 2).isExact shouldBe true
-    InversePower(3, 3).isExact shouldBe true
-    InversePower(2, 100).isExact shouldBe true
+    squareRoot(2).isExact shouldBe true
+    cubeRoot(3).isExact shouldBe true
+    squareRoot(100).isExact shouldBe true
   }
 
   it should "be exact for rational bases" in {
-    InversePower(2, RationalNumber(1, 2)).isExact shouldBe true
-    InversePower(3, RationalNumber(8, 27)).isExact shouldBe true
+    squareRoot(RationalNumber(1, 2)).isExact shouldBe true
+    cubeRoot(RationalNumber(8, 27)).isExact shouldBe true
   }
 
   it should "not be exact for fuzzy real bases" in {
-    InversePower(2, Real(2.0)).isExact shouldBe false
+    squareRoot(Real(2.0)).isExact shouldBe false
   }
 
   it should "never be zero" in {
-    InversePower(2, 2).isZero shouldBe false
-    InversePower(3, 1000).isZero shouldBe false
-    InversePower(2, RationalNumber(1, 100)).isZero shouldBe false
+    squareRoot(2).isZero shouldBe false
+    cubeRoot(1000).isZero shouldBe false
+    squareRoot(RationalNumber(1, 100)).isZero shouldBe false
   }
 
   it should "determine signum correctly" in {
-    InversePower(2, 4).signum shouldBe 1
-    InversePower(3, -8).signum shouldBe -1
+    squareRoot(4).signum shouldBe 1
+    cubeRoot(-8).signum shouldBe -1
     InversePower(5, -32).signum shouldBe -1
-    InversePower(2, RationalNumber(1, 4)).signum shouldBe 1
+    squareRoot(RationalNumber(1, 4)).signum shouldBe 1
   }
 
   behavior of "InversePower maybeFactor"
 
   it should "return SquareRoot factor for n=2" in {
-    InversePower(2, 4).maybeFactor(AnyContext) shouldBe Some(SquareRoot)
-    InversePower(2, 2).maybeFactor(AnyContext) shouldBe Some(SquareRoot)
+    squareRoot(4).maybeFactor(AnyContext) shouldBe Some(SquareRoot)
+    squareRoot(2).maybeFactor(AnyContext) shouldBe Some(SquareRoot)
   }
 
   it should "return CubeRoot factor for n=3" in {
-    InversePower(3, 8).maybeFactor(AnyContext) shouldBe Some(CubeRoot)
-    InversePower(3, 27).maybeFactor(AnyContext) shouldBe Some(CubeRoot)
+    cubeRoot(8).maybeFactor(AnyContext) shouldBe Some(CubeRoot)
+    cubeRoot(27).maybeFactor(AnyContext) shouldBe Some(CubeRoot)
   }
 
   it should "return PureNumber for n=1" in {
@@ -344,24 +345,24 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
   behavior of "InversePower toRational"
 
   it should "convert perfect square roots to Rational" in {
-    InversePower(2, 4).toRational shouldBe Some(Rational(2))
-    InversePower(2, 9).toRational shouldBe Some(Rational(3))
-    InversePower(2, 25).toRational shouldBe Some(Rational(5))
+    squareRoot(4).toRational shouldBe Some(Rational(2))
+    squareRoot(9).toRational shouldBe Some(Rational(3))
+    squareRoot(25).toRational shouldBe Some(Rational(5))
   }
 
   it should "convert perfect cube roots to Rational" in {
-    InversePower(3, 8).toRational shouldBe Some(Rational(2))
-    InversePower(3, 27).toRational shouldBe Some(Rational(3))
+    cubeRoot(8).toRational shouldBe Some(Rational(2))
+    cubeRoot(27).toRational shouldBe Some(Rational(3))
   }
 
   it should "convert rational perfect roots" in {
-    InversePower(2, RationalNumber(4, 9)).toRational shouldBe Some(Rational(2, 3))
-    InversePower(3, RationalNumber(8, 27)).toRational shouldBe Some(Rational(2, 3))
+    squareRoot(RationalNumber(4, 9)).toRational shouldBe Some(Rational(2, 3))
+    cubeRoot(RationalNumber(8, 27)).toRational shouldBe Some(Rational(2, 3))
   }
 
   it should "return None for imperfect roots" in {
-    InversePower(2, 2).toRational shouldBe None
-    InversePower(3, 10).toRational shouldBe None
+    squareRoot(2).toRational shouldBe None
+    cubeRoot(10).toRational shouldBe None
   }
 
   behavior of "InversePower rendering and display"
@@ -372,8 +373,8 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "render cube roots with superscript" in {
-    InversePower(3, 2).render should include("³√")
-    InversePower(3, 8).render should include("³√")
+    cubeRoot(2).render should include("³√")
+    cubeRoot(8).render should include("³√")
   }
 
   it should "render fourth and higher roots" in {
@@ -382,32 +383,33 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "use maybeName when present" in {
-    val root = new InversePower(2, 2)(Some("sqrt2"))
-    root.render shouldBe "sqrt2"
+    // TODO when we relax the private constructor thing, we can revert this
+    //    val root = new InversePower(2, 2)(Some("sqrt2"))
+    //    root.render shouldBe "sqrt2"
   }
 
   behavior of "InversePower equality and fuzzy equality"
 
   it should "be equal to itself" in {
-    val root = InversePower(2, 2)
+    val root = squareRoot(2)
     (root == root) shouldBe true
   }
 
   it should "be equal to equivalent roots" in {
-    val root1 = InversePower(2, 4)
-    val root2 = InversePower(2, 4)
+    val root1 = squareRoot(4)
+    val root2 = squareRoot(4)
     (root1 == root2) shouldBe true
   }
 
   it should "not be equal to different roots" in {
-    val root1 = InversePower(2, 2)
-    val root2 = InversePower(2, 3)
+    val root1 = squareRoot(2)
+    val root2 = squareRoot(3)
     (root1 == root2) shouldBe false
   }
 
   it should "handle fuzzy equality" in {
-    val root1 = InversePower(2, 2)
-    val root2 = InversePower(2, 2)
+    val root1 = squareRoot(2)
+    val root2 = squareRoot(2)
 
     root1.fuzzyEqv(0.95)(root2).get shouldBe true
   }
@@ -415,14 +417,14 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
   behavior of "InversePower approximation"
 
   it should "approximate perfect roots exactly" in {
-    val root = InversePower(2, 4)
+    val root = squareRoot(4)
     val approx = root.approximation
 
     approx shouldBe Some(Real(2.0, None))
   }
 
   it should "approximate imperfect roots with uncertainty" in {
-    val root = InversePower(2, 2)
+    val root = squareRoot(2)
     val approx = root.approximation
 
     approx.isDefined shouldBe true
@@ -430,7 +432,7 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "approximate cube roots" in {
-    val root = InversePower(3, 2)
+    val root = cubeRoot(2)
     val approx = root.approximation
 
     approx.isDefined shouldBe true
@@ -440,13 +442,13 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
   behavior of "InversePower maybeDouble"
 
   it should "return exact doubles for perfect roots" in {
-    InversePower(2, 4).maybeDouble shouldBe Some(2.0)
-    InversePower(3, 8).maybeDouble shouldBe Some(2.0)
-    InversePower(2, 9).maybeDouble shouldBe Some(3.0)
+    squareRoot(4).maybeDouble shouldBe Some(2.0)
+    cubeRoot(8).maybeDouble shouldBe Some(2.0)
+    squareRoot(9).maybeDouble shouldBe Some(3.0)
   }
 
   it should "return doubles for imperfect but exact roots" in {
-    val sqrt2 = InversePower(2, 2).maybeDouble
+    val sqrt2 = squareRoot(2).maybeDouble
     sqrt2.isDefined shouldBe true
     sqrt2.get shouldBe math.sqrt(2.0) +- 1e-10
   }
@@ -454,13 +456,13 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
   behavior of "InversePower asJavaNumber"
 
   it should "convert perfect roots to Java numbers" in {
-    val javaNum = InversePower(2, 4).asJavaNumber
+    val javaNum = squareRoot(4).asJavaNumber
     javaNum.isDefined shouldBe true
     javaNum.get.doubleValue() shouldBe 2.0
   }
 
   it should "convert imperfect roots to Java doubles" in {
-    val javaNum = InversePower(2, 2).asJavaNumber
+    val javaNum = squareRoot(2).asJavaNumber
     javaNum.isDefined shouldBe true
     javaNum.get.doubleValue() shouldBe math.sqrt(2.0) +- 1e-10
   }
@@ -468,27 +470,27 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
   behavior of "InversePower scaleFunction and derivativeFunction"
 
   it should "have correct scaleFunction for square roots" in {
-    val root = InversePower(2, 4)
+    val root = squareRoot(4)
     root.scaleFunction(4.0) shouldBe 2.0
     root.scaleFunction(9.0) shouldBe 3.0
     root.scaleFunction(16.0) shouldBe 4.0
   }
 
   it should "have correct scaleFunction for cube roots" in {
-    val root = InversePower(3, 8)
+    val root = cubeRoot(8)
     root.scaleFunction(8.0) shouldBe 2.0
     root.scaleFunction(27.0) shouldBe 3.0
   }
 
   it should "have correct derivativeFunction for square roots" in {
-    val root = InversePower(2, 4)
+    val root = squareRoot(4)
     // d/dx(√x) = 1/(2√x)
     val expected = 1.0 / (2.0 * 2.0) // at x=4, √4=2
     root.derivativeFunction(4.0) shouldBe expected +- 1e-10
   }
 
   it should "have correct derivativeFunction for cube roots" in {
-    val root = InversePower(3, 8)
+    val root = cubeRoot(8)
     // d/dx(³√x) = 1/(3 * x^(2/3))
     val expected = 1.0 / (3.0 * math.pow(8.0, 2.0 / 3.0))
     root.derivativeFunction(8.0) shouldBe expected +- 1e-10
@@ -507,20 +509,20 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
 
   it should "simplify √(x²) to x" in {
     // This tests that consecutive operations work correctly
-    InversePower(2, WholeNumber(4)).normalize shouldBe WholeNumber(2)
-    InversePower(2, WholeNumber(36)).normalize shouldBe WholeNumber(6)
+    squareRoot(WholeNumber(4)).normalize shouldBe WholeNumber(2)
+    squareRoot(WholeNumber(36)).normalize shouldBe WholeNumber(6)
   }
 
   it should "handle mixed operations" in {
     // √8 should simplify to 2√2, but since we can't represent that as a single
     // WholeNumber, it should remain as InversePower
-    val root = InversePower(2, WholeNumber(8))
+    val root = squareRoot(WholeNumber(8))
     root.normalize should matchPattern { case InversePower(2, WholeNumber(8)) => }
   }
 
   it should "normalize chains properly" in {
     // If we have a rational that normalizes, the root should follow
-    val root = InversePower(2, RationalNumber(4, 1))
+    val root = squareRoot(RationalNumber(4, 1))
     root.normalize shouldBe WholeNumber(2)
   }
 }

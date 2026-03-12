@@ -54,12 +54,21 @@ case class Real(x: Number) extends Field {
   lazy val isInfinite: Boolean = x.isInfinite
 
   /**
+    * Determines if the current instance is approximately equal to zero with at least the specified confidence level.
+    *
+    * @param p the confidence level, typically between 0 and 1. Ignored if the instance is definitively zero.
+    * @return true if the instance is considered approximately zero with the given confidence, false otherwise.
+    */
+  def isProbablyZero(p: Double): Boolean =
+    x.isProbablyZero(p)
+
+  /**
     * Method to determine if this Real has zero magnitude.
     * Zero is the additive identity.
     *
     * @return true if the magnitude of this Field is zero.
     */
-  lazy val isZero: Boolean = x.isZero
+  lazy val isZero: Boolean = isProbablyZero()
 
   /**
     * Method to determine if this Complex is real-valued.
@@ -104,8 +113,14 @@ case class Real(x: Number) extends Field {
     * @param y the addend.
     * @return the sum.
     */
-  def add(y: Field): Field =
-    createFromRealField(x.add(y))
+  def add(y: Field): Field = y match {
+    case multivariate: Multivariate =>
+      multivariate.add(this)
+    case Real(r) =>
+      Real(x.doAdd(r))
+    case _ =>
+      throw CoreException(s"Real.add: Impossible $this + $y")
+  }
 
   /**
     * Multiply this Real by y and return the result.
@@ -123,7 +138,7 @@ case class Real(x: Number) extends Field {
     * @return the quotient.
     */
   def divide(y: Field): Field =
-    createFromRealField(x.divide(y))
+    multiply(y.invert)
 
   /**
     * Change the sign of this Real.
@@ -217,6 +232,10 @@ case class Real(x: Number) extends Field {
   lazy val tan: Field =
     Real(x.tan)
 
+  lazy val sinh: Field = Real(x.sinh)
+  lazy val cosh: Field = Real(x.cosh)
+  lazy val tanh: Field = Real(x.tanh)
+  
   /**
     * Calculate the angle whose opposite length is y and whose adjacent length is this.
     *

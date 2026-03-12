@@ -3,12 +3,10 @@ package com.phasmidsoftware.number.expression.algebraic
 import com.phasmidsoftware.number.expression.expr.{Expression, MinusOne, One}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-import org.scalatest.matchers.should.Matchers.shouldBe
 
 class AlgebraicSpec extends AnyFlatSpec with should.Matchers {
 
-  import com.phasmidsoftware.number.algebra.eager.Eager.half
-  import com.phasmidsoftware.number.algebra.eager.{Eager, QuadraticSolution, Solution}
+  import com.phasmidsoftware.number.algebra.eager.QuadraticSolution
   import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
   import com.phasmidsoftware.number.expression.expr.Root
 
@@ -27,7 +25,7 @@ class AlgebraicSpec extends AnyFlatSpec with should.Matchers {
 
     val phiSquared = (phi * phi).simplify
 
-    phiSquared.render shouldBe "(\uD835\uDED7 + 1)"
+    phiSquared.render shouldBe "(1 + \uD835\uDED7)"
 
     phiSquared.materialize.render shouldBe "(1.5 + √1.25)"
 

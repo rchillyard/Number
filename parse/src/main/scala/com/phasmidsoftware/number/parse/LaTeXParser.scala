@@ -90,7 +90,8 @@ object LaTeXParser extends RegexParsers {
       ("𝛙" ^^^ Root.psi) |
       ("\uD835\uDEFE" ^^^ Literal(Eager(Constants.gamma))) |
       ("½" ^^^ Half) |
-      ("∞" ^^^ Infinity)
+      ("∞" ^^^ Infinity) |
+      ("i" ^^^ I) // imaginary unit — must be last to avoid prefix conflicts
 
   // ── Fraction ──────────────────────────────────────────────────────────────
 
@@ -112,8 +113,10 @@ object LaTeXParser extends RegexParsers {
 
   private def power: Parser[MathExpr] =
     (unary ~ (ws ~> ("^" | "∧") ~> ws ~> powerExponent).?) ^^ {
-      case base ~ Some(exp) => BiFunction(base, exp, Power)
-      case base ~ None => base
+      case base ~ Some(exp) =>
+        BiFunction(base, exp, Power)
+      case base ~ None =>
+        base
     }
 
   private def powerExponent: Parser[MathExpr] =
@@ -139,12 +142,14 @@ object LaTeXParser extends RegexParsers {
     case "exp" ~ arg => UniFunction(arg, Exp)
     case "rec" ~ arg => UniFunction(arg, Reciprocal)
     case "neg" ~ arg => UniFunction(arg, Negate)
+    case "sinh" ~ arg => UniFunction(arg, Sinh)
+    case "cosh" ~ arg => UniFunction(arg, Cosh)
     case x ~ _ => throw LaTeXParserException(s"unknown function: $x")
   }
 
   private def function: Parser[MathExpr] = {
     val fnName: Parser[String] =
-      "sin" | "cos" | "tan" | "ln" | "exp" | "rec" | "neg"
+      "sinh" | "cosh" | "sin" | "cos" | "tan" | "ln" | "exp" | "rec" | "neg"
     val fnArg: Parser[MathExpr] =
       ("{" ~> ws ~> expr <~ ws <~ "}") | atom
     ("\\" ~> fnName ~ (ws ~> fnArg)) ^^ tupleToFunctionExpression
@@ -164,10 +169,13 @@ object LaTeXParser extends RegexParsers {
   // ── Implicit multiplication ───────────────────────────────────────────────
 
   private def implicitMul: Parser[MathExpr] =
-    (power ~ symbolicAtom.*) ^^ {
+    (power ~ (symbolicAtom ~ (ws ~> ("^" | "∧") ~> ws ~> powerExponent).?).*) ^^ {
       case first ~ rest =>
         if (rest.isEmpty) first
-        else (first +: rest).reduce((a, b) => BiFunction(a, b, Product))
+        else (first +: rest.map {
+          case base ~ Some(exp) => BiFunction(base, exp, Power)
+          case base ~ None => base
+        }).reduce((a, b) => BiFunction(a, b, Product))
     }
 
   // ── Term (explicit * and /) ───────────────────────────────────────────────

@@ -239,7 +239,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return an optional `Factor`.
     */
-  def maybeFactor: Option[Factor] =
+  lazy val maybeFactor: Option[Factor] =
     Some(PureNumber)
 
   /**
@@ -668,7 +668,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return a Try containing the repeating sequence as a String if successful, or a Failure if an error occurs
     */
-  def findRepeatingSequence: Try[String] =
+  lazy val findRepeatingSequence: Try[String] =
     Rational.findRepeatingSequence(n, d, denominatorPrimeFactors(MAX_PRIME_FACTORS))
 
   /**

@@ -1,11 +1,32 @@
+/*
+ * Copyright (c) 2023-2025. Phasmid Software
+ */
+
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.eager
-import com.phasmidsoftware.number.algebra.eager.{Eager, InversePower, QuadraticSolution, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Eager, InversePower, IsImaginary, QuadraticSolution, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.expression.algebraic.{Equation, QuadraticEquation}
 
-object Extractors
+/**
+  * Companion object providing an extractor for retrieving the `Eager` value associated with a given `Expression`.
+  * The extractor is used to match on `Expression` instances and specifically identify instances
+  * that are `ValueExpression` containing an `Eager` component.
+  */
+object IsEager {
+  /**
+    * Extractor method to deconstruct an `Expression` and retrieve the associated `Eager` value if applicable.
+    * This will match both `Literal` and `NamedConstant` cases.
+    *
+    * @param expression the `Expression` instance to be analyzed and matched.
+    * @return an `Option` containing the `Eager` value if the input is a `ValueExpression` with an `Eager` component; `None` otherwise.
+    */
+  def unapply(expression: Expression): Option[Eager] = expression match {
+    case ValueExpression(e: Eager, _) => Some(e)
+    case _ => None
+  }
+}
 
 /**
   * Companion object for the `IsZero` extractor.
@@ -25,6 +46,11 @@ object IsZero {
     */
   def unapply(expr: Expression): Option[Expression] =
     Option.when(expr.isZero)(expr)
+  //    expr match {
+  //      case Zero => Some(Zero)
+  //      case ValueExpression(z: Zeroable, _) if z.isZero => Some(expr)
+  //      case _ => None
+  //    }
 }
 
 /**
@@ -51,17 +77,15 @@ object IsUnity {
   */
 object IsMinusOne {
   /**
-    * Extracts an `Expression` if it represents unity.
+    * Extractor method to determine if the given `Expression` represents the value -1.
     *
-    * This method serves as an extractor that can be used in pattern matching
-    * to determine if the provided `Expression` is unity, as defined by its `isUnity` property.
-    * If the `Expression` is unity, it is returned wrapped in an `Option`. Otherwise, `None` is returned.
-    *
-    * @param expr the `Expression` to be checked and potentially extracted
-    * @return an `Option` of the `Expression` if it represents unity, or `None` otherwise
+    * @param expr the input `Expression` to be checked and extracted
+    * @return an `Option[Expression]` containing the matched expression if it represents -1,
+    *         or `None` if it does not match
     */
   def unapply(expr: Expression): Option[Expression] =
     expr match {
+      case MinusOne => Some(MinusOne)
       case ValueExpression(WholeNumber(-1), _) => Some(expr)
       case UniFunction(IsUnity(_), Negate) => Some(MinusOne)
       case _ => None
@@ -101,6 +125,18 @@ object IsIntegral {
   }
 }
 
+/** Matches a commutative BiFunction, exposing all three components.
+  * Currently Sum and Product are commutative; Power is not.
+  */
+object IsCommutative {
+  def unapply(e: Expression): Option[(Expression, Expression, ExpressionBiFunction)] = e match {
+    case BiFunction(x, y, f@(Sum | Product)) =>
+      Some((x, y, f))
+    case _ =>
+      None
+  }
+}
+
 /**
   * The `QuadraticValue` object provides functionality for extracting components
   * of a quadratic-related `Expression` through pattern matching.
@@ -120,7 +156,7 @@ object QuadraticValue {
   def unapply(expr: Expression): Option[(Equation, Int)] = expr match {
     case Root(eq, branch) =>
       Some((eq, branch))
-    case Literal(qs: QuadraticSolution, _) =>
+    case IsEager(qs: QuadraticSolution) =>
       val r = QuadraticRoot(qs)
       Some((r.equation, r.branch))
     case _ =>
@@ -147,7 +183,7 @@ object NthRoot {
   def unapply(expr: Expression): Option[(Eager, Int, Int)] = expr match {
     case Root(QuadraticEquation(Rational.zero, r), branch) =>
       Some((-r, 2, branch))
-    case Literal(v, _) => v match {
+    case IsEager(v) => v match {
       case QuadraticSolution(eager.IsZero(base), InversePower(n, radicand), coeff, imag) =>
         Some((radicand, n, (1 - coeff) / 2))
       // Add other root types if they exist
@@ -198,18 +234,60 @@ object CubeRoot {
 }
 
 /**
-  * Companion object providing an extractor for identifying expressions involving 
+  * An object that provides pattern matching for determining whether a given `Expression`
+  * represents an imaginary value.
+  *
+  * It attempts to evaluate the `Expression` and checks if it can be identified
+  * as an imaginary value through the `IsImaginary` extractor.
+  */
+object IsImaginaryExpression {
+  /**
+    * Matches an `Expression` and attempts to extract an `Eager` value if it can be
+    * determined as imaginary.
+    *
+    * @param x the `Expression` to be evaluated and checked for being imaginary.
+    * @return an `Option` containing the extracted `Eager` value if the `Expression`
+    *         is determined to be imaginary, or `None` otherwise.
+    */
+  def unapply(x: Expression): Option[Eager] =
+    x.evaluateAsIs flatMap IsImaginary.unapply
+}
+
+/**
+  * An extractor object that determines if a pair of expressions is related through
+  * an imaginary expression in a commutative manner. This means that the imaginary
+  * component can appear on either side of the tuple, and the extractor will match
+  * in both cases.
+  *
+  * The extractor takes a tuple of two `Expression` objects as input and attempts
+  * to find one of the expressions being an `IsImaginaryExpression`. If a match is
+  * found, it extracts the eager value from the `IsImaginaryExpression` and returns
+  * it along with the other expression in the tuple.
+  */
+object IsImaginaryExpressionCommutative {
+  def unapply(e: (Expression, Expression)): Option[(Eager, Expression)] = e match {
+    case (IsImaginaryExpression(m), x) =>
+      Some((m, x))
+    case (x, IsImaginaryExpression(m)) =>
+      Some((m, x))
+    case _ =>
+      None
+  }
+}
+/**
+  * Companion object providing an extractor for identifying expressions involving
   * specific patterns with mathematical constants `i` (imaginary unit) and `π` (pi).
   */
 object IPi {
   /**
-    * Extractor method to determine if a given expression matches specific patterns 
+    * Extractor method to determine if a given expression matches specific patterns
     * involving mathematical constants and operations.
     *
     * @param e The input expression to be checked.
     * @return True if the input expression matches predefined patterns, false otherwise.
     */
   def unapply(e: Expression): Boolean = e match {
+    // NOTE leave these as Literal.
     case Literal(Eager.iPi, _) | Literal(InversePower(2, WholeNumber(-1)), _) =>
       true
     case BiFunction(I, Pi, Product) | BiFunction(Pi, I, Product) =>
@@ -259,5 +337,149 @@ abstract class CommutativeExtractor[A, B] {
           case _ => None
         }
     }
+  }
+}
+
+object HasEuler {
+  def unapply(e: Expression): Boolean = e match {
+    case BiFunction(_: Euler, _, _) | BiFunction(_, _: Euler, _) =>
+      true
+    case _ =>
+      false
+  }
+}
+
+/**
+  * Extractor matching `sin²(z)`, i.e. `BiFunction(UniFunction(z, Sine), Two, Power)`.
+  * Returns the argument `z`.
+  */
+object IsSinSquared {
+  def unapply(e: Expression): Option[Expression] = e match {
+    case BiFunction(UniFunction(z, Sine), Two, Power) =>
+      Some(z)
+    case _ =>
+      None
+  }
+}
+
+/**
+  * Extractor matching `cos²(z)`, i.e. `BiFunction(UniFunction(z, Cosine), Two, Power)`.
+  * Returns the argument `z`.
+  */
+object IsCosSquared {
+  def unapply(e: Expression): Option[Expression] = e match {
+    case BiFunction(UniFunction(z, Cosine), Two, Power) =>
+      Some(z)
+    case _ =>
+      None
+  }
+}
+
+/**
+  * Extractor matching `sinh²(z)`, i.e. `BiFunction(UniFunction(z, Sinh), Two, Power)`.
+  * Returns the argument `z`.
+  */
+object IsSinhSquared {
+  def unapply(e: Expression): Option[Expression] = e match {
+    case BiFunction(UniFunction(z, Sinh), Two, Power) =>
+      Some(z)
+    case _ =>
+      None
+  }
+}
+
+/**
+  * Extractor matching `cosh²(z)`, i.e. `BiFunction(UniFunction(z, Cosh), Two, Power)`.
+  * Returns the argument `z`.
+  */
+object IsCoshSquared {
+  def unapply(e: Expression): Option[Expression] = e match {
+    case BiFunction(UniFunction(z, Cosh), Two, Power) =>
+      Some(z)
+    case _ =>
+      None
+  }
+}
+
+/**
+  * An extractor object that checks if a given expression is hyperbolic by matching
+  * it against the hyperbolic sine (sinh) or hyperbolic cosine (cosh) functions.
+  *
+  * The object provides an unapply method that takes an Expression as input and 
+  * attempts to extract the inner expression `z` if the input expression matches 
+  * the form of a hyperbolic function.
+  *
+  * Cases:
+  * - Matches expressions of the form UniFunction(z, Sinh) or UniFunction(z, Cosh)
+  *   and returns the inner expression `z` in a Some if matched.
+  * - Returns None if the input expression does not match the hyperbolic form.
+  */
+object IsHyperbolic {
+  def unapply(e: Expression): Option[Expression] = e match {
+    case UniFunction(z, Sinh | Cosh) =>
+      Some(z)
+    case _ =>
+      None
+  }
+}
+
+/**
+  * Concise pattern-match extractors for common `UniFunction` expression shapes.
+  *
+  * These allow simplification rules (e.g. Euler recognition) to be written
+  * in readable, mathematical style:
+  *
+  * {{{
+  *   case BiFunction(Cos(θ), BiFunction(I, Sin(θ2), Product), Sum) => ...
+  *   case Exp(BiFunction(I, x, Product))                           => ...
+  *   case Exp(BiFunction(a, BiFunction(I, b, Product), Sum))       => ...
+  * }}}
+  *
+  * Each extractor matches `UniFunction(arg, FunctionCaseObject)` and returns
+  * the inner argument. No changes to `core` are required.
+  */
+
+/** Matches `sin(θ)` → `UniFunction(θ, Sine)`, returns `θ`. */
+object Sin {
+  def unapply(e: Expression): Option[Expression] = e match {
+    case UniFunction(θ, Sine) => Some(θ)
+    case _ => None
+  }
+}
+
+/** Matches `cos(θ)` → `UniFunction(θ, Cosine)`, returns `θ`. */
+object Cos {
+  def unapply(e: Expression): Option[Expression] = e match {
+    case UniFunction(θ, Cosine) => Some(θ)
+    case _ => None
+  }
+}
+
+/**
+  * Matches `exp(x)` → `UniFunction(x, Exp)`, returns `x`.
+  *
+  * NOTE: if the name `Exp` clashes with the `ExpressionFunction` case object
+  * of the same name inside the match body, rename this extractor to `ExpX`.
+  */
+object ExpX {
+  def unapply(e: Expression): Option[Expression] = e match {
+    case UniFunction(x, Exp) => Some(x)
+    case _ => None
+  }
+}
+
+/** Matches `sinh(x)` → `UniFunction(x, Sinh)`, returns `x`. */
+object SinhX {
+  def unapply(e: Expression): Option[Expression] = e match {
+    case UniFunction(x, Sinh) => Some(x)
+    case _ => None
+  }
+}
+
+/** Matches `cosh(x)` → `UniFunction(x, Cosh)`, returns `x`. */
+object CoshX {
+  def unapply(e: Expression): Option[Expression] = e match {
+    case UniFunction(x, Cosh) => Some(x)
+    case _ => None
   }
 }

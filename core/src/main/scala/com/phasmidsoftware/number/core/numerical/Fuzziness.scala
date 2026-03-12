@@ -100,10 +100,10 @@ sealed trait Fuzziness[T] {
     * NOTE effectively, this method converts a Gaussian distribution into a Box distribution.
     * CONSIDER refactoring to take advantage of that equivalence.
     *
-    * @param p the confidence we wish to have in the result: typical value: 0.5
+    * @param confidence the confidence we wish to have in the result: typical value: 0.5
     * @return the value of t at which the probability density is exactly transitions from likely to not likely.
     */
-  def wiggle(p: Double): T
+  def wiggle(confidence: Double): T
 
   /**
     * Computes the probability that random points will be found with the range `-x` to `+x` where `l` is a measure of the magnitude of this Fuzziness.
@@ -137,7 +137,6 @@ sealed trait Fuzziness[T] {
     */
   def uncertainty[U >: T : HasValue](u: U): Fuzziness[U] =
     AbsoluteFuzz(u, Gaussian)
-
 }
 
 /**
@@ -209,19 +208,29 @@ case class RelativeFuzz[T: HasValue](tolerance: Double, shape: Shape) extends Fu
   def *(convolute: Fuzziness[T], independent: Boolean): Fuzziness[T] =
     if (this.shape == convolute.shape)
       convolute match {
-        case RelativeFuzz(t, Box) => RelativeFuzz(tolerance + t, shape)
-        case RelativeFuzz(t, _) => RelativeFuzz(Gaussian.convolutionProduct(tolerance, t, independent), shape)
-        case _ => throw FuzzyNumberException("* operation on different styles")
+        case RelativeFuzz(t, Box) if this.shape == Box =>
+          // Convolution of two relative Box distributions: result is Trapezoid.
+          val a = math.min(tolerance, t)
+          val b = math.max(tolerance, t)
+          RelativeFuzz(a + b, Trapezoid(a, b))
+        case RelativeFuzz(t, _) =>
+          RelativeFuzz(Gaussian.convolutionProduct(tolerance, t, independent), shape)
+        case _ =>
+          throw FuzzyNumberException(s"* operation on different styles: $this, $convolute, shapes: ($shape, ${convolute.shape})")
       }
     else
-      throw FuzzyNumberException("* operation on different shapes")
+      throw FuzzyNumberException(s"* operation on different shapes: $this, $convolute, shapes: ($shape, ${convolute.shape})")
 
   /**
     * Yield a Fuzziness[T] that is Gaussian (either this or derivative of this).
     */
   def normalizeShape: Fuzziness[T] = shape match {
-    case Gaussian => this
-    case Box => RelativeFuzz(Box.toGaussianRelative(tolerance), Gaussian)
+    case Gaussian =>
+      this
+    case Box =>
+      RelativeFuzz(Box.toGaussianRelative(tolerance), Gaussian)
+    case t: Trapezoid =>
+      RelativeFuzz(t.sigma, Gaussian)
   }
 
   /**
@@ -268,11 +277,11 @@ case class RelativeFuzz[T: HasValue](tolerance: Double, shape: Shape) extends Fu
     * In other words get the wiggle room.
     * NOTE that the greater the value of p, the smaller the result
     *
-    * @param p the confidence we wish to have in the result: typical value: 0.5
+    * @param confidence the confidence we wish to have in the result: typical value: 0.5
     * @return the value of t at which the probability density is exactly transitions from likely to not likely.
     */
-  def wiggle(p: Double): T =
-    tv.fromDouble(shape.wiggle(tolerance, p))
+  def wiggle(confidence: Double): T =
+    tv.fromDouble(shape.wiggle(tolerance, confidence))
 
   /**
     * True.
@@ -335,30 +344,46 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
       Some(this)
 
   /**
-    * Perform a convolution on this Fuzziness[T] with the given addend.
-    * There are two different Fuzziness[T] shapes, and they clearly have different effects.
-    * This operation is suitable for addition of Numbers.
+    * Convolves the current instance of `Fuzziness[T]` with another `Fuzziness[T]`
+    * instance based on the specified parameters, producing a new `Fuzziness[T]`
+    * instance. The behavior of the convolution depends on the shape and magnitude
+    * of the `Fuzziness[T]` instances involved.
     *
-    * @param convolute   the convolute, which must have the same shape as this.
-    * @param independent ignored.
-    * @return the convolution of this and the convolute.
+    * @param convolute   The `Fuzziness[T]` instance to convolve with the current instance.
+    * @param independent A boolean indicating whether the two fuzzy distributions are independent.
+    * @return A new `Fuzziness[T]` instance as the result of the convolution operation.
+    * @throws FuzzyNumberException If the operation involves incompatible styles of fuzzy distributions.
     */
-  def *(convolute: Fuzziness[T], independent: Boolean): Fuzziness[T] =
-    if (this.shape == convolute.shape)
-      convolute match {
-        case AbsoluteFuzz(m, _) =>
-          AbsoluteFuzz(tv.fromDouble(Gaussian.convolutionSum(tv.toDouble(magnitude), tv.toDouble(m))), shape)
-        case _ =>
-          throw FuzzyNumberException("* operation on different styles")
-      }
-    else
-      throw FuzzyNumberException("* operation on different shapes")
-
-  def normalizeShape: Fuzziness[T] = shape match {
-    case Gaussian => this
-    case Box => AbsoluteFuzz(Box.toGaussianAbsolute(magnitude), Gaussian)
+  def *(convolute: Fuzziness[T], independent: Boolean): Fuzziness[T] = convolute match {
+    case AbsoluteFuzz(m, Box) if this.shape == Box =>
+      // Convolution of two Box distributions produces a Trapezoid.
+      val a = math.min(tv.toDouble(magnitude), tv.toDouble(m))
+      val b = math.max(tv.toDouble(magnitude), tv.toDouble(m))
+      AbsoluteFuzz(tv.fromDouble(a + b), Trapezoid(a, b))
+    case AbsoluteFuzz(m, t: Trapezoid) if this.shape == Gaussian =>
+      // Trapezoid convolved with Gaussian: convert Trapezoid to Gaussian first.
+      AbsoluteFuzz(tv.fromDouble(Gaussian.convolutionSum(tv.toDouble(magnitude), t.sigma)), Gaussian)
+    case AbsoluteFuzz(m, _) if this.shape == convolute.shape =>
+      AbsoluteFuzz(tv.fromDouble(Gaussian.convolutionSum(tv.toDouble(magnitude), tv.toDouble(m))), shape)
+    case _ =>
+      throw FuzzyNumberException("* operation on different styles")
   }
 
+  /**
+    * This method normalizes the shape of the current Fuzziness[T].
+    * If the shape is Gaussian, it returns the current instance.
+    * If the shape is Box, it converts the shape to a Gaussian with the same magnitude.
+    *
+    * @return a Fuzziness[T] object with a normalized Gaussian shape.
+    */
+  def normalizeShape: Fuzziness[T] = shape match {
+    case Gaussian =>
+      this
+    case Box =>
+      AbsoluteFuzz(Box.toGaussianAbsolute(magnitude), Gaussian)
+    case t: Trapezoid =>
+      AbsoluteFuzz(t.toGaussianAbsolute[T], Gaussian)
+  }
   /**
     * Method to do accurate rounding of Double.
     *
@@ -431,8 +456,8 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
     * In other words get the wiggle room.
     * NOTE that the greater the value of p, the smaller the result
     */
-  def wiggle(p: Double): T =
-    tv.fromDouble(shape.wiggle(tv.toDouble(magnitude), p))
+  def wiggle(confidence: Double): T =
+    tv.fromDouble(shape.wiggle(tv.toDouble(magnitude), confidence))
 
   /**
     * False.
@@ -683,10 +708,10 @@ trait Shape {
     * NOTE that the greater the value of p, the smaller the result
     *
     * @param l the extent of the PDF (for example, the standard deviation, for a Gaussian).
-    * @param p the confidence that we wish to place on the likelihood: typical value is 0.5.
+    * @param confidence the confidence that we wish to place on the likelihood: typical value is 0.5.
     * @return the value of x at which the probability density is exactly transitions from likely to not likely.
     */
-  def wiggle(l: Double, p: Double): Double
+  def wiggle(l: Double, confidence: Double): Double
 
   /**
     * Computes the probability that random points will be found with the range `-x` to `+x` where `l` is a measure of this size of this shape.
@@ -735,11 +760,11 @@ case object Box extends Shape {
     * NOTE that the greater the value of p, the smaller the result
     *
     * @param l the half-width of a Box.
-    * @param p the confidence that we wish to place on the likelihood: typical value is 0.5.
+    * @param confidence the confidence that we wish to place on the likelihood: typical value is 0.5.
     *          Unless it is either 0 or 1, the actual `p` value is ignored.
     * @return the value of x at which the probability density transitions from possible to impossible.
     */
-  def wiggle(l: Double, p: Double): Double = p match {
+  def wiggle(l: Double, confidence: Double): Double = confidence match {
     case 0.0 =>
       Double.PositiveInfinity
     case 1.0 =>
@@ -758,10 +783,74 @@ case object Box extends Shape {
     * @return the calculated probability density at the given point.
     */
   def probability(l: Double, x: Double): Double = x match {
-    case y if y >= l => 1
-    case _ => 2 * x / l
+    case y if y <= 0.0 => 0.0
+    case y if y >= l => 1.0
+    case _ => x / l
   }
 
+}
+
+/**
+  * A trapezoidal probability distribution, arising from the convolution of two Box distributions.
+  * The flat top has half-width (b-a) and the ramps extend to (a+b).
+  * NOTE: unlike Box and Gaussian which are case objects with `l` passed as a parameter to `wiggle`,
+  * Trapezoid carries its own scale parameters `a` and `b`. The `l` parameter of `wiggle` and
+  * `probability` is therefore ignored. TODO: at some future point, refactor Box and Gaussian
+  * similarly, moving `l` into the case class/object.
+  *
+  * @param a the half-width of the smaller of the two constituent Box distributions (a <= b).
+  * @param b the half-width of the larger of the two constituent Box distributions.
+  */
+case class Trapezoid(a: Double, b: Double) extends Shape {
+  require(a <= b, s"Trapezoid requires a <= b, got a=$a, b=$b")
+
+  /**
+    * The standard deviation of this Trapezoid distribution, derived from the sum of variances
+    * of the two constituent Box distributions: Var = a²/3 + b²/3 = (a²+b²)/3.
+    */
+  val sigma: Double = math.sqrt((a * a + b * b) / 3.0)
+
+  /**
+    * Convert this Trapezoid to an equivalent Gaussian AbsoluteFuzz.
+    * Used when further convolution is required (n >= 3 Box distributions).
+    */
+  def toGaussianAbsolute[T: HasValue]: T =
+    implicitly[HasValue[T]].fromDouble(sigma)
+
+  /**
+    * Determine the wiggle room for this Trapezoid distribution.
+    * NOTE: the `l` parameter is ignored since scale is encoded in `a` and `b`.
+    *
+    * @param l          ignored.
+    * @param confidence the confidence (probability of being outside the wiggle range): typical value 0.5.
+    * @return the wiggle room.
+    */
+  def wiggle(l: Double, confidence: Double): Double = confidence match {
+    case 0.0 => Double.PositiveInfinity
+    case 1.0 => 0.0
+    case _ =>
+      val threshold = a / b
+      if (a < b && confidence > threshold)
+        b - a // flat-top region: independent of confidence, like Box
+      else
+        (a + b) - 2 * math.sqrt(a * b * confidence) // ramp region
+  }
+
+  /**
+    * Computes the probability that a random point falls within [-x, x].
+    * NOTE: the `l` parameter is ignored since scale is encoded in `a` and `b`.
+    *
+    * @param l ignored.
+    * @param x the half-width of the region of interest.
+    * @return the probability.
+    */
+  def probability(l: Double, x: Double): Double = x match {
+    case y if y <= 0.0 => 0.0
+    case y if y >= a + b => 1.0
+    case y if y <= b - a => y / b // flat-top region
+    case y => // ramp region
+      (b - a) / b + (1.0 / (4 * a * b)) * (4 * a * a - (a + b - y) * (a + b - y))
+  }
 }
 
 /**
@@ -815,11 +904,11 @@ case object Gaussian extends Shape {
     * `sigma` is the reciprocal of √2.
     *
     * @param l the standard deviation.
-    * @param p the confidence desired for the likelihood.
+    * @param confidence the confidence desired for the likelihood.
     * @return the value of x such that p iw the probability of a random number x (with mean 0, and variance 1/2) falling between -x and x.
     */
-  def wiggle(l: Double, p: Double): Double =
-    l / sigma * erfInv(1 - p)
+  def wiggle(l: Double, confidence: Double): Double =
+    l / sigma * erfInv(1 - confidence)
 
   /**
     * Computes the probability that random points will be found with the range `-x` to `+x` where `l` is the standard deviation of this Gaussian.

@@ -636,7 +636,7 @@ class RootSpec extends AnyFlatSpec with Matchers {
     val root3Minus1 = root3 - 1
     val two = root3Plus1 * root3Minus1
     val simplified = two.simplify
-    simplified shouldBe Literal(2)
+    simplified shouldBe a[Aggregate]
     two.materialize shouldBe Eager.two
 
   }

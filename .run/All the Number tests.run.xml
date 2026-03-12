@@ -46,6 +46,7 @@
         <option value="com.phasmidsoftware.number.top.QuantityParserSpec" />
         <option value="com.phasmidsoftware.number.top.QuantitySpec" />
         <option value="com.phasmidsoftware.number.top.QuantityWorksheetSpec" />
+        <option value="com.phasmidsoftware.number.top.RealWorksheetSpec" />
         <option value="com.phasmidsoftware.number.top.TopSpec" />
         <option value="com.phasmidsoftware.number.top.TrigonometryWorksheetSpec" />
         <option value="com.phasmidsoftware.number.expression.algebraic.AlgebraicSpec" />
@@ -64,6 +65,7 @@
         <option value="com.phasmidsoftware.number.expression.parse.ShuntingYardParserSpec" />
         <option value="com.phasmidsoftware.number.expression.parse.SignificantSpaceParsersSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.AtomicExpressionSpec" />
+          <option value="com.phasmidsoftware.number.expression.expr.BiFunctionTableSpec"/>
         <option value="com.phasmidsoftware.number.expression.expr.ComplexFunctionSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.ComplexRootSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.ComplexRootTableSpec" />
@@ -71,6 +73,7 @@
         <option value="com.phasmidsoftware.number.expression.expr.EagerOpsIntegrationSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.EagerOpsSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.EmptySpec" />
+        <option value="com.phasmidsoftware.number.expression.expr.EulerSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.ExpressionEdgeCasesSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.ExpressionEqSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.ExpressionMatchersSpec" />

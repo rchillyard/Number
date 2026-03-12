@@ -102,33 +102,33 @@ class EagerSpec extends AnyFlatSpec with should.Matchers {
     x.~=(y) shouldBe true
   }
 
-  behavior of "Imaginary"
+  behavior of "HasImaginary"
   it should "work for i" in {
     Eager.i match {
-      case Imaginary(IsUnity(x)) =>
+      case HasImaginary(IsUnity(x)) =>
         x.isExact shouldBe true
       case _ =>
-        fail("should be Imaginary")
+        fail("should be HasImaginary")
     }
   }
   it should "work for 2i" in {
     Eager.imaginary(2) match {
-      case Imaginary(x) =>
+      case HasImaginary(x) =>
         x.isExact shouldBe true
         x should ===(WholeNumber(2))
       case _ =>
-        fail("should be Imaginary")
+        fail("should be HasImaginary")
     }
   }
   it should "work for 2.i" in {
     import Eager.IntToImaginary
     val y = 2.i // to give 2i
     y match {
-      case Imaginary(x) =>
+      case HasImaginary(x) =>
         x.isExact shouldBe true
         x should ===(WholeNumber(2))
       case _ =>
-        fail("should be Imaginary")
+        fail("should be HasImaginary")
     }
   }
   it should "not work for -2i" in {
@@ -136,11 +136,11 @@ class EagerSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "not provide an exact value i𝛑" in {
     Eager.imaginary(𝛑) match {
-      case Imaginary(x) =>
+      case HasImaginary(x) =>
         x.isExact shouldBe false
         x.toDouble shouldBe math.Pi +- 1E-8
       case _ =>
-        fail("should be Imaginary")
+        fail("should be HasImaginary")
     }
   }
 

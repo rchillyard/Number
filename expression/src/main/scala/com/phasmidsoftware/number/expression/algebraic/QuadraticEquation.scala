@@ -409,7 +409,7 @@ object QuadraticEquation {
           for (x <- realPart; y <- imaginaryPart) yield ComplexCartesian(x, y))(
           ExpressionException(s"Quadratic equation has bad complex roots: $equation")
         )
-      case i@InversePower(2, q: Q) =>
+      case i@InversePower(2, q: Q) => // CONSIDER replacing this case (and logic) with SquareRoot(z) keeping in mind that q = z^2.
         val imag = ExactNumber(Value.fromRational(q.toRational), SquareRoot).doMultiple(coefficient)
         FP.recover(
           for (x <- realPart) yield ComplexCartesian(x, imag))(

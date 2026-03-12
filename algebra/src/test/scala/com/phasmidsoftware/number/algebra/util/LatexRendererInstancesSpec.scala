@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.algebra.util
 
 import com.phasmidsoftware.number.algebra.eager.*
+import com.phasmidsoftware.number.algebra.eager.InversePower.squareRoot
 import com.phasmidsoftware.number.algebra.util.LatexRenderer
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
@@ -72,12 +73,12 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
   behavior of "InversePower LatexRenderer"
 
   it should "render square roots" in {
-    val sqrt2 = InversePower(2, RationalNumber(Rational(2)))
+    val sqrt2 = squareRoot(RationalNumber(Rational(2)))
     sqrt2.toLatex shouldBe "\\sqrt{2}"
   }
 
   it should "render square roots of fractions" in {
-    val sqrtHalf = InversePower(2, RationalNumber(Rational(1, 2)))
+    val sqrtHalf = squareRoot(RationalNumber(Rational(1, 2)))
     sqrtHalf.toLatex shouldBe "\\sqrt{\\tfrac{1}{2}}"
   }
 
@@ -92,7 +93,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "render nested roots properly" in {
-    val innerSqrt = InversePower(2, RationalNumber(Rational(5, 4)))
+    val innerSqrt = squareRoot(RationalNumber(Rational(5, 4)))
     innerSqrt.toLatex shouldBe "\\sqrt{1.25}"
   }
 
@@ -123,7 +124,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
 
   it should "render real solution with positive branch (branch 0)" in {
     val base = RationalNumber(Rational(1, 2))
-    val offset = InversePower(2, RationalNumber(Rational(2)))
+    val offset = squareRoot(RationalNumber(Rational(2)))
     val solution = QuadraticSolution(base, offset, 1, imaginary = false)
 
     solution.toLatex shouldBe "\\tfrac{1}{2} + \\sqrt{2}"
@@ -131,7 +132,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
 
   it should "render real solution with negative branch (branch 1)" in {
     val base = RationalNumber(Rational(1, 2))
-    val offset = InversePower(2, RationalNumber(Rational(2)))
+    val offset = squareRoot(RationalNumber(Rational(2)))
     val solution = QuadraticSolution(base, offset, -1, imaginary = false)
 
     solution.toLatex shouldBe "\\tfrac{1}{2} - \\sqrt{2}"
@@ -139,7 +140,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
 
   it should "render complex solution with positive branch" in {
     val base = RationalNumber(Rational(1, 2))
-    val offset = InversePower(2, RationalNumber(Rational(3, 4)))
+    val offset = squareRoot(RationalNumber(Rational(3, 4)))
     val solution = QuadraticSolution(base, offset, 1, imaginary = true)
 
     solution.toLatex shouldBe "\\tfrac{1}{2} + i \\sqrt{\\tfrac{3}{4}}"
@@ -147,7 +148,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
 
   it should "render complex solution with negative branch" in {
     val base = RationalNumber(Rational(1, 2))
-    val offset = InversePower(2, RationalNumber(Rational(3, 4)))
+    val offset = squareRoot(RationalNumber(Rational(3, 4)))
     val solution = QuadraticSolution(base, offset, -1, imaginary = true)
 
     solution.toLatex shouldBe "\\tfrac{1}{2} - i \\sqrt{\\tfrac{3}{4}}"
@@ -155,7 +156,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
 
   it should "render solution with integer base and irrational offset" in {
     val base = RationalNumber(Rational(3))
-    val offset = InversePower(2, RationalNumber(Rational(5)))
+    val offset = squareRoot(RationalNumber(Rational(5)))
     val solution = QuadraticSolution(base, offset, 1, false)
 
     solution.toLatex shouldBe "3 + \\sqrt{5}"
@@ -163,7 +164,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
 
   it should "render negative base correctly" in {
     val base = RationalNumber(Rational(-2))
-    val offset = InversePower(2, RationalNumber(Rational(3)))
+    val offset = squareRoot(RationalNumber(Rational(3)))
     val solution = QuadraticSolution(base, offset, 1, false)
 
     solution.toLatex shouldBe "-2 + \\sqrt{3}"
@@ -182,7 +183,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "render linear solution with irrational value" in {
-    val value = InversePower(2, RationalNumber(Rational(2)))
+    val value = squareRoot(RationalNumber(Rational(2)))
     val solution = LinearSolution(value)
     solution.toLatex shouldBe "\\sqrt{2}"
   }
@@ -192,7 +193,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
   it should "handle QuadraticSolution through Algebraic type" in {
     val solution: Algebraic = QuadraticSolution(
       RationalNumber.half,
-      InversePower(2, RationalNumber(Rational(5, 4))),
+      squareRoot(RationalNumber(Rational(5, 4))),
       1, false
     )
     solution.toLatex shouldBe "\\varphi"
@@ -229,7 +230,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
 
     // Verify it's the correct value structure
     phi.base shouldBe RationalNumber.half
-    phi.offset shouldBe InversePower(2, RationalNumber(Rational(5, 4)))
+    phi.offset shouldBe squareRoot(RationalNumber(Rational(5, 4)))
   }
 
   it should "handle both roots of x² - x - 1 = 0" in {
@@ -247,7 +248,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
   it should "provide LaTeX rendering separate from display rendering" in {
     val solution = QuadraticSolution(
       RationalNumber.half,
-      InversePower(2, RationalNumber(Rational(2))),
+      squareRoot(RationalNumber(Rational(2))),
       1, false
     )
 

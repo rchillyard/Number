@@ -69,7 +69,7 @@ sealed abstract class AbstractTranscendental(val name: String, val expression: E
     * @return a `Boolean` indicating whether the entity is exact (`true`)
     *         or has an approximation (`false`).
     */
-  def isExact: Boolean = expression.isExact
+  lazy val isExact: Boolean = expression.isExact
 
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
@@ -78,21 +78,21 @@ sealed abstract class AbstractTranscendental(val name: String, val expression: E
     *
     * @return Some(x) where x is a Double if this is exact, else None.
     */
-  def maybeDouble: Option[Double] = expression.maybeDouble
+  lazy val maybeDouble: Option[Double] = expression.maybeDouble
 
   /**
     * Determines if the current number is equal to zero.
     *
     * @return true if the number is zero, false otherwise
     */
-  def isZero: Boolean = expression.isZero
+  lazy val isZero: Boolean = expression.isZero
 
   /**
     * Determines whether this object represents unity.
     *
     * @return true if the object represents unity, false otherwise
     */
-  def isUnity: Boolean = expression.isUnity
+  lazy val isUnity: Boolean = expression.isUnity
 
   /**
     * Determines the sign of the Structure value represented by this instance.
@@ -100,7 +100,7 @@ sealed abstract class AbstractTranscendental(val name: String, val expression: E
     *
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
     */
-  def signum: Int = expression.signum
+  lazy val signum: Int = expression.signum
 
   /**
     * Attempts to simplify an atomic expression, for example,
@@ -109,9 +109,9 @@ sealed abstract class AbstractTranscendental(val name: String, val expression: E
     * @return an `em.AutoMatcher[Expression]` representing
     *         the process of handling or matching the atomic expression.
     */
-  def simplifyAtomic: em.AutoMatcher[Expression] =
-    em.Matcher[Expression, Expression]("simplifyAtomic")(x =>
-      em.Miss[Expression, Expression]("AbstractTranscendental.simplifyAtomic: ", x))
+  lazy val simplifyAtomic: em.AutoMatcher[Expression] =
+    em.Matcher[Expression, Expression]("AbstractTranscendental:simplifyAtomic")(x =>
+      em.Miss[Expression, Expression]("AbstractTranscendental:simplifyAtomic: ", x))
 
   /**
     * Applies a given `ExpressionMonoFunction` to create a new instance of `Transcendental`.
@@ -156,7 +156,8 @@ sealed abstract class AbstractTranscendental(val name: String, val expression: E
     * @return an `Option[Real]` containing the approximate representation
     *         of this `Number`, or `None` if no approximation is available.
     */
-  def approximation(force: Boolean): Option[Real] = expression.approximation(force)
+  def approximation(force: Boolean): Option[Real] = 
+    expression.approximation(force)
 
   /**
     * Determines if the provided object is equal to the current instance.
@@ -178,7 +179,7 @@ sealed abstract class AbstractTranscendental(val name: String, val expression: E
     *
     * @return an integer representing the hash code of the `expression` Eager.
     */
-  override def hashCode(): Int = expression.hashCode()
+  override def hashCode: Int = expression.hashCode()
 
   /**
     * Determines if the provided object can be considered equal to the current instance.

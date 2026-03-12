@@ -4,6 +4,8 @@
 
 package com.phasmidsoftware.number.expression.expr
 
+import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
+import com.phasmidsoftware.number.algebra.eager.Eager
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -32,7 +34,6 @@ class HyperbolicSpec extends AnyFlatSpec with should.Matchers {
     val pos = x.sinh
     val neg = (-x).sinh
     (pos + neg).simplify shouldBe Zero
-    //    pending // TODO Issue #187
   }
 
   it should "satisfy sin(-x) = -sin(x)" in {
@@ -72,11 +73,22 @@ class HyperbolicSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "sinh and cosh together"
 
-  it should "satisfy cosh²(x) - sinh²(x) = 1" in {
+  it should "satisfy cosh²(x) - sinh²(x) ~= 1" in {
+    // PENDING Issue #XXX: leaveOperandsAsIs blocks numeric evaluation via materialize
+    // for concrete arguments. Was previously verified numerically; now blocked by
+    // WI12 leaveOperandsAsIs protecting IsCoshSquared during simplify.
+    // See also WI11 Issue C #193 and WI13.
+    pending
     val x = Literal(Rational(3, 2))
     val c = x.cosh
     val s = x.sinh
-    //    ((c * c) - (s * s)).simplify shouldBe One
-    pending // TODO Issue #187
+    ((c * c) - (s * s)).materialize ~= (Eager.one)
+  }
+  it should "satisfy cosh²(x) - sinh²(x) = 1" in {
+    pending // TODO Issue #187 or #193
+    val x = Literal(Rational(3, 2))
+    val c = x.cosh
+    val s = x.sinh
+    ((c * c) - (s * s)).simplify shouldBe One
   }
 }

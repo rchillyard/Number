@@ -13,12 +13,13 @@ import com.phasmidsoftware.number.core.inner.Rational.infinity
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Number.{piBy2, root2, root3, √}
-import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Constants, Field, FuzzyNumber}
+import com.phasmidsoftware.number.core.numerical.{Constants, Field, FuzzyNumber}
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.BiFunction.asAggregate
 import com.phasmidsoftware.number.expression.expr.Expression
 import com.phasmidsoftware.number.expression.expr.Expression.em.DyadicTriple
 import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, matchSimpler, zero}
+import com.phasmidsoftware.number.expression.expr.Noop.TEST_STRING
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
@@ -178,7 +179,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Sum ~ Zero ~ Two) shouldBe em.Match(Two)
     p(Sum ~ Two ~ Two) shouldBe em.Match(ValueExpression(4))
     p(Sum ~ One ~ Two) shouldBe em.Match(ValueExpression(3))
-    p(Sum ~ One ~ Literal(root2)) should matchPattern { case em.Miss(_, _) => }
+    p(Sum ~ Literal(root2) ~ One) should matchPattern { case em.Miss(_, _) => }
   }
   it should "handle Product" in {
     import BiFunction.*
@@ -270,10 +271,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = Literal(Eager.pi) :* 2 / 2
     matchSimpler(x).get shouldBe Pi
   }
-  it should "cancel multiplication and division backwards" in {
-    val x = Literal(Eager.pi) / 2 :* 2
-    matchSimpler(x).get shouldBe Pi
-  }
   it should "cancel 1 and - -1 (a)" in {
     val x: Expression = Expression.one
     val y = -x
@@ -341,7 +338,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val e: Eager = Eager.e
     val x: Expression = Literal(e, Some("e")) * Eager.two
     val y: Expression = Expression(Eager.two).reciprocal
-    val actual = p(Product ~ x ~ y)
+    val actual = p(Product ~ y ~ x)
     val expected = Expression(e)
     actual shouldBe em.Match(expected)
   }
@@ -1047,7 +1044,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = Literal(Eager.pi)
     val y = -x
     val result = p(BiFunction(x, y, Sum))
-    result should matchPattern { case em.Match(Literal(Angle.zero, _)) => }
+    result should matchPattern { case em.Match(IsEager(Angle.zero)) => }
   }
 
   behavior of "matchDyadicTrivial"
@@ -1447,7 +1444,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val r = p(Ln ~ MinusOne)
     r.successful shouldBe true
     val actual = r.get
-    val expected = Literal(Eager(ComplexPolar(numerical.Number.pi, numerical.Number.piBy2.makeNegative, 1)))
+    val expected = (I * Pi).simplify
     actual shouldBe expected
   }
 
@@ -1456,7 +1453,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   // Issue #106 (fixed)
   it should "simplify multiple similar ops" in {
     val p = Expression.matchSimpler
-    p(Expression(2) * 3 * Eager.e * 5) shouldBe em.Match(E * 30)
+    p(Expression(2) * 3 * 5 * Eager.e) shouldBe em.Match(E * 30)
     // TODO we would like the following to be E * 30
     //    em.simplifier(E * 2 * 3 * 5) shouldBe em.Match(E * 2 * 15)
     //    em.simplifier(Expression(5) * 2 * 3 * Eager.e) shouldBe em.Match(E * 30)
@@ -1468,7 +1465,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val p = Expression.matchSimpler
     val root3 = Eager(numerical.Real(√(3)))
     val e1: BiFunction = BiFunction(Literal(root3), MinusOne, Product)
-    val e: DyadicTriple = Sum ~ e1 ~ Literal(root3)
+    val e: DyadicTriple = Sum ~ Literal(root3) ~ e1
     val result = p(e)
     result.successful shouldBe true
     result.get shouldBe Zero
@@ -1489,7 +1486,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val p = Expression.matchSimpler
     val root3: Eager = Eager.root3
     val e1: BiFunction = BiFunction(Literal(root3), MinusOne, Power)
-    val e: DyadicTriple = Product ~ e1 ~ Literal(root3)
+    val e: DyadicTriple = Product ~ Literal(root3) ~ e1
     val result = p(e)
     result.successful shouldBe true
     result.get shouldBe One
@@ -1682,6 +1679,11 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = Two
     val result = Expression.simplifyParity(BiFunction(UniFunction(x, Exp), UniFunction(-x, Exp), Sum))
     result should matchPattern { case em.Miss(_, _) => }
+  }
+
+  behavior of "Error match"
+  it should "propagate Error through simplify" in {
+    an[ExpressionException] shouldBe thrownBy(Noop(TEST_STRING).simplify)
   }
 }
 

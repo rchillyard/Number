@@ -65,9 +65,10 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     case (c1@ComplexCartesian(_, _), c2@ComplexPolar(_, _, _)) =>
       c2.isSame(c1)
     case (c1@ComplexPolar(_, _, _), c2@ComplexCartesian(_, _)) =>
-      c1.isSame(convertToPolar(c2))
+      c2.isSame(convertToCartesian(c1))
     case (c1, c2: Complex) =>
-      (c1 `subtract` c2).isZero
+      val diff = c1 `subtract` c2
+      diff.isProbablyZero()
     case (z, x: Number) =>
       z `isSame` Real(x)
     case _ =>
@@ -317,6 +318,66 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
   }
 
   /**
+    * Computes the hyperbolic sine (sinh) of this Complex number.
+    *
+    * This method is defined for both Cartesian and Polar representations of complex numbers:
+    *
+    * - For a complex number in Cartesian form (x + i·y), the formula used is:
+    * sinh(x + i·y) = sinh(x)·cos(y) + i·cosh(x)·sin(y)
+    *
+    * - For a complex number in Polar form, it is first converted to Cartesian form
+    * and the computation is then performed using the Cartesian formula.
+    *
+    * @return A new `ComplexCartesian` instance representing the hyperbolic sine
+    *         of this Complex number.
+    */
+  lazy val sinh: Field = this match {
+    case ComplexCartesian(x, y) =>
+      // sinh(x+iy) = sinh(x)·cos(y) + i·cosh(x)·sin(y)
+      // where sinh(x) = (e^x - e^(-x))/2, cosh(x) = (e^x + e^(-x))/2
+      val ex = x.exp
+      val enx = x.makeNegative.exp
+      val sinhX = (ex `doSubtract` enx) `doMultiply` Number.half
+      val coshX = (ex `doAdd` enx) `doMultiply` Number.half
+      ComplexCartesian(sinhX `doMultiply` y.cos, coshX `doMultiply` y.sin)
+    case c@ComplexPolar(_, _, _) =>
+      convertToCartesian(c).sinh
+  }
+
+  /**
+    * Computes the hyperbolic cosine (`cosh`) of this complex number.
+    *
+    * For a complex number expressed in Cartesian form (x + iy), the result is calculated using the formula:
+    * cosh(x + iy) = cosh(x)cos(y) + i·sinh(x)sin(y).
+    *
+    * If the complex number is represented in polar form, it gets converted to Cartesian form, and the `cosh` is computed on the
+    * Cartesian representation.
+    *
+    * @return The hyperbolic cosine of this complex number as a `Field`.
+    */
+  lazy val cosh: Field = this match {
+    case ComplexCartesian(x, y) =>
+      // cosh(x+iy) = cosh(x)·cos(y) + i·sinh(x)·sin(y)
+      val ex = x.exp
+      val enx = x.makeNegative.exp
+      val sinhX = (ex `doSubtract` enx) `doMultiply` Number.half
+      val coshX = (ex `doAdd` enx) `doMultiply` Number.half
+      ComplexCartesian(coshX `doMultiply` y.cos, sinhX `doMultiply` y.sin)
+    case c@ComplexPolar(_, _, _) =>
+      convertToCartesian(c).cosh
+  }
+
+  /**
+    * Represents the hyperbolic tangent (tanh) function as a field element.
+    *
+    * Computed as the division of the hyperbolic sine (sinh) and the hyperbolic cosine (cosh).
+    *
+    * This lazy value ensures the computation is deferred until the tanh field is accessed,
+    * improving efficiency in cases where it is not immediately required.
+    */
+  lazy val tanh: Field = sinh `divide` cosh
+
+  /**
     * Computes the natural logarithm of this Field.
     * For a real number x, this is equivalent to the logarithm base e: ln(x).
     * For a complex number, this computes the multi-valued complex logarithm.
@@ -343,15 +404,6 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
       val eToX = x.exp.scale(PureNumber)
       val cosY = y.cos
       val sinY = y.sin
-
-      // Debug output
-      println(s"exp debug: x=$x, y=$y")
-      println(s"  eToX=$eToX")
-      println(s"  cosY=$cosY")
-      println(s"  sinY=$sinY")
-      println(s"  eToX * cosY = ${eToX `doMultiply` cosY}")
-      println(s"  eToX * sinY = ${eToX `doMultiply` sinY}")
-
       ComplexCartesian(eToX `doMultiply` cosY, eToX `doMultiply` sinY)
     case c@ComplexPolar(r, theta, n) =>
       // For polar form, convert to Cartesian first
@@ -560,12 +612,23 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
   }
 
   /**
+    * Determines if the current Cartesian complex number is approximately zero based on a given confidence level.
+    *
+    * @param p the confidence level for determining if the number is considered zero.
+    *          A higher value indicates greater certainty. Ignored if the number is exactly zero.
+    *
+    * @return true if both the real and imaginary parts are approximately zero with the given confidence level, false otherwise.
+    */
+  def isProbablyZero(p: Double): Boolean =
+    x.isProbablyZero(p) && y.isProbablyZero(p)
+
+  /**
     * Method to determine if this complex number is probably zero (with probability of 1/2).
     *
     * @return true if the magnitude of this Field is zero.
     */
   lazy val isZero: Boolean =
-    x.isProbablyZero() && y.isProbablyZero()
+    isProbablyZero()
 
   /**
     * Determines if either the real or imaginary part of this Complex number is infinite.
@@ -890,19 +953,28 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
   }
 
   /**
+    * Determines if this ComplexPolar instance is equivalent to zero with at least the given level of confidence.
+    *
+    * @param p the confidence level desired, typically between 0 and 1. Ignored if the instance is already considered zero.
+    * @return true if the instance is equivalent to zero with at least the specified confidence level; false otherwise.
+    */
+  def isProbablyZero(p: Double): Boolean =
+    r.isProbablyZero(p)
+
+  /**
     * Method to determine if this ComplexPolar is zero.
     *
     * @return true if the magnitude of this Field is zero.
     */
-  def isZero: Boolean =
-    r.isZero
+  val isZero: Boolean =
+    isProbablyZero()
 
   /**
     * Determines if the magnitude of this Complex field is infinite.
     *
     * @return true if the magnitude of this Complex field is infinite, otherwise false.
     */
-  def isInfinite: Boolean =
+  val isInfinite: Boolean =
     r.isInfinite
 
   /**
@@ -913,7 +985,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     *
     * @return a Field that represents the normalized form of the Instance.
     */
-  def normalize: Field = (r, Number.modulate(theta), n) match {
+  lazy val normalize: Field = (r, Number.modulate(theta), n) match {
     case (z, ExactNumber(Value(0), Radian), 1) =>
       Real(z)
     case (z, ExactNumber(Value(1), Radian), 1) =>

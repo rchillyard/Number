@@ -66,7 +66,7 @@ case class ComposedDifferentiable[X: Numeric](g1: DiFunc[X], g2: DiFunc[X]) exte
   def df_dx(i: Int): X => Double = { x => g1.df_dx(i)(g2.f(x)) * g2.df_dx(i)(x) }
 
   // TODO check the order here
-  def f: X => X = g1.f.compose(g2.f)
+  lazy val f: X => X = g1.f.compose(g2.f)
 
   def apply(x: X): X = //g1.f(g2.f(x))
     f.apply(x)

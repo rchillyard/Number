@@ -32,7 +32,7 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
     *
     * @return A normalized instance of the current object represented as a Valuable.
     */
-  def normalize: WholeNumber = this
+  lazy val normalize: WholeNumber = this
 
   /**
     * Scales the current instance by the given factor.
@@ -53,7 +53,7 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
     * @return the integer value corresponding to this instance
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the conversion is not possible.
     */
-  def toInt: Int =
+  lazy val toInt: Int =
     FP.recover(toIntOption(toRational))(AlgebraException("WholeNumber.toInt: cannot convert $this to Int"))
 
   /**
@@ -61,14 +61,14 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
     *
     * @return a Rational representation of the current WholeNumber.
     */
-  def toRational: Rational = Rational(x)
+  lazy val toRational: Rational = Rational(x)
 
   /**
     * Retrieves an `Option` containing this instance as an object of type `Z`.
     *
     * @return an `Option[Z]` that wraps the current instance, which is always `Some(this)`.
     */
-  def maybeZ: Option[Z] = Some(this)
+  lazy val maybeZ: Option[Z] = Some(this)
 
   /**
     * Converts the current instance of `WholeNumber` to an optional `Q`.
@@ -78,7 +78,7 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
     *         will typically encapsulate the `WholeNumber` as a rational
     *         representation.
     */
-  def maybeQ: Option[Q] = Some(RationalNumber(toRational))
+  lazy val maybeQ: Option[Q] = Some(RationalNumber(toRational))
 
   /**
     * Subtracts the specified WholeNumber from this WholeNumber.
@@ -268,28 +268,30 @@ object WholeNumber {
     *
     * This is a lazily evaluated instance of `WholeNumber` initialized with the value 0.
     */
-  lazy val zero: WholeNumber = WholeNumber(0L)(Some("0"))
+  val zero: WholeNumber = WholeNumber(0L)(Some("0"))
   /**
     * Represents the whole number value `1` as an instance of `WholeNumber`.
     *
     * This is a lazy value, ensuring that the object is not instantiated until it is accessed,
     * and thereafter remains constant for the duration of the application's lifecycle.
     */
-  lazy val one: WholeNumber = WholeNumber(1L)(Some("1"))
+  val one: WholeNumber = WholeNumber(1L)(Some("1"))
   /**
     * Represents the constant whole number value of -1.
     *
     * This is a lazily computed instance of the `WholeNumber` type,
     * initialized with the value -1.
     */
-  lazy val minusOne: WholeNumber = WholeNumber(-1L)(Some("-1"))
+  val minusOne: WholeNumber = WholeNumber(-1L)(Some("-1"))
   /**
     * Represents the whole number two as a lazy value of type `WholeNumber`.
     *
     * This is a predefined constant for convenient access to the numeric value 2
     * in the context of `WholeNumber` operations and conversions.
     */
-  lazy val two: WholeNumber = WholeNumber(2L)(Some("2"))
+  val two: WholeNumber = WholeNumber(2L)(Some("2"))
+
+  val three: WholeNumber = WholeNumber(3L)(Some("3"))
 
   /**
     * Provides an implicit `Show` instance for the `WholeNumber` class, enabling conversion

@@ -56,8 +56,8 @@ trait Expression extends Lazy with Approximate {
     *
     * @return an `eager.Real` representing the approximate value of this `Expression`
     */
-  def fuzzy: eager.Eager = simplify match { // CONSIDER this looks wrong!
-    case Literal(eager.Complex(c), _) =>
+  lazy val fuzzy: eager.Eager = simplify match { // CONSIDER this looks wrong!
+    case IsEager(eager.Complex(c)) =>
       Eager(c)
     case _ =>
       materialize.fuzzy
@@ -119,19 +119,33 @@ trait Expression extends Lazy with Approximate {
     */
   lazy val simplify: Expression = {
     @tailrec
-    def inner(x: Expression): Expression = matchSimpler(x) match {
-      case em.Miss(msg, e: Expression) =>
-        Expression.logger(s"simplification of $x terminated by: $msg")
-        e
-      case em.Match(e: Expression) =>
+    def inner(x: Expression): Expression = matchSimpler(x) match { // XXX this does match all cases (need version 1.0.16 of Matchers to resolve the warning)
+      case em.Match(e) =>
         Expression.logger(s"simplification of $x: $e")
         inner(e)
-      case m =>
-        throw ExpressionException(s"simplify.inner($x): logic error on $m")
+      case em.Miss(msg, e) =>
+        Expression.logger(s"simplification of $x terminated by: $msg")
+        e.asInstanceOf[Expression]
+      case em.Error(e) =>
+        throw ExpressionException(s"simplify.inner($x): Error:", e)
     }
 
     inner(this)
   }
+
+  /**
+    * Represents the optional approximate evaluation of a complex `Expression`.
+    * The property retrieves the result of invoking the `approximationComplex` method
+    * on the `simplify` field, passing `true` as an argument to indicate that
+    * the result should be computed for complex approximations.
+    *
+    * This lazy value ensures that the computation is deferred until accessed,
+    * and only computed once for performance optimization.
+    *
+    * @return An `Option` of type `Eager`, containing the approximate complex
+    *         representation of this `Expression`, if available. Otherwise, `None`.
+    */
+  lazy val approximationComplex: Option[Eager] = simplify.approximationComplex(true)
 
   /**
     * Materializes this `Expression` into an `Eager` object by simplifying it, evaluating as-is,
@@ -148,9 +162,12 @@ trait Expression extends Lazy with Approximate {
     *
     * @return an `Eager` representation of this `Expression` achieved through evaluation and/or approximation.
     */
+  // updated materialize:
   lazy val materialize: Eager = {
     val asIs = simplify.evaluateAsIs
-    val maybeValuable = asIs.map(normalizeIfAppropriate) orElse approximation
+    val maybeValuable = asIs.map(normalizeIfAppropriate)
+      .orElse(approximation)
+      .orElse(approximationComplex)
     recover(maybeValuable)(ExpressionException(s"materialize: logic error on $this"))
   }
 
@@ -193,6 +210,50 @@ trait Expression extends Lazy with Approximate {
     * @return the depth (an atomic expression has a depth of 1).
     */
   def depth: Int
+
+  /**
+    * Method to use when debugging to know exactly what an Expression is in tree form.
+    * This is needed because toString and other renderers all use some sort of syntactic sugar to make things look nice for us humans.
+    *
+    * Creates a string representation of this `Expression` for debugging purposes.
+    * Depending on the type of this `Expression`, the output format varies:
+    * - For atomic `Product` instances (arity 0), the `productPrefix` is returned.
+    * - For non-atomic `Product` instances, the `productPrefix` is combined with the `debug` representation
+    *   of contained sub-expressions (if they are `Expression`s) or their `toString` representation otherwise.
+    * - For all other cases, the default `toString` implementation is used.
+    *
+    * @return a `String` representation useful for debugging.
+    */
+  lazy val debug: String = this match {
+    case p: Product if p.productArity == 0 =>
+      p.productPrefix
+    case p: Product =>
+      s"${p.productPrefix}(${
+        p.productIterator.map {
+          case e: Expression => e.debug
+          case x => x.toString
+        }.mkString(", ")
+      })"
+    case _ =>
+      toString
+  }
+
+  /**
+    * Determines if the current `Expression` or any of its sub-expressions contains the constant `I`.
+    *
+    * For `Expression` instances:
+    * - If the `Expression` is exactly the constant `I`, returns `true`.
+    * - If the `Expression` is a composite of other expressions (`CompositeExpression`), recursively searches
+    *   through the terms to check if any of them contains the constant `I`.
+    * - For all other cases, returns `false`.
+    *
+    * @return `true` if the constant `I` is present in the `Expression` or its components, `false` otherwise.
+    */
+  lazy val containsI: Boolean = this match {
+    case I => true
+    case c: CompositeExpression => c.terms.exists(_.containsI)
+    case _ => false
+  }
 
   /**
     * Normalizes the given `Eager` instance if it is not of type `Angle`.
@@ -287,9 +348,9 @@ object Expression {
       case (_, IsZero(_)) =>
         x
       case (IsUnity(_), _) =>
-        BiFunction(y, One, Sum)
+        BiFunction(One, y, Sum)
       case (_, IsUnity(_)) =>
-        BiFunction(x, One, Sum)
+        BiFunction(One, x, Sum)
       case _ =>
         BiFunction(x, y, Sum)
     }
@@ -686,29 +747,33 @@ object Expression {
     * Matches and simplifies expressions based on their type.
     * For `AtomicExpression` instances, it applies `simplifyAtomic` specific to the atomic expression.
     * For `CompositeExpression`, it uses a compound matcher that attempts simplifications
-    * in the following order: `simplifyOperands`, `identitiesMatcher`,
-    * `simplifyConstant`, and `structuralMatcher`.
+    * in the following order: `simplifyOperands`, `simplifyStructural`,
+    * `simplifyIdentities`, `simplifyParity`, `simplifyExpand`, and `simplifyByEvaluation`.
     * For unsupported expression types, it returns an error message.
     *
     * @return an `ExpressionTransformer` that matches and applies the appropriate
     *         simplifications or transformations to the provided expression.
     */
-  def matchSimpler: ExpressionTransformer = em.Matcher[Expression, Expression]("matchSimpler") {
+  def matchSimpler: ExpressionTransformer = em.Matcher[Expression, Expression]("Expression:matchSimpler") {
+
     case x: AtomicExpression =>
       x.simplifyAtomic(x)
+
     case x: CompositeExpression =>
       em.eitherOr(simplifyOperands,
         em.eitherOr(simplifyStructural,
           em.eitherOr(simplifyIdentities,
             em.eitherOr(simplifyParity,
-              em.eitherOr(simplifyLazy,
+              em.eitherOr(simplifyExpand,
                 simplifyByEvaluation)))))(x)
+
     case x =>
       em.Error(ExpressionException(s"matchSimpler unsupported expression type: $x"))
   }
 
   /**
-    * Phase 1: Simplify all operands before applying transformations.
+    * Phase 1 of the 6-phase simplification pipeline:
+    * Simplify all operands before applying transformations.
     *
     * Recursively calls .simplify() on each operand of composite expressions,
     * ensuring bottom-up simplification where nested expressions are fully
@@ -716,15 +781,52 @@ object Expression {
     *
     * @see docs/SimplificationPipeline.md for complete pipeline documentation
     */
-  def simplifyOperands: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("simplifyOperands") {
+  def simplifyOperands: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("Expression:simplifyOperands") {
+    case c: CompositeExpression if c.leaveOperandsAsIs =>
+      em.Miss("Expression:simplifyOperands: leaving operands as-is", c)
     case c: CompositeExpression =>
       c.operandsMatcher(c)
+
     case x =>
       em.Miss("simplifyOperands: not a Composite expression type", x)
   }
 
   /**
-    * Attempts to simplify expressions involving parity (odd/even functions) within binary
+    * Phase 2 of the 6-phase simplification pipeline.
+    * Attempts to simplify `CompositeExpression` instances by applying pattern-based rewrites that change expression structure.
+    * This matcher targets expressions of type `CompositeExpression` and invokes the `structuralMatcher` method
+    * to generate a simplified form of the expression based on its internal structure.
+    *
+    * @return an `AutoMatcher` for `Expression` that matches and simplifies composite expressions,
+    *         or returns the input expression unchanged if no simplifications are applicable.
+    */
+  def simplifyStructural: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("Expression:simplifyStructural") {
+    case c: CompositeExpression =>
+      c.structuralMatcher(c)
+
+    case x =>
+      em.Miss("simplifyStructural: not a Composite expression type", x)
+  }
+
+  /**
+    * Phase 3 of the 6-phase simplification pipeline:
+    * attempts to simplify trivial cases within a `CompositeExpression`.
+    * This method patterns matches on `CompositeExpression` instances and applies trivial simplifications
+    * specific to such expressions.
+    *
+    * @return an instance of `em.AutoMatcher[Expression]` that identifies and simplifies trivial cases in composite expressions.
+    */
+  def simplifyIdentities: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("Expression:simplifyIdentities") {
+    case c: CompositeExpression =>
+      c.identitiesMatcher(c)
+
+    case x =>
+      em.Miss("Expression.identitiesMatcher: not a Composite expression type", x)
+  }
+
+  /**
+    * Phase 4 of the 6-phase simplification pipeline:
+    * attempts to simplify expressions involving parity (odd/even functions) within binary
     * operations such as summation. If specific patterns matching the parity rules
     * are found, it produces a simplified result. Otherwise, no change is applied.
     *
@@ -733,26 +835,28 @@ object Expression {
     *         indicating no simplification was possible for the provided expression.
     */
   def simplifyParity: em.AutoMatcher[Expression] =
-    em.Matcher[Expression, Expression]("simplifyParity") {
+    em.Matcher[Expression, Expression]("Expression:simplifyParity") {
       case BiFunction(UniFunction(x, f@Odd()), UniFunction(y, g@Odd()), Sum) if f == g && (x + y).isZero =>
         em.Match(Zero)
       case BiFunction(UniFunction(x, f@Even()), UniFunction(y, g@Even()), Sum) if f == g && (x + y).isZero =>
         em.Match(Two * UniFunction(x, f))
+
       case x =>
         em.Miss("simplifyParity: no parity simplification", x)
     }
 
   /**
-    * Attempts to simplify an `Expression` exactly based on specific rules for composite expressions.
-    * If the expression is of type `CompositeExpression`, it applies the `simplifyLazy` method
+    * Phase 5 of the 6-phase simplification pipeline:
+    * attempts to simplify an `Expression` exactly based on specific rules for composite expressions.
+    * If the expression is of type `CompositeExpression`, it applies the `simplifyExpand` method
     * specific to that type. For other expression types, it returns a miss, indicating that simplification
     * is not applicable for the given type.
     *
     * @return an `em.AutoMatcher[Expression]` that matches and simplifies exact cases for composite expressions
     *         or signals when simplification is not applicable to non-composite expressions.
     */
-  def simplifyLazy: em.AutoMatcher[Expression] =
-    em.Matcher[Expression, Expression]("simplifyLazy") {
+  def simplifyExpand: em.AutoMatcher[Expression] =
+    em.Matcher[Expression, Expression]("Expression:simplifyExpand") {
       // Special cases that need simplification
       case UniFunction(Two, Ln) =>
         em.Match(L2) `flatMap` matchSimpler
@@ -760,7 +864,8 @@ object Expression {
         em.Match((E ∧ x - E ∧ (-x)) / Two) `flatMap` matchSimpler
       case UniFunction(x, Cosh) =>
         em.Match((E ∧ x + E ∧ (-x)) / Two) `flatMap` matchSimpler
-      case BiFunction(Literal(ComplexPolar(r, theta, n), _), Two, Power)
+
+      case BiFunction(IsEager(ComplexPolar(r, theta, n)), Two, Power)
         if n == 2 && theta.isZero =>
         em.Match(Literal(r.power(2)))
 
@@ -769,53 +874,70 @@ object Expression {
         c.simplifyLazy(c)
 
       case x =>
-        em.Miss("simplifyLazy: cannot simplify exactly", x)
+        em.Miss("simplifyExpand: cannot simplify exactly", x)
     }
 
   /**
-    * Attempts to simplify trivial cases within a `CompositeExpression`.
-    * This method patterns matches on `CompositeExpression` instances and applies trivial simplifications
-    * specific to such expressions.
-    *
-    * @return an instance of `em.AutoMatcher[Expression]` that identifies and simplifies trivial cases in composite expressions.
-    */
-  def simplifyIdentities: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("Expression.identitiesMatcher") {
-    case c: CompositeExpression =>
-      c.identitiesMatcher(c)
-    case x =>
-      em.Miss("Expression.identitiesMatcher: not a Composite expression type", x)
-  }
-
-  /**
-    * Attempts to simplify an expression by evaluating it if possible.
+    * Phase 6 of the 6-phase simplification pipeline:
+    * attempts to simplify an expression by evaluating it if possible.
     * If the expression is a composite expression and can be evaluated,
     * the method returns a simplified version of the evaluated result.
     * If the expression cannot be evaluated or is already an atomic expression,
     * the simplification operation is skipped.
-    * This is the last resort for simplification, and is typically used when no other simplification is possible.
+    * This is the last resort for simplification and is typically used when no other simplification is possible.
     *
     * @return An instance of `em.AutoMatcher[Expression]` that performs
     *         matching and optionally simplifies an expression by evaluating it.
     */
   def simplifyByEvaluation: em.AutoMatcher[Expression] =
-    em.Matcher[Expression, Expression]("Expression.simplifyByEvaluation") {
+    em.Matcher[Expression, Expression]("Expression:simplifyByEvaluation") {
       case BiFunction(ValueExpression(x: eager.Number, _), ValueExpression(q: Q, _), Power) if q.toRational.invert.isWhole =>
         val root = q.toRational.invert.toInt
         em.Match(Literal(InversePower(root, x))) `flatMap` matchSimpler
       //      case BiFunction(ValueExpression(q: Q, _), ValueExpression(RationalNumber.half, _), Power) =>
       //        em.Match(Root.squareRoot(q.toRational, 0)) // NOTE we arbitrarily choose the positive root
-      case c: CompositeExpression if !CompositeExpression.shouldStaySymbolic(c) =>
+      case c: CompositeExpression if !c.shouldStaySymbolic =>
         c.evaluateAsIs match {
           case Some(f) =>
             em.MatchCheck(Expression(f))(c).map(_.simplify)
           case _ =>
             em.Miss("Expression.simplifyByEvaluation: cannot evaluate", c)
         }
-      case a: AtomicExpression =>
+
+      case a: AtomicExpression => // TODO there is no reason for this case!
         em.Miss("Expression.simplifyByEvaluation: atomic expression already simplified", a)
+
       case e =>
         em.Miss("Expression.simplifyByEvaluation: cannot simplify", e)
     }
+
+  /** Canonical ordering for Expressions, used to normalise commutative BiFunction operands.
+    * Primary key: AtomicExpression < CompositeExpression.
+    * Secondary key (atoms): by type rank (see atomRank).
+    * Tertiary key (composites): by structural depth.
+    */
+  given Ordering[Expression] with
+    def compare(x: Expression, y: Expression): Int = (x, y) match
+      case (a: AtomicExpression, b: AtomicExpression) => atomRank(a) - atomRank(b)
+      case (_: AtomicExpression, _: CompositeExpression) => -1
+      case (_: CompositeExpression, _: AtomicExpression) => 1
+      case (a: CompositeExpression, b: CompositeExpression) => a.depth - b.depth
+      case (a, b) => a.compare(b) // This case should never occur
+
+  private def atomRank(e: AtomicExpression): Int = e match
+    case Noop => 0
+    case _: Literal => 1
+    case _: ScalarConstant => 2
+    case E => 3
+    case I => 4
+    case Infinity => 5
+    case PiTranscendental => 6
+    case ETranscendental => 7
+    case L2 => 8
+    case LgE => 9
+    case EulerMascheroni => 10
+    case _: LinearRoot => 11
+    case _: QuadraticRoot => 12
 
   /**
     * Determines whether the provided expression `z` is an identity element
@@ -851,21 +973,6 @@ object Expression {
   }
 
   /**
-    * Attempts to simplify `CompositeExpression` instances by applying pattern-based rewrites that change expression structure.
-    * This matcher targets expressions of type `CompositeExpression` and invokes the `structuralMatcher` method
-    * to generate a simplified form of the expression based on its internal structure.
-    *
-    * @return an `AutoMatcher` for `Expression` that matches and simplifies composite expressions,
-    *         or returns the input expression unchanged if no simplifications are applicable.
-    */
-  private def simplifyStructural: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("structuralMatcher") {
-    case c: CompositeExpression =>
-      c.structuralMatcher(c)
-    case x =>
-      em.Miss("structuralMatcher: not a Composite expression type", x)
-  }
-
-  /**
     * LatexRenderer for Expression - delegates to specific implementations.
     */
   given LatexRenderer[Expression] = LatexRenderer.instance {
@@ -890,4 +997,4 @@ object Expression {
   *
   * @param str The error message providing details about the expression error.
   */
-case class ExpressionException(str: String) extends Exception(str)
+case class ExpressionException(str: String, x: Throwable = null) extends Exception(str, x)

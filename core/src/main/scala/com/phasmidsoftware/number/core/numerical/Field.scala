@@ -213,6 +213,12 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
     * @return a Field representing the exponential of this instance.
     */
   def exp: Field
+
+  def sinh: Field
+
+  def cosh: Field
+
+  def tanh: Field
 }
 
 /**

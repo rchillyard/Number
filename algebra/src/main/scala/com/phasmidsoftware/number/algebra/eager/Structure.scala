@@ -198,7 +198,7 @@ trait Exact extends WithFuzziness {
     *
     * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
     */
-  def fuzz: Option[Fuzziness[Double]] = None
+  lazy val fuzz: Option[Fuzziness[Double]] = None
 }
 
 /**
@@ -248,7 +248,7 @@ trait Functional extends Structure with MaybeFuzzy with Ordered[Functional] {
     *
     * @return An Option containing the fuzziness representation of the number, or None if not available.
     */
-  def maybeFuzz: Option[Fuzziness[Double]] =
+  lazy val maybeFuzz: Option[Fuzziness[Double]] =
     number.fuzz map {
       val fuzzFunction: Double => Double = x => derivativeFunction(x) * x / scaleFunction(x)
       fuzz => fuzz.transform[Double, Double](fuzzFunction)(scaleFunction(number.toDouble))
@@ -262,7 +262,7 @@ trait Functional extends Structure with MaybeFuzzy with Ordered[Functional] {
     *
     * @return The nominal value as a `Double`.
     */
-  def nominalValue: Double = scaleFunction(number.toDouble)
+  lazy val nominalValue: Double = scaleFunction(number.toDouble)
 
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
@@ -271,7 +271,7 @@ trait Functional extends Structure with MaybeFuzzy with Ordered[Functional] {
     *
     * @return Some(x) where x is a Double if this is exact, else None.
     */
-  override def maybeDouble: Option[Double] =
+  override lazy val maybeDouble: Option[Double] =
     Option.when(isExact)(nominalValue)
 }
 

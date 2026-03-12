@@ -30,10 +30,10 @@ class ExpressionEdgeCasesSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "simplify (-a) * a → -(a²)" in {
-    // Line 567: case BiFunction(UniFunction(a, Negate), b, Product) if a == b
+    // Line 567: case BiFunction(b, UniFunction(a, Negate), Product) if a == b
     val x = Pi.sqrt // Use √π to avoid eager evaluation
     val negX = UniFunction(x, Negate) // -√π
-    val product = BiFunction(negX, x, Product) // (-√π) * √π
+    val product = BiFunction(x, negX, Product) // (-√π) * √π
     val actual = Expression.matchSimpler(product)
     val expected: Expression = -(x ∧ 2)
     actual shouldBe Expression.em.Match(expected)
@@ -159,8 +159,6 @@ class ExpressionEdgeCasesSpec extends AnyFlatSpec with Matchers {
   it should "handle Euler's identity with complex polar" in {
     // Line 839: case (E, Literal(ComplexCartesian(Number.zero, Number.pi), _))
     val complexNum: numerical.Complex = ComplexPolar(numerical.Number.pi, numerical.Number.piBy2) // 0 + πi
-    val magnitude = complexNum.modulus
-    println(s"complexNum = $complexNum; magnitude = $magnitude; argument = ${complexNum.argument}; isImaginary = ${complexNum.isImaginary}")
     val power = BiFunction(E, Literal(Complex(complexNum)), Power) // e^(πi)
     val result = power.simplify
 

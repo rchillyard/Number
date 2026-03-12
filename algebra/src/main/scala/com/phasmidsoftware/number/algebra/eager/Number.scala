@@ -29,13 +29,10 @@ import scala.util.{Failure, Success, Try}
 trait Number extends Scalar with Unitary with Ordered[Scalar] {
 
   /**
-    * Normalizes this `T` to its simplest equivalent form where T is the supertype of all possible results.
+    * Normalizes this `Number` to its simplest equivalent form.
     * This may change the type (e.g., RationalNumber → WholeNumber, Complex(5,0) → WholeNumber(5)).
     *
-    * For Expression types, this will attempt to simplify and materialize if the result is exact.
-    * For Eager types, this will reduce to the simplest type representation.
-    *
-    * @return the simplest representation of this value that is a subtype of `T`.
+    * @return the simplest representation of this value that is a subtype of `Number`.
     */
   def normalize: Number
 
@@ -349,7 +346,7 @@ trait ExactNumber extends Number with Exact with Q with Scalable[ExactNumber] wi
     *
     * @return the `Double` value obtained by converting this `WholeNumber` to a `Rational` and then to a `Double`.
     */
-  def asDouble: Double = toRational.toDouble
+  lazy val asDouble: Double = toRational.toDouble
 
   /**
     * Scales the current `WholeNumber` by a given Rational multiplier and returns the result
@@ -494,7 +491,7 @@ object Number {
       *
       * @return the additive identity element for `Number`
       */
-    def zero: Number = Number.zero
+    lazy val zero: Number = Number.zero
 
     /**
       * Adds two `Number` instances together.
@@ -553,7 +550,7 @@ object Number {
       *
       * @return the predefined constant representing the number one
       */
-    def one: Number = Number.one
+    lazy val one: Number = Number.one
 
     /**
       * Multiplies two `Number` instances and returns the resulting `Number`.

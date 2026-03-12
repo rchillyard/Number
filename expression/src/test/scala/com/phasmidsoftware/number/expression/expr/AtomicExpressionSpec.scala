@@ -288,13 +288,13 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers with TableDr
 
   it should "negate to -½" in {
     Half.monadicFunction(Negate) match {
-      case Some(Literal(v, _)) => v shouldBe -RationalNumber.half
+      case Some(IsEager(v)) => v shouldBe -RationalNumber.half
       case _ => fail("Expected Literal with value -1/2")
     }
   }
 
   // ============================================================================
-  // I Tests (Imaginary Unit)
+  // I Tests (imaginary Unit)
   // ============================================================================
 
   behavior of "I"
