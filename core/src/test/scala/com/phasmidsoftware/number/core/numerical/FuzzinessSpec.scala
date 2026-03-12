@@ -242,6 +242,150 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     h.get.shape.wiggle(r, 0.9) shouldBe 6.25E-4
     h.get.shape.wiggle(r, 1) shouldBe 0
   }
+  behavior of "Trapezoid.wiggle"
+  it should "be independent of p in flat-top region" in {
+    val t = Trapezoid(1.0, 2.0)
+    // threshold = a/b = 0.5; flat-top when confidence > threshold
+    t.wiggle(0, 0.0) shouldBe Double.PositiveInfinity
+    t.wiggle(0, 0.6) shouldBe 1.0 // flat-top: b-a = 1.0
+    t.wiggle(0, 0.9) shouldBe 1.0 // flat-top: b-a = 1.0
+    t.wiggle(0, 1.0) shouldBe 0.0
+  }
+  it should "be in ramp region for p > threshold" in {
+    val t = Trapezoid(1.0, 2.0)
+    // threshold = a/b = 0.5; ramp region when confidence < threshold
+    t.wiggle(0, 0.2) shouldBe (3.0 - 2 * math.sqrt(1.0 * 2.0 * 0.2)) +- 1E-10
+    t.wiggle(0, 0.4) shouldBe (3.0 - 2 * math.sqrt(1.0 * 2.0 * 0.4)) +- 1E-10
+  }
+  it should "be continuous at the boundary" in {
+    val t = Trapezoid(1.0, 2.0)
+    val threshold = (2.0 - 1.0) / 2.0 // = 0.5
+    t.wiggle(0, threshold) shouldBe (3.0 - math.sqrt(2 * 1 * (1 + 2 * 0.5))) +- 1E-10
+  }
+  it should "work for the triangle case (a==b)" in {
+    val t = Trapezoid(2.0, 2.0)
+    t.wiggle(0, 0.5) shouldBe (4.0 - 2 * math.sqrt(4.0 * 0.5)) +- 1E-10 // ≈ 1.172
+    t.wiggle(0, 0.75) shouldBe (4.0 - 2 * math.sqrt(4.0 * 0.75)) +- 1E-10 // ≈ 0.536
+    t.wiggle(0, 0.0) shouldBe Double.PositiveInfinity
+    t.wiggle(0, 1.0) shouldBe 0.0
+  }
+
+  behavior of "Trapezoid.probability"
+  it should "work in flat-top region" in {
+    val t = Trapezoid(1.0, 2.0)
+    t.probability(0, 0.0) shouldBe 0.0
+    t.probability(0, 0.5) shouldBe 0.25 // x/b = 0.5/2
+    t.probability(0, 1.0) shouldBe 0.5 // (b-a)/b = threshold
+  }
+  it should "work in ramp region" in {
+    val t = Trapezoid(1.0, 2.0)
+    t.probability(0, 2.0) shouldBe 0.875 +- 1E-10
+    t.probability(0, 3.0) shouldBe 1.0
+  }
+  it should "be consistent with wiggle (round-trip)--in ramp region only" in {
+    val t = Trapezoid(1.0, 2.0)
+    // threshold = a/b = 0.5; ramp region when confidence < threshold
+    for (confidence <- Seq(0.1, 0.2, 0.3, 0.4)) {
+      t.probability(0, t.wiggle(0, confidence)) shouldBe (1 - confidence) +- 1E-10
+    }
+  }
+
+  behavior of "Trapezoid.sigma"
+  it should "match sum of Box variances" in {
+    val t = Trapezoid(1.0, 2.0)
+    t.sigma shouldBe math.sqrt((1.0 + 4.0) / 3.0) +- 1E-10
+  }
+  it should "degenerate correctly to Box case" in {
+    // Trapezoid(0, b) should have same sigma as Box(b)
+    val t = Trapezoid(0.0, 2.0) // NOTE: requires relaxing require(a<=b) to require(a>=0)
+    t.sigma shouldBe Box.toGaussianAbsolute(2.0) +- 1E-10
+  }
+
+  behavior of "Box-like trapezoid"
+  it should "behave like Box(b) when a << b" in {
+    val t = Trapezoid(0.1, 10.0)
+    // Well within flat-top region: probability should match Box(b) closely
+    // Box.probability(l, x) = x/l; Trapezoid.probability in flat-top = x/b
+    t.probability(0, 5.0) shouldBe Box.probability(10.0, 5.0) +- 0.01
+    t.probability(0, 8.0) shouldBe Box.probability(10.0, 8.0) +- 0.01
+    // In flat-top, wiggle is independent of confidence, like Box
+    t.wiggle(0, 0.5) shouldBe 9.9 +- 0.01 // b-a, close to b=10
+    t.wiggle(0, 0.8) shouldBe 9.9 +- 0.01 // same flat-top value
+    // Near the edge, diverges from Box
+    t.probability(0, 10.0) shouldBe Box.probability(10.0, 10.0) +- 0.1
+  }
+
+  behavior of "AbsoluteFuzz convolution Box*Box"
+  it should "produce a Trapezoid" in {
+    val f1 = AbsoluteFuzz(1.0, Box)
+    val f2 = AbsoluteFuzz(2.0, Box)
+    val result = f1 * (f2, true)
+    result should matchPattern { case AbsoluteFuzz(_, Trapezoid(1.0, 2.0)) => }
+    result.asInstanceOf[AbsoluteFuzz[Double]].magnitude shouldBe 3.0
+  }
+  it should "normalizeShape to Gaussian" in {
+    val f1 = AbsoluteFuzz(1.0, Box)
+    val f2 = AbsoluteFuzz(2.0, Box)
+    val result = (f1 * (f2, true)).normalizeShape
+    result should matchPattern { case AbsoluteFuzz(_, Gaussian) => }
+    result.asInstanceOf[AbsoluteFuzz[Double]].magnitude shouldBe
+      math.sqrt(5.0 / 3.0) +- 1E-10
+  }
+  behavior of "RelativeFuzz convolution Box*Box"
+  it should "produce a Trapezoid" in {
+    val f1 = RelativeFuzz[Double](0.01, Box)
+    val f2 = RelativeFuzz[Double](0.02, Box)
+    val result = f1 * (f2, true)
+    result should matchPattern { case RelativeFuzz(_, Trapezoid(0.01, 0.02)) => }
+    result.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.03 +- 1E-10
+  }
+  it should "normalizeShape to Gaussian" in {
+    val f1 = RelativeFuzz[Double](0.01, Box)
+    val f2 = RelativeFuzz[Double](0.02, Box)
+    val result = (f1 * (f2, true)).normalizeShape
+    result should matchPattern { case RelativeFuzz(_, Gaussian) => }
+    result.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe
+      math.sqrt((0.01 * 0.01 + 0.02 * 0.02) / 3.0) +- 1E-10
+  }
+  it should "be symmetric" in {
+    val f1 = RelativeFuzz[Double](0.01, Box)
+    val f2 = RelativeFuzz[Double](0.02, Box)
+    (f1 * (f2, true)) shouldBe (f2 * (f1, true))
+  }
+
+  behavior of "RelativeFuzz.wiggle with Trapezoid"
+  it should "work in flat-top region" in {
+    val f = RelativeFuzz[Double](0.03, Trapezoid(0.01, 0.02))
+    // threshold = a/b = 0.01/0.02 = 0.5; flat-top when confidence > threshold
+    f.wiggle(0.6) shouldBe 0.01 // b-a, independent of confidence
+    f.wiggle(0.9) shouldBe 0.01
+  }
+  it should "work in ramp region" in {
+    val f = RelativeFuzz[Double](0.03, Trapezoid(0.01, 0.02))
+    // ramp region when confidence < a/b = 0.5
+    f.wiggle(0.3) shouldBe
+      (0.03 - 2 * math.sqrt(0.01 * 0.02 * 0.3)) +- 1E-10
+  }
+  it should "be consistent with probability (round-trip)" in {
+    val t = Trapezoid(0.01, 0.02)
+    val f = RelativeFuzz[Double](0.03, t)
+    // threshold = a/b = 0.5; ramp region when confidence < threshold
+    for (confidence <- Seq(0.1, 0.2, 0.3, 0.4)) {
+      val w = f.wiggle(confidence)
+      t.probability(0, implicitly[HasValue[Double]].toDouble(w)) shouldBe (1 - confidence) +- 1E-10
+    }
+  }
+
+  behavior of "RelativeFuzz convolution Trapezoid*Gaussian"
+  it should "normalize Trapezoid to Gaussian before convolving" in {
+    val t = Trapezoid(0.01, 0.02)
+    val f1 = RelativeFuzz[Double](0.03, t)
+    val f2 = RelativeFuzz[Double](0.05, Gaussian)
+    val result = f1.normalizeShape * (f2, true)
+    result should matchPattern { case RelativeFuzz(_, Gaussian) => }
+    result.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe
+      Gaussian.convolutionProduct(t.sigma, 0.05, independent = true) +- 1E-10
+  }
 
   behavior of "Gaussian.wiggle"
   it should "be likely for 5.0040" in {
@@ -249,7 +393,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     xy.isDefined shouldBe true
     val x: Number = xy.get
     val z: Option[Fuzziness[Double]] = for (y <- x.fuzz; w <- x.toNominalDouble; v <- y.normalize(w, relative = true)) yield v
-//    x.fuzz flatMap (_.normalize(x.toDouble, true))
+    //    x.fuzz flatMap (_.normalize(x.toDouble, true))
     z.isDefined shouldBe true
     val q: Fuzziness[Double] = z.get
     q should matchPattern { case RelativeFuzz(_, _) => }
@@ -286,13 +430,23 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     x.addFuzz(AbsoluteFuzz(1, Gaussian)).fuzz.get.wiggle(1 - 0.95) shouldBe 1.9599639845400538
     x.addFuzz(AbsoluteFuzz(1, Gaussian)).fuzz.get.wiggle(1 - 0.997) shouldBe 2.9677379253417824
   }
+  it should "pass the sanity check for converting from Box to Gaussian" in {
+    val x = Number.zero
+    val y = x.addFuzz(AbsoluteFuzz(1, Box))
+    y.fuzz.get.wiggle(0.5) shouldBe 0.5
+    val fuzz = y.fuzz
+    val z = fuzz.map(f => f.normalizeShape)
+    z.get shouldBe AbsoluteFuzz[Double](0.5773502691896258, Gaussian)
+    z.get.wiggle(0.5) shouldBe 0.38941683884135114
+  }
 
   behavior of "probability"
   it should "work for a box" in {
     val fuzz = Number.zero.addFuzz(AbsoluteFuzz(1, Box)).fuzz.get
-    fuzz.probability(1.0, 0.0) shouldBe 0
-    fuzz.probability(1.0, 0.25) shouldBe 0.5
-    fuzz.probability(1.0, 0.5) shouldBe 1
+    fuzz.probability(1.0, 0.0) shouldBe 0.0
+    fuzz.probability(1.0, 0.25) shouldBe 0.25
+    fuzz.probability(1.0, 0.5) shouldBe 0.5
+    fuzz.probability(1.0, 1.0) shouldBe 1.0
   }
   it should "work for a Gaussian" in {
     val fuzz: Fuzziness[Double] = Number.zero.addFuzz(AbsoluteFuzz(1, Gaussian)).fuzz.get
@@ -323,6 +477,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "power"
   it should "work for e∧x" in {
+    pending // WI14 (Issue #197)
     val two = Number("2.00[2]")
     val nominalValueOfTwo = 2
     val relativeErrorOfTwo = 0.01

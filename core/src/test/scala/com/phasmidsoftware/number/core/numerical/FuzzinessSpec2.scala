@@ -423,10 +423,10 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
 
   it should "calculate probability correctly" in {
     val prob = Box.probability(1.0, 0.5)
-    prob shouldBe 1.0 // Within the box
+    prob shouldBe 0.5 // Half of the box covered
 
     val prob2 = Box.probability(1.0, 1.5)
-    prob2 shouldBe 1.0 // Outside the box
+    prob2 shouldBe 1.0 // Outside the box, so certainly within range
   }
 
   behavior of "Edge cases"

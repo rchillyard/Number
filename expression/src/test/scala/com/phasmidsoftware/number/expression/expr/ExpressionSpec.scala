@@ -196,7 +196,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val e = BiFunction(Literal(1), Pi, Sum)
     e.toString shouldBe """(1 + 𝛑)"""
     e.render shouldBe "(1 + 𝛑)"
-    e.materialize.render shouldBe "4.14159265358979300(91)"
+    e.materialize.render shouldBe "4.14159265358979300(75)"
   }
   it should "evaluate 3 5 + 7 2 – *" in {
     val expression = (Expression(3) :+ 5) * (7 - 2)

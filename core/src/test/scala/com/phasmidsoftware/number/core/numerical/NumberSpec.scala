@@ -162,12 +162,12 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for E∧2 as Real" in {
     val target = Number("2\uD835\uDF00").normalize.asInstanceOf[Real]
-    target.x.scale(PureNumber).render shouldBe "7.3890560989306500(87)"
+    target.x.scale(PureNumber).render shouldBe "7.389056098930650(3)"
   }
   it should "work for E, SquareRoot" in {
     val target = Number(math.E * math.E)
     val result = target.sqrt.normalize.asInstanceOf[Real]
-    result.render shouldBe "2.718281828459045[4]"
+    result.render shouldBe "2.7182818284590450(22)"
   }
   // TODO fix this--it fails in CircleCI (fails here, too)
   // NOTE this is quite bizarre
@@ -1045,7 +1045,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for 1/3" in {
     // Get the sine of 1/3 as a pure number.
-    Number(Rational(1, 3)).sin shouldBe FuzzyNumber(Value.fromDouble(Some(0.3271946967961522)), PureNumber, Some(RelativeFuzz(1.4797611308423386E-15, Box)))
+    Number(Rational(1, 3)).sin shouldBe FuzzyNumber(Value.fromDouble(Some(0.3271946967961522)), PureNumber, Some(RelativeFuzz(8.277325698205645E-16, Gaussian)))
   }
 
   behavior of "cos"
@@ -1073,7 +1073,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for 2/3" in {
     // Get the cosine of 2/3 as a pure number.
-    Number(Rational(2, 3)).cos shouldBe FuzzyNumber(Value.fromDouble(Some(0.7858872607769481)), PureNumber, Some(RelativeFuzz(8.542624017840829E-16, Gaussian)))
+    Number(Rational(2, 3)).cos shouldBe FuzzyNumber(Value.fromDouble(Some(0.7858872607769481)), PureNumber, Some(RelativeFuzz(8.533042206102855E-16, Gaussian)))
   }
 
   behavior of "tan"

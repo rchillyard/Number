@@ -293,7 +293,7 @@ class FuzzyNumberIsProbablyZeroSpec extends AnyFlatSpec with Matchers with Table
       val number = FuzzyNumber.addFuzz(Number(value), AbsoluteFuzz(fuzzValue, Box))
 
       probabilities.zip(expectations).foreach { case (prob, expected) =>
-        withClue(s"$description at p=$prob: ") {
+        withClue(s"$description at confidence=$prob: ") {
           number.isProbablyZero(prob) shouldBe expected
         }
       }
@@ -326,7 +326,7 @@ class FuzzyNumberIsProbablyZeroSpec extends AnyFlatSpec with Matchers with Table
       results.foreach { case (p, result) =>
         if (seenFalse && result) {
           fail(s"Monotonicity violated for value=$value, fuzz=$fuzzValue: " +
-            s"isProbablyZero returned true at p=$p after returning false at lower probability")
+            s"isProbablyZero returned true at confidence=$p after returning false at lower probability")
         }
         if (!result) seenFalse = true
       }
@@ -350,7 +350,7 @@ class FuzzyNumberIsProbablyZeroSpec extends AnyFlatSpec with Matchers with Table
 
     zeros.foreach { zero =>
       probabilities.foreach { prob =>
-        withClue(s"Zero representation at p=$prob: ") {
+        withClue(s"Zero representation at confidence=$prob: ") {
           zero.isProbablyZero(prob) shouldBe true
         }
       }
@@ -391,7 +391,7 @@ class FuzzyNumberIsProbablyZeroSpec extends AnyFlatSpec with Matchers with Table
       val fuzz = AbsoluteFuzz(f, Box)
       probabilities.foreach { p =>
         val wiggle = fuzz.normalizeShape.wiggle(p)
-        println(s"Fuzz=$f, p=$p → wiggle=$wiggle")
+        println(s"Fuzz=$f, confidence=$p → wiggle=$wiggle")
       }
     }
   }

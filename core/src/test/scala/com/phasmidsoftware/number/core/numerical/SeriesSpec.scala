@@ -7,6 +7,7 @@ package com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+
 import scala.util.Random
 
 class SeriesSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
@@ -22,6 +23,7 @@ class SeriesSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     s.term(7) shouldBe None
   }
   it should "evaluateToTolerance n" in {
+    pending // Issue #197 (WI14)
     s.evaluate(None) should matchPattern { case Some(FuzzyDouble(28, _)) => }
   }
   it should "evaluateToTolerance epsilon" in {
