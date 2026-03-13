@@ -63,7 +63,7 @@ trait NumberLike {
       case Some(ExactNumber(x, PureNumber)) =>
         Value.asJavaNumber(x)
       // TODO This is not a good test: it needs to ensure that z is relative
-      case Some(FuzzyNumber(x, PureNumber, Some(z))) if z.wiggle(0.5) < DoublePrecisionTolerance =>
+      case Some(FuzzyNumber(x, PureNumber, Some(z))) if z.wiggle() < DoublePrecisionTolerance =>
         Value.asJavaNumber(x)
       case _ => None
     }

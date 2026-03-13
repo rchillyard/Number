@@ -49,7 +49,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     case Real(n) =>
       isSame(n)
     case n: Number =>
-      fuzzyCompare(n, 0.5) == 0
+      fuzzyCompare(n) == 0
     case c: Complex =>
       c.isSame(Real(this))
   }
@@ -122,7 +122,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     * @return -1, 0, or 1 according to whether x is <, =, or > y.
     */
   def compare(other: Number): Int =
-    fuzzyCompare(other, 0.5)
+    fuzzyCompare(other)
 
   /**
     * NOTE this method can be eliminated but the compare query operation doesn't appear to take fuzziness into account.
@@ -154,11 +154,11 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     if (isProbablyZero(p)) 0 else Number.signum(this)
 
   /**
-    * @param p the confidence desired. Ignored if isZero is true.
+    * @param confidence the confidence desired. Ignored if isZero is true.
     * @return true if this Number is equivalent to zero with at least p confidence.
     */
-  def isProbablyZero(p: Double = 0.5): Boolean =
-    GeneralNumber.isZero(this) || (for (f <- fuzz; x <- toNominalDouble) yield withinWiggleRoom(p, f, x)).getOrElse(false)
+  def isProbablyZero(confidence: Double = 0.5): Boolean =
+    GeneralNumber.isZero(this) || (for (f <- fuzz; x <- toNominalDouble) yield withinWiggleRoom(confidence, f, x)).getOrElse(false)
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
@@ -189,7 +189,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     lazy val valueAsString = Value.valueToString(nominalValue, skipOne = false, exact = fuzz.isEmpty)
     val z = fuzz match {
       // CONSIDER will the following test work in all cases?
-      case Some(f) if f.wiggle(0.5) > 1E-16 =>
+      case Some(f) if f.wiggle() > 1E-16 =>
         f.getQualifiedString(toNominalDouble.getOrElse(0.0))
       case Some(_) =>
         true -> (valueAsString.replace(Ellipsis, "") + Asterisk)
@@ -244,7 +244,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
         val v = toNominalDouble.getOrElse(0.0)
         f.normalize(v, relative = true) match
           case Some(relFuzz) =>
-            val tolerance = relFuzz.wiggle(0.5)
+            val tolerance = relFuzz.wiggle()
             val valueStr = FuzzyNumber.roundToSigFigs(v, FuzzyNumber.sigFigsForTolerance(tolerance))
             val percentageForm = s"$valueStr\u00B1${relFuzz.asPercentage}"
             if percentageForm.length < rendered.length then percentageForm
@@ -489,13 +489,13 @@ object FuzzyNumber {
 
   /**
     *
-    * @param p the confidence desired. Ignored if isZero is true.
+    * @param confidence the confidence desired. Ignored if isZero is true.
     * @param f the fuzziness.
     * @param x the value to be tested (may be positive or negative).
     * @return true if x is within the tolerance range of f, given confidence level p. Otherwise, false
     */
-  private def withinWiggleRoom(p: Double, f: Fuzziness[Double], x: Double) =
-    f.normalizeShape.wiggle(p) > math.abs(x)
+  private def withinWiggleRoom(confidence: Double, f: Fuzziness[Double], x: Double) =
+    f.normalizeShape.wiggle(confidence) > math.abs(x)
 }
 
 /**

@@ -8,7 +8,7 @@ package com.phasmidsoftware.number.algebra.core
   * Trait representing fuzzy equality for a type `A`.
   *
   * Fuzzy equality allows determining whether two instances of type `A`
-  * are approximately equal based on a given probability `p`.
+  * are approximately equal based on a given confidence level `p`.
   *
   * @tparam A The type for which fuzzy equality is defined.
   */

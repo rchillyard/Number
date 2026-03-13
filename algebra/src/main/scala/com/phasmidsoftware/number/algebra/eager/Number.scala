@@ -263,12 +263,12 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
     * If both instances are of type `Number`, it converts them to `Real` for the comparison.
     * If either of the approximations fails, or the comparison is not applicable, it delegates to the super implementation.
     *
-    * @param p    the tolerance level for the fuzzy equality comparison. A higher value increases the permissible difference.
+    * @param confidence the tolerance level for the fuzzy equality comparison. A higher value increases the permissible difference.
     * @param that the `Eager` instance to compare this `Number` instance against.
     * @return a `Try[Boolean]` indicating whether the two instances are approximately equal (`true`) or not (`false`).
     *         Returns `Failure` if the comparison cannot be performed or encounters an error.
     */
-  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
+  override def fuzzyEqv(confidence: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (a: Number, b: Number) =>
       // Convert both to Real for fuzzy comparison
       val maybeResult = for {
@@ -280,11 +280,11 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
           case real: Real => Some(real)
           case _ => b.approximation(true)
         }
-      } yield aReal.fuzzyEqv(p)(bReal).getOrElse(false)
+      } yield aReal.fuzzyEqv(confidence)(bReal).getOrElse(false)
 
       Success(maybeResult.getOrElse(false))
     case _ =>
-      super.fuzzyEqv(p)(that)
+      super.fuzzyEqv(confidence)(that)
   }
 
   /**

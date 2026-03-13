@@ -212,8 +212,8 @@ class NumberNotationRoundTripSpec extends AnyFlatSpec with Matchers {
     ellipsis.fuzz shouldBe defined
 
     // Both should have similar fuzziness (same order of magnitude)
-    val fuzz1 = asterisk.fuzz.get.wiggle(0.5)
-    val fuzz2 = ellipsis.fuzz.get.wiggle(0.5)
+    val fuzz1 = asterisk.fuzz.get.wiggle()
+    val fuzz2 = ellipsis.fuzz.get.wiggle()
     math.abs(fuzz1 - fuzz2) should be < 1.0
   }
 
@@ -374,7 +374,7 @@ class NumberNotationRoundTripSpec extends AnyFlatSpec with Matchers {
       parsed.fuzz shouldBe defined
       val fuzzValue = parsed.fuzz.get match {
         case AbsoluteFuzz(magnitude, _) => magnitude
-        case f => f.wiggle(0.5)
+        case f => f.wiggle()
       }
       val expectedLog = expectedExponent + math.log10(5)
       math.abs(math.log10(fuzzValue) - expectedLog) should be < 0.1 // Compare in log space: log10(fuzzValue) should be close to expectedExponent + log10(5)

@@ -103,7 +103,7 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
     n.fuzz.foreach { f =>
       val v = n.toNominalDouble.getOrElse(0.0)
       f.normalize(v, relative = true).foreach { relFuzz =>
-        val tolerance = relFuzz.wiggle(0.5)
+        val tolerance = relFuzz.wiggle()
         println(s"wiggle=$tolerance sigFigs=${FuzzyNumber.sigFigsForTolerance(tolerance)}")
       }
     }

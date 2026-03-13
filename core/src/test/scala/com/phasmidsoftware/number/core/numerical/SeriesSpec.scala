@@ -86,7 +86,7 @@ class SeriesSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
     val fuzz: Fuzziness[Double] = difference.fuzz.get
     println(s"fuzz = $fuzz")
     fuzz.probability(1.0E-6, 0.6744897501960815E-6) shouldBe 0.5 +- 1E-8
-    fuzz.wiggle(0.5) shouldBe (6.744897501960816E-4 +- 1E-8)
+    fuzz.wiggle() shouldBe (6.744897501960816E-4 +- 1E-8)
     fuzz.probability(wiggle, 0.001) shouldBe 0.203 +- 1E-2
     difference.isProbablyZero(0.001) shouldBe true
   }

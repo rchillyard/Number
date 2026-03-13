@@ -56,11 +56,11 @@ case class Real(x: Number) extends Field {
   /**
     * Determines if the current instance is approximately equal to zero with at least the specified confidence level.
     *
-    * @param p the confidence level, typically between 0 and 1. Ignored if the instance is definitively zero.
+    * @param confidence the confidence level, typically between 0 and 1. Ignored if the instance is definitively zero.
     * @return true if the instance is considered approximately zero with the given confidence, false otherwise.
     */
-  def isProbablyZero(p: Double): Boolean =
-    x.isProbablyZero(p)
+  def isProbablyZero(confidence: Double): Boolean =
+    x.isProbablyZero(confidence)
 
   /**
     * Method to determine if this Real has zero magnitude.

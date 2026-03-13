@@ -293,11 +293,11 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * NOTE: This method is used, although it doesn't appear so.
     *
     * @param other the Number to be compared with.
-    * @param p     the confidence expressed as a fraction of 1 (0.5 would be a typical value).
+    * @param confidence the confidence expressed as a fraction of 1 (0.5 would be a typical value).
     * @return -1, 0, 1 as usual.
     */
-  def fuzzyCompare(other: Number, p: Double): Int =
-    FuzzyNumber.fuzzyCompare(this, other, p)
+  def fuzzyCompare(other: Number, confidence: Double): Int =
+    FuzzyNumber.fuzzyCompare(this, other, confidence)
 
   /**
     * Method to derive a fuzziness that covers the discrepancy between this and other.
@@ -520,14 +520,13 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
           r.toBigDecimal.map(_.scale) match {
             case Some(0) | Some(1) | Some(2) =>
               make(r).specialize
-            // CONSIDER in following line adding fuzz only if this Number is exact.
             case Some(n) =>
-              FuzzyNumber(d, factor, fuzz).addFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -(n + 1)), Box))
+              FuzzyNumber(d, factor, fuzz).maybeAddFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -(n + 1)), Box))
             case _ =>
-              FuzzyNumber(d, factor, fuzz).addFuzz(Fuzziness.doublePrecision)
+              FuzzyNumber(d, factor, fuzz).maybeAddFuzz(Fuzziness.doublePrecision)
           }
         case Failure(_) =>
-          FuzzyNumber(d, factor, fuzz).addFuzz(Fuzziness.doublePrecision)
+          FuzzyNumber(d, factor, fuzz).maybeAddFuzz(Fuzziness.doublePrecision)
       }
     // XXX Invalid case
     case _ =>
@@ -542,6 +541,19 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     */
   def addFuzz(f: Fuzziness[Double]): Number =
     FuzzyNumber.addFuzz(this, f)
+
+  /**
+    * Make a copy of this Number with additional fuzz given by f,
+    * but only if this Number has no existing fuzz.
+    * If fuzz is already present, returns this unchanged.
+    *
+    * @param f the additional fuzz.
+    * @return this, but with fuzziness f if originally exact, otherwise unchanged.
+    */
+  def maybeAddFuzz(f: Fuzziness[Double]): Number =
+    addFuzz(f)
+
+  //  if (fuzz.isEmpty) addFuzz(f) else this
 
   /**
     * Method to align the factors of this and x such that the resulting Numbers (in the tuple) each have the same factor.

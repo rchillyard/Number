@@ -323,18 +323,18 @@ case class InversePower private(n: Int, number: Number)(val maybeName: Option[St
     * The comparison involves converting both instances to `Real` and performing
     * a fuzzy equivalence check with the specified precision.
     *
-    * @param p    The precision parameter used in the fuzzy equivalence comparison.
+    * @param confidence The precision parameter used in the fuzzy equivalence comparison.
     * @param that The `Eager` instance to be compared against.
     * @return A `Try[Boolean]` indicating the result of the fuzzy equivalence check.
     *         Success with `true` if the instances are equivalent within the given precision,
     *         `false` if they are not equivalent, or a failure if a comparison cannot be performed.
     */
-  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
+  override def fuzzyEqv(confidence: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (a@InversePower(n1, x1), b: Structure) =>
       for {
         r1 <- FP.toTry(a.convert(Real.zero))(FP.fail(s"InversePower.fuzzyEqv: cannot convert $a to Real"))
         r2 <- FP.toTry(b.convert(Real.zero))(FP.fail(s"InversePower.fuzzyEqv: cannot convert $b to Real"))
-        z <- r1.fuzzyEqv(p)(r2)
+        z <- r1.fuzzyEqv(confidence)(r2)
       } yield z
     case _ =>
       FP.fail(s"InversePower.fuzzyEqv: cannot compare $this and $that")

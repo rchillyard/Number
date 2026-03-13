@@ -433,11 +433,11 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   it should "pass the sanity check for converting from Box to Gaussian" in {
     val x = Number.zero
     val y = x.addFuzz(AbsoluteFuzz(1, Box))
-    y.fuzz.get.wiggle(0.5) shouldBe 0.5
+    y.fuzz.get.wiggle() shouldBe 0.5
     val fuzz = y.fuzz
     val z = fuzz.map(f => f.normalizeShape)
     z.get shouldBe AbsoluteFuzz[Double](0.5773502691896258, Gaussian)
-    z.get.wiggle(0.5) shouldBe 0.38941683884135114
+    z.get.wiggle() shouldBe 0.38941683884135114
   }
 
   behavior of "probability"
@@ -477,7 +477,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "power"
   it should "work for e∧x" in {
-    pending // WI14 (Issue #197)
+    //    pending // WI14 (Issue #197)
     val two = Number("2.00[2]")
     val nominalValueOfTwo = 2
     val relativeErrorOfTwo = 0.01

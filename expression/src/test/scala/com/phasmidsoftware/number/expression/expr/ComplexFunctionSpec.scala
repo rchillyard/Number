@@ -46,6 +46,7 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
     val simplified = (E ∧ I).simplify
     val materialized = simplified.materialize
     materialized shouldBe a[Complex]
+    println(materialized)
     materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian(0.5403, 0.8415)) shouldBe true
     val result: Eager = simplified.fuzzy
     result.toDouble shouldBe (1.0) +- 1e-10

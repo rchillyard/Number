@@ -269,20 +269,20 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
     * The method handles cases where the `Eager` instance belongs to different subtypes such as `NaturalExponential` or `Structure`,
     * applying transformations and delegating to subtype-specific implementations as needed.
     *
-    * @param p    the precision margin within which the two instances are considered equal, of type `Double`
+    * @param confidence the precision margin within which the two instances are considered equal, of type `Double`
     * @param that the `Eager` instance to compare with the current instance
     * @return a `Try[Boolean]` indicating whether the two instances are fuzzy equivalent
     */
-  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
+  override def fuzzyEqv(confidence: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (a: NaturalExponential, b: NaturalExponential) =>
-      a.exponent.fuzzyEqv(p)(b.exponent)
+      a.exponent.fuzzyEqv(confidence)(b.exponent)
     case (a: NaturalExponential, b: Structure) =>
       for {
         aReal <- FP.recoverAsTry(a.transformation[Real])(AlgebraException(s"Cannot transform $a to Real"))
-        result <- aReal.fuzzyEqv(p)(b)
+        result <- aReal.fuzzyEqv(confidence)(b)
       } yield result
     case _ =>
-      super.fuzzyEqv(p)(that)
+      super.fuzzyEqv(confidence)(that)
   }
 }
 

@@ -225,7 +225,7 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
       Failure(AlgebraException(s"Complex.eqv: unexpected input: $this and $that"))
   }
 
-  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
+  override def fuzzyEqv(confidence: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (Complex(a), Complex(b)) => Success(a.isSame(b)) // TODO we lose the value of `p` here (it defaults to 0.5)
     case _ => Failure(AlgebraException(s"Complex.fuzzyEqv: unexpected input: $this, $that"))
   }

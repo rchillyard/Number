@@ -98,13 +98,13 @@ trait Structure extends Eager with WithFuzziness with Negatable[Structure] {
     *
     * If either of the instances is not of type `Structure`, a failure with an `AlgebraException` is returned.
     *
-    * @param p    the tolerance level (as a `Double`) to be used for the fuzzy equality comparison.
+    * @param confidence the tolerance level (as a `Double`) to be used for the fuzzy equality comparison.
     * @param that the `Eager` instance to compare against the current instance.
     * @return a `Try[Boolean]` indicating whether the two instances are fuzzy equal within the specified tolerance.
     *         Returns a `Success(true)` or `Success(false)` if the comparison completes successfully,
     *         or a `Failure(AlgebraException)` if an error occurs.
     */
-  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
+  override def fuzzyEqv(confidence: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (a: Structure, b: Structure) =>
       FP.toTry(for {
         p: Real <- a.convert(Real.one)

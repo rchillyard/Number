@@ -99,12 +99,12 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     * The comparison is based on a specified tolerance level.
     * This method is unimplemented and currently returns a failure containing an `AlgebraException`.
     *
-    * @param p    the tolerance level (as a `Double`) to be used for the fuzzy equality comparison
+    * @param confidence the tolerance level (as a `Double`) to be used for the fuzzy equality comparison
     * @param that the `Eager` instance to compare against this instance
     * @return a `Try[Boolean]` indicating whether the two instances are fuzzy equal.
     *         As the method is unimplemented, it always returns a failure containing an `AlgebraException`.
     */
-  def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] =
+  def fuzzyEqv(confidence: Double)(that: Eager): Try[Boolean] =
     Failure(AlgebraException(s"Eager.fuzzyEqv: unimplemented compare $this and $that"))
 
   /**

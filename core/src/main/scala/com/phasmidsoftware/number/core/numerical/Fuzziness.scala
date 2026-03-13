@@ -92,18 +92,16 @@ sealed trait Fuzziness[T] {
   def asPercentage: String
 
   /**
-    * Determine the range +- t such that the probability of a random point being within that range is `p`,
-    * and where l signifies the extent of the PDF.
-    * In other words get the wiggle room.
-    * NOTE that the greater the value of p, the smaller the result
+    * Determine the half-width δ such that the cumulative probability P(-δ, δ) = 1 - confidence.
+    * In other words, get the wiggle room: the range within which a random point will fall
+    * with probability (1 - confidence).
+    * NOTE that the greater the value of confidence, the smaller the resulting wiggle room.
     *
-    * NOTE effectively, this method converts a Gaussian distribution into a Box distribution.
-    * CONSIDER refactoring to take advantage of that equivalence.
-    *
-    * @param confidence the confidence we wish to have in the result: typical value: 0.5
-    * @return the value of t at which the probability density is exactly transitions from likely to not likely.
+    * @param confidence the tail probability: the probability of a random point falling
+    *                   *outside* the range [-δ, δ]. Typical value: 0.5.
+    * @return δ, the half-width of the symmetric interval around the mean.
     */
-  def wiggle(confidence: Double): T
+  def wiggle(confidence: Double = 0.5): T
 
   /**
     * Computes the probability that random points will be found with the range `-x` to `+x` where `l` is a measure of the magnitude of this Fuzziness.
@@ -209,10 +207,11 @@ case class RelativeFuzz[T: HasValue](tolerance: Double, shape: Shape) extends Fu
     if (this.shape == convolute.shape)
       convolute match {
         case RelativeFuzz(t, Box) if this.shape == Box =>
-          // Convolution of two relative Box distributions: result is Trapezoid.
-          val a = math.min(tolerance, t)
-          val b = math.max(tolerance, t)
-          RelativeFuzz(a + b, Trapezoid(a, b))
+          val (a, b) = (math.min(tolerance, t), math.max(tolerance, t))
+          if (b / a > Fuzziness.negligibleRatio)
+            RelativeFuzz(b, Box)
+          else
+            RelativeFuzz(a + b, Trapezoid(a, b))
         case RelativeFuzz(t, _) =>
           RelativeFuzz(Gaussian.convolutionProduct(tolerance, t, independent), shape)
         case _ =>
@@ -224,7 +223,7 @@ case class RelativeFuzz[T: HasValue](tolerance: Double, shape: Shape) extends Fu
   /**
     * Yield a Fuzziness[T] that is Gaussian (either this or derivative of this).
     */
-  def normalizeShape: Fuzziness[T] = shape match {
+  lazy val normalizeShape: Fuzziness[T] = shape match {
     case Gaussian =>
       this
     case Box =>
@@ -280,7 +279,7 @@ case class RelativeFuzz[T: HasValue](tolerance: Double, shape: Shape) extends Fu
     * @param confidence the confidence we wish to have in the result: typical value: 0.5
     * @return the value of t at which the probability density is exactly transitions from likely to not likely.
     */
-  def wiggle(confidence: Double): T =
+  def wiggle(confidence: Double = 0.5): T =
     tv.fromDouble(shape.wiggle(tolerance, confidence))
 
   /**
@@ -356,10 +355,13 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
     */
   def *(convolute: Fuzziness[T], independent: Boolean): Fuzziness[T] = convolute match {
     case AbsoluteFuzz(m, Box) if this.shape == Box =>
-      // Convolution of two Box distributions produces a Trapezoid.
-      val a = math.min(tv.toDouble(magnitude), tv.toDouble(m))
-      val b = math.max(tv.toDouble(magnitude), tv.toDouble(m))
-      AbsoluteFuzz(tv.fromDouble(a + b), Trapezoid(a, b))
+      val mA = tv.toDouble(magnitude)
+      val mB = tv.toDouble(m)
+      val (a, b) = (math.min(mA, mB), math.max(mA, mB))
+      if (b / a > Fuzziness.negligibleRatio)
+        AbsoluteFuzz(tv.fromDouble(b), Box)
+      else
+        AbsoluteFuzz(tv.fromDouble(a + b), Trapezoid(a, b))
     case AbsoluteFuzz(m, t: Trapezoid) if this.shape == Gaussian =>
       // Trapezoid convolved with Gaussian: convert Trapezoid to Gaussian first.
       AbsoluteFuzz(tv.fromDouble(Gaussian.convolutionSum(tv.toDouble(magnitude), t.sigma)), Gaussian)
@@ -376,7 +378,7 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
     *
     * @return a Fuzziness[T] object with a normalized Gaussian shape.
     */
-  def normalizeShape: Fuzziness[T] = shape match {
+  lazy val normalizeShape: Fuzziness[T] = shape match {
     case Gaussian =>
       this
     case Box =>
@@ -456,7 +458,7 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
     * In other words get the wiggle room.
     * NOTE that the greater the value of p, the smaller the result
     */
-  def wiggle(confidence: Double): T =
+  def wiggle(confidence: Double = 0.5): T =
     tv.fromDouble(shape.wiggle(tv.toDouble(magnitude), confidence))
 
   /**
@@ -613,7 +615,14 @@ object Fuzziness {
     *
     * @return a Fuzziness[Double].
     */
-  def doublePrecision: Fuzziness[Double] = createFuzz(0)
+  lazy val doublePrecision: Fuzziness[Double] = createFuzz(0)
+
+  /**
+    * The ratio above which one Box distribution is considered negligible relative to another.
+    * If the larger Box is more than this many times the smaller, the Trapezoid ramps are
+    * negligible and the result is treated as the larger Box alone.
+    */
+  val negligibleRatio: Double = 1E6
 
   /**
     * Normalize the magnitude qualifier of the given fuzz according to relative.
@@ -658,6 +667,17 @@ object Fuzziness {
     */
   def toDecimalPower(x: Double, n: Int): Double = x * math.pow(10, n)
 
+  /**
+    * Normalizes the given fuzziness based on its type and whether the result should be relative or absolute.
+    * If the provided fuzziness is of type `AbsoluteFuzz`, it converts it to a relative type if `relative` is true.
+    * If the fuzziness is of type `RelativeFuzz`, it converts it to an absolute type if `relative` is false.
+    *
+    * @param t        the value of T that the fuzziness is or should be relative to.
+    * @param relative if true, the returned fuzziness should be of type `RelativeFuzz`; otherwise, it should be of type `AbsoluteFuzz`.
+    * @param f        the fuzziness to normalize, which can be either `AbsoluteFuzz` or `RelativeFuzz`.
+    * @tparam T the underlying type of the fuzziness.
+    * @return an optional normalized fuzziness based on the given parameters.
+    */
   private def doNormalize[T](t: T, relative: Boolean, f: Fuzziness[T]) =
     f match {
       case a@AbsoluteFuzz(_, _) =>
@@ -702,14 +722,15 @@ object Fuzziness {
 trait Shape {
 
   /**
-    * Determine the range +- t such that the probability of a random point being within that range is `p`,
-    * and where l signifies the extent of the PDF.
-    * In other words get the wiggle room.
-    * NOTE that the greater the value of p, the smaller the result
+    * Determine the half-width δ such that the cumulative probability P(-δ, δ) = 1 - confidence.
+    * In other words, get the wiggle room: the range within which a random point will fall
+    * with probability (1 - confidence).
+    * NOTE that the greater the value of confidence, the smaller the resulting wiggle room.
     *
-    * @param l the extent of the PDF (for example, the standard deviation, for a Gaussian).
-    * @param confidence the confidence that we wish to place on the likelihood: typical value is 0.5.
-    * @return the value of x at which the probability density is exactly transitions from likely to not likely.
+    * @param l          the scale of the PDF (e.g. standard deviation for Gaussian, half-width for Box).
+    * @param confidence the tail probability: the probability of a random point falling
+    *                   *outside* the range [-δ, δ]. Typical value: 0.5.
+    * @return δ, the half-width of the symmetric interval around the mean.
     */
   def wiggle(l: Double, confidence: Double): Double
 
@@ -725,6 +746,7 @@ trait Shape {
 
 /**
   * Uniform probability density over a specific range, otherwise zero.
+  * CONSIDER making this a case class with a member corresponding to the `l` value of wiggle.
   */
 case object Box extends Shape {
   /**
@@ -754,15 +776,15 @@ case object Box extends Shape {
     implicitly[HasValue[T]].scale(t, uniformToGaussian)
 
   /**
-    * Determine the range +- t such that the probability of a random point being within that range is `p`,
-    * and where l signifies the extent of the PDF.
-    * In other words get the wiggle room.
-    * NOTE that the greater the value of p, the smaller the result
+    * Calculates an adjusted scale or measure for a given size or range, based on the specified confidence level.
     *
-    * @param l the half-width of a Box.
-    * @param confidence the confidence that we wish to place on the likelihood: typical value is 0.5.
-    *          Unless it is either 0 or 1, the actual `p` value is ignored.
-    * @return the value of x at which the probability density transitions from possible to impossible.
+    * - If confidence is 0.0, it returns positive infinity, representing maximum uncertainty.
+    * - If confidence is 1.0, it returns 0, representing no variability.
+    * - For other confidence levels, it returns half the input size `l`.
+    *
+    * @param l          the size or scale of the probability density function (e.g., the width of the uniform distribution).
+    * @param confidence the confidence level, where 0.0 represents no certainty and 1.0 represents full certainty.
+    * @return the adjusted scale or measure based on the confidence level.
     */
   def wiggle(l: Double, confidence: Double): Double = confidence match {
     case 0.0 =>
@@ -770,9 +792,7 @@ case object Box extends Shape {
     case 1.0 =>
       0
     case _ =>
-      // NOTE: This implementation is approximate and only accurate for p ≈ 0.5
-      // In practice, Box distributions are normalized to Gaussian before wiggle is called
-      l / 2 // CONSIDER something like (1 - p) * l
+      l / 2
   }
 
   /**
@@ -818,12 +838,14 @@ case class Trapezoid(a: Double, b: Double) extends Shape {
     implicitly[HasValue[T]].fromDouble(sigma)
 
   /**
-    * Determine the wiggle room for this Trapezoid distribution.
+    * Computes a value based on the given confidence level. The method distinguishes between two regions:
+    * a flat-top region where the result is independent of confidence, and a ramp region where the result
+    * depends on confidence. Special cases are handled for confidence values of 0.0 and 1.0.
     * NOTE: the `l` parameter is ignored since scale is encoded in `a` and `b`.
     *
-    * @param l          ignored.
-    * @param confidence the confidence (probability of being outside the wiggle range): typical value 0.5.
-    * @return the wiggle room.
+    * @param l          a parameter intended for use in computations (currently not utilized).
+    * @param confidence a value between 0.0 and 1.0 representing the level of certainty or probability.
+    * @return a computed double value based on the given confidence level.
     */
   def wiggle(l: Double, confidence: Double): Double = confidence match {
     case 0.0 => Double.PositiveInfinity
@@ -855,6 +877,7 @@ case class Trapezoid(a: Double, b: Double) extends Shape {
 
 /**
   * A "normal" probability distribution function.
+  * CONSIDER making this a case class with a member corresponding to the `l` value of wiggle.
   */
 case object Gaussian extends Shape {
   /**
@@ -895,17 +918,12 @@ case object Gaussian extends Shape {
       sigma1 + sigma2
 
   /**
-    * Determine the range +- t such that the probability of a random point being within that range is `p`,
-    * and where l signifies the extent of the PDF.
-    * In other words get the wiggle room.
-    * NOTE that the greater the value of p, the smaller the result
+    * Adjusts the given value based on the specified confidence level, using the properties
+    * of a Gaussian distribution.
     *
-    * This is based on the inverse Error function (see https://en.wikipedia.org/wiki/Normal_distribution#Cumulative_distribution_function).
-    * `sigma` is the reciprocal of √2.
-    *
-    * @param l the standard deviation.
-    * @param confidence the confidence desired for the likelihood.
-    * @return the value of x such that p iw the probability of a random number x (with mean 0, and variance 1/2) falling between -x and x.
+    * @param l          the scale or size parameter, typically representing the standard deviation of a Gaussian distribution.
+    * @param confidence the confidence level, a value between 0 and 1, representing the desired probability threshold.
+    * @return a double representing the adjusted value based on the confidence level and scale.
     */
   def wiggle(l: Double, confidence: Double): Double =
     l / sigma * erfInv(1 - confidence)

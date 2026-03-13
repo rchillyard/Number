@@ -385,13 +385,13 @@ class FuzzyNumberIsProbablyZeroSpec extends AnyFlatSpec with Matchers with Table
 
   it should "show relationship between fuzz, wiggle, and probability" in {
     val fuzzValues = List(0.1, 0.2, 0.5, 1.0)
-    val probabilities = List(0.1, 0.25, 0.5, 0.75, 0.9)
+    val confidenceValues = List(0.1, 0.25, 0.5, 0.75, 0.9)
 
     fuzzValues.foreach { f =>
       val fuzz = AbsoluteFuzz(f, Box)
-      probabilities.foreach { p =>
-        val wiggle = fuzz.normalizeShape.wiggle(p)
-        println(s"Fuzz=$f, confidence=$p → wiggle=$wiggle")
+      confidenceValues.foreach { confidence =>
+        val wiggle = fuzz.normalizeShape.wiggle(confidence)
+        println(s"Fuzz=$f, confidence=$confidence → wiggle=$wiggle")
       }
     }
   }

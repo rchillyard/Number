@@ -127,25 +127,25 @@ sealed trait Algebraic extends Solution with Unitary with Scalable[Algebraic] {
     * Performs a fuzzy equivalence comparison between the current solution and another solution.
     * The comparison allows for a degree of tolerance specified by the parameter `p`.
     *
-    * @param p    the tolerance level for the fuzzy equivalence comparison; smaller values impose stricter equality conditions
+    * @param confidence the tolerance level for the fuzzy equivalence comparison; smaller values impose stricter equality conditions
     * @param that the other solution to compare against, which must be of type `Eager`
     * @return a `Try[Boolean]` indicating whether the two solutions are approximately equivalent
     *         within the specified tolerance, or an error if the comparison cannot be performed
     */
-  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
+  override def fuzzyEqv(confidence: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (a: LinearSolution, b: LinearSolution) =>
-      a.value.fuzzyEqv(p)(b.value)
+      a.value.fuzzyEqv(confidence)(b.value)
     case (a: QuadraticSolution, b: QuadraticSolution) =>
       if (a.coefficient != b.coefficient) {
         Success(false)
       } else {
         for {
-          baseEq <- a.base.fuzzyEqv(p)(b.base)
-          offsetEq <- a.offset.fuzzyEqv(p)(b.offset)
+          baseEq <- a.base.fuzzyEqv(confidence)(b.base)
+          offsetEq <- a.offset.fuzzyEqv(confidence)(b.offset)
         } yield baseEq && offsetEq
       }
     case _ =>
-      super.fuzzyEqv(p)(that)
+      super.fuzzyEqv(confidence)(that)
   }
 }
 
@@ -550,20 +550,20 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
     * Performs a fuzzy equivalence comparison between the current solution and another solution.
     * The comparison allows for a degree of tolerance specified by the parameter `p`.
     *
-    * @param p    the tolerance level for the fuzzy equivalence comparison; smaller values impose stricter equality conditions
+    * @param confidence the tolerance level for the fuzzy equivalence comparison; smaller values impose stricter equality conditions
     * @param that the other solution to compare against, which must be of type `Eager`
     * @return a `Try[Boolean]` indicating whether the two solutions are approximately equivalent
     *         within the specified tolerance, or an error if the comparison cannot be performed
     */
-  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] =
+  override def fuzzyEqv(confidence: Double)(that: Eager): Try[Boolean] =
     (this, that) match {
       case (a: QuadraticSolution, b: QuadraticSolution) =>
         for {
-          baseEqv <- a.base.fuzzyEqv(p)(b.base)
-          offsetEqv <- a.offset.fuzzyEqv(p)(b.offset)
+          baseEqv <- a.base.fuzzyEqv(confidence)(b.base)
+          offsetEqv <- a.offset.fuzzyEqv(confidence)(b.offset)
         } yield baseEqv && offsetEqv && a.coefficient == b.coefficient
       case _ =>
-        super.fuzzyEqv(p)(that)
+        super.fuzzyEqv(confidence)(that)
     }
 }
 

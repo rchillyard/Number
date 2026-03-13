@@ -614,13 +614,12 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
   /**
     * Determines if the current Cartesian complex number is approximately zero based on a given confidence level.
     *
-    * @param p the confidence level for determining if the number is considered zero.
+    * @param confidence the confidence level for determining if the number is considered zero.
     *          A higher value indicates greater certainty. Ignored if the number is exactly zero.
-    *
     * @return true if both the real and imaginary parts are approximately zero with the given confidence level, false otherwise.
     */
-  def isProbablyZero(p: Double): Boolean =
-    x.isProbablyZero(p) && y.isProbablyZero(p)
+  def isProbablyZero(confidence: Double): Boolean =
+    x.isProbablyZero(confidence) && y.isProbablyZero(confidence)
 
   /**
     * Method to determine if this complex number is probably zero (with probability of 1/2).
@@ -955,11 +954,11 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
   /**
     * Determines if this ComplexPolar instance is equivalent to zero with at least the given level of confidence.
     *
-    * @param p the confidence level desired, typically between 0 and 1. Ignored if the instance is already considered zero.
+    * @param confidence the confidence level desired, typically between 0 and 1. Ignored if the instance is already considered zero.
     * @return true if the instance is equivalent to zero with at least the specified confidence level; false otherwise.
     */
-  def isProbablyZero(p: Double): Boolean =
-    r.isProbablyZero(p)
+  def isProbablyZero(confidence: Double): Boolean =
+    r.isProbablyZero(confidence)
 
   /**
     * Method to determine if this ComplexPolar is zero.

@@ -544,10 +544,10 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * Perform a fuzzy comparison where we only require p confidence to know that this and other are effectively the same.
     *
     * @param other the Number to be compared with.
-    * @param p     the confidence expressed as a fraction of 1 (0.5 would be a typical value).
+    * @param confidence the confidence expressed as a fraction of 1 (0.5 would be a typical value).
     * @return -1, 0, 1 as usual.
     */
-  def fuzzyCompare(other: Number, p: Double): Int
+  def fuzzyCompare(other: Number, confidence: Double = 0.5): Int
 
   /**
     * Return optional Fuzziness of Box shape, such that
@@ -710,10 +710,10 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def modulate: Number
 
   /**
-    * @param p the confidence desired. Ignored if isZero is true.
+    * @param confidence the confidence desired. Ignored if isZero is true.
     * @return true if this Number is equivalent to zero with at least p confidence.
     */
-  def isProbablyZero(p: Double = 0.5): Boolean
+  def isProbablyZero(confidence: Double = 0.5): Boolean
 }
 
 object Number {

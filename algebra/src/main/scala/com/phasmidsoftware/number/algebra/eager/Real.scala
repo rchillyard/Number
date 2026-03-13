@@ -494,24 +494,24 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     * considered. For one fuzzy and one exact object, a more lenient comparison is applied. For two 
     * exact objects, strict equality is used.
     *
-    * @param p    A precision threshold used for fuzzy comparison. Represents the allowable margin of error within which 
+    * @param confidence A precision threshold used for fuzzy comparison. Represents the allowable margin of error within which
     *             the two objects are considered equivalent.
     * @param that The object with which equivalence is being checked.
     * @return A `Try[Boolean]` indicating whether this object and the given object are approximately equal 
     *         within the specified precision threshold.
     */
-  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
+  override def fuzzyEqv(confidence: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (a: Real, b: Real) =>
       // Compute difference and check if probably zero
       val diff = realIsRing.minus(a, b)
       Eager.eagerToField(diff) match {
         case numerical.Real(x) =>
-          Success(x.isProbablyZero(p))
+          Success(x.isProbablyZero(confidence))
         case _ =>
           Success(false)
       }
     case _ =>
-      super.fuzzyEqv(p)(that)
+      super.fuzzyEqv(confidence)(that)
   }
 
   /**
@@ -975,7 +975,7 @@ object Real {
       */
     def compare(x: Real, y: Real): Int =
       x.compareExact(y) getOrElse
-          x.toOldFuzzyNumber.fuzzyCompare(y.toOldFuzzyNumber, 0.5)
+        x.toOldFuzzyNumber.fuzzyCompare(y.toOldFuzzyNumber)
   }
 
   /**
