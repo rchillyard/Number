@@ -1,0 +1,29 @@
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E198] Unused Symbol Warning: /Users/rhillyard/IdeaProjects/Number/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/BiFunction.scala:485:14 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m485 |[0m  [33mprivate[0m [33mdef[0m simplifyComplexProduct(m: Eager, x: Expression) =[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m              ^^^^^^^^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m              unused private member[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/Expression.scala:586:51 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m586 |[0m  [33mimplicit[0m [33mdef[0m [36mfromString[0m([36mw[0m: [35mString[0m): [35mExpression[0m = apply(w)[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m                                                   ^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m[33mmethod[0m [35mapply[0m in [33mobject[0m [35mExpression[0m is deprecated since 1.6.5: Use puremath or lazymath string interpolators instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/Expression.scala:934:9 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m934 |[0m    [33mcase[0m PiTranscendental => [31m6[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m         ^^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m[33mobject[0m [35mPiTranscendental[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.expression.expr[0m is deprecated[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/Expression.scala:935:9 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m935 |[0m    [33mcase[0m ETranscendental => [31m7[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m         ^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m[33mobject[0m [35mETranscendental[0m in [33mpackage[0m [35mcom.phasmidsoftware.number.expression.expr[0m is deprecated since 0.1.0: use E instead.[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Deprecation Warning: /Users/rhillyard/IdeaProjects/Number/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/ExpressionPrelude.scala:25:46 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m25 |[0m  [33mgiven[0m [35mConversion[0m[[35mString[0m, [35mExpression[0m] = [36ms[0m => Expression(s)[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m                                              ^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m[33mmethod[0m [35mapply[0m in [33mobject[0m [35mExpression[0m is deprecated since 1.6.5: Use puremath or lazymath string interpolators instead[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E030] Match case Unreachable Warning: /Users/rhillyard/IdeaProjects/Number/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/CompositeExpression.scala:69:9 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m69 |[0m    [33mcase[0m Euler(x: Nameable, y: Nameable) => [34m// TODO unreachable.[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0m         Unreachable case[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- [E030] Match case Unreachable Warning: /Users/rhillyard/IdeaProjects/Number/expression/src/main/scala/com/phasmidsoftware/number/expression/expr/Expression.scala:928:9 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m928 |[0m    [33mcase[0m Noop => [31m0[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m         ^^^^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m         Unreachable case[0m
+[0m[[0m[33mwarn[0m] [0m[0m7 warnings found[0m

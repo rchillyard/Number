@@ -1,0 +1,13 @@
+[0m[[0m[0minfo[0m] [0m[0m:: delivering :: com.phasmidsoftware#number-expression_3;1.9.3 :: 1.9.3 :: release :: Mon Mar 16 14:38:33 EDT 2026[0m
+[0m[[0m[0mdebug[0m] [0m[0m	options = status=release pubdate=Mon Mar 16 14:38:33 EDT 2026 validate=true resolveDynamicRevisions=true merge=true resolveId=null pubBranch=null[0m
+[0m[[0m[0minfo[0m] [0m[0m	delivering ivy file to /Users/rhillyard/IdeaProjects/Number/expression/target/scala-3.7.3/ivy-1.9.3.xml[0m
+[0m[[0m[0mdebug[0m] [0m[0m	deliver done (7ms)[0m
+[0m[[0m[0mdebug[0m] [0m[0mlocal do not support transaction. ivy pattern does not use revision as a directory[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-expression_3 to /Users/rhillyard/.ivy2/local/com.phasmidsoftware/number-expression_3/1.9.3/poms/number-expression_3.pom[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-expression_3 to /Users/rhillyard/.ivy2/local/com.phasmidsoftware/number-expression_3/1.9.3/docs/number-expression_3-tests-javadoc.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-expression_3 to /Users/rhillyard/.ivy2/local/com.phasmidsoftware/number-expression_3/1.9.3/jars/number-expression_3.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-expression_3 to /Users/rhillyard/.ivy2/local/com.phasmidsoftware/number-expression_3/1.9.3/srcs/number-expression_3-tests-sources.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-expression_3 to /Users/rhillyard/.ivy2/local/com.phasmidsoftware/number-expression_3/1.9.3/jars/number-expression_3-tests.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-expression_3 to /Users/rhillyard/.ivy2/local/com.phasmidsoftware/number-expression_3/1.9.3/docs/number-expression_3-javadoc.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-expression_3 to /Users/rhillyard/.ivy2/local/com.phasmidsoftware/number-expression_3/1.9.3/srcs/number-expression_3-sources.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published ivy to /Users/rhillyard/.ivy2/local/com.phasmidsoftware/number-expression_3/1.9.3/ivys/ivy.xml[0m

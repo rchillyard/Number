@@ -1,0 +1,36 @@
+[0m[[0m[0mdebug[0m] [0m[0m[zinc] IncrementalCompile -----------[0m
+[0m[[0m[0mdebug[0m] [0m[0mIncrementalCompile.incrementalCompile[0m
+[0m[[0m[0mdebug[0m] [0m[0mprevious = Stamps for: 17 products, 12 sources, 11 libraries[0m
+[0m[[0m[0mdebug[0m] [0m[0mcurrent source = Set(${BASE}/top/src/test/scala/com/phasmidsoftware/number/top/NaturalSpec.scala, ${BASE}/top/src/test/scala/com/phasmidsoftware/number/top/NumberUpdatedSpec.scala, ${BASE}/top/src/test/scala/com/phasmidsoftware/number/top/TopSpec.scala, ${BASE}/top/src/test/scala/com/phasmidsoftware/number/top/RealWorksheetSpec.scala, ${BASE}/top/src/test/scala/com/phasmidsoftware/number/top/TrigonometryWorksheetSpec.scala, ${BASE}/top/src/test/scala/com/phasmidsoftware/number/top/QuantityWorksheetSpec.scala, ${BASE}/top/src/test/scala/com/phasmidsoftware/number/top/PhysicalConstantsSpec.scala, ${BASE}/top/src/test/scala/com/phasmidsoftware/number/top/FunctionalSpec.scala, ${BASE}/top/src/test/scala/com/phasmidsoftware/number/top/QuantityLaTeXSpec.scala, ${BASE}/top/src/test/scala/com/phasmidsoftware/number/top/QuantityParserSpec.scala, ${BASE}/top/src/test/scala/com/phasmidsoftware/number/top/FoucaultSpec.scala, ${BASE}/top/src/test/scala/com/phasmidsoftware/number/top/QuantitySpec.scala)[0m
+[0m[[0m[0mdebug[0m] [0m[0m> initialChanges = InitialChanges(Changes(added = Set(), removed = Set(), changed = Set(), unmodified = ...),Set(),Set(),API Changes: Set(TraitPrivateMembersModified(com.phasmidsoftware.number.core.numerical.Number$), TraitPrivateMembersModified(com.phasmidsoftware.number.core.numerical.Field$), TraitPrivateMembersModified(com.phasmidsoftware.number.core.numerical.Field), TraitPrivateMembersModified(com.phasmidsoftware.number.core.numerical.Numerical), TraitPrivateMembersModified(com.phasmidsoftware.number.core.numerical.Number)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mThe private signature of trait com.phasmidsoftware.number.core.numerical.Number$ changed.[0m
+[0m[[0m[0mdebug[0m] [0m[0mAll member reference dependencies will be considered within this context.[0m
+[0m[[0m[0mdebug[0m] [0m[0mFiles invalidated by inheriting from (external) com.phasmidsoftware.number.core.numerical.Number$: Set()[0m
+[0m[[0m[0mdebug[0m] [0m[0mNow invalidating by inheritance (internally).[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting direct dependencies of all classes transitively invalidated by inheritance.[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting classes that directly depend on (external) com.phasmidsoftware.number.core.numerical.Number$.[0m
+[0m[[0m[0mdebug[0m] [0m[0mThe private signature of trait com.phasmidsoftware.number.core.numerical.Field$ changed.[0m
+[0m[[0m[0mdebug[0m] [0m[0mAll member reference dependencies will be considered within this context.[0m
+[0m[[0m[0mdebug[0m] [0m[0mFiles invalidated by inheriting from (external) com.phasmidsoftware.number.core.numerical.Field$: Set()[0m
+[0m[[0m[0mdebug[0m] [0m[0mNow invalidating by inheritance (internally).[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting direct dependencies of all classes transitively invalidated by inheritance.[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting classes that directly depend on (external) com.phasmidsoftware.number.core.numerical.Field$.[0m
+[0m[[0m[0mdebug[0m] [0m[0mThe private signature of trait com.phasmidsoftware.number.core.numerical.Field changed.[0m
+[0m[[0m[0mdebug[0m] [0m[0mAll member reference dependencies will be considered within this context.[0m
+[0m[[0m[0mdebug[0m] [0m[0mFiles invalidated by inheriting from (external) com.phasmidsoftware.number.core.numerical.Field: Set()[0m
+[0m[[0m[0mdebug[0m] [0m[0mNow invalidating by inheritance (internally).[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting direct dependencies of all classes transitively invalidated by inheritance.[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting classes that directly depend on (external) com.phasmidsoftware.number.core.numerical.Field.[0m
+[0m[[0m[0mdebug[0m] [0m[0mThe private signature of trait com.phasmidsoftware.number.core.numerical.Numerical changed.[0m
+[0m[[0m[0mdebug[0m] [0m[0mAll member reference dependencies will be considered within this context.[0m
+[0m[[0m[0mdebug[0m] [0m[0mFiles invalidated by inheriting from (external) com.phasmidsoftware.number.core.numerical.Numerical: Set()[0m
+[0m[[0m[0mdebug[0m] [0m[0mNow invalidating by inheritance (internally).[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting direct dependencies of all classes transitively invalidated by inheritance.[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting classes that directly depend on (external) com.phasmidsoftware.number.core.numerical.Numerical.[0m
+[0m[[0m[0mdebug[0m] [0m[0mThe private signature of trait com.phasmidsoftware.number.core.numerical.Number changed.[0m
+[0m[[0m[0mdebug[0m] [0m[0mAll member reference dependencies will be considered within this context.[0m
+[0m[[0m[0mdebug[0m] [0m[0mFiles invalidated by inheriting from (external) com.phasmidsoftware.number.core.numerical.Number: Set()[0m
+[0m[[0m[0mdebug[0m] [0m[0mNow invalidating by inheritance (internally).[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting direct dependencies of all classes transitively invalidated by inheritance.[0m
+[0m[[0m[0mdebug[0m] [0m[0mGetting classes that directly depend on (external) com.phasmidsoftware.number.core.numerical.Number.[0m
+[0m[[0m[0mdebug[0m] [0m[0mNo changes[0m

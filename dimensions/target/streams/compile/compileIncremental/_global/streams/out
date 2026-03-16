@@ -1,0 +1,6 @@
+[0m[[0m[0mdebug[0m] [0m[0m[zinc] IncrementalCompile -----------[0m
+[0m[[0m[0mdebug[0m] [0m[0mIncrementalCompile.incrementalCompile[0m
+[0m[[0m[0mdebug[0m] [0m[0mprevious = Stamps for: 72 products, 4 sources, 2 libraries[0m
+[0m[[0m[0mdebug[0m] [0m[0mcurrent source = Set(${BASE}/dimensions/src/main/scala/com/phasmidsoftware/number/dimensions/core/Units.scala, ${BASE}/dimensions/src/main/scala/com/phasmidsoftware/number/dimensions/core/DimensionsException.scala, ${BASE}/dimensions/src/main/scala/com/phasmidsoftware/number/dimensions/core/TRational.scala, ${BASE}/dimensions/src/main/scala/com/phasmidsoftware/number/dimensions/core/Dimension.scala)[0m
+[0m[[0m[0mdebug[0m] [0m[0m> initialChanges = InitialChanges(Changes(added = Set(), removed = Set(), changed = Set(), unmodified = ...),Set(),Set(),API Changes: Set())[0m
+[0m[[0m[0mdebug[0m] [0m[0mNo changes[0m

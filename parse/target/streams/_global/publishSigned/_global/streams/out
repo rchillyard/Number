@@ -1,0 +1,20 @@
+[0m[[0m[0mdebug[0m] [0m[0m	starting transaction: publish during transaction will be done in [0m
+[0m[[0m[0mdebug[0m] [0m[0m		/Users/rhillyard/IdeaProjects/Number/target/sona-staging/com/phasmidsoftware/number-parse_3/1.9.3.part[0m
+[0m[[0m[0mdebug[0m] [0m[0m	and on commit moved to [0m
+[0m[[0m[0mdebug[0m] [0m[0m		/Users/rhillyard/IdeaProjects/Number/target/sona-staging/com/phasmidsoftware/number-parse_3/1.9.3[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number/target/sona-staging/com/phasmidsoftware/number-parse_3/1.9.3.part/number-parse_3-1.9.3.pom[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number/target/sona-staging/com/phasmidsoftware/number-parse_3/1.9.3.part/number-parse_3-1.9.3-tests-sources.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number/target/sona-staging/com/phasmidsoftware/number-parse_3/1.9.3.part/number-parse_3-1.9.3-tests-javadoc.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number/target/sona-staging/com/phasmidsoftware/number-parse_3/1.9.3.part/number-parse_3-1.9.3-tests-javadoc.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number/target/sona-staging/com/phasmidsoftware/number-parse_3/1.9.3.part/number-parse_3-1.9.3-javadoc.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number/target/sona-staging/com/phasmidsoftware/number-parse_3/1.9.3.part/number-parse_3-1.9.3.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number/target/sona-staging/com/phasmidsoftware/number-parse_3/1.9.3.part/number-parse_3-1.9.3.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number/target/sona-staging/com/phasmidsoftware/number-parse_3/1.9.3.part/number-parse_3-1.9.3-tests-sources.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number/target/sona-staging/com/phasmidsoftware/number-parse_3/1.9.3.part/number-parse_3-1.9.3-javadoc.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number/target/sona-staging/com/phasmidsoftware/number-parse_3/1.9.3.part/number-parse_3-1.9.3-sources.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number/target/sona-staging/com/phasmidsoftware/number-parse_3/1.9.3.part/number-parse_3-1.9.3-tests.jar.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number/target/sona-staging/com/phasmidsoftware/number-parse_3/1.9.3.part/number-parse_3-1.9.3.pom.asc[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number/target/sona-staging/com/phasmidsoftware/number-parse_3/1.9.3.part/number-parse_3-1.9.3-sources.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	published number-parse_3 to /Users/rhillyard/IdeaProjects/Number/target/sona-staging/com/phasmidsoftware/number-parse_3/1.9.3.part/number-parse_3-1.9.3-tests.jar[0m
+[0m[[0m[0minfo[0m] [0m[0m	publish commited: moved /Users/rhillyard/IdeaProjects/Number/target/sona-staging/com/phasmidsoftware/number-parse_3/1.9.3.part [0m
+[0m[[0m[0minfo[0m] [0m[0m		to /Users/rhillyard/IdeaProjects/Number/target/sona-staging/com/phasmidsoftware/number-parse_3/1.9.3[0m

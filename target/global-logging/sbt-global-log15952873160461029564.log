@@ -1,0 +1,5 @@
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(clean, None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0mEvaluating tasks: dimensions / clean, core / clean, expression / clean, top / clean, algebra / clean, parse / clean, clean[0m
+[0m[[0m[0mdebug[0m] [0m[0mRunning task... Cancel: Signal, check cycles: false, forcegc: true[0m
+[0m[[0m[32msuccess[0m] [0m[0mTotal time: 2 s, completed Mar 6, 2026, 9:45:58 AM[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(idea-shell, None, None)[0m

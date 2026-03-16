@@ -1,0 +1,31 @@
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(unidoc, None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0mEvaluating tasks: Compile / unidoc[0m
+[0m[[0m[0mdebug[0m] [0m[0mRunning task... Cancel: Signal, check cycles: false, forcegc: true[0m
+[0m[[0m[0minfo[0m] [0m[0mMain Scala API documentation to /Users/rhillyard/IdeaProjects/Number/target/scala-3.7.3/unidoc...[0m
+[0m[[0m[33mwarn[0m] [0m[0mFlag -project set repeatedly[0m
+[0m[[0m[33mwarn[0m] [0m[0mFlag -classpath set repeatedly[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: algebra/src/main/scala/com/phasmidsoftware/number/algebra/core/Can.scala:319:6 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m319 |[0m  [33mdef[0m [36masT[0m: [35mT[0m = {[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m      ^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m  Couldn't resolve a member for the given link query: AlgebraException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/Eager.scala:521:6 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m521 |[0m  [33mdef[0m [36mimaginary[0m([36mx[0m: [35mScalar[0m): [35mInversePower[0m =[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m      ^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m  Couldn't resolve a member for the given link query: AlgebraException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/InversePower.scala:644:6 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m644 |[0m  [33mdef[0m [36mcreate[0m([36mn[0m: [35mInt[0m, [36ms[0m: [35mStructure[0m): [35mInversePower[0m = s [33mmatch[0m {[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m      ^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m  Couldn't resolve a member for the given link query: AlgebraException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: algebra/src/main/scala/com/phasmidsoftware/number/algebra/eager/InversePower.scala:665:6 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m665 |[0m  [33mdef[0m [36mnormalizeIntegralRoot[0m([36mradicand[0m: [35mInt[0m, [36mrootDegree[0m: [35mInt[0m): ([35mInt[0m, [35mInt[0m) = {[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m    |[0m      ^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m    |[0m  Couldn't resolve a member for the given link query: AlgebraException[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m-- Warning: top/src/main/scala/com/phasmidsoftware/number/top/QuantityParser.scala:60:6 [0m[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m60 |[0m  [33mdef[0m [36mdoParseNumber[0m([36mnumStr[0m: [35mString[0m): [35mExpression[0m =[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m[33m   |[0m      ^[0m[0m
+[0m[[0m[33mwarn[0m] [0m[0m[33m   |[0mCouldn't resolve a member for the given link query: LaTeXParserException[0m
+[0m[[0m[33mwarn[0m] [0m[0m7 warnings found[0m
+[0m[[0m[0minfo[0m] [0m[0mMain Scala API documentation successful.[0m
+[0m[[0m[0mdebug[0m] [0m[0mForcing garbage collection...[0m
+[0m[[0m[32msuccess[0m] [0m[0mTotal time: 22 s, completed Mar 16, 2026, 4:18:51 PM[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(idea-shell, None, None)[0m
