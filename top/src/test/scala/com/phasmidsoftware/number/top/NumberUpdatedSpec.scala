@@ -1,12 +1,11 @@
 package com.phasmidsoftware.number.top
 
-import com.phasmidsoftware.number.algebra.eager.Eager
+import com.phasmidsoftware.number.algebra.eager.{Eager, InversePower, RationalNumber}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
 class NumberUpdatedSpec extends AnyFlatSpec with should.Matchers {
 
-  import cats.implicits.*
   import com.phasmidsoftware.number.algebra.core.AnyContext
   import com.phasmidsoftware.number.core.inner.Rational
   import com.phasmidsoftware.number.core.inner.Rational.RationalOps
@@ -17,8 +16,14 @@ class NumberUpdatedSpec extends AnyFlatSpec with should.Matchers {
 
     // NOTE Demonstrate that sin(π/4) is an exact number.
     val piBy4 = Pi / 4
+    println(piBy4.simplify.debug)
     piBy4.show shouldBe "¼\uD835\uDED1"
     val sinePiBy4 = piBy4.sin
+    val actual = sinePiBy4.simplify
+    val expected = Literal(InversePower(2, RationalNumber(Rational.half)))
+    withClue(s"actual: ${actual.debug}\nexpected: ${expected.debug}\n") {
+      actual shouldBe expected
+    }
     sinePiBy4.show shouldBe "√½"
     val oneHalf = (sinePiBy4 * sinePiBy4)
     oneHalf.show shouldBe "½"

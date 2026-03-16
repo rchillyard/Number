@@ -36,7 +36,7 @@ import scala.util.{Success, Try}
   * @param n      the degree of the root, specified as an integer
   * @param number the base `Number` value on which the root operation is defined
   */
-case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = None) extends Transformed with CanMultiplyAndDivide[Structure] with Scalable[InversePower] with CanPower[Number] {
+case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = None) extends Transformed with Scalable[InversePower] with CanPower[Number] {
 
   require(n > 0, s"InversePower: n must be positive, but was $n")
   require(!number.isZero, s"InversePower: number must be non-zero, but was $number")

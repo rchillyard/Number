@@ -13,12 +13,13 @@ import com.phasmidsoftware.number.core.inner.Rational.infinity
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Number.{piBy2, root2, root3, √}
-import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Constants, Field, FuzzyNumber}
+import com.phasmidsoftware.number.core.numerical.{Constants, Field, FuzzyNumber}
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.BiFunction.asAggregate
 import com.phasmidsoftware.number.expression.expr.Expression
 import com.phasmidsoftware.number.expression.expr.Expression.em.DyadicTriple
 import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, matchSimpler, zero}
+import com.phasmidsoftware.number.expression.expr.Noop.TEST_STRING
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
@@ -1047,7 +1048,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = Literal(Eager.pi)
     val y = -x
     val result = p(BiFunction(x, y, Sum))
-    result should matchPattern { case em.Match(Literal(Angle.zero, _)) => }
+    result should matchPattern { case em.Match(IsEager(Angle.zero)) => }
   }
 
   behavior of "matchDyadicTrivial"
@@ -1447,7 +1448,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val r = p(Ln ~ MinusOne)
     r.successful shouldBe true
     val actual = r.get
-    val expected = Literal(Eager(ComplexPolar(numerical.Number.pi, numerical.Number.piBy2.makeNegative, 1)))
+    val expected = (I * Pi).simplify
     actual shouldBe expected
   }
 
@@ -1682,6 +1683,11 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x = Two
     val result = Expression.simplifyParity(BiFunction(UniFunction(x, Exp), UniFunction(-x, Exp), Sum))
     result should matchPattern { case em.Miss(_, _) => }
+  }
+
+  behavior of "Error match"
+  it should "propagate Error through simplify" in {
+    an[ExpressionException] shouldBe thrownBy(Noop(TEST_STRING).simplify)
   }
 }
 

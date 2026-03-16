@@ -248,11 +248,11 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     math"\sin(0)" shouldBe zero
     lazymath"\sin(\pi)" shouldBe Zero
     math"\sin(\pi)" shouldBe zero
-    lazymath"\cos(𝛑/2)" shouldBe UniFunction(BiFunction(Pi, Rational.half, Product), Cosine)
+    lazymath"\cos(𝛑/2)" shouldBe Zero
     math"\cos(𝛑/2)" shouldBe zero
   }
   it should "work for Sine pi/2, etc." in {
-    lazymath"\sin(𝛑/2)" shouldBe UniFunction(BiFunction(Pi, Rational.half, Product), Sine)
+    lazymath"\sin(𝛑/2)" shouldBe One
     math"\sin(𝛑/2)" shouldBe one
     lazymath"\cos(0)" shouldBe One
     math"\cos(0)" shouldBe one

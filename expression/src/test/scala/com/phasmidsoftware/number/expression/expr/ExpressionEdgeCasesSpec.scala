@@ -159,8 +159,6 @@ class ExpressionEdgeCasesSpec extends AnyFlatSpec with Matchers {
   it should "handle Euler's identity with complex polar" in {
     // Line 839: case (E, Literal(ComplexCartesian(Number.zero, Number.pi), _))
     val complexNum: numerical.Complex = ComplexPolar(numerical.Number.pi, numerical.Number.piBy2) // 0 + πi
-    val magnitude = complexNum.modulus
-    println(s"complexNum = $complexNum; magnitude = $magnitude; argument = ${complexNum.argument}; isImaginary = ${complexNum.isImaginary}")
     val power = BiFunction(E, Literal(Complex(complexNum)), Power) // e^(πi)
     val result = power.simplify
 
