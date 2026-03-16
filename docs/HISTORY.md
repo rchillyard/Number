@@ -15,6 +15,16 @@
 - **Parser support** — `i` as imaginary unit, `sinh`/`cosh`, Cartesian `a+bi`
   and polar `r·e^(iθ)` complex forms in `LaTeXParser`
 * Version 1.8.0:
+* Version 1.8.1:
+  *`Euler` type** — canonical lazy complex polar form `r·e^(iθ)` with full
+  de Moivre arithmetic (multiplication, division, power, conjugate sum/difference)
+  * Complex log** — `log(-1) = iπ`, `log(i) = iπ/2` via `IsEuler` extractor
+  * Complex trig/hyperbolic structural rules** — `sin(ix) = i·sinh(x)`,
+  `cos(ix) = cosh(x)`, `sinh(ix) = i·sin(x)`, `cosh(ix) = cos(x)`
+  * Trig special angle identities** — `sin(π/2) = 1`, `cos(π/2) = 0`,
+  `sin(π) = 0`, `cos(π) = -1`, `sin(-π/2) = -1`, `cos(-π/2) = 0`
+  * Parser support** — `i` as imaginary unit, `sinh`/`cosh`, Cartesian `a+bi`
+  and polar `r·e^(iθ)` complex forms in `LaTeXParser`
 * Version 1.7.2: 
   * Improved some of the complex arithmetic, in particular, imaginary numbers alone.
   * Some fixes to the simplification rules of exponentials, etc.
