@@ -529,13 +529,13 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
             make(r).specialize
           case Some(n) =>
             // NOTE for some reason, we recreate the fuzz for this case. Let's not double-count it.
-            FuzzyNumber(d, factor, fuzz).maybeAddFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -(n + 1)), Box))
+            FuzzyNumber(d, factor, fuzz).addFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -(n + 1)), Box))
           //              FuzzyNumber(d, factor, fuzz).maybeAddFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -(n + 1)), Box))
           case _ =>
-            FuzzyNumber(d, factor, fuzz).maybeAddFuzz(Fuzziness.doublePrecision)
+            FuzzyNumber(d, factor, fuzz).addFuzz(Fuzziness.doublePrecision)
         }
       case Failure(_) =>
-        FuzzyNumber(d, factor, fuzz).maybeAddFuzz(Fuzziness.doublePrecision)
+        FuzzyNumber(d, factor, fuzz).addFuzz(Fuzziness.doublePrecision)
     }
 
   /**
@@ -546,16 +546,6 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     */
   def addFuzz(f: Fuzziness[Double]): Number =
     FuzzyNumber.addFuzz(this, f)
-
-  /**
-    * Make a copy of this Number with additional fuzz given by f,
-    * but only if this Number has no existing fuzz.
-    * If fuzz is already present, returns this unchanged.
-    *
-    * @param f the additional fuzz.
-    * @return this, but with fuzziness f if originally exact, otherwise unchanged.
-    */
-  def maybeAddFuzz(f: Fuzziness[Double]): Number = addFuzz(f)
 
   /**
     * Method to align the factors of this and x such that the resulting Numbers (in the tuple) each have the same factor.

@@ -2,6 +2,8 @@
 
 ## Versions
 
+* Version 1.9.3:
+- See [RELEASENOTES_1_9_3](releaseNotes/1_9_3.md)
 * Version 1.8.1:
 - **`Euler` type** — canonical lazy complex polar form `r·e^(iθ)` with full
   de Moivre arithmetic (multiplication, division, power, conjugate sum/difference)
