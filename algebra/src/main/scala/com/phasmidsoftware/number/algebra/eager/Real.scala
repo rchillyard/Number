@@ -565,7 +565,7 @@ object Real {
       val decimalPlaces = str.split('.')(1).length
       Fuzziness.createAbsFuzz(math.pow(10, -decimalPlaces) / 2.0)
     } else
-      Some(Fuzziness.createFuzz(0))
+      Fuzziness.createFuzz(Some(0))
     new Real(value, fuzz)()
   }
 
@@ -915,7 +915,7 @@ object Real {
       */
     def div(x: Real, y: Real): Real = {
       (realIsRing.inverse(y) map (z => realIsRing.times(x, z))
-          ).getOrElse(Real(Double.PositiveInfinity, Some(Fuzziness.createFuzz(0)))())
+        ).getOrElse(Real(Double.PositiveInfinity, Fuzziness.createFuzz(Some(0)))())
     }
 
     /**

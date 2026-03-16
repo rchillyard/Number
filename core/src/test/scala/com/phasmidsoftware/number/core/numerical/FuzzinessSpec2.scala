@@ -363,12 +363,12 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
   behavior of "Fuzziness.createFuzz"
 
   it should "create fuzz with correct relative precision" in {
-    val fuzz0 = Fuzziness.createFuzz(0)
-    fuzz0 shouldBe a[RelativeFuzz[?]]
+    val fuzz0 = Fuzziness.createFuzz(Some(0))
+    fuzz0.get shouldBe a[RelativeFuzz[?]]
 
-    val fuzz3 = Fuzziness.createFuzz(3)
-    fuzz3 shouldBe a[RelativeFuzz[?]]
-    val tolerance = fuzz3.asInstanceOf[RelativeFuzz[Double]].tolerance
+    val fuzz3 = Fuzziness.createFuzz(Some(3))
+    fuzz3.get shouldBe a[RelativeFuzz[?]]
+    val tolerance = fuzz3.get.asInstanceOf[RelativeFuzz[Double]].tolerance
     // Should be 8x the base precision (1 << 3 = 8)
     tolerance should be > 0.0
   }
@@ -376,7 +376,7 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
   behavior of "Shape - Gaussian"
 
   it should "calculate wiggle room correctly" in {
-    val wiggle = Gaussian.wiggle(1.0, 0.5)
+    val wiggle = Gaussian.wiggle(1.0)
     wiggle should be > 0.0
   }
 
@@ -417,7 +417,7 @@ class FuzzinessSpec2 extends AnyFlatSpec with Matchers {
   }
 
   it should "calculate wiggle room correctly" in {
-    val wiggle = Box.wiggle(1.0, 0.5)
+    val wiggle = Box.wiggle(1.0)
     wiggle shouldBe 0.5 // Half the width
   }
 

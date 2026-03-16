@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.inner.*
+import com.phasmidsoftware.number.core.numerical.Fuzziness.oneSigma
 
 import java.util.Objects
 
@@ -216,7 +217,7 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     * @param confidence the confidence desired. Ignored.
     * @return true if this Number is actually zero.
     */
-  def isProbablyZero(confidence: Double = 0.5): Boolean = isZero
+  def isProbablyZero(confidence: Double = oneSigma): Boolean = isZero
 
   /**
     * Render this ExactNumber as a String representation.

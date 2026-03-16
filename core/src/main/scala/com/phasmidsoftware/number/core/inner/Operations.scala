@@ -42,8 +42,9 @@ sealed trait MonadicOperation extends Operation {
 
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
+    * If None, then this operation does not introduce any precision loss.
     */
-  val fuzz: Int
+  val fuzz: Option[Int]
 }
 
 /**
@@ -79,7 +80,7 @@ case object MonadicOperationNegate extends MonadicOperation {
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
     */
-  val fuzz: Int = 0
+  val fuzz: Option[Int] = None
 }
 
 /**
@@ -107,7 +108,7 @@ case object MonadicOperationInvert extends MonadicOperation {
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
     */
-  val fuzz: Int = 0
+  val fuzz: Option[Int] = Some(0)
 
   /**
     * Attempts to invert an integer.
@@ -170,7 +171,7 @@ case object MonadicOperationExp extends MonadicOperation {
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
     */
-  val fuzz: Int = 3
+  val fuzz: Option[Int] = Some(3)
 
   /**
     * Computes the exponential of the given integer if the input is `0`.
@@ -238,7 +239,7 @@ case object MonadicOperationLog extends MonadicOperation {
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
     */
-  val fuzz: Int = 3
+  val fuzz: Option[Int] = Some(3)
 
   /**
     * Computes the natural logarithm of an integer. If the input is `1`, it returns `Success(0)`.
@@ -309,7 +310,7 @@ case object MonadicOperationSin extends MonadicOperation {
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
     */
-  val fuzz: Int = 3
+  val fuzz: Option[Int] = Some(3)
 
   /**
     * A private value representing a partially lifted function that calculates the sine of an integral angle (in radians).
@@ -413,7 +414,7 @@ case class MonadicOperationAtan(xSign: Int, ySign: Int) extends MonadicOperation
   val relativeFuzz: Double => Double =
     fuzzRatio => fuzzRatio / (1 + math.pow(fuzzRatio, 2))
 
-  val fuzz: Int = 4
+  val fuzz: Option[Int] = Some(4)
 
   /**
     * Adjusts the given angle encapsulated in a Try[Rational], potentially flipping it and normalizing its value.
@@ -507,7 +508,7 @@ case class MonadicOperationModulate(min: Int, max: Int, inclusive: Boolean, angu
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
     */
-  val fuzz: Int = 0
+  val fuzz: Option[Int] = None
 
   /**
     * Modulates a value into a specified range [min, max] using modular arithmetic.
@@ -548,7 +549,7 @@ case object MonadicOperationSqrt extends MonadicOperation {
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
     */
-  val fuzz: Int = 3
+  val fuzz: Option[Int] = Some(3)
 
   private lazy val sqrtInt: Int => Try[Int] = // CONSIDER not using squareRoots: there are other ways.
     x => toTryWithThrowable(Rational.squareRoots.get(x), OperationsException("Cannot create Int from Double"))
@@ -593,7 +594,7 @@ case class MonadicOperationScale(r: Rational) extends MonadicOperation {
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
     */
-  val fuzz: Int = 0
+  val fuzz: Option[Int] = None
 
   private lazy val c: Double = r.toDouble
 }
@@ -626,7 +627,7 @@ case class MonadicOperationFunc(f: Double => Double, dfByDx: Double => Double) e
     * This value is used in the context of monadic operations
     * to represent a default or fallback fuzziness level.
     */
-  val fuzz: Int = 1
+  val fuzz: Option[Int] = Some(1)
 }
 
 /**

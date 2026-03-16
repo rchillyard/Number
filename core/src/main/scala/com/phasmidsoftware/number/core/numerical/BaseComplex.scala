@@ -59,21 +59,23 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     * @param x the other field.
     * @return true if they are the same, otherwise false.
     */
-  def isSame(x: Numerical): Boolean = (this, x) match {
-    case (z, Real(n)) =>
-      z `isSame` n.asComplex
-    case (c1@ComplexCartesian(_, _), c2@ComplexPolar(_, _, _)) =>
-      c2.isSame(c1)
-    case (c1@ComplexPolar(_, _, _), c2@ComplexCartesian(_, _)) =>
-      c2.isSame(convertToCartesian(c1))
-    case (c1, c2: Complex) =>
-      val diff = c1 `subtract` c2
-      diff.isProbablyZero()
-    case (z, x: Number) =>
-      z `isSame` Real(x)
-    case _ =>
-      false
-  }
+  def isSame(x: Numerical): Boolean =
+    (this, x) match {
+      case (z, Real(n)) =>
+        z `isSame` n.asComplex
+      case (c1@ComplexCartesian(_, _), c2@ComplexPolar(_, _, _)) =>
+        c2.isSame(c1)
+      case (c1@ComplexPolar(_, _, _), c2@ComplexCartesian(_, _)) =>
+        c2.isSame(convertToCartesian(c1))
+      case (c1, c2: Complex) =>
+        val diff = c1 `subtract` c2
+        println(s"isSame: $c1, $c2, diff = $diff")
+        diff.isProbablyZero()
+      case (z, x: Number) =>
+        z `isSame` Real(x)
+      case _ =>
+        false
+    }
 
   /**
     * Determines if this complex number has a modulus of unity (magnitude of one).

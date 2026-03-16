@@ -8,6 +8,7 @@ import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
 import com.phasmidsoftware.number.core.numerical.FuzzyNumber.NumberIsFuzzy
 import com.phasmidsoftware.number.core.numerical.Number.{createFromDouble, negate}
 import com.phasmidsoftware.number.core.numerical.{Number, Real}
+
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
@@ -45,13 +46,12 @@ object Approximation {
     *
     * @param f      the function.
     * @param dfByDx the derivative function.
-    * @param p      a probability between 0 and 1 -- 0 would always result in true; 1 will result in false unless x1 actually is x2.
+    * @param confidence a probability between 0 and 1 -- 0 would always result in true; 1 will result in false unless x1 actually is x2.
     * @param x      a Number which will be compared with zero.
     * @return a Try[Boolean].
     */
-  def converged(f: Double => Double, dfByDx: Double => Double)(p: Double)(x: Number, target: Number): Try[Boolean] = {
-    evaluate(f, dfByDx)(x) map (n => NumberIsFuzzy.same(p)(n, target))
-  }
+  def converged(f: Double => Double, dfByDx: Double => Double)(confidence: Double)(x: Number, target: Number): Try[Boolean] =
+    evaluate(f, dfByDx)(x) map (n => NumberIsFuzzy.same(confidence)(n, target))
 
   /**
     * Method to evaluate function f at value x.
@@ -72,7 +72,8 @@ object Approximation {
     * @param x      the value to pass into f.
     * @return the function's value at x.
     */
-  def evaluate(f: Double => Double, dfByDx: Double => Double)(x: Number): Try[Number] = x.applyFunc(f, dfByDx)
+  def evaluate(f: Double => Double, dfByDx: Double => Double)(x: Number): Try[Number] =
+    x.applyFunc(f, dfByDx)
 
   /**
     * This method of finding a root of a continuously differentiable function implements Householder's method in general.
@@ -82,15 +83,15 @@ object Approximation {
     * And so on.
     * f[n](x) is the nth derivative of x, such that f[0](x) = f(x) and f[1](x) = f'(x) = d(f(x))/dx.
     *
-    * @param probability the confidence we need for the resulting root to be the same as zero.
+    * @param confidence the confidence we need for the resulting root to be the same as zero.
     * @param functions   a list of the derivative functions: f[0](x), f[1](x), f[2](x), f[3](x), etc.
     * @param x0          the initial guess.
     * @param target      the target value, by default this will be a fuzzy version of (Double) zero.
     */
-  def solve(probability: Double, functions: (Double => Double)*)(x0: Number, target: Number = createFromDouble(0)): Try[Number] = {
+  def solve(confidence: Double, functions: (Double => Double)*)(x0: Number, target: Number = createFromDouble(0)): Try[Number] = {
     require(functions.size > 1, "solve: insufficient functions provided")
 
-    val tester: Number => Try[Boolean] = converged(functions(0), functions(1))(probability)(_, target)
+    val tester: Number => Try[Boolean] = converged(functions(0), functions(1))(confidence)(_, target)
     val iterator: Number => Try[Number] = iterate(functions *)
 
     @tailrec

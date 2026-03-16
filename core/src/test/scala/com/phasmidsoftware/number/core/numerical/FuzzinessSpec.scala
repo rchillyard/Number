@@ -91,7 +91,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     import Number.FuzzOps
     val x = 3.1415927 ~ 12
     x.isExact shouldBe false
-    x.toString shouldBe "FuzzyNumber(Left(Left(Some(3.1415927))),,Some(AbsoluteFuzz(1.200347172002056E-6,Gaussian)))"
+    x.toString shouldBe "FuzzyNumber(Left(Left(Some(3.1415927))),,Some(AbsoluteFuzz(1.2E-6,Gaussian)))"
     x.render shouldBe "3.1415927(12)"
   }
 
@@ -169,14 +169,17 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   }
 
   behavior of "createFuzz"
+  it should "work for None" in {
+    createFuzz(None) shouldBe None
+  }
   it should "work for 0" in {
-    createFuzz(0) shouldBe RelativeFuzz(1.6E-16, Box)
+    createFuzz(Some(0)) shouldBe Some(RelativeFuzz(1.6E-16, Box))
   }
   it should "work for 1" in {
-    createFuzz(1) shouldBe RelativeFuzz(3.2E-16, Box)
+    createFuzz(Some(1)) shouldBe Some(RelativeFuzz(3.2E-16, Box))
   }
   it should "work for 5" in {
-    createFuzz(5) shouldBe RelativeFuzz(5.12E-15, Box)
+    createFuzz(Some(5)) shouldBe Some(RelativeFuzz(5.12E-15, Box))
   }
 
   behavior of "render"
@@ -200,7 +203,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     z.isDefined shouldBe true
     val q: Fuzziness[Double] = z.get
     q.shape should matchPattern { case Box => }
-    q.shape.wiggle(0.0005, 0.5) shouldBe 0.00025
+    q.shape.wiggle(0.0005) shouldBe 0.00025
     // NOTE that the probability is ignored for a box
     q.shape.wiggle(0.0005, 0.1) shouldBe 0.00025
     q.shape.wiggle(0.0005, 0.9) shouldBe 0.00025
@@ -214,7 +217,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     val z: Option[Fuzziness[Double]] = x.fuzz
     z.isEmpty shouldBe false
     val q: Fuzziness[Double] = z.get
-    q.wiggle(0.5) shouldBe 0.00025
+    q.wiggle() shouldBe 0.00025
     // NOTE that the probability is ignored for a box
     q.wiggle(0.1) shouldBe 0.00025
     q.wiggle(0.9) shouldBe 0.00025
@@ -264,7 +267,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "work for the triangle case (a==b)" in {
     val t = Trapezoid(2.0, 2.0)
-    t.wiggle(0, 0.5) shouldBe (4.0 - 2 * math.sqrt(4.0 * 0.5)) +- 1E-10 // ≈ 1.172
+    t.wiggle(0) shouldBe 1.7478898783585204 +- 1E-10
     t.wiggle(0, 0.75) shouldBe (4.0 - 2 * math.sqrt(4.0 * 0.75)) +- 1E-10 // ≈ 0.536
     t.wiggle(0, 0.0) shouldBe Double.PositiveInfinity
     t.wiggle(0, 1.0) shouldBe 0.0
@@ -352,6 +355,18 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     val f2 = RelativeFuzz[Double](0.02, Box)
     (f1 * (f2, true)) shouldBe (f2 * (f1, true))
   }
+  it should "combine two Boxes as a Trapezoid" in {
+    import com.phasmidsoftware.number.core.numerical.Number
+
+    // proton-electron mass ratio
+    val ratio = Number(1836.15267343)
+    val ratioEstimate = Number(1836.1526734)
+
+    // This is supposed to generate a fuzzy number with Trapezoid-type fuzziness.
+    val ratioError = ratio `doSubtract` ratioEstimate
+    println(ratioError)
+    ratioError.isProbablyZero(0.3) shouldBe true
+  }
 
   behavior of "RelativeFuzz.wiggle with Trapezoid"
   it should "work in flat-top region" in {
@@ -437,7 +452,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     val fuzz = y.fuzz
     val z = fuzz.map(f => f.normalizeShape)
     z.get shouldBe AbsoluteFuzz[Double](0.5773502691896258, Gaussian)
-    z.get.wiggle() shouldBe 0.38941683884135114
+    z.get.wiggle() shouldBe 0.5777208291983995
   }
 
   behavior of "probability"

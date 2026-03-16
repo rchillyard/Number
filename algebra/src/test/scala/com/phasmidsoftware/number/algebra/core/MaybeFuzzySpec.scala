@@ -54,13 +54,13 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
 
   it should "render fuzzy Real with relative fuzz using asAbsolute" in {
     val r = Real(100.0, Some(RelativeFuzz(0.01, Gaussian))) // 1% relative
-    r.show shouldBe "100.0±1%"
+    r.show shouldBe "100±1%"
     //    r.asAbsolute shouldBe "1.00(1)E+02" // Converts to absolute notation
   }
 
   it should "render fuzzy Real with asRelative" in {
     val r = Real(100.0, Some(RelativeFuzz(0.01, Gaussian)))
-    r.show shouldBe "100.0±1%"
+    r.show shouldBe "100±1%"
   }
 
   it should "render fuzzy Real with absolute fuzz using asRelative" in {
@@ -71,7 +71,7 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
 
   it should "render fuzzy Real with asPercentage" in {
     val r = Real(100.0, Some(RelativeFuzz(0.01, Gaussian)))
-    r.show shouldBe "100.0±1%"
+    r.show shouldBe "100±1%"
   }
 
   behavior of "MaybeFuzzy extension methods for Angle"

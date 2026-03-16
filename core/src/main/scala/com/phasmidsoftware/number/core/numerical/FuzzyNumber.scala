@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.inner.*
+import com.phasmidsoftware.number.core.numerical.Fuzziness.{combine, oneSigma}
 import com.phasmidsoftware.number.core.numerical.FuzzyNumber.withinWiggleRoom
 import com.phasmidsoftware.number.core.numerical.Number.prepareWithSpecialize
 import com.phasmidsoftware.number.core.numerical.WithFuzziness.{Asterisk, Ellipsis}
@@ -141,23 +142,23 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
     */
   lazy val signum: Int =
-    signum(0.5)
+    signum()
 
   /**
     * Method to determine the sense of this number: negative, zero, or positive.
     * If this FuzzyNumber cannot be distinguished from zero with p confidence, then
     *
-    * @param p the confidence desired.
+    * @param confidence the confidence desired.
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
     */
-  def signum(p: Double): Int =
-    if (isProbablyZero(p)) 0 else Number.signum(this)
+  def signum(confidence: Double = oneSigma): Int =
+    if (isProbablyZero(confidence)) 0 else Number.signum(this)
 
   /**
     * @param confidence the confidence desired. Ignored if isZero is true.
     * @return true if this Number is equivalent to zero with at least p confidence.
     */
-  def isProbablyZero(confidence: Double = 0.5): Boolean =
+  def isProbablyZero(confidence: Double = oneSigma): Boolean =
     GeneralNumber.isZero(this) || (for (f <- fuzz; x <- toNominalDouble) yield withinWiggleRoom(confidence, f, x)).getOrElse(false)
 
   /**
@@ -175,7 +176,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     */
   def composeDyadicFuzzy(other: Number, f: Factor)(op: DyadicOperation, independent: Boolean, coefficients: Option[(Double, Double)]): Option[Number] =
     for (n <- composeDyadic(other, f)(op); t1 <- this.toNominalDouble; t2 <- other.toNominalDouble) yield {
-      val q = Fuzziness.combine(t1, t2, !op.absolute, independent)(Fuzziness.applyCoefficients((fuzz, other.fuzz), coefficients))
+      val q = combine(t1, t2, !op.absolute, independent)(Fuzziness.applyCoefficients((fuzz, other.fuzz), coefficients))
       FuzzyNumber(n.nominalValue, n.factor, q)
     }
 
@@ -348,14 +349,14 @@ object FuzzyNumber {
     *
     * @param x the first number.
     * @param y the second number.
-    * @param p the probability criterion.
+    * @param confidence the probability criterion.
     * @return an Int representing the order.
     */
-  def fuzzyCompare(x: Number, y: Number, p: Double): Int =
-    if (implicitly[Fuzzy[Number]].same(p)(x, y))
+  def fuzzyCompare(x: Number, y: Number, confidence: Double = oneSigma): Int =
+    if (implicitly[Fuzzy[Number]].same(confidence)(x, y))
       0
     else
-      GeneralNumber.plus(x, Number.negate(y)).signum(p)
+      GeneralNumber.plus(x, Number.negate(y)).signum(confidence)
 
   /**
     * Method to construct an invalid Number.
@@ -485,7 +486,7 @@ object FuzzyNumber {
     * @return the value of n to the power of p.
     */
   private def getPowerCoefficients(n: Number, p: Number): Option[(Double, Double)] =
-    for (z <- n.toNominalDouble; q <- p.toNominalDouble) yield (q, q * math.log(z))
+    for (z <- n.toNominalDouble; q <- p.toNominalDouble) yield (q, q * math.log(math.abs(z)))
 
   /**
     *

@@ -890,7 +890,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     y.materialize shouldBe Eager(7)
   }
   it should "evaluate E * 2" in {
-    (Literal(Eager.e) * 2).materialize.render shouldBe "5.436563656918090[6]"
+    (Literal(Eager.e) * 2).materialize.render shouldBe "5.4365636569180900[71]"
   }
 
   behavior of "simplifyTerms"

@@ -26,7 +26,7 @@ class NumberShowFuzzySpec extends AnyFlatSpec with Matchers {
 
   it should "show 100.0 with AbsoluteFuzz(1.0, Gaussian) as 100±1%" in {
     FuzzyNumber(Number.parse("100").get.nominalValue, PureNumber,
-      Some(AbsoluteFuzz(1.0, Gaussian))).show shouldBe "100.0±1%"
+      Some(AbsoluteFuzz(1.0, Gaussian))).show shouldBe "100±1%"
   }
 
   it should "show 9.81 with AbsoluteFuzz(0.005, Box) as a percentage" in {
@@ -101,6 +101,6 @@ class NumberShowFuzzySpec extends AnyFlatSpec with Matchers {
   it should "show Real with absolute fuzz as percentage" in {
     val n = FuzzyNumber(Number.parse("100").get.nominalValue, PureNumber,
       Some(AbsoluteFuzz(1.0, Gaussian)))
-    Real(n).show shouldBe "100.0±1%"
+    Real(n).show shouldBe "100±1%"
   }
 }
