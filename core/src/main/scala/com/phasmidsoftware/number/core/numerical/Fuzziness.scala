@@ -556,8 +556,8 @@ object Fuzziness {
   def applyCoefficients[T: HasValue](fuzz: (Option[Fuzziness[T]], Option[Fuzziness[T]]), coefficients: Option[(T, T)]): (Option[Fuzziness[T]], Option[Fuzziness[T]]) =
     coefficients match {
       case Some((a, b)) =>
-        val f1o = fuzz._1 map scaleTransform(implicitly[HasValue[T]].toDouble(a))
-        val f2o = fuzz._2 map scaleTransform(implicitly[HasValue[T]].toDouble(b))
+        val f1o = sanitize(fuzz._1 map scaleTransform(implicitly[HasValue[T]].toDouble(a)))
+        val f2o = sanitize(fuzz._2 map scaleTransform(implicitly[HasValue[T]].toDouble(b)))
         (f1o, f2o)
       case _ => fuzz
     }
@@ -678,6 +678,27 @@ object Fuzziness {
   val oneSigma: Double = 0.317
 
   /**
+    * A constant value representing the square root of 2.
+    * This is used when combining two equal fuzz values without changing the underlying shape.
+    */
+  val simpleDoubleFuzzFactor: Double = math.sqrt(2)
+
+  /**
+    * Sanitize an optional Fuzziness value by returning None if its magnitude
+    * is NaN or infinite. This prevents NaN from propagating into combination
+    * logic (e.g. Trapezoid constructor) when derivatives are undefined.
+    *
+    * @param f the optional Fuzziness to sanitize.
+    * @tparam T the underlying type.
+    * @return the original value, or None if the magnitude is NaN or infinite.
+    */
+  private def sanitize[T: HasValue](f: Option[Fuzziness[T]]): Option[Fuzziness[T]] =
+    f.filter {
+      case AbsoluteFuzz(m, _) => val x = implicitly[HasValue[T]].toDouble(m); !x.isNaN && !x.isInfinite
+      case RelativeFuzz(t, _) => !t.isNaN && !t.isInfinite
+    }
+
+  /**
     * Apply the three-tier combination rules to two fuzz magnitudes and shapes,
     * returning the effective (combinedMagnitude, combinedShape):
     *
@@ -701,7 +722,7 @@ object Fuzziness {
       if (large / small > negligibleRatio)
         Left(large) // Rule 2: negligible — keep larger
       else if (small < doublePrecisionFloor)
-        Left(large * math.sqrt(2)) // Rule 1: floor — scale by sqrt(2)
+        Left(large * simpleDoubleFuzzFactor) // Rule 1: floor — scale by sqrt(2)
       else
         Right(convolve) // Rule 3: full convolution
     }
@@ -788,9 +809,9 @@ object Fuzziness {
     // First, ensure that the fuzz we are given is relative if the operation is not an exact operation.
     val relativeFuzz: Option[Fuzziness[Double]] = fuzz flatMap (_.normalize(t, relative = useRelativeFuzz))
     // Next, calculate the relative fuzziness of the result, according to the function being applied.
-    val functionFuzz: Option[Fuzziness[Double]] = relativeFuzz map (_.transform(op.relativeFuzz)(t))
+    val functionFuzz: Option[Fuzziness[Double]] = sanitize(relativeFuzz map (_.transform(op.relativeFuzz)(t)))
     // Finally, we calculate the precision loss (if any) occasioned by the actual implementation of the operation function itself.
-    val operationFuzz = createFuzz(op.fuzz)
+    val operationFuzz = sanitize(createFuzz(op.fuzz))
     // Combine the functionFuzz with the operationFuzz
     combine(t, t, relative = useRelativeFuzz, independent = true)((functionFuzz, operationFuzz))
     //      ^  ^ <-- Use 'x' (output value) for both, since both errors are now relative to the output
