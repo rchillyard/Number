@@ -340,7 +340,8 @@ object Fuzzy {
 
     def plus(x: Fuzzy, y: Fuzzy): Fuzzy = sum(x, y)
 
-    def minus(x: Fuzzy, y: Fuzzy): Fuzzy = sum(x, negate(y))
+    def minus(x: Fuzzy, y: Fuzzy): Fuzzy =
+      sum(x, negate(y))
 
     def times(x: Fuzzy, y: Fuzzy): Fuzzy = product(x, y)
 

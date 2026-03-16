@@ -98,13 +98,13 @@ trait Structure extends Eager with WithFuzziness with Negatable[Structure] {
     *
     * If either of the instances is not of type `Structure`, a failure with an `AlgebraException` is returned.
     *
-    * @param p    the tolerance level (as a `Double`) to be used for the fuzzy equality comparison.
+    * @param confidence the tolerance level (as a `Double`) to be used for the fuzzy equality comparison.
     * @param that the `Eager` instance to compare against the current instance.
     * @return a `Try[Boolean]` indicating whether the two instances are fuzzy equal within the specified tolerance.
     *         Returns a `Success(true)` or `Success(false)` if the comparison completes successfully,
     *         or a `Failure(AlgebraException)` if an error occurs.
     */
-  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
+  override def fuzzyEqv(confidence: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (a: Structure, b: Structure) =>
       FP.toTry(for {
         p: Real <- a.convert(Real.one)
@@ -198,7 +198,7 @@ trait Exact extends WithFuzziness {
     *
     * @return an `Option` containing the `Fuzziness[Double]` value if defined, or `None` if no fuzziness is specified.
     */
-  def fuzz: Option[Fuzziness[Double]] = None
+  lazy val fuzz: Option[Fuzziness[Double]] = None
 }
 
 /**
@@ -248,7 +248,7 @@ trait Functional extends Structure with MaybeFuzzy with Ordered[Functional] {
     *
     * @return An Option containing the fuzziness representation of the number, or None if not available.
     */
-  def maybeFuzz: Option[Fuzziness[Double]] =
+  lazy val maybeFuzz: Option[Fuzziness[Double]] =
     number.fuzz map {
       val fuzzFunction: Double => Double = x => derivativeFunction(x) * x / scaleFunction(x)
       fuzz => fuzz.transform[Double, Double](fuzzFunction)(scaleFunction(number.toDouble))
@@ -262,7 +262,7 @@ trait Functional extends Structure with MaybeFuzzy with Ordered[Functional] {
     *
     * @return The nominal value as a `Double`.
     */
-  def nominalValue: Double = scaleFunction(number.toDouble)
+  lazy val nominalValue: Double = scaleFunction(number.toDouble)
 
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
@@ -271,7 +271,7 @@ trait Functional extends Structure with MaybeFuzzy with Ordered[Functional] {
     *
     * @return Some(x) where x is a Double if this is exact, else None.
     */
-  override def maybeDouble: Option[Double] =
+  override lazy val maybeDouble: Option[Double] =
     Option.when(isExact)(nominalValue)
 }
 

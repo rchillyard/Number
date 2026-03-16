@@ -47,7 +47,7 @@ case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeNam
     * @return a simplified version of the object as a `Valuable`,
     *         either as a `WholeNumber` or the current object.
     */
-  def normalize: ExactNumber =
+  lazy val normalize: ExactNumber =
     if (r.isInteger && !percentage)
       WholeNumber(r.n)
     else
@@ -87,7 +87,7 @@ case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeNam
     *         derived from the current value, and `None` indicates that the value cannot
     *         be expressed as a `Z` (e.g., if the number is not a whole number or out of range).
     */
-  def maybeZ: Option[Z] =
+  lazy val maybeZ: Option[Z] =
     r.maybeInt.map(WholeNumber(_))
 
   /**
@@ -95,7 +95,7 @@ case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeNam
     *
     * @return an Option wrapping this instance as a type `Q`
     */
-  def maybeQ: Option[Q] = Some(this)
+  lazy val maybeQ: Option[Q] = Some(this)
 
   /**
     * Compares this `RationalNumber` instance with another `Scalar` instance for exact equivalence.
@@ -146,7 +146,7 @@ case class RationalNumber(r: Rational, percentage: Boolean = false)(val maybeNam
     *
     * @return the Rational representation of this RationalNumber.
     */
-  def toRational: Rational = r
+  lazy val toRational: Rational = r
 
   /**
     * Scales the current instance of `RationalNumber` by the given `Int` value.

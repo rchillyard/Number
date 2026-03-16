@@ -1,5 +1,6 @@
 /**
   * This worksheet demonstrates some of the trigonometric expressions and identities.
+  * Tested by TrigonometryWorksheetSpec.
   */
 
 import com.phasmidsoftware.number.algebra.eager.Eager

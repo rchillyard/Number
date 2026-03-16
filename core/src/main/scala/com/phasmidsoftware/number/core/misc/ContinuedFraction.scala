@@ -48,7 +48,7 @@ case class ContinuedFraction(cf: ConFrac, infinite: Boolean = true, markov: Doub
     * @see ConFrac#coefficients.
     * @return a LazyList of Pairs.
     */
-  def coefficients: LazyList[Pair] =
+  lazy val coefficients: LazyList[Pair] =
     cf.coefficients
 
   /**
@@ -57,7 +57,7 @@ case class ContinuedFraction(cf: ConFrac, infinite: Boolean = true, markov: Doub
     * @see ConFrac#convergents.
     * @return a LazyList of Rationals.
     */
-  def convergents: LazyList[Rational] =
+  lazy val convergents: LazyList[Rational] =
     cf.convergents
 
   /**
@@ -68,7 +68,7 @@ case class ContinuedFraction(cf: ConFrac, infinite: Boolean = true, markov: Doub
     * @return the coefficients in reverse order
     * @note Throws ConFracException if cf is infinite.
     */
-  def reverseCoefficients: LazyList[Pair] =
+  lazy val reverseCoefficients: LazyList[Pair] =
     if (!infinite)
       cf.reverseCoefficients
     else
@@ -360,7 +360,7 @@ class ConFrac(val b: Long, co: => Option[CF]) extends Evaluatable with Takeable 
     *
     * @return a lazy list of Rationals.
     */
-  def convergents: LazyList[Rational] = {
+  lazy val convergents: LazyList[Rational] = {
     def inner(an_2: BigInt, an_1: BigInt, bn_2: BigInt, bn_1: BigInt, w: => LazyList[Pair]): LazyList[Rational] = w match {
       case LazyList() => LazyList()
       case p #:: tail =>
@@ -382,7 +382,7 @@ class ConFrac(val b: Long, co: => Option[CF]) extends Evaluatable with Takeable 
     *
     * @return a LazyList[Pair] which can never be empty.
     */
-  def coefficients: LazyList[Pair] = {
+  lazy val coefficients: LazyList[Pair] = {
     def inner(_b: Long, a: Long, co: Option[CF]): LazyList[Pair] =
       Pair(_b, a) #:: {
         co match {
@@ -402,7 +402,7 @@ class ConFrac(val b: Long, co: => Option[CF]) extends Evaluatable with Takeable 
     *
     * @return a lazy list of the coefficients, ending with x.
     */
-  def reverseCoefficients: LazyList[Pair] = {
+  lazy val reverseCoefficients: LazyList[Pair] = {
     @tailrec def inner(r: LazyList[Pair], w: Option[CF]): LazyList[Pair] = w match {
       case Some(x) => inner(Pair(x.c.b, x.a) +: r, x.c.tailOption)
       case None => r

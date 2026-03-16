@@ -4,6 +4,8 @@
 
 package com.phasmidsoftware.number.core.numerical
 
+import com.phasmidsoftware.number.core.numerical.Fuzziness.oneSigma
+
 /**
   * Trait defining the behavior of "numerical" objects.
   */
@@ -31,6 +33,16 @@ trait Numerical extends NumberLike {
     * @return true if the magnitude of this Field is zero.
     */
   def isZero: Boolean
+
+  /**
+    * Determines whether the magnitude of this Numerical instance is probably zero
+    * based on a given probability threshold.
+    *
+    * @param confidence the probability threshold (default is oneSigma). A higher value increases
+    *          the confidence needed to determine that the magnitude is zero.
+    * @return true if the magnitude is considered to be probably zero based on the probability threshold, false otherwise.
+    */
+  def isProbablyZero(confidence: Double = oneSigma): Boolean
 
   /**
     * Method to determine if this Field has unity magnitude.

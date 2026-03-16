@@ -147,9 +147,9 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     zy should matchPattern { case Success(_) => }
     zy.get.nominalValue shouldBe Right(3)
     zy.get.factor shouldBe PureNumber
-    zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(0.4082482904638631, Gaussian)) => }
-    zy.get.toString shouldBe "FuzzyNumber(Right(3),,Some(AbsoluteFuzz(0.4082482904638631,Gaussian)))"
-    zy.get.render shouldBe "3.00(41)"
+    zy.get.fuzz should matchPattern { case Some(AbsoluteFuzz(1.0, Trapezoid(0.5, 0.5))) => }
+    zy.get.toString shouldBe "FuzzyNumber(Right(3),,Some(AbsoluteFuzz(1.0,Trapezoid(0.5,0.5))))"
+    zy.get.render shouldBe "3.00[41]"
   }
 
   behavior of "times"
@@ -189,7 +189,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val result = convertToNumber(zy.get)
     result.nominalValue shouldBe Right(2)
     result.factor shouldBe PureNumber
-    result.fuzz should matchPattern { case Some(AbsoluteFuzz(1.5, Box)) => } // NOTE was 0.75
+    result.fuzz should matchPattern { case Some(AbsoluteFuzz(1.5, Trapezoid(0.25, 0.5))) => }
   }
 //  it should "multiply 1.* and 2.* with normalization of fuzz" in {
 //    val xy: Try[Number] = Number.parse("1.*")
@@ -210,7 +210,8 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     z.factor shouldBe PureNumber
     //    z.fuzz should matchPattern { case Some(RelativeFuzz(0.11547005383792518, Gaussian)) => }
     z.fuzz.get match {
-      case RelativeFuzz(m, Box) => m shouldBe 0.2
+      case RelativeFuzz(m, Trapezoid(0.1, 0.1)) => m shouldBe 0.2
+      case _ => fail("Unexpected fuzz")
     }
   }
 
@@ -279,9 +280,13 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     zy should matchPattern { case Success(_) => }
     zy.get.nominalValue shouldBe Right(4)
     zy.get.factor shouldBe PureNumber
-    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(_, Box)) => }
+    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(_, x: Trapezoid)) => }
     zy.get.fuzz.get match {
-      case RelativeFuzz(m, Box) => m shouldBe 0.08465735902799726 +- 0.00000000000000001
+      case RelativeFuzz(m, Trapezoid(x, y)) =>
+        m shouldBe 0.08465735902799726 +- 0.00000000000000001
+        x shouldBe 0.03465735902799726 +- 0.00000000000000001
+        y shouldBe 0.05 +- 0.00000000000000001
+      case _ => fail("Unexpected fuzz")
     }
   }
 
@@ -432,7 +437,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val x = Number.parse("3.142*").get
     val y = Number.pi
     // NOTE we check that these two numbers are the same with a confidence of 80%
-    implicitly[Fuzzy[Number]].same(0.2)(x, y) shouldBe true
+    implicitly[Fuzzy[Number]].same(0.1)(x, y) shouldBe true
     // NOTE we check that these two numbers are not the same with a confidence of 90%
     implicitly[Fuzzy[Number]].same(0.9)(x, y) shouldBe false
   }
@@ -496,29 +501,28 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "calculate length of Foucault's pendulum but with relative box fuzziness" in {
     // NOTE this is here to support Foucault1.sc
     val g = Number("9.81*")
-    //        println(s"g fuzz: ${g.fuzz.map(_.normalize(9.81, relative = true))}")
+    //            println(s"g fuzz: ${g.fuzz.map(_.normalize(9.81, relative = true))}")
     val t = Number("16.5*")
-    //          println(s"t fuzz: ${t.fuzz.map(_.normalize(16.5, relative = true))}")
+    //              println(s"t fuzz: ${t.fuzz.map(_.normalize(16.5, relative = true))}")
     val tScaled: Option[Number] = (t `doDivide` twoPi).asNumber
-    //        println(s"tScaled fuzz: ${tScaled.get.fuzz}")
+    println(s"tScaled fuzz: ${tScaled.get.fuzz}")
     val square: Option[Number] = tScaled.flatMap(x => (x `doPower` 2).asNumber)
 //    println(s"square fuzz: ${square.get.fuzz}")
 
-    // NOTE Relative (Box) fuzz should be approximately 0.006 (twice the value shown above for t)
-    square.get.fuzz should matchPattern { case Some(RelativeFuzz(_, Box)) => }
-    square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.006 +- 0.001
+    square.get.fuzz should matchPattern { case Some(RelativeFuzz(_, Gaussian)) => }
+    square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.0035 +- 0.001
     val length: Option[Number] = square flatMap (x => (x `doMultiply` g).asNumber)
-    length.get.fuzz shouldBe Some(RelativeFuzz(0.006570290056529514, Box))
+    length.get.fuzz shouldBe Some(RelativeFuzz(0.003499092540543187, Gaussian))
   }
   it should "calculate length of Foucault's pendulum" in {
     // NOTE this is here to support Foucault2.sc
     val g = Number("9.81*")
-    //    println(s"g fuzz: ${g.fuzz.map(_.normalize(9.81, relative = true))}")
+    //        println(s"g fuzz: ${g.fuzz.map(_.normalize(9.81, relative = true))}")
     val t = Number("16.487(41)")
-//      println(s"y fuzz: ${t.fuzz.map(_.normalize(16.5, relative = true))}")
+    //      println(s"t fuzz: ${t.fuzz.map(_.normalize(16.5, relative = true))}")
 
     val tScaled: Option[Number] = (t `doDivide` twoPi).asNumber
-    //    println(s"tScaled fuzz: ${tScaled.get.fuzz}")
+    //        println(s"tScaled fuzz: ${tScaled.get.fuzz}")
     val square: Option[Number] = tScaled.flatMap(x => (x `doPower` 2).asNumber)
 //    println(s"square fuzz: ${square.get.fuzz}")
 
@@ -526,7 +530,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.005 +- 0.0002
 
     val length: Option[Number] = square flatMap (x => (x `doMultiply` g).asNumber)
-    length.get.fuzz shouldBe Some(RelativeFuzz(0.005127209180366443, Gaussian))
+    length.get.fuzz shouldBe Some(RelativeFuzz(0.004973615575908292, Gaussian))
   }
 //  it should "calculate the acceleration due to gravity based on the London Foucault's pendulum" in {
 //    import Expression.ExpressionOps

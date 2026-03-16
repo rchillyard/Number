@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.expression.expr
 
 import cats.implicits.catsSyntaxEq
 import com.phasmidsoftware.number.algebra.core.*
+import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, Nat, NaturalExponential, Number, RationalNumber, Real, Scalar, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.LatexRenderer
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
@@ -136,6 +137,25 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
   }
 
   /**
+    * Provides an approximation of the `ValueExpression` as an `Eager`, if applicable.
+    *
+    * This method checks if the associated `value` is an instance of `eager.Complex`.
+    * If it is, the method directly returns it wrapped in an `Option`. Otherwise, it
+    * delegates to the `approximation` method to compute a possible approximation.
+    *
+    * @param force a Boolean flag indicating whether the approximation should be forced.
+    *              If true, the method may attempt a broader range of approximations.
+    *              Defaults to false.
+    *
+    * @return an `Option[Eager]` containing the approximation if one exists, or `None`
+    *         if an approximation is not available or applicable.
+    */
+  override def approximationComplex(force: Boolean = false): Option[Eager] = value match {
+    case c: eager.Complex => Some(c)
+    case _ => approximation(force)
+  }
+
+  /**
     * Method to render this Structure in a presentable manner.
     *
     * @return a String
@@ -162,8 +182,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     */
   override def equals(other: Any): Boolean = other match {
     case that: ValueExpression =>
-      that.canEqual(this) &&
-        value === that.value
+      (this eq that) || (that.canEqual(this) && value === that.value)
     case _ =>
       false
   }
@@ -686,6 +705,8 @@ case object I extends NamedConstant(Eager.i, "i") {
 
   override val protectedName: Boolean = true
 
+  import com.phasmidsoftware.number.algebra.eager.WholeNumber.convIntWholeNumber
+
   /**
     * Evaluates this `Expression` in the context of `AnyContext` without simplification or factor-based conversion.
     * This allows obtaining a direct evaluation of the `Expression` as a `Field`, if possible.
@@ -693,9 +714,21 @@ case object I extends NamedConstant(Eager.i, "i") {
     *
     * @return an `Option[Field]` containing the evaluated `Field` if evaluation is successful, or `None` otherwise.
     */
-  override lazy val evaluateAsIs: Option[InversePower] = Some(InversePower(2, -1))
+  override lazy val evaluateAsIs: Option[InversePower] = Some(Eager.imaginary(1))
 
   lazy val asComplex: Option[Complex] = evaluateAsIs flatMap (_.asComplex)
+
+  /**
+    * Provides an approximation of the current value as a complex number.
+    *
+    * @param force a Boolean flag indicating whether to force the computation, even
+    *              if it would otherwise be skipped (default is false).
+    *
+    * @return an Option containing the approximated complex value as an Eager, or None if
+    *         the approximation cannot be performed.
+    */
+  override def approximationComplex(force: Boolean = false): Option[Eager] =
+    asComplex
 
   /**
     * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`

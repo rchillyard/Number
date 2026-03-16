@@ -11,6 +11,7 @@ import com.phasmidsoftware.number.core.numerical.{FuzzyEquality, Number}
 import org.scalatest.PrivateMethodTester
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Success, Try}
 
 class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMethodTester with FuzzyEquality {
@@ -76,7 +77,8 @@ class ApproximationSpec extends AnyFlatSpec with should.Matchers with PrivateMet
     val inverseSquareRoot: Double => Double = y => y * y - 1.0 / x
     val inverseDerivative: Double => Double = y => 2 * y
 
-    Approximation.solve(0.9, inverseSquareRoot, inverseDerivative)(Number(2.5)).isSuccess shouldBe true
+    val result = Approximation.solve(0.2, inverseSquareRoot, inverseDerivative)(Number(2.5))
+    result.isSuccess shouldBe true
   }
   it should "evaluate newtonsPolynomial" in {
     newtonsPolynomial(0.1) shouldBe 0.06099999999999994

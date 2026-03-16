@@ -153,7 +153,7 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
     *
     * @return the simplest `Valuable` representation of this value
     */
-  def normalize: Eager = number.normalize match {
+  lazy val normalize: Eager = number.normalize match {
     case WholeNumber(0) =>
       WholeNumber.one
     case x if x == number =>
@@ -269,20 +269,20 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
     * The method handles cases where the `Eager` instance belongs to different subtypes such as `NaturalExponential` or `Structure`,
     * applying transformations and delegating to subtype-specific implementations as needed.
     *
-    * @param p    the precision margin within which the two instances are considered equal, of type `Double`
+    * @param confidence the precision margin within which the two instances are considered equal, of type `Double`
     * @param that the `Eager` instance to compare with the current instance
     * @return a `Try[Boolean]` indicating whether the two instances are fuzzy equivalent
     */
-  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
+  override def fuzzyEqv(confidence: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (a: NaturalExponential, b: NaturalExponential) =>
-      a.exponent.fuzzyEqv(p)(b.exponent)
+      a.exponent.fuzzyEqv(confidence)(b.exponent)
     case (a: NaturalExponential, b: Structure) =>
       for {
         aReal <- FP.recoverAsTry(a.transformation[Real])(AlgebraException(s"Cannot transform $a to Real"))
-        result <- aReal.fuzzyEqv(p)(b)
+        result <- aReal.fuzzyEqv(confidence)(b)
       } yield result
     case _ =>
-      super.fuzzyEqv(p)(that)
+      super.fuzzyEqv(confidence)(that)
   }
 }
 
@@ -325,7 +325,7 @@ case class NaturalExponential(exponent: Number)(val maybeName: Option[String] = 
     * @return a `Structure` representing the negation of this instance
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input is not a Real number.
     */
-  def negate: Structure =
+  lazy val negate: Structure =
     throw AlgebraException(s"NaturalExponential.negate: not supported")
 
   /**
@@ -414,7 +414,8 @@ case class BinaryExponential(exponent: Number)(val maybeName: Option[String] = N
     *
     * @return a `Structure` representing the negation of this instance
     */
-  def negate: Structure = throw AlgebraException(s"BinaryExponential.negate: not supported")
+  lazy val negate: Structure = 
+    throw AlgebraException(s"BinaryExponential.negate: not supported")
 
   /**
     * Compares the current `Exponential` instance with another `Number` to determine their exact order.

@@ -258,6 +258,15 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
   lazy val exp: Number =
     Number.exp(this)
 
+  lazy val sinh: Number =
+    Number.sinh(this)
+
+  lazy val cosh: Number =
+    Number.cosh(this)
+
+  lazy val tanh: Number =
+    Number.tanh(this)
+
   /**
     * Method to yield the absolute value of this Number.
     *
@@ -284,11 +293,11 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * NOTE: This method is used, although it doesn't appear so.
     *
     * @param other the Number to be compared with.
-    * @param p     the confidence expressed as a fraction of 1 (0.5 would be a typical value).
+    * @param confidence the confidence expressed as a fraction of 1 (oneSigma would be a typical value).
     * @return -1, 0, 1 as usual.
     */
-  def fuzzyCompare(other: Number, p: Double): Int =
-    FuzzyNumber.fuzzyCompare(this, other, p)
+  def fuzzyCompare(other: Number, confidence: Double): Int =
+    FuzzyNumber.fuzzyCompare(this, other, confidence)
 
   /**
     * Method to derive a fuzziness that covers the discrepancy between this and other.
@@ -506,24 +515,28 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
       // Otherwise, we will give it appropriate fuzziness.
       // In general, if you wish to have more control over this, then define your input using a String.
       // CONSIDER will this handle numbers correctly which are not close to 1?
-      Rational.createExact(x) match {
-        case Success(r) =>
-          r.toBigDecimal.map(_.scale) match {
-            case Some(0) | Some(1) | Some(2) =>
-              make(r).specialize
-            // CONSIDER in following line adding fuzz only if this Number is exact.
-            case Some(n) =>
-              FuzzyNumber(d, factor, fuzz).addFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -(n + 1)), Box))
-            case _ =>
-              FuzzyNumber(d, factor, fuzz).addFuzz(Fuzziness.doublePrecision)
-          }
-        case Failure(_) =>
-          FuzzyNumber(d, factor, fuzz).addFuzz(Fuzziness.doublePrecision)
-      }
+      createNumberFromDouble(d, x)
     // XXX Invalid case
     case _ =>
       this
   }
+
+  private def createNumberFromDouble(d: Value, x: Double) =
+    Rational.createExact(x) match {
+      case Success(r) =>
+        r.toBigDecimal.map(_.scale) match {
+          case Some(0) | Some(1) | Some(2) =>
+            make(r).specialize
+          case Some(n) =>
+            // NOTE for some reason, we recreate the fuzz for this case. Let's not double-count it.
+            FuzzyNumber(d, factor, fuzz).addFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -(n + 1)), Box))
+          //              FuzzyNumber(d, factor, fuzz).maybeAddFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -(n + 1)), Box))
+          case _ =>
+            FuzzyNumber(d, factor, fuzz).addFuzz(Fuzziness.doublePrecision)
+        }
+      case Failure(_) =>
+        FuzzyNumber(d, factor, fuzz).addFuzz(Fuzziness.doublePrecision)
+    }
 
   /**
     * Make a copy of this FuzzyNumber but with additional fuzz given by f.

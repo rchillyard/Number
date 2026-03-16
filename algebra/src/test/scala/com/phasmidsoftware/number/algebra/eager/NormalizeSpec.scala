@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.algebra.eager
 
+import com.phasmidsoftware.number.algebra.eager.InversePower.{cubeRoot, squareRoot}
 import com.phasmidsoftware.number.algebra.eager.{Angle, BinaryExponential, Complex, Exponential, InversePower, NaturalExponential, RationalNumber, Real, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical.ComplexCartesian
@@ -90,12 +91,12 @@ class NormalizeSpec extends AnyFlatSpec with Matchers {
   behavior of "InversePower.normalize"
 
   it should "reduce to base when n=1" in {
-    val ip = InversePower(1, WholeNumber(5))
+    val ip = InversePower(1, 5)
     ip.normalize shouldBe WholeNumber(5)
   }
 
   it should "normalize the base number" in {
-    val ip = InversePower(2, RationalNumber(Rational(4, 2)))
+    val ip = squareRoot(RationalNumber(Rational(4, 2)))
     val result = ip.normalize
     result shouldBe a[InversePower]
     val normalized = result.asInstanceOf[InversePower]
@@ -104,7 +105,7 @@ class NormalizeSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "return same instance if base doesn't normalize" in {
-    val ip = InversePower(3, WholeNumber(7))
+    val ip = cubeRoot(WholeNumber(7))
     val result = ip.normalize
     result should be theSameInstanceAs ip
   }

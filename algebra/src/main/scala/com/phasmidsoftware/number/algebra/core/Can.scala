@@ -277,6 +277,8 @@ trait CanPower[T] {
 /**
   * Trait `CanNormalize` provides a mechanism to normalize instances of type `T`.
   *
+  * TODO merge this with Normalizable
+  *
   * Normalization is a process of transforming an entity into a standard form, often employed in mathematical,
   * algebraic, or logical contexts to simplify representations or ensure a canonical structure.
   * Classes or traits that implement this trait must define how an instance of `T` is normalized.

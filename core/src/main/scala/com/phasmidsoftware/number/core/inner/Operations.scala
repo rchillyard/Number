@@ -42,8 +42,9 @@ sealed trait MonadicOperation extends Operation {
 
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
+    * If None, then this operation does not introduce any precision loss.
     */
-  val fuzz: Int
+  val fuzz: Option[Int]
 }
 
 /**
@@ -79,7 +80,7 @@ case object MonadicOperationNegate extends MonadicOperation {
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
     */
-  val fuzz: Int = 0
+  val fuzz: Option[Int] = None
 }
 
 /**
@@ -107,7 +108,7 @@ case object MonadicOperationInvert extends MonadicOperation {
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
     */
-  val fuzz: Int = 0
+  val fuzz: Option[Int] = Some(0)
 
   /**
     * Attempts to invert an integer.
@@ -170,7 +171,7 @@ case object MonadicOperationExp extends MonadicOperation {
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
     */
-  val fuzz: Int = 3
+  val fuzz: Option[Int] = Some(3)
 
   /**
     * Computes the exponential of the given integer if the input is `0`.
@@ -238,7 +239,7 @@ case object MonadicOperationLog extends MonadicOperation {
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
     */
-  val fuzz: Int = 3
+  val fuzz: Option[Int] = Some(3)
 
   /**
     * Computes the natural logarithm of an integer. If the input is `1`, it returns `Success(0)`.
@@ -309,7 +310,7 @@ case object MonadicOperationSin extends MonadicOperation {
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
     */
-  val fuzz: Int = 3
+  val fuzz: Option[Int] = Some(3)
 
   /**
     * A private value representing a partially lifted function that calculates the sine of an integral angle (in radians).
@@ -391,6 +392,15 @@ case object MonadicOperationSin extends MonadicOperation {
     Try(Math.sin(x * math.Pi))
 }
 
+val MonadicOperationSinh: MonadicOperation =
+  MonadicOperationFunc(Math.sinh, Math.cosh)  // d/dx sinh(x) = cosh(x)
+
+val MonadicOperationCosh: MonadicOperation =
+  MonadicOperationFunc(Math.cosh, Math.sinh)  // d/dx cosh(x) = sinh(x)
+
+val MonadicOperationTanh: MonadicOperation =
+  MonadicOperationFunc(Math.tanh, x => 1.0 / Math.pow(Math.cosh(x), 2))  // d/dx tanh(x) = sech²(x)
+  
 /**
   * MonadicOperation to yield the arctangent of a Number.
   *
@@ -404,7 +414,7 @@ case class MonadicOperationAtan(xSign: Int, ySign: Int) extends MonadicOperation
   val relativeFuzz: Double => Double =
     fuzzRatio => fuzzRatio / (1 + math.pow(fuzzRatio, 2))
 
-  val fuzz: Int = 4
+  val fuzz: Option[Int] = Some(4)
 
   /**
     * Adjusts the given angle encapsulated in a Try[Rational], potentially flipping it and normalizing its value.
@@ -498,7 +508,7 @@ case class MonadicOperationModulate(min: Int, max: Int, inclusive: Boolean, angu
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
     */
-  val fuzz: Int = 0
+  val fuzz: Option[Int] = None
 
   /**
     * Modulates a value into a specified range [min, max] using modular arithmetic.
@@ -539,7 +549,7 @@ case object MonadicOperationSqrt extends MonadicOperation {
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
     */
-  val fuzz: Int = 3
+  val fuzz: Option[Int] = Some(3)
 
   private lazy val sqrtInt: Int => Try[Int] = // CONSIDER not using squareRoots: there are other ways.
     x => toTryWithThrowable(Rational.squareRoots.get(x), OperationsException("Cannot create Int from Double"))
@@ -584,7 +594,7 @@ case class MonadicOperationScale(r: Rational) extends MonadicOperation {
   /**
     * Relative precision, as used by Fuzziness.createFuzz.
     */
-  val fuzz: Int = 0
+  val fuzz: Option[Int] = None
 
   private lazy val c: Double = r.toDouble
 }
@@ -617,7 +627,7 @@ case class MonadicOperationFunc(f: Double => Double, dfByDx: Double => Double) e
     * This value is used in the context of monadic operations
     * to represent a default or fallback fuzziness level.
     */
-  val fuzz: Int = 1
+  val fuzz: Option[Int] = Some(1)
 }
 
 /**
@@ -803,7 +813,7 @@ case object QueryOperationIsZero extends QueryOperation[Boolean] {
     *         - For `Rational`: Checks if the signum of the value is 0.
     *         - For `Double`: Checks if the sign is 0 or -0, accounting for floating-point representation.
     */
-  def getFunctions: BooleanQueryFunctions = new QueryFunctions[Boolean] {
+  lazy val getFunctions: BooleanQueryFunctions = new QueryFunctions[Boolean] {
     val fInt: Int => Try[Boolean] = tryF[Int, Boolean](x => x == 0)
     val fRat: Rational => Try[Boolean] = tryF[Rational, Boolean](x => x.signum == 0)
     val fDouble: Double => Try[Boolean] = tryF[Double, Boolean](x => x.sign == 0 || x.sign == -0)

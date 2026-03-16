@@ -44,7 +44,7 @@ trait CoreMill extends Iterable[CoreMillItem] {
     *
     * @return an Iterator[Item].
     */
-  def iterator: Iterator[CoreMillItem] = {
+  lazy val iterator: Iterator[CoreMillItem] = {
     // XXX using a var here, but the entire concept of an iterator pretty much requires mutability.
     var mill = this
 
@@ -85,7 +85,7 @@ case class Stack(stack: List[CoreMillItem]) extends CoreMill {
     *
     * @return a tuple consisting of the top element wrapped in Some, and the new Mill without that element.
     */
-  def pop: (Option[CoreMillItem], CoreMill) = stack match {
+  lazy val pop: (Option[CoreMillItem], CoreMill) = stack match {
     case Nil => (None, Empty) // NOTE: in practice, this will never occur
     case h :: Nil => (Some(h), Empty)
     case h :: t => (Some(h), Stack(t))
@@ -282,7 +282,7 @@ case object Empty extends CoreMill {
   /**
     * @return (None, Empty)
     */
-  def pop: (Option[CoreMillItem], CoreMill) = (None, Empty)
+  lazy val pop: (Option[CoreMillItem], CoreMill) = (None, Empty)
 
   /**
     * Overriding the isEmpty method of IterableOnceOps.

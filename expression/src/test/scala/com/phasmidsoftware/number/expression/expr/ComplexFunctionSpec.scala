@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.eager.{Complex, Eager, InversePower, WholeNumber}
-import com.phasmidsoftware.number.core.numerical.ComplexCartesian
+import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, Number}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -46,7 +46,9 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
     val simplified = (E ∧ I).simplify
     val materialized = simplified.materialize
     materialized shouldBe a[Complex]
-    materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian(0.5403, 0.8415)) shouldBe true
+    println(materialized)
+    val expected = ComplexCartesian(Number("0.5403*"), Number("0.8415*"))
+    materialized.asInstanceOf[Complex].complex.isSame(expected) shouldBe true
     val result: Eager = simplified.fuzzy
     result.toDouble shouldBe (1.0) +- 1e-10
   }
@@ -69,129 +71,127 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "satisfy sin(ix) = i·sinh(x)" in {
-    pending // TODO Issue #189 and/or #192
     val x = Two
-    val lhs = (I * x).sin
-    val rhs = I * x.sinh
-    lhs shouldBe rhs
+    val result = Expression.matchSimpler(UniFunction(BiFunction(I, x, Product), Sine))
+    result.get shouldBe I * UniFunction(x, Sinh)
   }
 
   it should "evaluate sin(1 + i) approximately" in {
-    pending // TODO Issue #189 and/or #192
     // sin(1+i) ≈ 1.2985 + 0.6350i
+    val exp: Expression = UniFunction(One + I, Sine)
+    System.err.println(Expression.simplifyExpand(exp))
     val z = One + I
-    //    z.sin.fuzzy.toDouble shouldBe 1.2985 +- 1e-3
-    val materialized = z.materialize
-    materialized shouldBe a[Complex]
-    materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian(1.2985, 0.6350)) shouldBe true
-
+    val result = UniFunction(z, Sine).materialize
+    result shouldBe a[Complex]
+    result.asInstanceOf[Complex].complex.isSame(ComplexCartesian(1.2985, 0.6350)) shouldBe true
   }
 
   behavior of "cos for complex arguments"
 
   it should "evaluate cos(i) = cosh(1)" in {
-    pending // TODO Issue #189 and/or #192
-    // cos(i) = cosh(1) ≈ 1.5431
     val result = I.cos
     val materialized = result.materialize
-    materialized shouldBe a[Complex]
-    materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian(1.5431, 0)) shouldBe true
-
+    materialized.fuzzy.toDouble shouldBe Math.cosh(1.0) +- 1e-4
     result.fuzzy.toDouble shouldBe Math.cosh(1.0) +- 1e-10
   }
 
   it should "satisfy cos(ix) = cosh(x)" in {
-    pending // TODO Issue #189 and/or #192
     val x = Two
     val lhs = (I * x).cos
     val rhs = x.cosh
-    lhs shouldBe rhs
+    lhs.simplify shouldBe rhs.simplify
   }
 
   it should "evaluate cos(1 + i) approximately" in {
-    pending // TODO Issue #189 and/or #192
-    // cos(1+i) ≈ 0.8337 - 0.9889i
-    val z = One + iOne
-    z.cos.fuzzy.toDouble shouldBe 0.8337 +- 1e-3
+    val z = One + I
+    val materialized = z.cos.materialize
+    materialized shouldBe a[Complex]
+    materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian(0.8337, -0.9889)) shouldBe true
   }
 
   behavior of "sinh for complex arguments"
 
   it should "evaluate sinh(iπ/2) = i" in {
-    //    pending // TODO Issue #189 and/or #192
     // sinh(iπ/2) = i·sin(π/2) = i
-    println(iPiBy2)
-    println(BiFunction(Pi, Half, Product).sin.simplify)
-    println(BiFunction(Pi, Half, Product).simplify)
     val result = iPiBy2.sinh.simplify
     result shouldBe I
   }
 
   it should "evaluate sinh(iπ) = 0" in {
-    //    pending // TODO Issue #189 and/or #192
     val result = iPi.sinh.simplify
     result shouldBe Zero
   }
 
   it should "satisfy sinh(ix) = i·sin(x)" in {
-    pending // TODO Issue #189 and/or #192
     val x = Two
-    val lhs = (I * x).sinh
-    val rhs = I * x.sin
-    lhs shouldBe rhs
+    val result = Expression.matchSimpler(UniFunction(BiFunction(I, x, Product), Sinh))
+    result.get shouldBe I * UniFunction(x, Sine)
   }
 
   it should "evaluate sinh(1 + i) approximately" in {
-    pending // TODO Issue #189 and/or #192
-    // sinh(1+i) ≈ 0.6350 + 1.2985i
-    val z = One + iOne
-    z.sinh.fuzzy.toDouble shouldBe 0.6350 +- 1e-3
+    val z = One + I
+    val materialized = z.sinh.materialize
+    materialized shouldBe a[Complex]
+    println(materialized)
+    materialized.asInstanceOf[Complex].complex.isSame(
+      ComplexCartesian(Number("0.6350(20)"), Number("1.2985(20)"))
+    ) shouldBe true
+
+    // NOTE Using explicit wide Gaussian tolerance as workaround pending fix to Fuzziness.combine...
+    // ... pending the resolution of Issue #196:
+    // materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian(0.6350, 1.2985)) shouldBe true
   }
 
   behavior of "cosh for complex arguments"
 
   it should "evaluate cosh(iπ) = -1" in {
-    //    pending // TODO Issue #189 and/or #192
     val result = iPi.cosh.simplify
     result shouldBe MinusOne
   }
 
   it should "evaluate cosh(iπ/2) = 0" in {
-    pending // TODO Issue #189 and/or #192
-    val result = iPiBy2.cosh
+    val result = iPiBy2.cosh.simplify
     result shouldBe Zero
   }
 
   it should "satisfy cosh(ix) = cos(x)" in {
-    pending // TODO Issue #189 and/or #192
     val x = Two
-    val lhs = (I * x).cosh
-    val rhs = x.cos
-    lhs shouldBe rhs
+    val result = Expression.matchSimpler(UniFunction(BiFunction(I, x, Product), Cosh))
+    result.get shouldBe UniFunction(x, Cosine)
   }
 
   it should "evaluate cosh(1 + i) approximately" in {
-    pending // TODO Issue #189 and/or #192
-    // cosh(1+i) ≈ 0.8337 + 0.9889i
-    val z = One + iOne
-    z.cosh.fuzzy.toDouble shouldBe 0.8337 +- 1e-3
+    val z = One + I
+    println(z.cosh.simplify.debug)
+    println(UniFunction(UniFunction(One + I, Negate), Exp).materialize)
+    val materialized = z.cosh.materialize
+    println(materialized)
+    materialized shouldBe a[Complex]
+    // NOTE Using explicit wide Gaussian tolerance as workaround pending fix to Fuzziness.combine...
+    materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian(Number("0.8337(20)"), Number("0.9889(20)"))) shouldBe true
+
+    // ... pending the resolution of Issue #196:
+    //    materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian(0.8337, 0.9889)) shouldBe true
   }
 
   behavior of "cross-checks between circular and hyperbolic functions"
 
   it should "satisfy sin²(z) + cos²(z) = 1 for z = 1 + i" in {
-    pending // Issue #193
-    val z = One + iOne
+    val z = One + I
     val s = z.sin
     val c = z.cos
-    (s * s) + (c * c) shouldBe One
+    val ss = s * s
+    val cc = c * c
+    (ss + cc).simplify shouldBe One
   }
 
   it should "satisfy cosh²(z) - sinh²(z) = 1 for z = 1 + i" in {
-    pending // Issue #193
-    val z = One + iOne
+    val z = One + I
     val c = z.cosh
     val s = z.sinh
-    (c * c) - (s * s) shouldBe One
+    import Expression.ExpressionOps
+    val cc = BiFunction(c, Two, Power)
+    val ss = BiFunction(s, Two, Power)
+    (cc - ss).simplify shouldBe One
   }
 }

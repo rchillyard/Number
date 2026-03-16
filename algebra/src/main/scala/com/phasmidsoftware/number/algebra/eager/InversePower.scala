@@ -36,7 +36,7 @@ import scala.util.{Success, Try}
   * @param n      the degree of the root, specified as an integer
   * @param number the base `Number` value on which the root operation is defined
   */
-case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = None) extends Transformed with Scalable[InversePower] with CanPower[Number] {
+case class InversePower private(n: Int, number: Number)(val maybeName: Option[String] = None) extends Transformed with Scalable[InversePower] with CanPower[Number] {
 
   require(n > 0, s"InversePower: n must be positive, but was $n")
   require(!number.isZero, s"InversePower: number must be non-zero, but was $number")
@@ -92,7 +92,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *
     * @return the simplest `Valuable` representation of this value
     */
-  def normalize: Structure = n match {
+  lazy val normalize: Structure = n match {
     case 1 =>
       number.normalize
 
@@ -138,7 +138,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
           (rootValue orElse recipRootValue).getOrElse(defaultValue)
 
         case _ =>
-          normalized
+          InversePower(n, normalized)
       }
 
     case _ => // For higher roots, use prime factorization
@@ -169,7 +169,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the negation operation is not defined for the current instance
     */
   def negate: Structure =
-    throw AlgebraException(s"InversePower.negate: cannot negate $this")
+    throw AlgebraException(s"InversePower.negate: invalid operation ($this)")
 
   /**
     * Compares this `InversePower` instance with another `Functional` instance.
@@ -196,7 +196,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     * The `one` value serves as the neutral element for the multiplication operation, meaning
     * that for any instance `t` of type `T`, the equation `one * t = t * one = t` holds true.
     */
-  def one: InversePower = InversePower(1, Real.one)(Some("1"))
+  def one: InversePower = InversePower.one
 
   /**
     * Scales the current instance by the given factor.
@@ -284,9 +284,10 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     *         cannot be interpreted as a complex.
     */
   lazy val asComplex: Option[Complex] = this match {
+    // CONSIDER using IsSquareRoot here (but then x would have a different value).
     case InversePower(2, x) if x.signum > 0 =>
       numberToRealComplex(x)
-    case Imaginary(x: Number) =>
+    case HasImaginary(x: Number) =>
       numberToRealComplex(x).map(_.rotate)
     case _ =>
       None
@@ -322,18 +323,18 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
     * The comparison involves converting both instances to `Real` and performing
     * a fuzzy equivalence check with the specified precision.
     *
-    * @param p    The precision parameter used in the fuzzy equivalence comparison.
+    * @param confidence The precision parameter used in the fuzzy equivalence comparison.
     * @param that The `Eager` instance to be compared against.
     * @return A `Try[Boolean]` indicating the result of the fuzzy equivalence check.
     *         Success with `true` if the instances are equivalent within the given precision,
     *         `false` if they are not equivalent, or a failure if a comparison cannot be performed.
     */
-  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
+  override def fuzzyEqv(confidence: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (a@InversePower(n1, x1), b: Structure) =>
       for {
         r1 <- FP.toTry(a.convert(Real.zero))(FP.fail(s"InversePower.fuzzyEqv: cannot convert $a to Real"))
         r2 <- FP.toTry(b.convert(Real.zero))(FP.fail(s"InversePower.fuzzyEqv: cannot convert $b to Real"))
-        z <- r1.fuzzyEqv(p)(r2)
+        z <- r1.fuzzyEqv(confidence)(r2)
       } yield z
     case _ =>
       FP.fail(s"InversePower.fuzzyEqv: cannot compare $this and $that")
@@ -386,8 +387,8 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
   def toRational: Option[Rational] = normalize match {
     case q: Q =>
       Some(q.toRational)
-    case InversePower(m, z: Q) if z.isExact =>
-      z.toRational.power(Rational(m).invert).toOption
+    case InversePower(m, q: Q) if q.isExact =>
+      q.toRational.power(Rational(m).invert).toOption
     case _ =>
       None
   }
@@ -531,7 +532,7 @@ case class InversePower(n: Int, number: Number)(val maybeName: Option[String] = 
         if (remaining == 1)
           Right(WholeNumber(extracted))
         else
-          Left(InversePower(n, WholeNumber(remaining)))
+          Left(InversePower(n, remaining))
       case r@IntRational(num, den) =>
         val (numExtracted, numRemaining) = InversePower.normalizeIntegralRoot(num, n)
         val (denExtracted, denRemaining) = InversePower.normalizeIntegralRoot(den, n)
@@ -574,14 +575,8 @@ object InversePower {
     * @param x The base number for the inverse power calculation.
     * @return An instance of InversePower computed with the specified parameters.
     */
-  def apply(n: Int, x: Number): InversePower = {
-    // CONSIDER I'm not sure if we really need this normalization here.
-    val ip = new InversePower(n, x)()
-    ip.normalize match {
-      case p: InversePower => p
-      case p => ip
-    }
-  }
+  def apply(n: Int, x: Number): InversePower =
+    new InversePower(n, x.normalize)()
 
   /**
     * Creates an instance of `InversePower` using the given parameters.
@@ -593,6 +588,50 @@ object InversePower {
     */
   def apply(n: Int, x: Int): InversePower =
     InversePower(n, WholeNumber(x))
+
+
+  /**
+    * Computes the square root of a given number by creating an `InversePower`
+    * instance where the exponent is set to 2.
+    *
+    * TODO move this to Eager.
+    *
+    * @param x The number for which the square root is to be computed.
+    * @return An instance of `InversePower` representing the square root of the input number.
+    */
+  def squareRoot(x: Number): InversePower =
+    new InversePower(2, x)(Option.when(x.isExact)(s"√${x.show}"))
+
+  /**
+    * Computes the square root of a given rational number by creating an instance of `InversePower`.
+    *
+    * @param x The rational number for which the square root is to be computed.
+    * @return An instance of `InversePower` representing the square root of the input rational number.
+    */
+  def squareRoot(x: Int): InversePower =
+    squareRoot(WholeNumber(x))
+
+  /**
+    * Computes the cube root of a given number by creating an `InversePower` instance where
+    * the exponent is set to 3.
+    *
+    * TODO move this to Eager.
+    *
+    * @param x The number for which the cube root is to be computed.
+    * @return An instance of `InversePower` representing the cube root of the input number.
+    */
+  def cubeRoot(x: Number): InversePower =
+    new InversePower(3, x)(Option.when(x.isExact)(s"³√${x.show}"))
+
+  /**
+    * Computes the cube root of a given rational number by creating an instance of `InversePower`
+    * where the exponent is set to 3.
+    *
+    * @param x The rational number for which the cube root is to be computed.
+    * @return An instance of `InversePower` representing the cube root of the input rational number.
+    */
+  def cubeRoot(x: Int): InversePower =
+    cubeRoot(WholeNumber(x))
 
   /**
     * Creates a new instance of `InversePower` using the provided parameters.
@@ -745,4 +784,61 @@ object InversePower {
     * requiring a `Show` typeclass instance for displaying or logging purposes.
     */
   implicit val showInversePower: Show[InversePower] = Show.show(_.render)
+}
+
+/**
+  * A utility object for pattern matching operations involving positive square roots.
+  * The main purpose of this object is to identify whether a given number or expression
+  * can be represented as the square root of another number.
+  */
+object IsSquareRoot {
+  /**
+    * Extractor method used to determine if the given `Eager` instance can be
+    * decomposed into a positive square root of a number.
+    *
+    * @param x the `Eager` instance to be analyzed
+    * @return an `Option` containing the square root as a `Number` if `x` represents a
+    *         positive square root of a number; `None` otherwise
+    */
+  def unapply(x: Eager): Option[Number] = x match {
+    case InversePower(2, n: Q) if n.signum > 0 =>
+      n.toRational.sqrt.toOption.map(RationalNumber(_))
+    case InversePower(2, r: Real) if r.signum > 0 =>
+      r power Rational.half
+    case InversePower(2, n: CanPower[Number] @unchecked) if n.signum > 0 =>
+      n.pow(RationalNumber.half)
+    case _ =>
+      None
+  }
+}
+
+/**
+  * An extractor object used for pattern matching to identify and extract `Number` instances
+  * that satisfy specific conditions related to imaginary or irrational numbers.
+  */
+object IsImaginary {
+  /**
+    * Extracts the square root of the negative of the underlying Number of an InversePower if the number
+    * is negative and the power is 2.
+    *
+    * TODO: extend to match any purely imaginary Complex(0, x) where x != 0
+    * Currently only matches i = (-1)^(1/2)
+    * In this case, we would move this into Extractors.
+    *
+    * @param x the `Eager` instance to be matched and extracted.
+    * @return an `Option` containing the extracted `Number` if the input matches the expected pattern, or `None` otherwise.
+    */
+  def unapply(x: Eager): Option[Eager] = x.normalize match {
+    case InversePower(2, q: Q) if q.signum < 0 =>
+      q.toRational.negate.sqrt.toOption.map(RationalNumber(_).normalize)
+    case InversePower(2, r: Real) if r.signum < 0 =>
+      r.negate power Rational.half
+    case InversePower(2, n: CanPower[Number] @unchecked) if n.signum < 0 =>
+      for {
+        z: Real <- n.convert(Real.zero)
+        y <- z.negate.power(Rational.half)
+      } yield y.normalize
+    case x =>
+      None
+  }
 }

@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.inner.*
+import com.phasmidsoftware.number.core.numerical.Fuzziness.oneSigma
 
 import java.util.Objects
 
@@ -213,10 +214,10 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     * Method to determine if this Number is probably zero.
     * It is used particularly when comparing two Numbers to see if they are the same.
     *
-    * @param p the confidence desired. Ignored.
+    * @param confidence the confidence desired. Ignored.
     * @return true if this Number is actually zero.
     */
-  def isProbablyZero(p: Double = 0.5): Boolean = isZero
+  def isProbablyZero(confidence: Double = oneSigma): Boolean = isZero
 
   /**
     * Render this ExactNumber as a String representation.

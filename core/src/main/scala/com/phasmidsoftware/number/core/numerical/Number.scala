@@ -8,6 +8,7 @@ import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.inner.Value.{fromDouble, fromInt, fromRational}
 import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
+import com.phasmidsoftware.number.core.numerical.Fuzziness.oneSigma
 import com.phasmidsoftware.number.core.numerical.Number.{inverse, negate}
 import com.phasmidsoftware.number.core.parse.NumberParser
 import com.phasmidsoftware.number.core.parse.RationalParser.parseComponents
@@ -479,6 +480,25 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     */
   def exp: Number
 
+
+  /**
+    * Method to determine the sine of this Number.
+    * The result will be a Number with PureNumber factor.
+    *
+    * @return the sine of this.
+    */
+  def sinh: Number
+
+  /**
+    * Method to determine the cosine of this Number.
+    * The result will be a Number with PureNumber factor.
+    *
+    * @return the cosine.
+    */
+  def cosh: Number
+  
+  def tanh: Number
+  
   /**
     * Method to determine the sense of this number: negative, zero, or positive.
     *
@@ -525,10 +545,10 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * Perform a fuzzy comparison where we only require p confidence to know that this and other are effectively the same.
     *
     * @param other the Number to be compared with.
-    * @param p     the confidence expressed as a fraction of 1 (0.5 would be a typical value).
+    * @param confidence the confidence expressed as a fraction of 1 (oneSigma would be a typical value).
     * @return -1, 0, 1 as usual.
     */
-  def fuzzyCompare(other: Number, p: Double): Int
+  def fuzzyCompare(other: Number, confidence: Double = oneSigma): Int
 
   /**
     * Return optional Fuzziness of Box shape, such that
@@ -691,10 +711,10 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def modulate: Number
 
   /**
-    * @param p the confidence desired. Ignored if isZero is true.
+    * @param confidence the confidence desired. Ignored if isZero is true.
     * @return true if this Number is equivalent to zero with at least p confidence.
     */
-  def isProbablyZero(p: Double = 0.5): Boolean
+  def isProbablyZero(confidence: Double = oneSigma): Boolean
 }
 
 object Number {
@@ -1533,6 +1553,15 @@ object Number {
     case _ =>
       exp(x.scale(PureNumber))
   }
+
+  def sinh(x: Number): Number =
+    prepareWithSpecialize(x.scale(PureNumber).transformMonadic(PureNumber)(MonadicOperationSinh))
+
+  def cosh(x: Number): Number =
+    prepareWithSpecialize(x.scale(PureNumber).transformMonadic(PureNumber)(MonadicOperationCosh))
+
+  def tanh(x: Number): Number =
+    prepareWithSpecialize(x.scale(PureNumber).transformMonadic(PureNumber)(MonadicOperationTanh))
 
   /**
     * Method to yield the square root of a Number.

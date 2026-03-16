@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.algebra.eager
 
+import com.phasmidsoftware.number.algebra.eager.InversePower.{cubeRoot, squareRoot}
 import com.phasmidsoftware.number.algebra.eager.{InversePower, NaturalExponential, RationalNumber, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
@@ -107,7 +108,7 @@ class NormalizeIntegrationSpec extends AnyFlatSpec with Matchers {
 
   it should "simplify square root of perfect square" in {
     // √4 = 2
-    val sqrt4 = InversePower(2, WholeNumber(4))
+    val sqrt4 = squareRoot(4)
     sqrt4.normalize shouldBe a[WholeNumber]
 
     // If InversePower computes exact roots:
@@ -116,7 +117,7 @@ class NormalizeIntegrationSpec extends AnyFlatSpec with Matchers {
 
   it should "simplify cube root of perfect cube" in {
     // ∛8 = 2
-    val cbrt8 = InversePower(3, WholeNumber(8))
+    val cbrt8 = cubeRoot(8)
     cbrt8.normalize shouldBe a[WholeNumber]
   }
 

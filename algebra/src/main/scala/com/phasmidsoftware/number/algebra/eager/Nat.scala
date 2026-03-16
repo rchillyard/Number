@@ -50,7 +50,7 @@ sealed trait Nat extends Eager with N {
     * @return the simplest `Valuable` representation of this `Nat` instance, which 
     *         in this case is `this`.
     */
-  def normalize: Nat = this
+  lazy val normalize: Nat = this
 
   /**
     * Attempts to obtain a `Factor` representation in a specific `Context`.
@@ -127,21 +127,21 @@ sealed trait Nat extends Eager with N {
     * @return a `Boolean` indicating whether the entity is exact (`true`)
     *         or has an approximation (`false`).
     */
-  def isExact: Boolean = true
+  lazy val isExact: Boolean = true
 
   /**
     * Converts this instance of `Q` to its corresponding rational representation.
     *
     * @return a Rational instance representing the current value
     */
-  def toRational: Rational = Rational(toInt)
+  lazy val toRational: Rational = Rational(toInt)
 
   /**
     * Computes a potential representation of this `Nat` instance as `Z`.
     *
     * @return an `Option[Z]` containing a corresponding instance of `Z` if available; otherwise, `None`.
     */
-  def maybeZ: Option[Z] = Some(WholeNumber(toInt))
+  lazy val maybeZ: Option[Z] = Some(WholeNumber(toInt))
 
   /**
     * Converts the current instance to a Double representation.
@@ -149,7 +149,7 @@ sealed trait Nat extends Eager with N {
     *
     * @return the Double value corresponding to the current instance
     */
-  def asDouble: Double = toInt.toDouble
+  lazy val asDouble: Double = toInt.toDouble
 
   /**
     * Constructs an optional instance of `Q` for this `Nat`.
@@ -158,7 +158,7 @@ sealed trait Nat extends Eager with N {
     * @return an `Option[Q]` that contains the `Q` instance built from the rational value
     *         of the current `Nat`, or `None` if the representation cannot be determined.
     */
-  def maybeQ: Option[Q] = Some(RationalNumber(toRational))
+  lazy val maybeQ: Option[Q] = Some(RationalNumber(toRational))
 }
 
 /**

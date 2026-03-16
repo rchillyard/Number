@@ -79,7 +79,7 @@ object Value {
     *
     * @return a Value.
     */
-  private def fromNothing: Value = Left(Left(None))
+  private lazy val fromNothing: Value = Left(Left(None))
 
   /**
     * Method to (optionally) convert a Value into a Double.

@@ -7,10 +7,12 @@ package com.phasmidsoftware.number.algebra.eager
 import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.core.FuzzyEq
 import com.phasmidsoftware.number.algebra.eager
-import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, InversePower, LinearSolution, Nat, NaturalExponential, NatZero, QuadraticSolution, RationalNumber, Real, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.InversePower.squareRoot
+import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, InversePower, LinearSolution, Nat, NatZero, NaturalExponential, QuadraticSolution, RationalNumber, Real, WholeNumber}
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+
 import scala.annotation.unused
 
 class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
@@ -111,9 +113,9 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
 
   // InversePower tests
   it should "compare InversePowers with ===" in {
-    InversePower(2, WholeNumber(4)) === InversePower(2, WholeNumber(4)) shouldBe true
-    InversePower(2, WholeNumber(4)) === InversePower(2, WholeNumber(9)) shouldBe false
-    InversePower(2, WholeNumber(4)) should !==(InversePower(3, WholeNumber(4))) // different power
+    squareRoot(WholeNumber(4)) === InversePower(2, 4) shouldBe true
+    squareRoot(WholeNumber(4)) === InversePower(2, 9) shouldBe false
+    squareRoot(WholeNumber(4)) should !==(InversePower(3, 4)) // different power
   }
 
   behavior of "~== (Fuzzy Equality)"
@@ -217,9 +219,9 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
 
   // InversePower tests
   it should "compare InversePowers with ~=" in {
-    (InversePower(2, WholeNumber(4)) ~== InversePower(3, WholeNumber(8))) shouldBe true
-    (InversePower(2, WholeNumber(4)) ~== InversePower(2, WholeNumber(9))) shouldBe false
-    (InversePower(2, WholeNumber(4)) ~== InversePower(3, WholeNumber(4))) shouldBe false
+    (squareRoot(WholeNumber(4)) ~== InversePower(3, WholeNumber(8))) shouldBe true
+    (squareRoot(WholeNumber(4)) ~== InversePower(2, WholeNumber(9))) shouldBe false
+    (squareRoot(WholeNumber(4)) ~== InversePower(3, WholeNumber(4))) shouldBe false
   }
 
   // Edge cases
@@ -386,8 +388,8 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "handle square roots correctly" in {
-    val root2 = InversePower(2, WholeNumber(2))
-    val root4 = InversePower(2, WholeNumber(4))
+    val root2 = squareRoot(WholeNumber(2))
+    val root4 = squareRoot(WholeNumber(4))
 
     root2 should ===(root2)
     root2 should !==(root4)

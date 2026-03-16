@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.inner.*
+import com.phasmidsoftware.number.core.numerical.Fuzziness.{combine, oneSigma}
 import com.phasmidsoftware.number.core.numerical.FuzzyNumber.withinWiggleRoom
 import com.phasmidsoftware.number.core.numerical.Number.prepareWithSpecialize
 import com.phasmidsoftware.number.core.numerical.WithFuzziness.{Asterisk, Ellipsis}
@@ -49,7 +50,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     case Real(n) =>
       isSame(n)
     case n: Number =>
-      fuzzyCompare(n, 0.5) == 0
+      fuzzyCompare(n) == 0
     case c: Complex =>
       c.isSame(Real(this))
   }
@@ -122,7 +123,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     * @return -1, 0, or 1 according to whether x is <, =, or > y.
     */
   def compare(other: Number): Int =
-    fuzzyCompare(other, 0.5)
+    fuzzyCompare(other)
 
   /**
     * NOTE this method can be eliminated but the compare query operation doesn't appear to take fuzziness into account.
@@ -141,24 +142,24 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
     */
   lazy val signum: Int =
-    signum(0.5)
+    signum()
 
   /**
     * Method to determine the sense of this number: negative, zero, or positive.
     * If this FuzzyNumber cannot be distinguished from zero with p confidence, then
     *
-    * @param p the confidence desired.
+    * @param confidence the confidence desired.
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
     */
-  def signum(p: Double): Int =
-    if (isProbablyZero(p)) 0 else Number.signum(this)
+  def signum(confidence: Double = oneSigma): Int =
+    if (isProbablyZero(confidence)) 0 else Number.signum(this)
 
   /**
-    * @param p the confidence desired. Ignored if isZero is true.
+    * @param confidence the confidence desired. Ignored if isZero is true.
     * @return true if this Number is equivalent to zero with at least p confidence.
     */
-  def isProbablyZero(p: Double = 0.5): Boolean =
-    GeneralNumber.isZero(this) || (for (f <- fuzz; x <- toNominalDouble) yield withinWiggleRoom(p, f, x)).getOrElse(false)
+  def isProbablyZero(confidence: Double = oneSigma): Boolean =
+    GeneralNumber.isZero(this) || (for (f <- fuzz; x <- toNominalDouble) yield withinWiggleRoom(confidence, f, x)).getOrElse(false)
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
@@ -175,7 +176,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     */
   def composeDyadicFuzzy(other: Number, f: Factor)(op: DyadicOperation, independent: Boolean, coefficients: Option[(Double, Double)]): Option[Number] =
     for (n <- composeDyadic(other, f)(op); t1 <- this.toNominalDouble; t2 <- other.toNominalDouble) yield {
-      val q = Fuzziness.combine(t1, t2, !op.absolute, independent)(Fuzziness.applyCoefficients((fuzz, other.fuzz), coefficients))
+      val q = combine(t1, t2, !op.absolute, independent)(Fuzziness.applyCoefficients((fuzz, other.fuzz), coefficients))
       FuzzyNumber(n.nominalValue, n.factor, q)
     }
 
@@ -189,7 +190,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     lazy val valueAsString = Value.valueToString(nominalValue, skipOne = false, exact = fuzz.isEmpty)
     val z = fuzz match {
       // CONSIDER will the following test work in all cases?
-      case Some(f) if f.wiggle(0.5) > 1E-16 =>
+      case Some(f) if f.wiggle() > 1E-16 =>
         f.getQualifiedString(toNominalDouble.getOrElse(0.0))
       case Some(_) =>
         true -> (valueAsString.replace(Ellipsis, "") + Asterisk)
@@ -244,7 +245,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
         val v = toNominalDouble.getOrElse(0.0)
         f.normalize(v, relative = true) match
           case Some(relFuzz) =>
-            val tolerance = relFuzz.wiggle(0.5)
+            val tolerance = relFuzz.wiggle()
             val valueStr = FuzzyNumber.roundToSigFigs(v, FuzzyNumber.sigFigsForTolerance(tolerance))
             val percentageForm = s"$valueStr\u00B1${relFuzz.asPercentage}"
             if percentageForm.length < rendered.length then percentageForm
@@ -348,14 +349,14 @@ object FuzzyNumber {
     *
     * @param x the first number.
     * @param y the second number.
-    * @param p the probability criterion.
+    * @param confidence the probability criterion.
     * @return an Int representing the order.
     */
-  def fuzzyCompare(x: Number, y: Number, p: Double): Int =
-    if (implicitly[Fuzzy[Number]].same(p)(x, y))
+  def fuzzyCompare(x: Number, y: Number, confidence: Double = oneSigma): Int =
+    if (implicitly[Fuzzy[Number]].same(confidence)(x, y))
       0
     else
-      GeneralNumber.plus(x, Number.negate(y)).signum(p)
+      GeneralNumber.plus(x, Number.negate(y)).signum(confidence)
 
   /**
     * Method to construct an invalid Number.
@@ -485,17 +486,17 @@ object FuzzyNumber {
     * @return the value of n to the power of p.
     */
   private def getPowerCoefficients(n: Number, p: Number): Option[(Double, Double)] =
-    for (z <- n.toNominalDouble; q <- p.toNominalDouble) yield (q, q * math.log(z))
+    for (z <- n.toNominalDouble; q <- p.toNominalDouble) yield (q, q * math.log(math.abs(z)))
 
   /**
     *
-    * @param p the confidence desired. Ignored if isZero is true.
+    * @param confidence the confidence desired. Ignored if isZero is true.
     * @param f the fuzziness.
     * @param x the value to be tested (may be positive or negative).
     * @return true if x is within the tolerance range of f, given confidence level p. Otherwise, false
     */
-  private def withinWiggleRoom(p: Double, f: Fuzziness[Double], x: Double) =
-    f.normalizeShape.wiggle(p) > math.abs(x)
+  private def withinWiggleRoom(confidence: Double, f: Fuzziness[Double], x: Double) =
+    f.normalizeShape.wiggle(confidence) > math.abs(x)
 }
 
 /**

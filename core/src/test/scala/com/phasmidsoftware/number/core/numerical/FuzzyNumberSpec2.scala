@@ -198,12 +198,12 @@ class FuzzyNumberSpec2 extends AnyFlatSpec with Matchers {
 
   it should "detect probably zero with large fuzz" in {
     val fn = FuzzyNumber(Value.fromDouble(Some(0.1)), PureNumber, Some(AbsoluteFuzz[Double](1.0, Gaussian)))
-    fn.isProbablyZero(0.5) shouldBe true
+    fn.isProbablyZero() shouldBe true
   }
 
   it should "detect not zero with small fuzz" in {
     val fn = FuzzyNumber(Value.fromDouble(Some(10.0)), PureNumber, Some(AbsoluteFuzz[Double](0.1, Gaussian)))
-    fn.isProbablyZero(0.5) shouldBe false
+    fn.isProbablyZero() shouldBe false
   }
 
   it should "handle different confidence levels" in {
@@ -383,7 +383,7 @@ class FuzzyNumberSpec2 extends AnyFlatSpec with Matchers {
     val fn1 = FuzzyNumber(Value.fromDouble(Some(100.0)), PureNumber, Some(AbsoluteFuzz[Double](2.0, Gaussian)))
     val fn2 = FuzzyNumber(Value.fromDouble(Some(101.0)), PureNumber, Some(AbsoluteFuzz[Double](2.0, Gaussian)))
 
-    val result = FuzzyNumber.fuzzyCompare(fn1, fn2, 0.5)
+    val result = FuzzyNumber.fuzzyCompare(fn1, fn2)
     result shouldBe 0 // Should be considered equal
   }
 

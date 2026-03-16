@@ -96,7 +96,7 @@ class CatsKernelLawSpec
           g.fuzz.map { f =>
             val magnitude = f match {
               case AbsoluteFuzz(m: Double, _) => m
-              case other => other.wiggle(0.5)
+              case other => other.wiggle()
             }
             (magnitude, f.shape.toString, f.style)
           }

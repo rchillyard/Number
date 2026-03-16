@@ -184,14 +184,14 @@ trait DyadicOps {
     * Determines if the current `Eager` instance is approximately equal to another `Eager` instance 
     * within a specified tolerance.
     *
-    * @param p    the tolerance level as a `Double`. A smaller value indicates stricter equality requirements.
+    * @param confidence the tolerance level as a `Double`. A smaller value indicates stricter equality requirements.
     * @param that the `Eager` instance to compare against.
     * @return a `Try[Boolean]` indicating the result of the fuzzy equality comparison:
     *         - `true` if the two instances are approximately equal within the tolerance `p`.
     *         - `false` otherwise.
     *         If the comparison cannot be performed, the `Try` contains a failure with an appropriate exception.
     */
-  def fuzzyEqv(p: Double)(that: Eager): Try[Boolean]
+  def fuzzyEqv(confidence: Double)(that: Eager): Try[Boolean]
 
   /**
     * Compares two instances of the `Eager` type and returns the result of the comparison.

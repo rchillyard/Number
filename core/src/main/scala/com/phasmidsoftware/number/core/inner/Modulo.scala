@@ -77,9 +77,9 @@ object BoundaryBehavior {
     */
   def apply[X](prefersMax: Boolean, isCircular: Boolean): BoundaryBehavior[X] =
     new BoundaryBehavior[X] {
-      def preferMax: Boolean = prefersMax
+      lazy val preferMax: Boolean = prefersMax
 
-      def circularEquivalent: Boolean = isCircular
+      lazy val circularEquivalent: Boolean = isCircular
     }
 
   /**
@@ -102,9 +102,9 @@ object BoundaryBehavior {
     *   and maximum boundaries are distinct and do not represent the same value.
     */
   given BoundaryBehavior[Int] with {
-    def preferMax: Boolean = false
+    lazy val preferMax: Boolean = false
 
-    def circularEquivalent: Boolean = false
+    lazy val circularEquivalent: Boolean = false
   }
 }
 
@@ -209,7 +209,7 @@ object Modulo {
 
     def compare(x: Rational, y: Rational): Int = x.compare(y)
 
-    def zero: Rational = Rational.zero
+    lazy val zero: Rational = Rational.zero
   }
 
   /**
@@ -227,7 +227,7 @@ object Modulo {
 
     def compare(x: Double, y: Double): Int = x.compare(y)
 
-    def zero: Double = 0.0
+    lazy val zero: Double = 0.0
   }
 
   /**
@@ -245,7 +245,7 @@ object Modulo {
 
     def compare(x: Int, y: Int): Int = x.compare(y)
 
-    def zero: Int = 0
+    lazy val zero: Int = 0
   }
 
   /**

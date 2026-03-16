@@ -36,9 +36,9 @@ abstract class LazyNumber[X: Fractional](x: => X, f: X => X) extends Valuable[X]
   /*END*/
   def map(f: X => X): LazyNumber[X] = flatMap(a => unit(f(a)))
 
-  def fNegate: Product[X] = Product(z.negate(z.one))
+  lazy val fNegate: Product[X] = Product(z.negate(z.one))
 
-  def fInvert: Named[X] = Named("invert", { (x: X) => z.div(z.one, x) })
+  lazy val fInvert: Named[X] = Named("invert", { (x: X) => z.div(z.one, x) })
 
   def fAdd(y: => LazyNumber[X]): Sum[X] = Sum(y.get)
 

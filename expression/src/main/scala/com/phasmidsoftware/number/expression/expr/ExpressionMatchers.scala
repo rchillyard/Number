@@ -470,7 +470,10 @@ object ExpressionMatchers {
     * @return A `MatchResult[Expression]` containing the result of the simplification process.
     */
   def componentsSimplifier(xs: Seq[Expression], grouper: Seq[Expression] => Expression): em.MatchResult[Expression] = {
-    val simplifiedExpressions = xs.map(_.simplify)
+    val simplifiedExpressions = xs.map {
+      case c: CompositeExpression if c.leaveOperandsAsIs => c
+      case x => x.simplify
+    }
     if (simplifiedExpressions == xs)
       em.Miss("components unchanged", xs)
     else

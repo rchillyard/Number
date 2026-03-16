@@ -124,7 +124,7 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
     *
     * @return an `Eager` instance that encapsulates the normalized value, either as a `Complex` or another `Eager` representation.
     */
-  def normalize: Eager = complex.normalize match {
+  lazy val normalize: Eager = complex.normalize match {
     case c: numerical.Complex =>
       Complex(c)()
     case x: Field =>
@@ -209,7 +209,8 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
     *
     * @return a new `Solution` representing the negated value of this `Complex` instance
     */
-  def negate: Solution = Complex(complex.rotate.rotate)()
+  lazy val negate: Solution = 
+    Complex(complex.rotate.rotate)()
 
   def +(other: Solution): Solution = other match {
     case Complex(c) =>
@@ -224,7 +225,7 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
       Failure(AlgebraException(s"Complex.eqv: unexpected input: $this and $that"))
   }
 
-  override def fuzzyEqv(p: Double)(that: Eager): Try[Boolean] = (this, that) match {
+  override def fuzzyEqv(confidence: Double)(that: Eager): Try[Boolean] = (this, that) match {
     case (Complex(a), Complex(b)) => Success(a.isSame(b)) // TODO we lose the value of `p` here (it defaults to 0.5)
     case _ => Failure(AlgebraException(s"Complex.fuzzyEqv: unexpected input: $this, $that"))
   }
@@ -232,7 +233,7 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
   /**
     * @return this `Eager`.
     */
-  override def fuzzy: Eager = this
+  override val fuzzy: Eager = this
 
   /**
     * Attempts to compute an approximate representation of the current value.
