@@ -2,7 +2,7 @@
 
 ThisBuild / organization := "com.phasmidsoftware"
 
-ThisBuild / version := "1.9.3"
+ThisBuild / version := "1.10.0"
 
 val scalaVersionNumber = "3.7.3"
 val catsVersion = "2.13.0"
@@ -56,14 +56,12 @@ val scala3TestSettings = Seq(
   Test / scalacOptions := scalacOptions.value.filterNot(_ == "-Wnonunit-statement")
 )
 
-import MermaidDiagramGenerator.autoImport.generateMermaidDiagrams
-
 // ============================================================================
 // MODULE DEFINITIONS
 // ============================================================================
 
 lazy val root = (project in file("."))
-  .enablePlugins(ScalaUnidocPlugin)
+  .enablePlugins(ScalaUnidocPlugin, MermaidDiagramGenerator)
   .aggregate(core, algebra, expression, parse, dimensions, top)
   .dependsOn(top)
   .settings(
@@ -164,8 +162,8 @@ Test / parallelExecution := false
 
 Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports")
 
-// Only enable the task in the root project
-generateMermaidDiagrams / aggregate := false
+// Only run the mermaid task at the root level, not per-module
+generateMermaidDiagram / aggregate := false
 
 // ============================================================================
 // USAGE NOTES
