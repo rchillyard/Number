@@ -22,7 +22,8 @@ import scala.util.Try
   */
 object MermaidMain {
 
-  private val version = "0.1.1" // Changed the meaning of args(1); added more output of arguments; eliminate all names containing '$'
+  private val version = "0.1.2" // Added deprecated indicator for types, properties.
+//  private val version = "0.1.1" // Changed the meaning of args(1); added more output of arguments; eliminate all names containing '$'
 
   def main(rawArgs: Array[String]): Unit = {
     val args = rawArgs.toSeq
@@ -73,9 +74,18 @@ object MermaidMain {
     given ctx: Context = Context.initialize(classpath)
 
     // -----------------------------------------------------------------------
+    // Deprecated annotation class (looked up once after Context is ready)
+    val deprecatedSym: Option[ClassSymbol] = Try {
+      ctx.findSymbolFromRoot(List(termName("scala"), typeName("deprecated"))).asClass
+    }.toOption
+
+    def isDeprecatedSym(sym: TermOrTypeSymbol): Boolean =
+      deprecatedSym.exists(d => sym.hasAnnotation(d))
+
+    // -----------------------------------------------------------------------
     // Data model
     // -----------------------------------------------------------------------
-    case class MemberInfo(signature: String, isAbstract: Boolean)
+    case class MemberInfo(signature: String, isAbstract: Boolean, isDeprecated: Boolean = false)
 
     case class TypeInfo(
                          fqn:        String,
@@ -85,7 +95,8 @@ object MermaidMain {
                          parentFQNs: Seq[String],
                          members:    Seq[MemberInfo],
                          moduleName: String,
-                         symbol:     Option[ClassSymbol] = None
+                         symbol:     Option[ClassSymbol] = None,
+                         isDeprecated: Boolean = false
                        )
 
     // -----------------------------------------------------------------------
@@ -147,7 +158,7 @@ object MermaidMain {
           //          case _ =>
           //            s"$kw $name"
         }
-      }.toOption.map(sig => MemberInfo(sig, isAbs))
+      }.toOption.map(sig => MemberInfo(sig, isAbs, isDeprecatedSym(sym)))
     }
 
     // Convert a dotted FQN to List[Name] for findSymbolFromRoot:
@@ -199,7 +210,8 @@ object MermaidMain {
                   parentFQNs = Seq.empty,
                   members    = members,
                   moduleName = modName,
-                  symbol     = Some(cls)
+                  symbol       = Some(cls),
+                  isDeprecated = isDeprecatedSym(cls)
                 ))
               }
             case _ => None
@@ -299,17 +311,22 @@ object MermaidMain {
         if (st.nonEmpty || members.nonEmpty) {
           sb.append(" {\n")
           if (st.nonEmpty) sb.append(s"    $st\n")
+          if (t.isDeprecated) sb.append("    <<deprecated>>\n")
           val abstractMembers = members.filter(_.isAbstract)
           val concreteMembers = members.filterNot(_.isAbstract)
           val concreteToShow = concreteMembers.take((maxMembers - abstractMembers.size).max(0))
           val toShow = abstractMembers ++ concreteToShow
           toShow.foreach { m =>
             val vis = if (m.isAbstract) "+" else "-"
-            sb.append(s"    $vis${sanitise(m.signature)}\n")
+            val dep = if (m.isDeprecated) "[D] " else ""
+            sb.append(s"    $vis$dep${sanitise(m.signature)}\n")
           }
           val hidden = concreteMembers.size - concreteToShow.size
-          if (hidden > 0)
-            sb.append(s"    ...(${hidden} more)\n")
+          if (hidden > 0) {
+            val hiddenDeprecated = concreteMembers.dropRight(concreteToShow.size).count(_.isDeprecated)
+            val depNote = if (hiddenDeprecated > 0) s", $hiddenDeprecated deprecated" else ""
+            sb.append(s"    ...($hidden more$depNote)\n")
+          }
           sb.append("  }\n")
         } else {
           sb.append("\n")

@@ -795,7 +795,7 @@ object Rational {
       val strings = sc.parts.iterator
       val expressions = args.iterator
       val sb = new StringBuffer()
-      while (strings.hasNext) {
+      while (strings.hasNext) { // NOTE using "while" here on a mutable object.
         val s = strings.next()
         if (s.isEmpty) {
           if (expressions.hasNext)

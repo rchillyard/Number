@@ -190,26 +190,6 @@ classDiagram
   }
   class Expression {
     <<trait>>
-    +def depth Int
-    +def evaluate(context:Context) Option~Eager~
-    +def isAtomic Boolean
-    -def multiply(other:Lazy) Lazy
-    -def normalizeIfAppropriate(e:Eager) Eager
-    -def unit(x:Eager) Lazy
-    -val approximation Option~Real~
-    -val approximationComplex Option~Eager~
-    -val asCoreNumber Option~Number~
-    -val containsI Boolean
-    ...(6 more)
-  }
-  class Expression {
-    <<trait>>
-    +def +:(token:ExpressionToken) ExpressionTokens
-    +def tokens Seq~ExpressionToken~
-    -def +(expression:Expression) Expression
-  }
-  class Expression {
-    <<trait>>
     +def value Number
     -def *(that:Expression) Expression
     -def +(that:Expression) Expression
@@ -221,6 +201,26 @@ classDiagram
     -def sin Expression
     -def sqrt Expression
     ...(1 more)
+  }
+  class Expression {
+    <<trait>>
+    +def +:(token:ExpressionToken) ExpressionTokens
+    +def tokens Seq~ExpressionToken~
+    -def +(expression:Expression) Expression
+  }
+  class Expression {
+    <<trait>>
+    +def depth Int
+    +def evaluate(context:Context) Option~Eager~
+    +def isAtomic Boolean
+    -def multiply(other:Lazy) Lazy
+    -def normalizeIfAppropriate(e:Eager) Eager
+    -def unit(x:Eager) Lazy
+    -val approximation Option~Real~
+    -val approximationComplex Option~Eager~
+    -val asCoreNumber Option~Number~
+    -val containsI Boolean
+    ...(6 more)
   }
   class ExpressionBiFunction {
     <<abstract>>
