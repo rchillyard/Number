@@ -60,9 +60,24 @@ val scala3TestSettings = Seq(
 // MODULE DEFINITIONS
 // ============================================================================
 
+// ----------------------------------------------------------------------------
+// BUILD TOOLING — not a library module, not published
+// Provides the Scala 3 TASTy-walking process launched by generateMermaidDiagram.
+// ----------------------------------------------------------------------------
+lazy val mermaid = (project in file("mermaid"))
+  .settings(
+    name             := "mermaid",
+    scalaVersion     := scalaVersionNumber,
+    publish / skip   := true,
+    Test / test      := {},
+    libraryDependencies += "ch.epfl.scala" %% "tasty-query" % "1.6.1",
+    scalacOptions    := commonScalacOptions
+  )
+
 lazy val root = (project in file("."))
   .enablePlugins(ScalaUnidocPlugin, MermaidDiagramGenerator)
   .aggregate(core, algebra, expression, parse, dimensions, top)
+  // mermaid is NOT in aggregate: it is build tooling, not a library module
   .dependsOn(top)
   .settings(
     name := "number",
@@ -162,8 +177,6 @@ Test / parallelExecution := false
 
 Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports")
 
-// Only run the mermaid task at the root level, not per-module
-generateMermaidDiagram / aggregate := false
 
 // ============================================================================
 // USAGE NOTES
