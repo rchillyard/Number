@@ -22,6 +22,8 @@ import scala.util.Try
   */
 object MermaidMain {
 
+  val version = "0.1.0"
+
   def main(rawArgs: Array[String]): Unit = {
     val args = rawArgs.toSeq
 
@@ -29,6 +31,8 @@ object MermaidMain {
       System.err.println("Usage: MermaidMain <outDir> <maxMembers> <inclObjects> <explicitGroups> [moduleOrGroup...] --cp [cpEntry...]")
       sys.exit(1)
     }
+    else
+      System.out.println(s"MermaidMain $version")
 
     val outDir       = Paths.get(args(0))
     val maxMembers   = args(1).toInt
@@ -100,12 +104,13 @@ object MermaidMain {
       "equals", "hashCode", "toString", "copy", "canEqual",
       "productArity", "productElement", "productIterator",
       "productPrefix", "readResolve", "writeReplace",
-      "apply", "unapply", "tupled", "curried", "fromProduct"
+      "apply", "unapply", "tupled", "curried", "fromProduct",
+      "<init>" // constructor noise
     )
 
     def typeStr(tpe: Type): String = tpe match {
       case ref: TypeRef     => ref.name.toString
-      case app: AppliedType => s"${typeStr(app.tycon)}[${app.args.map(a => a match { case t: Type => typeStr(t); case _ => "_" }).mkString(",")}]"
+      case app: AppliedType => s"${typeStr(app.tycon)}[${app.args.map { case t: Type => typeStr(t); case _ => "_" }.mkString(",")}]"
       case or: OrType       => s"${typeStr(or.first)}|${typeStr(or.second)}"
       case and: AndType     => s"${typeStr(and.first)}&${typeStr(and.second)}"
       case _: ByNameType    => "=>"
@@ -115,7 +120,7 @@ object MermaidMain {
     def memberSig(sym: TermSymbol): Option[MemberInfo] = {
       if (sym.isSynthetic) return None
       val name = sym.name.toString
-      if (name.startsWith("_") || noiseNames.contains(name)) return None
+      if (name.startsWith("_") || name.contains("$default$") || noiseNames.contains(name)) return None
       val isAbs = sym.isAbstractMember
       val isVal = { val k = sym.kind; k == tastyquery.Modifiers.TermSymbolKind.Val || k == tastyquery.Modifiers.TermSymbolKind.LazyVal }
       val kw    = if (isVal) "val" else "def"

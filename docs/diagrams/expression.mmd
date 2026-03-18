@@ -3,122 +3,116 @@ classDiagram
 
   class AbstractRoot {
     <<abstract>>
-    +def init(equ:Equation,branch:Int,maybeName:Option~String~) Unit
     +def pure(equ:Equation,branch:Int) Root
     -def approximation(force:Boolean) Option~Real~
     -def evaluate(context:Context) Option~Eager~
     -def isUnity Boolean
-    ...(17 more)
+    -def isZero Boolean
+    ...(16 more)
   }
   class AbstractTranscendental {
     <<abstract>>
-    +def init(name:String,expression:Expression) Unit
     -def approximation(force:Boolean) Option~Real~
     -def evaluate(context:Context) Option~Eager~
     -def function(f:ExpressionMonoFunction) Transcendental
     -def maybeFactor(context:Context) Option~Factor~
-    ...(11 more)
+    -val expression Expression
+    ...(10 more)
   }
   class Aggregate {
-    +def init(function:ExpressionBiFunction,xs:Seq~Expression~) Unit
     -def add(x:Expression) Aggregate
     -def addAll(ys:Seq~Expression~) Aggregate
     -def approximation(force:Boolean) Option~Real~
     -def contains~..~ _
-    ...(12 more)
+    -def eliminateComplementaryTerms(complementaryPredicate:Function3~Express
+    ...(11 more)
   }
   class Anadic {
     <<trait>>
-    +def init() Unit
   }
   class ArithmeticParser {
     <<abstract>>
-    +def init~..~ _
     +def div Function2~T,T,T~
     +def negate Function1~T,T~
     +def one T
     +def plus Function2~T,T,T~
-    ...(10 more)
+    +def times Function2~T,T,T~
+    ...(9 more)
   }
   class ArithmeticParserNumeric {
     <<abstract>>
-    +def init~..~ _
     -def div Function2~T,T,T~
     -def negate Function1~T,T~
     -def one T
     -def plus Function2~T,T,T~
-    ...(4 more)
+    -def times Function2~T,T,T~
+    ...(3 more)
   }
   class AtomicExpression {
     <<trait>>
-    +def init() Unit
     +def simplifyAtomic AutoMatcher~Expression~
     -val depth Int
     -val isAtomic Boolean
   }
   class BaseMillParser {
     <<abstract>>
-    +def init() Unit
     -def anadicOperator Parser~String~
     -def anadicTerm Parser~AnadicTerm~
     -def dyadicOperator Parser~String~
     -def dyadicTerm Parser~Term~
-    ...(7 more)
+    -def mill Parser~Mill~
+    ...(6 more)
   }
   class BaseNumberParser {
     <<abstract>>
-    +def init() Unit
     -def calculateFuzz(exponent:Int,decimalPlaces:Int) Option~Fuzziness~Doubl
     -def exponent Parser~String~
     -def factor Parser~Factor~
     -def fuzz Parser~Option~String~~
-    ...(8 more)
+    -def generalNumber Parser~ValuableNumber~
+    ...(7 more)
   }
   class BaseRationalParser {
     <<abstract>>
-    +def init() Unit
     -def WholeNumber WholeNumber$
     -def ratioNumber Parser~RatioNumber~
     -def rationalNumber Parser~ValuableNumber~
     -def realNumber Parser~RealNumber~
-    ...(5 more)
+    -def repeatingDecimal Parser~RepeatingDecimal~
+    ...(4 more)
   }
   class BiFunction {
-    +def init(a:Expression,b:Expression,f:ExpressionBiFunction) Unit
     -def approximation(force:Boolean) Option~Real~
-    -def approximationComplex$default$1 _
     -def approximationComplex(force:Boolean) Option~Eager~
     -def evaluate(context:Context) Option~Eager~
-    ...(25 more)
+    -def leaveOperandsAsIs Boolean
+    -def matchBiFunctionIdentitiesAtan(a:Expression,b:Expression) MatchResult
+    ...(23 more)
   }
   class CommutativeExtractor {
     <<abstract>>
-    +def init~..~ _
     +def extractLeft(e:Expression) Option~A~
     +def extractRight(e:Expression) Option~B~
   }
   class ComplexParser {
-    +def init() Unit
     -def complexNumber Parser~Complex~
     -def doParse(w:String) Try~Complex~
     -val sign Parser~String~
   }
   class CompositeExpression {
     <<trait>>
-    +def init() Unit
     +def identitiesMatcher AutoMatcher~Expression~
     +def operandsMatcher AutoMatcher~Expression~
     +def renderAsExpression String
     +def structuralMatcher AutoMatcher~Expression~
-    ...(10 more)
+    +def terms Seq~Expression~
+    ...(9 more)
   }
   class Dyadic {
-    +def init(precedence:Int,leftAssociativity:Boolean) Unit
     -val leftAssociativity Boolean
     -val precedence Int
   }
   class DyadicExpression {
-    +def init(left:Expression,right:Expression,operator:String) Unit
     -def value Number
     -val left Expression
     -val operator String
@@ -126,114 +120,105 @@ classDiagram
   }
   class Equation {
     <<trait>>
-    +def init() Unit
     +def evaluate(s:Solution) Eager
     +def invert Equation
     +def shiftOrigin(c:Rational) Equation
     +def solve(branch:Int) Solution
-    ...(1 more)
+    +def transform(fP:Function2~Rational,Rational,Rational~,fQ:Function2~Rati
   }
   class Euler {
-    +def init(r:Expression,θ:Expression) Unit
     -def approximation(force:Boolean) Option~Real~
     -def ensureRadian(n:Number) Number
     -def evaluate(context:Context) Option~Eager~
     -def maybeFactor(context:Context) Option~Factor~
-    ...(9 more)
+    -val depth Int
+    ...(8 more)
   }
   class Expr {
-    +def init(x:Expression) Unit
     -def *(multiplicand:Expr) Expression
     -def +(addend:Expr) Expression
     -val x Expression
   }
   class Expression {
     <<trait>>
-    +def init() Unit
-    +def depth Int
-    +def evaluate(context:Context) Option~Eager~
-    +def isAtomic Boolean
-    -def multiply(other:Lazy) Lazy
-    ...(12 more)
+    +def +:(token:ExpressionToken) ExpressionTokens
+    +def tokens Seq~ExpressionToken~
+    -def +(expression:Expression) Expression
   }
   class Expression {
     <<trait>>
-    +def init() Unit
     +def value Number
     -def *(that:Expression) Expression
     -def +(that:Expression) Expression
     -def cos Expression
-    ...(7 more)
+    -def exp Expression
+    ...(6 more)
   }
   class Expression {
     <<trait>>
-    +def +:(token:ExpressionToken) ExpressionTokens
-    +def init() Unit
-    +def tokens Seq~ExpressionToken~
-    -def +(expression:Expression) Expression
+    +def depth Int
+    +def evaluate(context:Context) Option~Eager~
+    +def isAtomic Boolean
+    -def multiply(other:Lazy) Lazy
+    -def normalizeIfAppropriate(e:Eager) Eager
+    ...(11 more)
   }
   class ExpressionBiFunction {
     <<abstract>>
-    +def init(name:String,f:Function2~Eager,Eager,Eager~,isExact:Boolean,mayb
     +def applyExact(a:Eager,b:Eager) Option~Eager~
     +def leftContext(context:Context) Context
     +def rightContext(factor:Factor) _
     -def applyExact(p:Tuple2~Eager,Eager~) Option~Eager~
-    ...(8 more)
+    -def evaluate(a:Expression,b:Expression) _
+    ...(7 more)
   }
   class ExpressionException {
-    +def init(str:String,x:Throwable) Unit
     -val str String
     -val x Throwable
   }
   class ExpressionFunction {
     <<trait>>
-    +def init~..~ _
     +def applyExact(p:P) Option~Eager~
     +def name String
   }
   class ExpressionMatchers {
-    +def init(matchLogger:MatchLogger) _
     -def ExpressionMatcher~..~ _
     -def MatchCheck~..~ _
     -def angleEliminatorAggregate Matcher~Aggregate,Expression~
     -def complementaryMonadic(f:ExpressionMonoFunction,g:ExpressionMonoFuncti
-    ...(15 more)
+    -def complementaryTermsEliminatorAggregate Matcher~Aggregate,Expression~
+    ...(14 more)
   }
   class ExpressionMonoFunction {
     <<abstract>>
-    +def init(name:String,f:Function1~Eager,Eager~,parity:Parity) Unit
     +def applyExact(x:Eager) Option~Eager~
     +def paramContext(context:Context) Context
     -def applyComplex(z:Complex) Option~Eager~
     -def evaluate(a:Expression) _
-    ...(3 more)
+    -val f Function1~Eager,Eager~
+    ...(2 more)
   }
   class ExpressionParser {
-    +def init() Unit
     -def e Parser~String~
     -def expr Parser~Expr~
     -def factor Parser~Factor~
     -def map2(t1:Try~Expression~,t2:Try~Expression~) _
-    ...(5 more)
+    -def number Parser~Factor~
+    ...(4 more)
   }
   class ExpressionParserException {
-    +def init(message:String) Unit
     -val message String
   }
   class ExpressionToken {
-    +def init(token:String,tokenType:TokenType) Unit
     -val token String
     -val tokenType TokenType
   }
   class ExpressionTokens {
-    +def init(tokens:Seq~ExpressionToken~) Unit
     -def +:(token:ExpressionToken) ExpressionTokens
     -val tokens Seq~ExpressionToken~
   }
   class Hyperbolic {
     <<abstract>>
-    +def init(sinh:Boolean,parity:Parity) Unit
     -def applyExact(x:Eager) Option~Eager~
     -def paramContext(context:Context) Context
     -val parity Parity
@@ -241,206 +226,183 @@ classDiagram
   }
   class Item {
     <<trait>>
-    +def init() Unit
   }
   class LinearEquation {
-    +def init(r:Rational) Unit
     -def *(factor:Rational) Equation
     -def branched(index:Int) Expression
     -def branches Int
     -def evaluate(s:Solution) Eager
-    ...(6 more)
+    -def invert Equation
+    ...(5 more)
   }
   class LinearRoot {
-    +def init(equ:Equation) Unit
     -def add(other:Root) Option~Root~
     -def branch Int
     -def branched(index:Int) Root
     -def branches Int
-    ...(4 more)
+    -def equation LinearEquation
+    ...(3 more)
   }
   class Literal {
-    +def init(value:Eager,maybeName:Option~String~) Unit
     -def doMonoFunction(f:ExpressionMonoFunction) Option~Eager~
     -def monadicFunction(f:ExpressionMonoFunction) Option~ValueExpression~
     -def simplifyAtomic AutoMatcher~Expression~
     -val maybeName Option~String~
-    ...(1 more)
+    -val value Eager
   }
   class LogLevel {
     <<trait>>
-    +def init() Unit
   }
   class MatchersExtras {
     <<trait>>
-    +def init() Unit
     -def matchOptionFunc2~..~ _
   }
   class MathematicalEq {
     <<trait>>
-    +def init~..~ _
     +def eqv(x:A,y:A) Boolean
     -def ≡(x:A,y:A) Boolean
   }
   class Mill {
     <<trait>>
-    +def init() Unit
     +def evaluate Option~Expression~
     +def pop Tuple2~Option~Item~,Mill~
     +def push(x:Item) Mill
     -def iterator Iterator~Item~
   }
   class MillException {
-    +def init(s:String) Unit
     -val s String
   }
   class Monadic {
     <<trait>>
-    +def init() Unit
   }
   class MonadicExpression {
-    +def init(expression:Expression,str:String) Unit
     -def value Number
     -val expression Expression
     -val str String
   }
   class Multiple {
     <<trait>>
-    +def init() Unit
     +def terms Seq~Expression~
   }
   class NamedConstant {
     <<abstract>>
-    +def init(x:Eager,name:String) Unit
     -def simplifyAtomic AutoMatcher~Expression~
     -val name String
     -val x Eager
   }
   class Noop {
-    +def init(w:String) Unit
     -def approximation(force:Boolean) Option~Real~
     -def evaluate(context:Context) Option~Eager~
     -def isExact Boolean
     -def isUnity Boolean
-    ...(8 more)
+    -def isZero Boolean
+    ...(7 more)
   }
   class Parity {
     <<abstract>>
-    +def init() Unit
   }
   class ParseException {
-    +def init(s:String) Unit
     -val s String
   }
   class QuadraticEquation {
-    +def init(p:Rational,q:Rational) Unit
     -def *(x:Rational) Equation
     -def branched(index:Int) Expression
     -def branches Int
     -def conjugateProduct Rational
-    ...(10 more)
+    -def conjugateSum Rational
+    ...(9 more)
   }
   class QuadraticRoot {
-    +def init(equ:Equation,branch:Int,maybeName:Option~String~) Unit
     -def add(other:Root) Option~Root~
     -def add(other:Solution) Option~Root~
     -def branched(index:Int) Root
     -def branches Int
-    ...(5 more)
+    -def equation QuadraticEquation
+    ...(4 more)
   }
   class RationalParserException {
-    +def init(m:String) Unit
     -val m String
   }
   class RepeatingDecimal {
-    +def init(sign:Boolean,integerPart:String,nonRepeatingPart:Option~String~
     -def value Try~Rational~
     -val integerPart String
     -val nonRepeatingPart Option~String~
     -val repeatingPart String
-    ...(1 more)
+    -val sign Boolean
   }
   class Root {
     <<trait>>
-    +def init() Unit
     +def add(other:Root) Option~Root~
     +def approximation(force:Boolean) Option~Real~
     +def branch Int
     +def equation Equation
-    ...(6 more)
+    +def negate Expression
+    ...(5 more)
   }
   class ScalarConstant {
     <<abstract>>
-    +def init(x:Eager,name:String) Unit
     -val name String
     -val x Eager
   }
   class SignificantSpaceParserException {
-    +def init(m:String) Unit
     -val m String
   }
   class SignificantSpaceParsers {
     <<abstract>>
-    +def init() Unit
     -def ParserOps~..~ _
     -def ParserOptionOps~..~ _
     -def RegexOps(r:Regex) RegexOps
     -def composeOption~..~ _
-    ...(9 more)
+    -def compose~..~ _
+    ...(8 more)
   }
   class SineCos {
     <<abstract>>
-    +def init(sine:Boolean,parity:Parity) Unit
     -def applyExact(x:Eager) Option~Eager~
     -def paramContext(context:Context) Context
     -val parity Parity
     -val sine Boolean
   }
   class Stack {
-    +def init(stack:List~Item~) Unit
     -def calculateDyadic(f:Dyadic,x1:Expression,x2:Expression) Expression
     -def calculateMonadic(f:Monadic,x:Expression) Expression
     -def evaluate Option~Expression~
     -def evaluate1(x:Item) Tuple2~Option~Expression~,Mill~
-    ...(9 more)
+    -def evaluate2(f:Dyadic,x:Expression) Tuple2~Option~Expression~,Mill~
+    ...(8 more)
   }
   class TerminalExpression {
-    +def init(value:Number) Unit
     -val value Number
   }
   class TokenType {
     <<abstract>>
-    +def init() Unit
   }
   class Transcendental {
     <<trait>>
-    +def init() Unit
     +def function(f:ExpressionMonoFunction) Transcendental
   }
   class UniFunction {
-    +def init(x:Expression,f:ExpressionMonoFunction) Unit
     -def approximation(force:Boolean) Option~Real~
-    -def approximationComplex$default$1 _
     -def approximationComplex(force:Boolean) Option~Eager~
     -def evaluate(context:Context) Option~Eager~
-    ...(11 more)
+    -def matchExponential(x:Expression) MatchResult~Expression~
+    -def maybeFactor(context:Context) Option~Factor~
+    ...(9 more)
   }
   class ValuableNumber {
     <<trait>>
-    +def init() Unit
     +def value Try~Rational~
   }
   class ValueExpression {
     <<abstract>>
-    +def init(value:Eager,maybeName:Option~String~) Unit
     +def monadicFunction(f:ExpressionMonoFunction) Option~ValueExpression~
     -def approximation(force:Boolean) Option~Real~
-    -def approximationComplex$default$1 _
     -def approximationComplex(force:Boolean) Option~Eager~
-    ...(10 more)
+    -def evaluate(context:Context) Option~Eager~
+    -def isExact Boolean
+    ...(8 more)
   }
   class VulgarFractionNumber {
-    +def init(fraction:String) Unit
     -def value Try~Rational~
     -val fraction String
   }
