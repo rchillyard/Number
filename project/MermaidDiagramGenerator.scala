@@ -15,7 +15,7 @@ import scala.sys.process.ProcessLogger
   *   mermaidOutputDir      -- where .mmd files are written (default: docs/diagrams/)
   *   mermaidGroups         -- explicit groups: name -> root FQNs (empty = per-module)
   *   mermaidIncludeObjects -- include Scala objects (default: false)
-  *   mermaidMembersMax     -- members shown per type box before "...(N more)" (default: 5)
+  *   mermaidMembersMax     -- max members shown per type box IF any concrete members are shown "...(N more)" (default: 10)
   */
 object MermaidDiagramGenerator extends AutoPlugin {
 
@@ -38,10 +38,10 @@ object MermaidDiagramGenerator extends AutoPlugin {
       settingKey[Boolean]("Include Scala objects in diagrams (default: false)")
 
     val mermaidMembersMax =
-      settingKey[Int]("Max members per type box before truncating with '...' (default: 5)")
+      settingKey[Int]("Max members shown per type box (only applies IF any concrete members are shown) '...' (default: 10)")
   }
 
-  import autoImport._
+  import autoImport.*
 
   // Extracted into a real method so we can use early-return style via Either
   private def run(
@@ -158,11 +158,11 @@ object MermaidDiagramGenerator extends AutoPlugin {
     }
   }
 
-  override lazy val projectSettings: Seq[Setting[_]] = Seq(
+  override lazy val projectSettings: Seq[Setting[?]] = Seq(
     mermaidOutputDir      := baseDirectory.value / "docs" / "diagrams",
     mermaidGroups         := Map.empty,
     mermaidIncludeObjects := false,
-    mermaidMembersMax     := 5,
+    mermaidMembersMax     := 10,
 
     generateMermaidDiagram := {
       run(

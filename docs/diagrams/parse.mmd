@@ -29,7 +29,9 @@ classDiagram
     -def superscriptParser Parser~Int~
     -def unitPowerParser Parser~Unit~_~~
     -def unitProductParser Parser~Unit~_~~
-    ...(3 more)
+    -def unitTermParser Parser~Unit~_~~
+    -def unitsParser Parser~Unit~_~~
+    -val skipWhitespace Boolean
   }
   class UnitsParserException {
     -val msg String

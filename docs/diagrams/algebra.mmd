@@ -12,7 +12,9 @@ classDiagram
     +def coefficient Int
     +def isPureNumber Boolean
     +def offset Structure
-    ...(4 more)
+    -def fuzzyEqv(confidence:Double) _
+    -def isExact Boolean
+    -def maybeFactor(context:Context) Option~Factor~
   }
   class Angle {
     -def *(factor:Rational) Angle
@@ -20,7 +22,12 @@ classDiagram
     -def add(other:Angle) Try~Angle~
     -def compare(that:Functional) Int
     -def compareExact(that:Scalar) Option~Int~
-    ...(26 more)
+    -def convert~..~ _
+    -def divide(n:Number) Try~Angle~
+    -def divide(other:Angle) Try~Number~
+    -def doPlus(that:Scalar) Option~Scalar~
+    -def eqv(that:Eager) Try~Boolean~
+    ...(21 more)
   }
   class Approximate {
     <<trait>>
@@ -35,7 +42,10 @@ classDiagram
     -def unit(x:Number) Exponential
     -val base Number
     -val exponent Number
-    ...(4 more)
+    -val maybeName Option~String~
+    -val negate Structure
+    -val render String
+    -val zero Exponential
   }
   class Branched {
     <<trait>>
@@ -48,7 +58,6 @@ classDiagram
   class Can {
     <<trait>>
     -def asT T
-    -val evidence$1 ClassTag~T~
   }
   class CanAdd {
     <<trait>>
@@ -56,27 +65,23 @@ classDiagram
     -def +(that:U) _
     -def acm(x$1:AdditiveCommutativeMonoid~T~) AdditiveCommutativeMonoid~T~
     -def plus(that:Structure) _
-    -val evidence$1 ClassTag~T~
   }
   class CanAddAndSubtract {
     <<trait>>
     +def -(that:T) _
     +def unary_- T
-    -val evidence$1 ClassTag~T~
   }
   class CanMultiply {
     <<trait>>
     +def one T
     -def *(that:T) _
     -def mm(x$1:MultiplicativeMonoid~T~) MultiplicativeMonoid~T~
-    -val evidence$1 ClassTag~T~
   }
   class CanMultiplyAndDivide {
     <<trait>>
     -def /(that:T) _
     -def mg(x$1:MultiplicativeGroup~T~) MultiplicativeGroup~T~
     -def reciprocal(x$1:MultiplicativeGroup~T~) T
-    -val evidence$1 ClassTag~T~
   }
   class CanNegate {
     <<trait>>
@@ -99,7 +104,12 @@ classDiagram
     -def argument Number
     -def branches Int
     -def conjugate Solution
-    ...(21 more)
+    -def doAdd(other:Complex) Complex
+    -def doMultiply(other:Complex) Complex
+    -def eqv(that:Eager) Try~Boolean~
+    -def fuzzyEqv(confidence:Double) _
+    -def isComplex Boolean
+    ...(16 more)
   }
   class Context {
     <<trait>>
@@ -131,7 +141,12 @@ classDiagram
     -def add(y:Eager) Try~Eager~
     -def addEagers(x:Eager,y:Eager) Try~Eager~
     -def compare(x:Eager,y:Eager) Try~Int~
-    ...(12 more)
+    -def divide(y:Eager) Try~Eager~
+    -def divideEagers(x:Eager,y:Eager) Try~Eager~
+    -def eqv(that:Eager) Try~Boolean~
+    -def fuzzy Eager
+    -def fuzzyCompare(p:Double) _
+    ...(7 more)
   }
   class Exact {
     <<trait>>
@@ -144,7 +159,9 @@ classDiagram
     -def isZero Boolean
     -def maybeInt Option~Int~
     -def pow(that:ExactNumber) Option~ExactNumber~
-    ...(3 more)
+    -def scale(scale:Rational) Number
+    -def toRationalNumber RationalNumber
+    -val asDouble Double
   }
   class Exactitude {
     <<trait>>
@@ -157,7 +174,12 @@ classDiagram
     +def unit(x:Number) Exponential
     -def +(a:Exponential) Exponential
     -def compare(that:Functional) Int
-    ...(15 more)
+    -def convert~..~ _
+    -def eqv(that:Eager) Try~Boolean~
+    -def fuzz Option~Fuzziness~Double~~
+    -def fuzzyEqv(confidence:Double) _
+    -def isExact Boolean
+    ...(10 more)
   }
   class Functional {
     <<trait>>
@@ -166,7 +188,7 @@ classDiagram
     +val scaleFunction Function1~Double,Double~
     -val maybeDouble Option~Double~
     -val maybeFuzz Option~Fuzziness~Double~~
-    ...(1 more)
+    -val nominalValue Double
   }
   class FuzzyEq {
     <<trait>>
@@ -178,7 +200,12 @@ classDiagram
     -def compare(that:Functional) Int
     -def compareExact(that:Structure) Option~Int~
     -def convert~..~ _
-    ...(27 more)
+    -def doScale(that:Number) Option~InversePower~
+    -def eqv(that:Eager) Try~Boolean~
+    -def fuzz Option~Fuzziness~Double~~
+    -def fuzzyEqv(confidence:Double) _
+    -def getRoot(r:Rational,lookups:Map~Int,Map~Int,Int~~) Option~Int~
+    ...(22 more)
   }
   class LatexRenderer {
     <<trait>>
@@ -197,7 +224,12 @@ classDiagram
     -def add(addend:Eager) Try~Algebraic~
     -def add(addend:Rational) Algebraic
     -def approximation(force:Boolean) Option~Real~
-    ...(17 more)
+    -def base Structure
+    -def branches Int
+    -def coefficient Int
+    -def conjugate Solution
+    -def eqv(that:Eager) Try~Boolean~
+    ...(12 more)
   }
   class MaybeFuzzy {
     <<trait>>
@@ -217,11 +249,16 @@ classDiagram
   class Nat {
     <<trait>>
     +def +(that:Nat) Nat
-    +def supercom$phasmidsoftware$number$algebra$eager$Nat$$eqv(that:Eager) T
     -def approximation(force:Boolean) Option~Real~
     -def eqv(that:Eager) Try~Boolean~
     -def maybeFactor(context:Context) Option~Factor~
-    ...(9 more)
+    -def maybeName Option~String~
+    -val asDouble Double
+    -val inc Nat
+    -val isExact Boolean
+    -val maybeQ Option~Q~
+    -val maybeZ Option~Z~
+    ...(3 more)
   }
   class NaturalExponential {
     -def compareExact(that:Exponential) Option~Int~
@@ -229,7 +266,10 @@ classDiagram
     -def unit(x:Number) Exponential
     -val base Number
     -val exponent Number
-    ...(4 more)
+    -val maybeName Option~String~
+    -val negate Structure
+    -val render String
+    -val zero Exponential
   }
   class Negatable {
     <<trait>>
@@ -242,11 +282,16 @@ classDiagram
   class Number {
     <<trait>>
     +def normalize Number
-    +def supercom$phasmidsoftware$number$algebra$eager$Number$$eqv(that:Eager
-    +def supercom$phasmidsoftware$number$algebra$eager$Number$$fuzzyEqv(confi
     -def *(other:Number) Number
     -def +(other:Number) Number
-    ...(12 more)
+    -def -(other:Number) Number
+    -def /(other:Number) Number
+    -def add(other:Number) Try~Number~
+    -def compare(that:Number) Int
+    -def compare(that:Scalar) Int
+    -def divide(other:Number) Try~Number~
+    -def eqv(that:Eager) Try~Boolean~
+    ...(5 more)
   }
   class Numeric {
     <<trait>>
@@ -263,7 +308,12 @@ classDiagram
     -def +(other:Solution) Solution
     -def add(addend:Rational) Algebraic
     -def add(solution:Eager) Try~Algebraic~
-    ...(20 more)
+    -def approximation(force:Boolean) Option~Real~
+    -def conjugate QuadraticSolution
+    -def eqv(that:Eager) Try~Boolean~
+    -def fuzzyEqv(confidence:Double) _
+    -def multiply(solution:Algebraic) Option~Eager~
+    ...(15 more)
   }
   class R {
     <<trait>>
@@ -282,7 +332,12 @@ classDiagram
     -def compareExact(that:Scalar) Option~Int~
     -def convert~..~ _
     -def eqv(that:Eager) Try~Boolean~
-    ...(12 more)
+    -def signum Int
+    -def unary_- RationalNumber
+    -val maybeName Option~String~
+    -val maybeQ Option~Q~
+    -val maybeZ Option~Z~
+    ...(7 more)
   }
   class RationalPowers {
     <<trait>>
@@ -295,7 +350,12 @@ classDiagram
     -def +(t:Real) Real
     -def -(that:Real) _
     -def /(t:Real) Real
-    ...(39 more)
+    -def add(other:Real) Try~Real~
+    -def asDouble Double
+    -def compare(that:Number) Int
+    -def compareExact(that:Scalar) Option~Int~
+    -def convert~..~ _
+    ...(34 more)
   }
   class Renderable {
     <<trait>>
@@ -317,7 +377,12 @@ classDiagram
     +def scaleFactor Double
     -def addScalars~..~ _
     -def add~..~ _
-    ...(9 more)
+    -def compare(x:Eager,y:Eager) Try~Int~
+    -def divideScalars~..~ _
+    -def divide~..~ _
+    -def multiplyScalars~..~ _
+    -def multiply~..~ _
+    ...(4 more)
   }
   class Solution {
     <<trait>>
@@ -333,7 +398,12 @@ classDiagram
     -def addStructures(x:Structure,y:Structure) Try~Structure~
     -def approximation(force:Boolean) Option~Real~
     -def asJavaNumber Option~Number~
-    ...(7 more)
+    -def divide(y:Structure) Try~Structure~
+    -def divideStructures(x:Structure,y:Structure) Try~Structure~
+    -def fuzzyEqv(confidence:Double) _
+    -def multiply(y:Structure) Try~Structure~
+    -def multiplyStructures(x:Structure,y:Structure) Try~Structure~
+    ...(2 more)
   }
   class Succ {
     -def +(that:Nat) Nat
@@ -341,7 +411,7 @@ classDiagram
     -def isZero Boolean
     -def signum Int
     -val pred Nat
-    ...(1 more)
+    -val toInt Int
   }
   class Transformed {
     <<trait>>
@@ -364,7 +434,7 @@ classDiagram
     -def product(other:Valuable) Valuable
     -def show String
     -val asMonotone Structure
-    ...(1 more)
+    -val asNumber Option~Number~
   }
   class WholeNumber {
     -def *(factor:Rational) ExactNumber
@@ -372,7 +442,12 @@ classDiagram
     -def compareExact(that:Scalar) Option~Int~
     -def convert~..~ _
     -def doScale(that:Number) Option~WholeNumber~
-    ...(15 more)
+    -def eqv(that:Eager) Try~Boolean~
+    -def scale(scalar:Scalar) Option~Number~
+    -def signum Int
+    -def toReal~..~ _
+    -def unary_- WholeNumber
+    ...(10 more)
   }
   class Z {
     <<trait>>

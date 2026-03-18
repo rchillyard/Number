@@ -8,7 +8,12 @@ classDiagram
     -def formatUnit(sym:String,exp:Rational) String
     -def pow(exp:Rational) BaseDimWitness
     -def toCompositeSymbol String
-    ...(7 more)
+    -val i Rational
+    -val j Rational
+    -val l Rational
+    -val m Rational
+    -val n Rational
+    ...(2 more)
   }
   class Dimension {
     <<trait>>
@@ -26,7 +31,8 @@ classDiagram
     -val base Unit~_~
     -val dimensionWitness DimensionWitness
     -val power Rational
-    ...(2 more)
+    -val symbol String
+    -val toSI ExactNumber
   }
   class ProductUnit {
     -def compositeSymbol String
@@ -34,7 +40,8 @@ classDiagram
     -val dimensionWitness DimensionWitness
     -val left Unit~_~
     -val right Unit~_~
-    ...(2 more)
+    -val symbol String
+    -val toSI ExactNumber
   }
   class QuotientUnit {
     -def compositeSymbol String
@@ -42,7 +49,8 @@ classDiagram
     -val denominator Unit~_~
     -val dimensionWitness DimensionWitness
     -val numerator Unit~_~
-    ...(2 more)
+    -val symbol String
+    -val toSI ExactNumber
   }
   class SIUnit {
     <<trait>>
@@ -55,7 +63,8 @@ classDiagram
     -val compositeSymbol String
     -val dimensionWitness DimensionWitness
     -val scale Rational
-    ...(2 more)
+    -val symbol String
+    -val toSI ExactNumber
   }
   class TRat
   class TRational {

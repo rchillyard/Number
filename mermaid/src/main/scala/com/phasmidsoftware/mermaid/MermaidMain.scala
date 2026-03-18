@@ -13,7 +13,7 @@ import scala.util.Try
 /** Entry point invoked by MermaidDiagramGenerator as a subprocess.
   *
   * args(0)       = output directory
-  * args(1)       = max members per type box
+  * args(1)       = max members per type box (limit only applies when there are concrete members)
   * args(2)       = "true"/"false" -- include objects
   * args(3)       = "true"/"false" -- explicit groups mode
   * args(4..N-1)  = "moduleName:/path/to/classes"  OR  "groupName:fqn1,fqn2,..."
@@ -22,7 +22,7 @@ import scala.util.Try
   */
 object MermaidMain {
 
-  val version = "0.1.0"
+  private val version = "0.1.1" // Changed the meaning of args(1); added more output of arguments; eliminate all names containing '$'
 
   def main(rawArgs: Array[String]): Unit = {
     val args = rawArgs.toSeq
@@ -31,10 +31,12 @@ object MermaidMain {
       System.err.println("Usage: MermaidMain <outDir> <maxMembers> <inclObjects> <explicitGroups> [moduleOrGroup...] --cp [cpEntry...]")
       sys.exit(1)
     }
-    else
-      System.out.println(s"MermaidMain $version")
+    else {
+      val argumentsAsString = args.takeWhile(!_.contains("-cp")).mkString(" ")
+      System.out.println(s"MermaidMain:$version args: $argumentsAsString -cp ...")
+    }
 
-    val outDir       = Paths.get(args(0))
+    val outDir       = Paths.get(args.head)
     val maxMembers   = args(1).toInt
     val inclObjects  = args(2) == "true"
     val explicitMode = args(3) == "true"
@@ -120,7 +122,7 @@ object MermaidMain {
     def memberSig(sym: TermSymbol): Option[MemberInfo] = {
       if (sym.isSynthetic) return None
       val name = sym.name.toString
-      if (name.startsWith("_") || name.contains("$default$") || noiseNames.contains(name)) return None
+      if (name.startsWith("_") || name.contains("$") || noiseNames.contains(name)) return None
       val isAbs = sym.isAbstractMember
       val isVal = { val k = sym.kind; k == tastyquery.Modifiers.TermSymbolKind.Val || k == tastyquery.Modifiers.TermSymbolKind.LazyVal }
       val kw    = if (isVal) "val" else "def"
@@ -297,12 +299,17 @@ object MermaidMain {
         if (st.nonEmpty || members.nonEmpty) {
           sb.append(" {\n")
           if (st.nonEmpty) sb.append(s"    $st\n")
-          members.take(maxMembers).foreach { m =>
+          val abstractMembers = members.filter(_.isAbstract)
+          val concreteMembers = members.filterNot(_.isAbstract)
+          val concreteToShow = concreteMembers.take((maxMembers - abstractMembers.size).max(0))
+          val toShow = abstractMembers ++ concreteToShow
+          toShow.foreach { m =>
             val vis = if (m.isAbstract) "+" else "-"
             sb.append(s"    $vis${sanitise(m.signature)}\n")
           }
-          if (members.size > maxMembers)
-            sb.append(s"    ...(${members.size - maxMembers} more)\n")
+          val hidden = concreteMembers.size - concreteToShow.size
+          if (hidden > 0)
+            sb.append(s"    ...(${hidden} more)\n")
           sb.append("  }\n")
         } else {
           sb.append("\n")

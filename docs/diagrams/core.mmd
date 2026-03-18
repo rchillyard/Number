@@ -7,7 +7,12 @@ classDiagram
     -def normalize(t:T,relativeStyle:Boolean) Option~Fuzziness~T~~
     -def relative(t:T) Option~RelativeFuzz~T~~
     -def round(x:Double,n:Int) Double
-    ...(10 more)
+    -def transform~..~ _
+    -def wiggle(confidence:Double) T
+    -val asPercentage String
+    -val magnitude T
+    -val noExponent String
+    ...(4 more)
   }
   class AbstractInfiniteSeries {
     <<abstract>>
@@ -15,8 +20,8 @@ classDiagram
     -def evaluate(maybeN:Option~Int~) Option~X~
     -def evaluateToTolerance(epsilon:Double) Try~X~
     -def term(i:Int) Option~X~
-    -val evidence$1 Numeric~X~
-    ...(2 more)
+    -val terms LazyList~X~
+    -val xn Numeric~X~
   }
   class AbstractSeries {
     <<abstract>>
@@ -24,11 +29,9 @@ classDiagram
     -def evaluate(maybeN:Option~Int~) Option~X~
     -def evaluateToTolerance(epsilon:Double) Try~X~
     -def term(i:Int) Option~X~
-    -val evidence$1 Numeric~X~
-    ...(1 more)
+    -val terms Seq~X~
   }
   class AndThen {
-    -val evidence$1 Numeric~X~
     -val f Function1~X,X~
     -val g Function1~X,X~
   }
@@ -54,7 +57,12 @@ classDiagram
     +def make(a:Number,b:Number) BaseComplex
     +def modulusSquared Number
     -def add(x:Field) Field
-    ...(25 more)
+    -def atan(y:Real) Field
+    -def compare(that:Field) Int
+    -def divide(x:Field) Field
+    -def doRationalPowerForComplexPolar(n:Number,re:Number,im:Number,w:Int) C
+    -def isIPi(p:Field) Boolean
+    ...(20 more)
   }
   class BaseMillParser {
     <<abstract>>
@@ -63,7 +71,12 @@ classDiagram
     -def dyadicOperator Parser~String~
     -def dyadicTerm Parser~Term~
     -def mill Parser~CoreMill~
-    ...(6 more)
+    -def monadicOperator Parser~String~
+    -def monadicTerm Parser~MonadicTerm~
+    -def neutralOperator1 Parser~String~
+    -def neutralOperator2 Parser~String~
+    -def parseMill(w:String) Try~CoreMill~
+    ...(1 more)
   }
   class BaseNumberParser {
     <<abstract>>
@@ -72,7 +85,12 @@ classDiagram
     -def factor Parser~Factor~
     -def fuzz Parser~Option~String~~
     -def generalNumber Parser~ValuableNumber~
-    ...(7 more)
+    -def maybeNumber Parser~Option~Number~~
+    -def number Parser~Number~
+    -def numberWithFuzziness Parser~NumberWithFuzziness~
+    -def optionalNumber(ro:Option~ValuableNumber~,fo:Option~Factor~) Option~N
+    -def parseNumber(w:String) Try~Number~
+    ...(2 more)
   }
   class BaseRNG {
     <<abstract>>
@@ -88,7 +106,10 @@ classDiagram
     -def rationalNumber Parser~ValuableNumber~
     -def realNumber Parser~RealNumber~
     -def repeatingDecimal Parser~RepeatingDecimal~
-    ...(4 more)
+    -def simpleNumber Parser~WholeNumber~
+    -def unsignedWholeNumber Parser~String~
+    -def vulgarFraction Parser~VulgarFractionNumber~
+    -val E Regex
   }
   class BoundaryBehavior {
     <<trait>>
@@ -107,7 +128,10 @@ classDiagram
     -def maybeCurrent Option~T~
     -def maybeCurrent_=(x$1:Option~T~) Unit
     -def maybeFollowing Option~T~
-    ...(4 more)
+    -def maybeFollowing_=(x$1:Option~T~) Unit
+    -def next() T
+    -val f Function2~T,T,Boolean~
+    -val xs Iterator~T~
   }
   class CF {
     -def render(depth:Int) String
@@ -121,7 +145,12 @@ classDiagram
     -val exactNumberEq Eq~ExactNumber~
     -val exactNumberOrder Order~ExactNumber~
     -val exactNumberShow Show~ExactNumber~
-    ...(13 more)
+    -val fieldEq Eq~Field~
+    -val fieldShow Show~Field~
+    -val fuzzEq Eq~Fuzziness~Double~~
+    -val fuzzPartialOrder PartialOrder~Fuzziness~Double~~
+    -val numberEq Eq~Number~
+    ...(8 more)
   }
   class Complex {
     <<trait>>
@@ -130,7 +159,11 @@ classDiagram
     +def doAdd(complex:Complex) Complex
     +def doMultiply(complex:Complex) Complex
     +def modulus Number
-    ...(5 more)
+    +def numberProduct(n:Number) Complex
+    +def rotate Complex
+    -def maybeFactor Option~Factor~
+    -val asCartesian ComplexCartesian
+    -val isComplex Boolean
   }
   class ComplexAlgebraicInstances {
     <<trait>>
@@ -142,7 +175,12 @@ classDiagram
     -def doMultiply(complex:Complex) Complex
     -def isProbablyZero(confidence:Double) Boolean
     -def make(a:Number,b:Number) BaseComplex
-    ...(23 more)
+    -def numberProduct(n:Number) Complex
+    -def scale(x:Number) BaseComplex
+    -val abs Numerical
+    -val argument Number
+    -val imagPartOfSquare Number
+    ...(18 more)
   }
   class ComplexException {
     -val str String
@@ -158,20 +196,23 @@ classDiagram
     -def doAdd(complex:Complex) Complex
     -def doMultiply(complex:Complex) Complex
     -def isProbablyZero(confidence:Double) Boolean
-    ...(22 more)
+    -def isReal Boolean
+    -def make(a:Number,b:Number) BaseComplex
+    -def numberProduct(n:Number) Complex
+    -def rotate(phi:Number) ComplexPolar
+    -def signum Int
+    ...(17 more)
   }
   class Composed {
-    -val evidence$1 Numeric~X~
     -val f Function1~X,X~
     -val g Function1~X,X~
   }
   class ComposedDifferentiable {
     -def df_dx(i:Int) Function1~X,Double~
     -val arity Int
-    -val evidence$1 Numeric~X~
     -val f Function1~X,X~
     -val g1 DiFunc~X~
-    ...(1 more)
+    -val g2 DiFunc~X~
   }
   class ConFrac {
     -def +:(p:Pair) ConFrac
@@ -179,7 +220,12 @@ classDiagram
     -def renderConvergents(length:Int) String
     -def take(n:Int) ConFrac
     -def takeWhile(predicate:Function1~Rational,Boolean~) ConFrac
-    ...(10 more)
+    -def toDouble(epsilon:Double,markov:Double) Option~Double~
+    -def toRational(epsilon:Double) _
+    -def toRationalOption(z:Rational) Option~Rational~
+    -val b Long
+    -val co =
+    ...(5 more)
   }
   class ConFracException {
     -val str String
@@ -190,7 +236,12 @@ classDiagram
     -def toDouble(epsilon:Double) Option~Double~
     -def toRational(epsilon:Double) Option~Rational~
     -def toRational(n:Int) Rational
-    ...(6 more)
+    -val cf ConFrac
+    -val coefficients LazyList~Pair~
+    -val convergents LazyList~Rational~
+    -val infinite Boolean
+    -val markov Double
+    ...(1 more)
   }
   class CoreContext {
     <<trait>>
@@ -199,7 +250,7 @@ classDiagram
     -def fieldQualifies(f:Field) Boolean
     -def not CoreContext
     -def or(that:CoreContext) CoreContext
-    ...(1 more)
+    -def qualifyingField(fo:Option~Field~) Option~Field~
   }
   class CoreException {
     -val str String
@@ -222,7 +273,12 @@ classDiagram
     -def +(that:CoreMillExpression) CoreMillExpression
     -def ∧(that:CoreMillExpression) CoreMillExpression
     -val cos CoreMillExpression
-    ...(6 more)
+    -val exp CoreMillExpression
+    -val ln CoreMillExpression
+    -val negate CoreMillExpression
+    -val reciprocal CoreMillExpression
+    -val sin CoreMillExpression
+    ...(1 more)
   }
   class CoreMillItem {
     <<trait>>
@@ -278,7 +334,12 @@ classDiagram
     -def doMultiply(n:Number) Number
     -def doPower(p:Number) Number
     -def isProbablyZero(confidence:Double) Boolean
-    ...(13 more)
+    -def isSame(x:Numerical) Boolean
+    -def make(fo:Option~Fuzziness~Double~~) Number
+    -def make(v:Double,f:Factor,fo:Option~Fuzziness~Double~~) Number
+    -def make(v:Value,f:Factor) Number
+    -def signum(p:Double) Int
+    ...(8 more)
   }
   class Exp {
     -val ev Numeric~X~
@@ -298,16 +359,22 @@ classDiagram
     +def one T
     +def plus Function2~T,T,T~
     +def times Function2~T,T,T~
-    ...(9 more)
+    +def zero T
+    -def expr Parser~Expr~
+    -def factor Parser~Factor~
+    -def lift(t:Try~T~) _
+    -def map2(t1:Try~T~,t2:Try~T~) _
+    ...(4 more)
   }
   class ExpressionParserNumeric {
     <<abstract>>
     -def div Function2~T,T,T~
     -def plus Function2~T,T,T~
     -def times Function2~T,T,T~
-    -val evidence$1 Numeric~T~
     -val negate Function1~T,T~
-    ...(3 more)
+    -val num Numeric~T~
+    -val one T
+    -val zero T
   }
   class Factor {
     <<trait>>
@@ -316,7 +383,16 @@ classDiagram
     +def canShow(value:Value) Boolean
     +def convert(v:Value,f:Factor) Option~Value~
     +def doRaiseByPureNumber(x:Value,y:Value) Option~ProtoNumber~
-    ...(14 more)
+    +def invert(x:Value) Option~ProtoNumber~
+    +def isA(context:CoreContext) Boolean
+    +def isAdditive Boolean
+    +def isExact Boolean
+    +def modulate(v:Value) Value
+    +def multiply(x:Value,y:Value,f:Factor) Option~ProtoNumber~
+    +def negate(x:Value) Option~ProtoNumber~
+    +def render(v:String) String
+    +val value Double
+    ...(5 more)
   }
   class Field {
     <<trait>>
@@ -325,20 +401,31 @@ classDiagram
     +def cos Field
     +def cosh Field
     +def divide(x:Field) Field
-    ...(21 more)
+    +def exp Field
+    +def isAlgebraic Boolean
+    +def isComplex Boolean
+    +def isImaginary Boolean
+    +def isReal Boolean
+    +def ln Field
+    +def multiply(x:Field) Field
+    +def power(p:Field) Field
+    +def power(p:Number) Field
+    +def sin Field
+    +def sinh Field
+    +def square Field
+    +def tan Field
+    +def tanh Field
+    ...(7 more)
   }
   class FinitePowerSeries {
     -val coefficients Seq~Y~
-    -val evidence$1 Numeric~X~
-    -val evidence$2 Numeric~Y~
     -val f Function1~X,Y~
     -val xn Numeric~X~
-    ...(1 more)
+    -val yn Numeric~Y~
   }
   class FiniteSeries {
     -def nTerms Option~Int~
     -val convergenceRate Double
-    -val evidence$1 Numeric~X~
     -val terms Seq~X~
   }
   class Fuzz {
@@ -353,7 +440,12 @@ classDiagram
     +def getQualifiedString(t:T,forceScientific:Boolean) Tuple2~Boolean,Strin
     +def normalize(t:T,relative:Boolean) Option~Fuzziness~T~~
     +def normalizeShape Fuzziness~T~
-    ...(7 more)
+    +def transform~..~ _
+    +def wiggle(confidence:Double) T
+    +val shape Shape
+    +val style Boolean
+    -def noFuzz~..~ _
+    ...(2 more)
   }
   class Fuzzy {
     <<trait>>
@@ -362,7 +454,9 @@ classDiagram
     +def getRealDistribution RealDistribution
     +def map(f:DiFunc~Double~) Fuzzy
     +def map2(f:DiFunc~Double~) _
-    ...(3 more)
+    +def power(x:Fuzzy) Fuzzy
+    +def prob(x:Double,delta:Double) Try~Double~
+    -def compare(x:Fuzzy,y:Fuzzy) Int
   }
   class Fuzzy {
     <<trait>>
@@ -375,7 +469,12 @@ classDiagram
     -def *(that:Fuzzy) Fuzzy
     -def *(that:Long) Fuzzy
     -def +(that:Fuzzy) Fuzzy
-    ...(32 more)
+    -def +(that:Long) Fuzzy
+    -def -(that:Fuzzy) Fuzzy
+    -def -(that:Long) Fuzzy
+    -def /(that:Fuzzy) Fuzzy
+    -def /(that:Long) Fuzzy
+    ...(27 more)
   }
   class FuzzyDouble {
     -def addFuzz(f:Fuzziness~Double~) Fuzz~Double~
@@ -388,7 +487,12 @@ classDiagram
     -def doAdd(x:Number) Number
     -def doMultiply(x:Number) Number
     -def doPower(p:Number) Number
-    ...(16 more)
+    -def isProbablyZero(confidence:Double) Boolean
+    -def isSame(x:Numerical) Boolean
+    -def make(fo:Option~Fuzziness~Double~~) Number
+    -def make(v:Double,f:Factor,fo:Option~Fuzziness~Double~~) Number
+    -def make(v:Value,f:Factor) Number
+    ...(11 more)
   }
   class FuzzyNumberException {
     -val str String
@@ -399,7 +503,9 @@ classDiagram
     -def fuzz Parser~String~
     -def fuzzBox Parser~String~
     -def fuzzy Parser~Fuzzy~
-    ...(3 more)
+    -def fuzzyGaussian Parser~Fuzzy~
+    -def fuzzyRep Parser~Tuple4~String,Option~String~,Option~String~,Option~S
+    -def nominal Parser~Tuple3~String,Option~String~,Option~String~~~
   }
   class Gaussian {
     -def combine(o:Fuzzy,f:PairFunction,df_dx:PairFunction,df_dy:PairFunction
@@ -407,7 +513,7 @@ classDiagram
     -def newFuzzy(x:Double,delta:Double) Fuzzy
     -def parseString(str:String) Option~Fuzzy~
     -val mu Double
-    ...(1 more)
+    -val sigma Double
   }
   class GeneralNumber {
     <<abstract>>
@@ -416,7 +522,12 @@ classDiagram
     -def alignTypes(q:Number) Tuple2~Number,Number~
     -def applyFunc(f:Function1~Double,Double~,dfByDx:Function1~Double,Double~
     -def asComparedWith(other:Number) Option~Fuzziness~Double~~
-    ...(50 more)
+    -def asReal Option~Real~
+    -def atan(y:Number) Number
+    -def compare(that:Field) Int
+    -def composeDyadic(other:Number,f:Factor) _
+    -def createNumberFromDouble(d:Value,x:Double) Number
+    ...(45 more)
   }
   class HasValue {
     <<trait>>
@@ -433,30 +544,27 @@ classDiagram
     -def render(t:Double) String
     -def scale(t:Double,f:Double) Double
   }
-  class Identity {
-    -val evidence$1 Numeric~X~
-  }
+  class Identity
   class InfiniteProduct {
     -def primes LazyList~Int~
     -def toDouble(n:Int) Double
     -val asLazyList LazyList~X~
-    -val evidence$1 Numeric~X~
     -val f Function1~Int,X~
-    ...(1 more)
+    -val xn Numeric~X~
   }
   class InfiniteSeries {
     -def nTerms Option~Int~
     -val convergenceRate Double
-    -val evidence$1 Numeric~X~
     -val terms LazyList~X~
   }
   class InfiniteSum {
     -def getNext(i:Long,x:X) Tuple2~Long,X~
     -def toDouble(n:Int) Double
     -val asLazyList LazyList~X~
-    -val evidence$1 Numeric~X~
     -val f Function2~Long,X,X~
-    ...(3 more)
+    -val g Function1~Tuple2~Long,X~,Tuple2~Long,X~~
+    -val x0 X
+    -val xn Numeric~X~
   }
   class InversePower {
     <<trait>>
@@ -465,11 +573,15 @@ classDiagram
     -def add(x:Value,y:Value,f:Factor,negative:Boolean) Option~ProtoNumber~
     -def asImaginary(value:Value) Option~String~
     -def canShow(value:Value) Boolean
-    ...(13 more)
+    -def doRaiseByPureNumber(x:Value,y:Value) Option~ProtoNumber~
+    -def invert(x:Value) Option~ProtoNumber~
+    -def isA(context:CoreContext) Boolean
+    -def isAdditive Boolean
+    -def modulate(v:Value) Value
+    ...(8 more)
   }
   class Known {
     <<abstract>>
-    -val evidence$1 Numeric~X~
     -val name String
   }
   class KnownDifferentiableFunction {
@@ -489,7 +601,6 @@ classDiagram
     <<abstract>>
     -def composeX(f:Function1~X,X~) Function1~X,X~
     -def compose~..~ _
-    -val evidence$1 Numeric~X~
   }
   class LazyFuzzy {
     -def construct(x:=,f:Function1~Fuzzy,Fuzzy~) LazyNumber~Fuzzy~
@@ -505,16 +616,19 @@ classDiagram
     -def +(that:LazyNumber~X~) LazyNumber~X~
     -def -(that:LazyNumber~X~) LazyNumber~X~
     -def /(that:LazyNumber~X~) LazyNumber~X~
-    ...(26 more)
+    -def compare(x:LazyNumber~X~,y:LazyNumber~X~) Int
+    -def div(x:LazyNumber~X~,y:LazyNumber~X~) LazyNumber~X~
+    -def fAdd(y:=) Sum~X~
+    -def fDiv(y:=) Product~X~
+    -def fMult(y:=) Product~X~
+    ...(20 more)
   }
   class LazyPowerSeries {
     <<abstract>>
     -val coefficients LazyList~Y~
-    -val evidence$1 Numeric~X~
-    -val evidence$2 Numeric~Y~
     -val f Function1~X,Y~
     -val xn Numeric~X~
-    ...(1 more)
+    -val yn Numeric~Y~
   }
   class LazyRational {
     -def construct(x:=,f:Function1~Rational,Rational~) LazyNumber~Rational~
@@ -529,7 +643,12 @@ classDiagram
     -def scale(r:Rational) Option~Solution~
     -val asField Field
     -val base Value
-    ...(10 more)
+    -val branch Int
+    -val factor Factor
+    -val isPureNumber Boolean
+    -val isUnity Boolean
+    -val isZero Boolean
+    ...(5 more)
   }
   class LogLevel {
     <<trait>>
@@ -541,7 +660,12 @@ classDiagram
     -def asPower(v:Value) Option~String~
     -def canMultiply(f:Factor) Boolean
     -def canShow(value:Value) Boolean
-    ...(11 more)
+    -def convert(v:Value,f:Factor) Option~Value~
+    -def convertRationalToMaybeLog(b:Rational,base:String,f:Factor) Option~Ra
+    -def doRaiseByPureNumber(x:Value,y:Value) Option~ProtoNumber~
+    -def invert(x:Value) Option~ProtoNumber~
+    -def isA(context:CoreContext) Boolean
+    ...(6 more)
   }
   class MillException {
     -val s String
@@ -574,7 +698,11 @@ classDiagram
     -def quadrantAdjust(baseAngle:Rational) Rational
     -def quadrantAdjustDouble(baseAngleRad:Double) Double
     -val atanRat Function1~Rational,Try~Rational~~
-    ...(5 more)
+    -val functions MonadicFunctions
+    -val fuzz Option~Int~
+    -val relativeFuzz Function1~Double,Double~
+    -val xSign Int
+    -val ySign Int
   }
   class MonadicOperationFunc {
     -val dfByDx Function1~Double,Double~
@@ -589,7 +717,12 @@ classDiagram
     -val dblBoundaryBehavior BoundaryBehavior~Double~
     -val functions MonadicFunctions
     -val fuzz Option~Int~
-    ...(6 more)
+    -val inclusive Boolean
+    -val intBoundaryBehavior BoundaryBehavior~Int~
+    -val max Int
+    -val min Int
+    -val ratBoundaryBehavior BoundaryBehavior~Rational~
+    ...(1 more)
   }
   class MonadicOperationScale {
     -val c Double
@@ -603,7 +736,6 @@ classDiagram
     -val isAlgebraic Boolean
   }
   class Named {
-    -val evidence$1 Numeric~X~
     -val f Function1~X,X~
     -val name String
   }
@@ -627,7 +759,53 @@ classDiagram
     +def asComparedWith(other:Number) Option~Fuzziness~Double~~
     +def atan(y:Number) Number
     +def composeDyadic(other:Number,f:Factor) _
-    ...(66 more)
+    +def cosh Number
+    +def doAdd(n:Number) Number
+    +def doDivide(n:Number) Number
+    +def doMultiply(n:Number) Number
+    +def doPower(p:Number) Number
+    +def exp Number
+    +def factor Factor
+    +def fuzzyCompare(other:Number,confidence:Double) Int
+    +def isImaginary Boolean
+    +def isInteger Boolean
+    +def isPositive Boolean
+    +def isProbablyZero(confidence:Double) Boolean
+    +def isRational Boolean
+    +def isValid Boolean
+    +def ln Field
+    +def log(b:Number) Number
+    +def make(f:Factor) Number
+    +def make(fo:Option~Fuzziness~Double~~) Number
+    +def make(r:Rational,f:Factor) Number
+    +def make(v:Double,f:Factor) Number
+    +def make(v:Double,f:Factor,fo:Option~Fuzziness~Double~~) Number
+    +def make(v:Int) Number
+    +def make(v:Int,f:Factor) Number
+    +def make(v:Rational) Number
+    +def make(v:Value) Number
+    +def make(v:Value,f:Factor) Number
+    +def makeNegative Number
+    +def maybeNominalDouble Option~Double~
+    +def modulate Number
+    +def nominalValue Value
+    +def query~..~ _
+    +def scale(f:Factor) Number
+    +def signum Int
+    +def signum(p:Double) Int
+    +def simplify Number
+    +def sinh Number
+    +def specialize Number
+    +def tanh Number
+    +def toBigDecimal Option~BigDecimal~
+    +def toBigInt Option~BigInt~
+    +def toInt Option~Int~
+    +def toNominalRational Option~Rational~
+    +def transformMonadic(f:Factor) _
+    +val cos Number
+    +val sin Number
+    +val sqrt Number
+    ...(20 more)
   }
   class NumberLike {
     <<trait>>
@@ -636,7 +814,9 @@ classDiagram
     +def maybeFactor Option~Factor~
     +def render String
     -def asJavaNumber Option~Number~
-    ...(3 more)
+    -def memberOf Option~NumberSet~
+    -def memberOf(set:NumberSet) Boolean
+    -def show String
   }
   class NumberPolynomial {
     -def numeric Numeric~Number~
@@ -659,7 +839,13 @@ classDiagram
     +def asReal Option~Real~
     +def invert Field
     +def isInfinite Boolean
-    ...(7 more)
+    +def isProbablyZero(confidence:Double) Boolean
+    +def isSame(x:Numerical) Boolean
+    +def isUnity Boolean
+    +def isZero Boolean
+    +def normalize Field
+    +def signum Int
+    +def unary_- Field
   }
   class Operation {
     <<trait>>
@@ -682,7 +868,9 @@ classDiagram
     +def numeric Numeric~X~
     +def unit(degree:Int,coefficients:Seq~X~) _
     -def derivative Polynomial~X~
-    ...(3 more)
+    -def derivativeN(n:Int) Polynomial~X~
+    -def nthDerivative(n:Int,x:X) X
+    -val render String
   }
   class Power {
     -val y Double
@@ -696,13 +884,17 @@ classDiagram
     -def doLucas(c:BigInt,qs:Seq~Prime~) _
     -def fermat(a:BigInt) BigInt
     -def isCoprimeTo(x:BigInt) Boolean
-    ...(16 more)
+    -def modPow(base:BigInt,exponent:BigInt) BigInt
+    -def multiplicativeInverse(a:BigInt) BigInt
+    -def remainder(x:BigInt) BigInt
+    -def testPrimitiveRoot(a:BigInt) Boolean
+    -def toIntOption Option~Int~
+    ...(11 more)
   }
   class PrimeException {
     -val str String
   }
   class Product {
-    -val evidence$1 Numeric~X~
     -val y X
   }
   class QuadraticSolution {
@@ -711,7 +903,12 @@ classDiagram
     -def convertFromNumber(x:Number) Field
     -def multiply(solution:Solution) Option~Solution~
     -def scale(r:Rational) Option~Solution~
-    ...(12 more)
+    -val asField Field
+    -val base Value
+    -val branch Int
+    -val conjugate QuadraticSolution
+    -val factor Factor
+    ...(7 more)
   }
   class QueryFunctions {
     <<trait>>
@@ -763,7 +960,12 @@ classDiagram
     -def *(that:Rational) Rational
     -def *(that:Short) Rational
     -def +(that:BigInt) Rational
-    ...(56 more)
+    -def +(that:Long) Rational
+    -def +(that:Rational) Rational
+    -def -(that:BigInt) Rational
+    -def -(that:Rational) Rational
+    -def /(that:Long) Rational
+    ...(51 more)
   }
   class RationalAlgebraicInstances {
     <<trait>>
@@ -789,7 +991,12 @@ classDiagram
     -def compare(that:Field) Int
     -def divide(y:Field) Field
     -def isProbablyZero(confidence:Double) Boolean
-    ...(36 more)
+    -def isSame(f:Numerical) Boolean
+    -def multiply(y:Field) Field
+    -def power(p:Field) Field
+    -def power(p:Number) Field
+    -def unary_- Field
+    ...(31 more)
   }
   class RealAlgebraicInstances {
     <<trait>>
@@ -802,7 +1009,12 @@ classDiagram
     -def asPercentage String
     -def getQualifiedString(t:T,forceScientific:Boolean) Tuple2~Boolean,Strin
     -def normalize(t:T,relative:Boolean) Option~Fuzziness~T~~
-    ...(8 more)
+    -def transform~..~ _
+    -def wiggle(confidence:Double) T
+    -val normalizeShape Fuzziness~T~
+    -val shape Shape
+    -val style Boolean
+    ...(2 more)
   }
   class RepeatingDecimal {
     -def value Try~Rational~
@@ -822,7 +1034,8 @@ classDiagram
     -def canShow(value:Value) Boolean
     -def convert(v:Value,f:Factor) Option~Value~
     -def isA(context:CoreContext) Boolean
-    ...(2 more)
+    -def negate(x:Value) Option~ProtoNumber~
+    -val isAdditive Boolean
   }
   class Series {
     <<trait>>
@@ -831,7 +1044,7 @@ classDiagram
     +def nTerms Option~Int~
     +def term(n:Int) Option~X~
     +def terms Seq~X~
-    ...(1 more)
+    -def render(n:Int) String
   }
   class SeriesFunction {
     -val f Function1~Number,Number~
@@ -853,7 +1066,12 @@ classDiagram
     -def RegexOps(r:Regex) RegexOps
     -def composeOption~..~ _
     -def compose~..~ _
-    ...(8 more)
+    -def debug~..~ _
+    -def logit~..~ _
+    -def repSepSp~..~ _
+    -def skipWhitespace Boolean
+    -def stringParser~..~ _
+    ...(3 more)
   }
   class Solution {
     <<trait>>
@@ -862,7 +1080,15 @@ classDiagram
     +def asField Field
     +def base Value
     +def branch Int
-    ...(12 more)
+    +def factor Factor
+    +def isPureNumber Boolean
+    +def isUnity Boolean
+    +def isZero Boolean
+    +def negate Solution
+    +def offset Value
+    +def scale(r:Rational) Option~Solution~
+    +def signum Int
+    ...(4 more)
   }
   class Stack {
     -def calculateDyadic(f:Dyadic,x1:CoreMillExpression,x2:CoreMillExpression
@@ -870,10 +1096,14 @@ classDiagram
     -def evaluate1(x:CoreMillItem) Tuple2~Option~CoreMillExpression~,CoreMill
     -def evaluate2(f:Dyadic,x:CoreMillExpression) Tuple2~Option~CoreMillExpre
     -def evaluateDyadic(f:Dyadic) Tuple2~Option~CoreMillExpression~,CoreMill~
-    ...(8 more)
+    -def evaluateMonadic(f:Monadic) Tuple2~Option~CoreMillExpression~,CoreMil
+    -def evaluateSwap Tuple2~Option~CoreMillExpression~,CoreMill~
+    -def push(x:CoreMillItem) CoreMill
+    -val evaluate Option~CoreMillExpression~
+    -val evaluateInternal Tuple2~Option~CoreMillExpression~,CoreMill~
+    ...(3 more)
   }
   class Sum {
-    -val evidence$1 Numeric~X~
     -val y X
   }
   class Takeable {
@@ -887,7 +1117,8 @@ classDiagram
     -val derivative Function1~SeriesFunction,SeriesFunction~
     -val functions LazyList~SeriesFunction~
     -val point Number
-    ...(2 more)
+    -val startFunction SeriesFunction
+    -val terms LazyList~Number~
   }
   class TerminalExpression {
     -val value Number
@@ -905,7 +1136,8 @@ classDiagram
     -def toGaussianAbsolute~..~ _
     -def wiggle(l:Double,confidence:Double) Double
     -val a Double
-    ...(2 more)
+    -val b Double
+    -val sigma Double
   }
   class Valuable {
     <<trait>>

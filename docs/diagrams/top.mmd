@@ -32,7 +32,11 @@ classDiagram
     -def /~..~ _
     -def in(targetUnit:PhysicalUnit~D~) Option~Quantity~D~~
     -val inverted Quantity~DivDim~Dimensionless,D~~
-    ...(5 more)
+    -val render String
+    -val renderLaTeX String
+    -val squared Quantity~MulDim~D,D~~
+    -val unit Unit~D~
+    -val value Valuable
   }
   class QuantityException {
     -val message String
@@ -43,7 +47,8 @@ classDiagram
     -val hundreds Parser~Natural~
     -val romanNumeral Parser~Natural~
     -val tens Parser~Natural~
-    ...(2 more)
+    -val thousands Parser~Natural~
+    -val units Parser~Natural~
   }
   class Set {
     -def attributesMatch(f:Function1~Card,Int~) Boolean
@@ -51,7 +56,8 @@ classDiagram
     -val color Function1~Card,Int~
     -val isSet Boolean
     -val number Function1~Card,Int~
-    ...(2 more)
+    -val shading Function1~Card,Int~
+    -val shape Function1~Card,Int~
   }
   class SetGame {
     -def dozen Seq~Card~

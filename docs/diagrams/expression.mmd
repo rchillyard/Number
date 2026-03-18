@@ -8,7 +8,12 @@ classDiagram
     -def evaluate(context:Context) Option~Eager~
     -def isUnity Boolean
     -def isZero Boolean
-    ...(16 more)
+    -def maybeFactor(context:Context) Option~Factor~
+    -def negate Expression
+    -def power(r:Rational) Expression
+    -def reciprocal Expression
+    -def signum Int
+    ...(11 more)
   }
   class AbstractTranscendental {
     <<abstract>>
@@ -17,7 +22,12 @@ classDiagram
     -def function(f:ExpressionMonoFunction) Transcendental
     -def maybeFactor(context:Context) Option~Factor~
     -val expression Expression
-    ...(10 more)
+    -val isExact Boolean
+    -val isUnity Boolean
+    -val isZero Boolean
+    -val maybeDouble Option~Double~
+    -val maybeName Option~String~
+    ...(5 more)
   }
   class Aggregate {
     -def add(x:Expression) Aggregate
@@ -25,7 +35,12 @@ classDiagram
     -def approximation(force:Boolean) Option~Real~
     -def contains~..~ _
     -def eliminateComplementaryTerms(complementaryPredicate:Function3~Express
-    ...(11 more)
+    -def evaluate(context:Context) Option~Eager~
+    -def maybeFactor(context:Context) Option~Factor~
+    -val depth Int
+    -val function ExpressionBiFunction
+    -val identitiesMatcher AutoMatcher~Expression~
+    ...(6 more)
   }
   class Anadic {
     <<trait>>
@@ -37,7 +52,12 @@ classDiagram
     +def one T
     +def plus Function2~T,T,T~
     +def times Function2~T,T,T~
-    ...(9 more)
+    +def zero T
+    -def expr Parser~Expr~
+    -def factor Parser~Factor~
+    -def lift(t:Try~T~) _
+    -def map2(t1:Try~T~,t2:Try~T~) _
+    ...(4 more)
   }
   class ArithmeticParserNumeric {
     <<abstract>>
@@ -46,7 +66,8 @@ classDiagram
     -def one T
     -def plus Function2~T,T,T~
     -def times Function2~T,T,T~
-    ...(3 more)
+    -def zero T
+    -val num Numeric~T~
   }
   class AtomicExpression {
     <<trait>>
@@ -61,7 +82,12 @@ classDiagram
     -def dyadicOperator Parser~String~
     -def dyadicTerm Parser~Term~
     -def mill Parser~Mill~
-    ...(6 more)
+    -def monadicOperator Parser~String~
+    -def monadicTerm Parser~MonadicTerm~
+    -def neutralOperator1 Parser~String~
+    -def neutralOperator2 Parser~String~
+    -def parseMill(w:String) Try~Mill~
+    ...(1 more)
   }
   class BaseNumberParser {
     <<abstract>>
@@ -70,7 +96,12 @@ classDiagram
     -def factor Parser~Factor~
     -def fuzz Parser~Option~String~~
     -def generalNumber Parser~ValuableNumber~
-    ...(7 more)
+    -def maybeNumber Parser~Option~Number~~
+    -def number Parser~Number~
+    -def numberWithFuzziness Parser~NumberWithFuzziness~
+    -def optionalNumber(ro:Option~ValuableNumber~,fo:Option~Factor~) Option~N
+    -def parseNumber(w:String) Try~Number~
+    ...(2 more)
   }
   class BaseRationalParser {
     <<abstract>>
@@ -79,7 +110,10 @@ classDiagram
     -def rationalNumber Parser~ValuableNumber~
     -def realNumber Parser~RealNumber~
     -def repeatingDecimal Parser~RepeatingDecimal~
-    ...(4 more)
+    -def simpleNumber Parser~WholeNumber~
+    -def unsignedWholeNumber Parser~String~
+    -def vulgarFraction Parser~VulgarFractionNumber~
+    -val E Regex
   }
   class BiFunction {
     -def approximation(force:Boolean) Option~Real~
@@ -87,7 +121,12 @@ classDiagram
     -def evaluate(context:Context) Option~Eager~
     -def leaveOperandsAsIs Boolean
     -def matchBiFunctionIdentitiesAtan(a:Expression,b:Expression) MatchResult
-    ...(23 more)
+    -def matchBiFunctionIdentitiesLog(a:Expression,b:Expression) MatchResult~
+    -def matchBiFunctionIdentitiesPower(a:Expression,b:Expression) MatchResul
+    -def matchBiFunctionIdentitiesProduct(a:Expression,b:Expression) MatchRes
+    -def matchBiFunctionIdentitiesSum(a:Expression,b:Expression) MatchResult~
+    -def matchLiteral(l:Expression,x:Expression,f:ExpressionBiFunction) Match
+    ...(18 more)
   }
   class CommutativeExtractor {
     <<abstract>>
@@ -106,7 +145,12 @@ classDiagram
     +def renderAsExpression String
     +def structuralMatcher AutoMatcher~Expression~
     +def terms Seq~Expression~
-    ...(9 more)
+    -def leaveOperandsAsIs Boolean
+    -def shouldStaySymbolic Boolean
+    -val isAtomic Boolean
+    -val isUnity Boolean
+    -val isZero Boolean
+    ...(4 more)
   }
   class Dyadic {
     -val leftAssociativity Boolean
@@ -132,12 +176,31 @@ classDiagram
     -def evaluate(context:Context) Option~Eager~
     -def maybeFactor(context:Context) Option~Factor~
     -val depth Int
-    ...(8 more)
+    -val identitiesMatcher AutoMatcher~Expression~
+    -val isExact Boolean
+    -val operandsMatcher AutoMatcher~Expression~
+    -val r Expression
+    -val renderAsExpression String
+    ...(3 more)
   }
   class Expr {
     -def *(multiplicand:Expr) Expression
     -def +(addend:Expr) Expression
     -val x Expression
+  }
+  class Expression {
+    <<trait>>
+    +def depth Int
+    +def evaluate(context:Context) Option~Eager~
+    +def isAtomic Boolean
+    -def multiply(other:Lazy) Lazy
+    -def normalizeIfAppropriate(e:Eager) Eager
+    -def unit(x:Eager) Lazy
+    -val approximation Option~Real~
+    -val approximationComplex Option~Eager~
+    -val asCoreNumber Option~Number~
+    -val containsI Boolean
+    ...(6 more)
   }
   class Expression {
     <<trait>>
@@ -152,16 +215,12 @@ classDiagram
     -def +(that:Expression) Expression
     -def cos Expression
     -def exp Expression
-    ...(6 more)
-  }
-  class Expression {
-    <<trait>>
-    +def depth Int
-    +def evaluate(context:Context) Option~Eager~
-    +def isAtomic Boolean
-    -def multiply(other:Lazy) Lazy
-    -def normalizeIfAppropriate(e:Eager) Eager
-    ...(11 more)
+    -def ln Expression
+    -def negate Expression
+    -def reciprocal Expression
+    -def sin Expression
+    -def sqrt Expression
+    ...(1 more)
   }
   class ExpressionBiFunction {
     <<abstract>>
@@ -170,7 +229,12 @@ classDiagram
     +def rightContext(factor:Factor) _
     -def applyExact(p:Tuple2~Eager,Eager~) Option~Eager~
     -def evaluate(a:Expression,b:Expression) _
-    ...(7 more)
+    -def evaluateAsIs(x:Expression,y:Expression) Option~Eager~
+    -val commutes Boolean
+    -val f Function2~Eager,Eager,Eager~
+    -val isExact Boolean
+    -val maybeIdentityL Option~Eager~
+    ...(2 more)
   }
   class ExpressionException {
     -val str String
@@ -187,7 +251,12 @@ classDiagram
     -def angleEliminatorAggregate Matcher~Aggregate,Expression~
     -def complementaryMonadic(f:ExpressionMonoFunction,g:ExpressionMonoFuncti
     -def complementaryTermsEliminatorAggregate Matcher~Aggregate,Expression~
-    ...(14 more)
+    -def complementaryTermsEliminatorBiFunction(complementaryPredicate:Functi
+    -def factorsMatch(f:ExpressionBiFunction,x:Expression,y:Expression) Boole
+    -def isComplementary(f:ExpressionBiFunction,x:Expression,y:Expression) Bo
+    -def literalsCombiner Matcher~Expression,Expression~
+    -def matchAdditiveIdentity(x:Expression) Match~Literal|_~
+    ...(9 more)
   }
   class ExpressionMonoFunction {
     <<abstract>>
@@ -196,7 +265,8 @@ classDiagram
     -def applyComplex(z:Complex) Option~Eager~
     -def evaluate(a:Expression) _
     -val f Function1~Eager,Eager~
-    ...(2 more)
+    -val name String
+    -val parity Parity
   }
   class ExpressionParser {
     -def e Parser~String~
@@ -204,7 +274,10 @@ classDiagram
     -def factor Parser~Factor~
     -def map2(t1:Try~Expression~,t2:Try~Expression~) _
     -def number Parser~Factor~
-    ...(4 more)
+    -def parentheses Parser~Parentheses~
+    -def pi Parser~String~
+    -def stringParser~..~ _
+    -def term Parser~Term~
   }
   class ExpressionParserException {
     -val message String
@@ -233,7 +306,11 @@ classDiagram
     -def branches Int
     -def evaluate(s:Solution) Eager
     -def invert Equation
-    ...(5 more)
+    -def shiftOrigin(c:Rational) LinearEquation
+    -def solve(branch:Int) Solution
+    -def transform(fP:Function2~Rational,Rational,Rational~,fQ:Function2~Rati
+    -val r Rational
+    -val render String
   }
   class LinearRoot {
     -def add(other:Root) Option~Root~
@@ -241,7 +318,9 @@ classDiagram
     -def branched(index:Int) Root
     -def branches Int
     -def equation LinearEquation
-    ...(3 more)
+    -def pure(equ:Equation,branch:Int) Root
+    -val equ Equation
+    -val maybeName Option~String~
   }
   class Literal {
     -def doMonoFunction(f:ExpressionMonoFunction) Option~Eager~
@@ -296,7 +375,12 @@ classDiagram
     -def isExact Boolean
     -def isUnity Boolean
     -def isZero Boolean
-    ...(7 more)
+    -def maybeDouble Option~Double~
+    -def maybeFactor(context:Context) Option~Factor~
+    -def signum Int
+    -def simplifyAtomic AutoMatcher~Expression~
+    -val maybeName Option~String~
+    ...(2 more)
   }
   class Parity {
     <<abstract>>
@@ -310,7 +394,12 @@ classDiagram
     -def branches Int
     -def conjugateProduct Rational
     -def conjugateSum Rational
-    ...(9 more)
+    -def evaluate(solution:Solution) Eager
+    -def invert QuadraticEquation
+    -def shiftOrigin(c:Rational) QuadraticEquation
+    -def solve(branch:Int) Solution
+    -def transform(fP:Function2~Rational,Rational,Rational~,fQ:Function2~Rati
+    ...(4 more)
   }
   class QuadraticRoot {
     -def add(other:Root) Option~Root~
@@ -318,7 +407,10 @@ classDiagram
     -def branched(index:Int) Root
     -def branches Int
     -def equation QuadraticEquation
-    ...(4 more)
+    -def pure(equ:Equation,branch:Int) Root
+    -val branch Int
+    -val equ Equation
+    -val maybeName Option~String~
   }
   class RationalParserException {
     -val m String
@@ -337,7 +429,11 @@ classDiagram
     +def branch Int
     +def equation Equation
     +def negate Expression
-    ...(5 more)
+    +def power(r:Rational) Expression
+    +def reciprocal Expression
+    +def squareRoot(plus:Boolean) Expression
+    -def isExact Boolean
+    -def square Expression
   }
   class ScalarConstant {
     <<abstract>>
@@ -354,7 +450,12 @@ classDiagram
     -def RegexOps(r:Regex) RegexOps
     -def composeOption~..~ _
     -def compose~..~ _
-    ...(8 more)
+    -def debug~..~ _
+    -def logit~..~ _
+    -def repSepSp~..~ _
+    -def skipWhitespace Boolean
+    -def stringParser~..~ _
+    ...(3 more)
   }
   class SineCos {
     <<abstract>>
@@ -369,7 +470,12 @@ classDiagram
     -def evaluate Option~Expression~
     -def evaluate1(x:Item) Tuple2~Option~Expression~,Mill~
     -def evaluate2(f:Dyadic,x:Expression) Tuple2~Option~Expression~,Mill~
-    ...(8 more)
+    -def evaluateDyadic(f:Dyadic) Tuple2~Option~Expression~,Mill~
+    -def evaluateInternal Tuple2~Option~Expression~,Mill~
+    -def evaluateMonadic(f:Monadic) Tuple2~Option~Expression~,Mill~
+    -def evaluateSwap Tuple2~Option~Expression~,Mill~
+    -def isEmpty Boolean
+    ...(3 more)
   }
   class TerminalExpression {
     -val value Number
@@ -387,7 +493,12 @@ classDiagram
     -def evaluate(context:Context) Option~Eager~
     -def matchExponential(x:Expression) MatchResult~Expression~
     -def maybeFactor(context:Context) Option~Factor~
-    ...(9 more)
+    -val depth Int
+    -val f ExpressionMonoFunction
+    -val identitiesMatcher AutoMatcher~Expression~
+    -val isExact Boolean
+    -val operandsMatcher AutoMatcher~Expression~
+    ...(4 more)
   }
   class ValuableNumber {
     <<trait>>
@@ -400,7 +511,12 @@ classDiagram
     -def approximationComplex(force:Boolean) Option~Eager~
     -def evaluate(context:Context) Option~Eager~
     -def isExact Boolean
-    ...(8 more)
+    -def isUnity Boolean
+    -def isZero Boolean
+    -def maybeDouble Option~Double~
+    -def maybeFactor(context:Context) Option~Factor~
+    -def signum Int
+    ...(3 more)
   }
   class VulgarFractionNumber {
     -def value Try~Rational~
