@@ -201,6 +201,26 @@ abstract class AbstractInfiniteSeries[X: Numeric](terms: LazyList[X]) extends Se
   }
 
   /**
+    * Creates a new series from a lazy list of terms, providing a representation of a mathematical series.
+    * The terms of the series are derived from the elements of the provided `LazyList`.
+    *
+    * @param ys A `LazyList` of terms from which the series will be constructed.
+    *           The terms must be of a numeric type, and a `Numeric` context bound is required
+    *           for the type parameter `Y`.
+    * @return A `Series[Y]`, representing the mathematical series defined by the input terms.
+    */
+  def unit[Y: Numeric](ys: LazyList[Y]): AbstractInfiniteSeries[Y]
+
+  /**
+    * Transforms the elements of the series using the provided function and returns a new series.
+    *
+    * @param f A function that maps each element of type `X` in the series to a new element of type `Y`.
+    * @tparam Y The type of the elements in the resulting series, constrained by the `Numeric` type class.
+    * @return A new series where each element is the result of applying the function `f` to the corresponding element in the original series.
+    */
+  def map[Y: Numeric](f: X => Y): AbstractInfiniteSeries[Y] = unit(terms map f)
+
+  /**
     * Returns the default convergence rate used for evaluating the series.
     * The convergence rate determines the threshold at which terms in the series
     * are considered sufficiently small to be ignored in the evaluation.
@@ -291,4 +311,18 @@ case class InfiniteSeries[X: Numeric](terms: LazyList[X], convergenceRate: Doubl
     * @return None.
     */
   def nTerms: Option[Int] = None
+
+  /**
+    * Creates a new series from a lazy list of terms, providing a representation of a mathematical series.
+    * The terms of the series are derived from the elements of the provided `LazyList`.
+    *
+    * @param ys A `LazyList` of terms from which the series will be constructed.
+    *           The terms must be of a numeric type, and a `Numeric` context bound is required
+    *           for the type parameter `Y`.
+    *
+    * @return   A `Series[Y]`, representing the mathematical series defined by the input terms.
+    */
+  def unit[Y: Numeric](ys: LazyList[Y]): InfiniteSeries[Y] = copy(terms = ys)
+
+  override def map[Y: Numeric](f: X => Y): InfiniteSeries[Y] = super.map(f).asInstanceOf[InfiniteSeries[Y]]
 }

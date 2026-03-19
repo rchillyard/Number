@@ -55,9 +55,9 @@ class SeriesSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
   behavior of "Basel Problem"
 
   private val desiredTolerance = 1E-6
-//  private val componentFuzz = AbsoluteFuzz(1E-10, Gaussian)
+  private val componentFuzz = AbsoluteFuzz(1E-10, Gaussian)
   val basel: InfiniteSeries[Number] = InfiniteSeries(LazyList.from(1).map(x => Rational(x).invert.square), 0.001)
-//  val basel: InfiniteSeries[Number] = InfiniteSeries(LazyList.from(1).map(x => Rational(x).invert.square.make(Some(componentFuzz))), 0.001)
+  val baselFuzzy: InfiniteSeries[Number] = basel.map[Number]((x: Number) => x.make(Some(componentFuzz)))
 
   it should "term" in {
     basel.term(0) shouldBe Some(Number.one)
@@ -75,7 +75,7 @@ class SeriesSpec extends AnyFlatSpec with Matchers with FuzzyEquality {
   }
   // NOTE this test needs some attention.
   it should "evaluateToTolerance epsilon" in {
-    val actual = basel.evaluateToTolerance(desiredTolerance)
+    val actual = baselFuzzy.evaluateToTolerance(desiredTolerance)
     actual.isSuccess shouldBe true
     println(s"actual = ${actual.get}")
     val expected = Number.pi.square.doDivide(Number(6))
