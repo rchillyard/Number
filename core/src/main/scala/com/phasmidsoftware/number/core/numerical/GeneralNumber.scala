@@ -187,8 +187,12 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * @param n another Number.
     * @return this quotient of this and n, i.e. this/n.
     */
-  def doDivide(n: Number): Number =
-    doMultiply(Number.inverse(n))
+  def doDivide(n: Number): Number = n.factor match {
+    case Radian =>
+      doMultiply(Number.inverse(n.scale(PureNumber)))
+    case _ =>
+      doMultiply(Number.inverse(n))
+  }
 
   /**
     * Yields the square root of this Number.
@@ -285,7 +289,10 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * @return a Number based on this and factor.
     */
   def scale(f: Factor): Number =
-    Number.scale(this, f).specialize
+    if (f == factor)
+      this
+    else
+      Number.scale(this, f).specialize
 
   /**
     * Perform a fuzzy comparison where we only require p confidence to know that this and other are effectively the same.

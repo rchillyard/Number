@@ -8,6 +8,7 @@ import com.phasmidsoftware.number.core.inner.{MonadicOperation, Percent}
 import com.phasmidsoftware.number.core.misc.Variance.{convolution, rootSumSquares}
 import com.phasmidsoftware.number.core.numerical.Fuzziness.{oneSigma, toDecimalPower, zipStrings}
 import com.phasmidsoftware.number.core.numerical.HasValue.HasValueDouble$
+import com.phasmidsoftware.number.core.numerical.Number.NumberIsFractional
 import org.apache.commons.math3.special.Erf.{erf, erfInv}
 
 import scala.math.Numeric.DoubleIsFractional
@@ -656,12 +657,14 @@ object Fuzziness {
   lazy val doublePrecision: Fuzziness[Double] = RelativeFuzz[Double](DoublePrecisionTolerance, Box)
 
   /**
-    * The ratio above which one fuzz distribution is considered negligible relative to another.
-    * If the larger is more than this many times the smaller, the smaller is ignored and
-    * the larger is returned unchanged (preventing spurious shape promotion).
-    * A ratio of 9 means: a 10x or greater difference suppresses combination.
+    * A constant value representing the threshold ratio between large and small values,
+    * above which the smaller fuzz contribution is considered negligible in the
+    * combined quadrature result. Specifically, if large/small > this ratio,
+    * the smaller fuzz contributes less than 0.5% and is treated as insignificant.
+    * If large/small > 10, the smaller fuzz contributes < 0.5% to the
+    * combined quadrature result and is treated as negligible.
     */
-  val negligibleRatio: Double = 9.0
+  val negligibleRatio: Double = 10.0
 
   /**
     * The floor below which a fuzz magnitude is considered pure double-precision noise.
@@ -1287,6 +1290,50 @@ trait HasValueDouble extends HasValue[Double] with DoubleIsFractional with Order
 }
 
 /**
+  * Trait HasValueNumber. Not used at present.
+  *
+  * Extends the HasValue trait for values of type Number and provides additional
+  * operations specific to handling numeric values.
+  */
+trait HasValueNumber extends HasValue[Number] with NumberIsFractional {
+  /**
+    * Method to return a String representation of a T value.
+    *
+    * @param t a T value.
+    * @return the corresponding String.
+    */
+  def render(t: Number): String = t.render
+
+  /**
+    * Method to yield a T from a Double.
+    *
+    * @param x a Double.
+    * @return the corresponding value of T.
+    */
+  def fromDouble(x: Double): Number = Number(x)
+
+  /**
+    * Method to scale a T value, according to a constant.
+    *
+    * This is essentially the inverse of the ratio method.
+    *
+    * @param t a T value.
+    * @param f a factor (a Double, i.e., dimensionless).
+    * @return a scaled value of T.
+    */
+  def scale(t: Number, f: Double): Number = t.doMultiply(Number(f))
+
+  /**
+    * Method to yield a "normalized" version of x.
+    * For a Numeric object, this implies the absolute value, i.e., with no sign.
+    *
+    * @param x the value.
+    * @return the value, without any sign.
+    */
+  def normalize(x: Number): Number = x.abs
+}
+
+/**
   * Companion object for the HasValue type class.
   *
   * This object provides an implicit implementation of the HasValue type class
@@ -1307,5 +1354,7 @@ object HasValue {
     * type class for `Double` values in relevant contexts.
     */
   implicit object HasValueDouble$ extends HasValueDouble
+
+  //  implicit object HasValueNumber extends HasValueNumber
 
 }

@@ -1438,8 +1438,10 @@ object Number {
         case None =>
           prepare(x.transformMonadic(f)(MonadicOperationInvert))
       }
+    case Radian | Euler | Log2 | NatLog | Log10 => // NOTE that we consider inverse of Radians to be the negative of the corresponding value
+      negate(x)
     case _ =>
-      negate(x.scale(PureNumber))
+      throw CoreException(s"Number.inverse: cannot invert $x")
   }
 
   /**

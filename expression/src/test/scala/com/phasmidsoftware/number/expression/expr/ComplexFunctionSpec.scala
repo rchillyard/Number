@@ -83,7 +83,7 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
     val z = One + I
     val result = UniFunction(z, Sine).materialize
     result shouldBe a[Complex]
-    result.asInstanceOf[Complex].complex.isSame(ComplexCartesian(1.2985, 0.6350)) shouldBe true
+    result.asInstanceOf[Complex].complex.isSame(ComplexCartesian(Number("1.29845[90]"), Number("0.635*"))) shouldBe true
   }
 
   behavior of "cos for complex arguments"

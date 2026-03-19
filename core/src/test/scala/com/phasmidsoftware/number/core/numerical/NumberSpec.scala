@@ -162,7 +162,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for E∧2 as Real" in {
     val target = Number("2\uD835\uDF00").normalize.asInstanceOf[Real]
-    target.x.scale(PureNumber).render shouldBe "7.389056098930650(3)"
+    target.x.scale(PureNumber).render shouldBe "7.38905609893065000[84]"
   }
   it should "work for E, SquareRoot" in {
     val target = Number(math.E * math.E)
