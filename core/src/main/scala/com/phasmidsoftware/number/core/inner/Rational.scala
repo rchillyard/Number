@@ -662,6 +662,23 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     this * Rational(that)
 
   /**
+    * Determines if the given delta exceeds the precision of the rational resolution.
+    *
+    * @param maybeDelta The optional value to be compared against the precision of the rational resolution.
+    *                   This should come from the wiggle room of Absolute fuzz.
+    *
+    * @return True if the absolute value of the input exceeds the precision of the rational resolution, false otherwise.
+    *         False if maybeDelta is None.
+    */
+  def exceedsPrecision(maybeDelta: Option[Double]): Boolean = maybeDelta match {
+    case Some(delta) =>
+      val resolution = 1.0 / d.toDouble // finest distinction this rational can represent
+      resolution < math.abs(delta) // rational is more precise than x warrants
+    case None =>
+      false
+  }
+
+  /**
     * Finds and returns the repeating sequence in the decimal representation of a fraction.
     * The method uses the numerator, denominator, and the prime factorization of the denominator
     * to compute the repeating sequence.
@@ -1175,7 +1192,8 @@ object Rational {
         else
           throw new ArithmeticException(s"Rational.createExact: $x is not exact")
       }
-      else Failure(new ArithmeticException(s"Cannot create exact Rational from Double: $x"))
+      else
+        Failure(new ArithmeticException(s"Cannot create exact Rational from Double: $x"))
     }
 
   /**

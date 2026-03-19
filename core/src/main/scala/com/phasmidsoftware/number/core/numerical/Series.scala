@@ -4,6 +4,8 @@
 
 package com.phasmidsoftware.number.core.numerical
 
+import com.phasmidsoftware.number.core.numerical.HasValue.HasValueDouble$
+
 import scala.Option.when
 import scala.util.Try
 
@@ -78,6 +80,35 @@ trait Series[X] {
 }
 
 /**
+  * Companion object for the `Series` class.
+  */
+object Series {
+  /**
+    * Composes a fuzziness value for the given input of type `X` wrapped in a `Try`.
+    * The method calculates and adds fuzziness to the input using either the existing fuzziness 
+    * or a default no-fuzz value, scaled by a given `ratio`.
+    *
+    * NOTE designed to be used to two evaluation methods that share same code. Not used at present.
+    *
+    * @param ratio  the ratio of epsilong / convergenceRate.
+    * @param triedX a `Try` wrapping the input value of type `X` that may have associated fuzziness.
+    * @return a `Try` wrapping a `Fuzz[X]` instance with composed fuzziness applied to the input value.
+    */
+  def composeFuzz[X: HasValue](ratio: Double)(triedX: Try[X]): Try[Fuzz[Double]] =
+    triedX map {
+      case f: Fuzz[X] @unchecked =>
+        val r = implicitly[HasValue[X]].fromDouble(ratio)
+        f.fuzz match {
+          case Some(z) =>
+            f.addFuzz(z.asInstanceOf[Fuzziness[X]].uncertainty(r))
+          case None =>
+            f.addFuzz(f.noFuzz.uncertainty(r))
+        }
+    }
+
+}
+
+/**
   * Represents an abstract mathematical series, inheriting from the `Series` trait.
   * Provides methods for evaluating the series and accessing individual terms.
   * This class facilitates the representation and evaluation of a series where
@@ -112,6 +143,7 @@ abstract class AbstractSeries[X: Numeric](terms: Seq[X]) extends Series[X] {
             f.addFuzz(f.noFuzz.uncertainty(epsilon / convergenceRate))
         }
     }
+    //    val result: Try[Fuzz[Double]] = Series.composeFuzz[Double](ratio)(triedDouble)
     result.asInstanceOf[Try[X]]
   }
 

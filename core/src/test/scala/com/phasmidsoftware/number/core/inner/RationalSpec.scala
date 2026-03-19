@@ -1142,4 +1142,9 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     Rational(137).invert.render shouldBe "0.<00729927>"
     Rational(137).invert.findRepeatingSequence shouldBe Success("0.<00729927>")
   }
+
+  behavior of "edge cases"
+  it should "handle -2.46863775799797E-309" in {
+    Rational("-2.46863775799797E-309") shouldBe a[Rational]
+  }
 }
