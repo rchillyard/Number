@@ -165,6 +165,7 @@ object Constants {
   lazy val gamma: Real = Real(sGamma)
 
   /**
+    * Gravitational Constant: 6.67430(15)E-11
     * [[https://en.wikipedia.org/wiki/Gravitational_constant]]
     */
   lazy val G: Real = Real(sG)
