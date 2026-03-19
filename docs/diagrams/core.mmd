@@ -66,6 +66,7 @@ classDiagram
   }
   class BaseMillParser {
     <<abstract>>
+    <<deprecated>>
     -def anadicOperator Parser~String~
     -def anadicTerm Parser~AnadicTerm~
     -def dyadicOperator Parser~String~
@@ -80,6 +81,7 @@ classDiagram
   }
   class BaseNumberParser {
     <<abstract>>
+    <<deprecated>>
     -def calculateFuzz(exponent:Int,decimalPlaces:Int) Option~Fuzziness~Doubl
     -def exponent Parser~String~
     -def factor Parser~Factor~
@@ -101,6 +103,7 @@ classDiagram
   }
   class BaseRationalParser {
     <<abstract>>
+    <<deprecated>>
     -def WholeNumber WholeNumber$
     -def ratioNumber Parser~RatioNumber~
     -def rationalNumber Parser~ValuableNumber~
@@ -186,6 +189,7 @@ classDiagram
     -val str String
   }
   class ComplexParser {
+    <<deprecated>>
     -def complexNumber Parser~Complex~
     -def doParse(w:String) Try~Complex~
     -val sign Parser~String~
@@ -449,6 +453,10 @@ classDiagram
   }
   class Fuzzy {
     <<trait>>
+    +def same(p:Double) _
+  }
+  class Fuzzy {
+    <<trait>>
     +def fuzz Double
     +def get Double
     +def getRealDistribution RealDistribution
@@ -457,10 +465,6 @@ classDiagram
     +def power(x:Fuzzy) Fuzzy
     +def prob(x:Double,delta:Double) Try~Double~
     -def compare(x:Fuzzy,y:Fuzzy) Int
-  }
-  class Fuzzy {
-    <<trait>>
-    +def same(p:Double) _
   }
   class FuzzyBase {
     <<abstract>>
@@ -638,6 +642,7 @@ classDiagram
     -val x Rational
   }
   class LinearSolution {
+    <<deprecated>>
     -def add(addend:Rational) Solution
     -def add(solution:Solution) Option~Solution~
     -def scale(r:Rational) Option~Solution~
@@ -898,6 +903,7 @@ classDiagram
     -val y X
   }
   class QuadraticSolution {
+    <<deprecated>>
     -def add(addend:Rational) Solution
     -def add(solution:Solution) Option~Solution~
     -def convertFromNumber(x:Number) Field
@@ -934,18 +940,18 @@ classDiagram
     -val value Long
   }
   class RandomState {
-    -def value(bits:Int) BigInt
-    -def value(x:BigInt) BigInt
-    -val next RandomState
-    -val r Random
-  }
-  class RandomState {
     <<trait>>
     +def get T
     +def map~..~ _
     +def next RandomState~T~
     -def flatMap~..~ _
     -def lazyList LazyList~T~
+  }
+  class RandomState {
+    -def value(bits:Int) BigInt
+    -def value(x:BigInt) BigInt
+    -val next RandomState
+    -val r Random
   }
   class RandomState_Java {
     -def get T
@@ -965,7 +971,7 @@ classDiagram
     -def -(that:BigInt) Rational
     -def -(that:Rational) Rational
     -def /(that:Long) Rational
-    ...(51 more)
+    ...(51 more, 1 deprecated)
   }
   class RationalAlgebraicInstances {
     <<trait>>
@@ -1061,6 +1067,7 @@ classDiagram
   }
   class SignificantSpaceParsers {
     <<abstract>>
+    <<deprecated>>
     -def ParserOps~..~ _
     -def ParserOptionOps~..~ _
     -def RegexOps(r:Regex) RegexOps
@@ -1075,6 +1082,7 @@ classDiagram
   }
   class Solution {
     <<trait>>
+    <<deprecated>>
     +def add(addend:Rational) Solution
     +def add(solution:Solution) Option~Solution~
     +def asField Field
