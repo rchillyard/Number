@@ -187,8 +187,12 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * @param n another Number.
     * @return this quotient of this and n, i.e. this/n.
     */
-  def doDivide(n: Number): Number =
-    doMultiply(Number.inverse(n))
+  def doDivide(n: Number): Number = n.factor match {
+    case Radian =>
+      doMultiply(Number.inverse(n.scale(PureNumber)))
+    case _ =>
+      doMultiply(Number.inverse(n))
+  }
 
   /**
     * Yields the square root of this Number.
@@ -285,7 +289,10 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * @return a Number based on this and factor.
     */
   def scale(f: Factor): Number =
-    Number.scale(this, f).specialize
+    if (f == factor)
+      this
+    else
+      Number.scale(this, f).specialize
 
   /**
     * Perform a fuzzy comparison where we only require p confidence to know that this and other are effectively the same.
@@ -521,21 +528,20 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
       this
   }
 
-  private def createNumberFromDouble(d: Value, x: Double) =
-    Rational.createExact(x) match {
+  private def createNumberFromDouble(d: Value, x: Double): Number =
+    if (fuzz.isDefined) this // already has fuzz — don't add more
+    else Rational.createExact(x) match {
       case Success(r) =>
         r.toBigDecimal.map(_.scale) match {
           case Some(0) | Some(1) | Some(2) =>
-            make(r).specialize
+            make(r)
           case Some(n) =>
-            // NOTE for some reason, we recreate the fuzz for this case. Let's not double-count it.
-            FuzzyNumber(d, factor, fuzz).addFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -(n + 1)), Box))
-          //              FuzzyNumber(d, factor, fuzz).maybeAddFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -(n + 1)), Box))
+            FuzzyNumber(d, factor, None).addFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -(n + 1)), Box))
           case _ =>
-            FuzzyNumber(d, factor, fuzz).addFuzz(Fuzziness.doublePrecision)
+            FuzzyNumber(d, factor, None).addFuzz(Fuzziness.doublePrecision)
         }
       case Failure(_) =>
-        FuzzyNumber(d, factor, fuzz).addFuzz(Fuzziness.doublePrecision)
+        FuzzyNumber(d, factor, None).addFuzz(Fuzziness.doublePrecision)
     }
 
   /**
@@ -993,8 +999,10 @@ object GeneralNumber {
     */
   private def plusAligned(x: Number, y: Number): Number = (x, y) match {
     case (a: GeneralNumber, b: GeneralNumber) =>
-      y match {
-        case n@FuzzyNumber(_, _, _) =>
+      (x, y) match {
+        case (n@FuzzyNumber(_, _, _), _) =>
+          n `doAdd` y
+        case (_, n@FuzzyNumber(_, _, _)) =>
           n `doAdd` x
         case _ =>
           val (p, q) = a.alignTypes(b)

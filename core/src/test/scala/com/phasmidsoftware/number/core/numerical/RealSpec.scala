@@ -110,7 +110,7 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "add 1 to pi" in {
     val x1 = Constants.one
     val x2 = Constants.pi
-    (x1 `add` x2).render shouldBe "4.14159265358979300[41]"
+    (x1 `add` x2).render shouldBe "4.141592653589793*"
   }
   it should "add 1 to e" in {
     val x1 = Constants.one
@@ -158,7 +158,7 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for squaring SquareRoot" in {
     val target = Real(Number.root2)
-    target.power(2) `isSame` Real(Number.two)
+    target.power(2).`isSame`(Real(Number.two))
   }
 
   behavior of "sqrt"

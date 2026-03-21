@@ -131,7 +131,7 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
   behavior of "toString"
   it should "work for G" in {
     val target = Constants.G
-    target.toString shouldBe "FuzzyNumber(Left(Right(66743/1000000000000000)),,Some(AbsoluteFuzz(1.5E-15,Gaussian)))"
+    target.toString shouldBe "FuzzyNumber(Left(Left(Some(6.6743E-11))),,Some(AbsoluteFuzz(1.5E-15,Gaussian)))"
     target.render shouldBe sG
   }
 }

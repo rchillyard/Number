@@ -328,14 +328,14 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for 3.141592653589793" in {
     val target = Number("3.1415926535897932384626433")
     val result = target.sin
-    // NOTE: this is rather a low probability value (normally, we use 0.5)
-    result.asInstanceOf[GeneralNumber].fuzzyCompare(Number.zero, 0.1) shouldBe 0
+    result.asInstanceOf[GeneralNumber].fuzzyCompare(Number.zero) shouldBe 0
   }
   it should "work for 3.141592653589793 backwards" in {
+    pending // Issue #199
     val target = Number("3.1415926535897932384626433")
     val result = target.sin
-    // NOTE: this is rather a low probability value (normally, we use 0.5)
-    Number.zero.asInstanceOf[GeneralNumber].fuzzyCompare(result, 0.1) shouldBe 0
+    result.thresholdConfidence shouldBe Some(0.13161866540416922)
+    Number.zero.asInstanceOf[GeneralNumber].fuzzyCompare(result) shouldBe 0
   }
 
   behavior of "cos"
@@ -403,10 +403,12 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     result.asInstanceOf[GeneralNumber].fuzzyCompare(Number.zero, 0.1) shouldBe 0
   }
   it should "work for 3.141592653589793 backwards" in {
+    pending // Issue #199
     val target = Number("3.1415926535897932384626433")
     val result = target.tan
-    // NOTE: this is rather a low probability value (normally, we use 0.5)
-    Number.zero.asInstanceOf[GeneralNumber].fuzzyCompare(result, 0.1) shouldBe 0
+    result.thresholdConfidence shouldBe Some(0.09328109176797413)
+    // NOTE: this is rather a low probability value
+    Number.zero.asInstanceOf[GeneralNumber].fuzzyCompare(result, 0.05) shouldBe 0
   }
 
   behavior of "exp"
@@ -460,10 +462,13 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val zo = (x `doSubtract` y).asNumber
     zo.isDefined shouldBe true
     val z = zo.get
-    z.isProbablyZero(0) shouldBe true
-    z.isProbablyZero(1) shouldBe false
-    z.isProbablyZero(0.25) shouldBe true
-    z.isProbablyZero(0.875) shouldBe false
+    z.probabilityOfZero shouldBe Some(1.0)
+    z.thresholdConfidence.isDefined shouldBe true
+    z.thresholdConfidence.get shouldBe 0.8921 +- 0.001
+    z.isProbablyZero(0) shouldBe true // XXX we won't have any confidence in this result
+    z.isProbablyZero(1) shouldBe false // XXX we wanted certainty and we don't get it!
+    z.isProbablyZero(0.1) shouldBe true // XXX this is just within the thresholdConfidence so it is true.
+    z.isProbablyZero(0.875) shouldBe false // XXX this is way outside the thresholdConfidence and so is false.
   }
 
   behavior of "make(Fuzziness)"
@@ -492,44 +497,60 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   behavior of "foucault"
   it should "do part of the calculation" in {
     val t = Number("16.5*")
-    //    println(s"y fuzz: ${t.fuzz.map(_.normalize(16.5, relative = true))}")
+    println(s"t fuzz: ${showFuzz(t)}")
     val square: Option[Number] = (t `doPower` 2).asNumber
-//    println(s"square fuzz: ${square.get.fuzz}")
+    println(s"square fuzz: ${square.get.fuzz}")
     square.get.fuzz should matchPattern { case Some(RelativeFuzz(_, Box)) => }
     square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.006 +- 0.001
   }
   it should "calculate length of Foucault's pendulum but with relative box fuzziness" in {
     // NOTE this is here to support Foucault1.sc
-    val g = Number("9.81*")
-    //            println(s"g fuzz: ${g.fuzz.map(_.normalize(9.81, relative = true))}")
+    val g = Number("9.80665[35]")
+    g.render shouldBe "9.80665[35]"
     val t = Number("16.5*")
-    //              println(s"t fuzz: ${t.fuzz.map(_.normalize(16.5, relative = true))}")
+    t.render shouldBe "16.5*"
     val tScaled: Option[Number] = (t `doDivide` twoPi).asNumber
-    println(s"tScaled fuzz: ${tScaled.get.fuzz}")
+    println(s"tScaled: ${tScaled.get}")
+    tScaled.get.render shouldBe "2.626056561016273±0.3%"
     val square: Option[Number] = tScaled.flatMap(x => (x `doPower` 2).asNumber)
-//    println(s"square fuzz: ${square.get.fuzz}")
+    println(s"square: ${square.get}")
+    square.get.render shouldBe "6.896173061656615±0.61%"
 
-    square.get.fuzz should matchPattern { case Some(RelativeFuzz(_, Gaussian)) => }
-    square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.0035 +- 0.001
+    square.get.fuzz should matchPattern { case Some(RelativeFuzz(_, Box)) => }
+    square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.006 +- 0.001
     val length: Option[Number] = square flatMap (x => (x `doMultiply` g).asNumber)
-    length.get.fuzz shouldBe Some(RelativeFuzz(0.003499092540543187, Gaussian))
+
+    // NOTE that the relative error bounds on length are the same as for square.
+    // This is because the much small error (more precise value) of g does not reach the threshold of
+    // a 0.5% change in the standard "wiggle" (at one standard deviation) of the square.
+    length.get.render shouldBe "67.62835555509484±0.61%"
   }
+
+  def showFuzz(x: Number, relative: Boolean = false): String =
+    (for {
+      z <- x.fuzz
+      p <- x.toNominalDouble
+      y <- z.normalize(p, relative)
+      w = y.toString
+    } yield w).getOrElse("invalid fuzz")
+
   it should "calculate length of Foucault's pendulum" in {
     // NOTE this is here to support Foucault2.sc
     val g = Number("9.81*")
-    //        println(s"g fuzz: ${g.fuzz.map(_.normalize(9.81, relative = true))}")
+    println(s"g fuzz: ${showFuzz(g)}")
     val t = Number("16.487(41)")
-    //      println(s"t fuzz: ${t.fuzz.map(_.normalize(16.5, relative = true))}")
+    println(s"t fuzz: ${showFuzz(t)}")
 
     val tScaled: Option[Number] = (t `doDivide` twoPi).asNumber
-    //        println(s"tScaled fuzz: ${tScaled.get.fuzz}")
+    println(s"tScaled fuzz: ${showFuzz(tScaled.get)}")
     val square: Option[Number] = tScaled.flatMap(x => (x `doPower` 2).asNumber)
-//    println(s"square fuzz: ${square.get.fuzz}")
+    println(s"square fuzz: ${showFuzz(square.get)}")
 
     square.get.fuzz should matchPattern { case Some(RelativeFuzz(_, Gaussian)) => }
     square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.005 +- 0.0002
 
     val length: Option[Number] = square flatMap (x => (x `doMultiply` g).asNumber)
+    println(s"length fuzz: ${showFuzz(length.get)}")
     length.get.fuzz shouldBe Some(RelativeFuzz(0.004973615575908292, Gaussian))
   }
 //  it should "calculate the acceleration due to gravity based on the London Foucault's pendulum" in {

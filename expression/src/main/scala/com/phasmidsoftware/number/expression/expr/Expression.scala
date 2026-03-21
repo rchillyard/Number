@@ -925,7 +925,7 @@ object Expression {
       case (a, b) => a.compare(b) // This case should never occur
 
   private def atomRank(e: AtomicExpression): Int = e match
-    case Noop => 0
+    case Noop(_) => 0
     case _: Literal => 1
     case _: ScalarConstant => 2
     case E => 3

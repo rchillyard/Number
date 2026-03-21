@@ -24,9 +24,9 @@ class RealWorksheetSpec extends AnyFlatSpec with should.Matchers {
     root3 shouldBe ComplexPolar(Number.root3, zeroR, 2)
 
     val twoFuzzy: Field = (root3 add one) multiply (root3 add -one)
-    twoFuzzy.isSame(ComplexCartesian(Number.two,Number.zero)) shouldBe true
+    twoFuzzy.isSame(ComplexCartesian(Number.two, Number.zero)) shouldBe true
 
-    val ok = implicitly[Fuzzy[Field]].same(0.8)(twoFuzzy, Constants.two)
+    val ok = implicitly[Fuzzy[Field]].same()(twoFuzzy, Constants.two)
     ok shouldBe true
 
     val two: Real = 1 + one

@@ -90,11 +90,11 @@ case class Real(x: Number) extends Field {
     * @param f the other field.
     * @return true if they are the same, otherwise false.
     */
-  def isSame(f: Numerical): Boolean = f match {
-    case Real(n: ExactNumber) => n.isSame(x)
-    case Real(y) => (x `doSubtract` y).isZero
-    case c: Complex => c.isSame(this)
-    case n: Number => isSame(Real(n))
+  def isSame(f: Numerical, confidence: Double): Boolean = f match {
+    case Real(n: ExactNumber) => n.isSame(x, confidence)
+    case Real(y) => (x `doSubtract` y).isProbablyZero(confidence)
+    case c: Complex => c.isSame(this, confidence)
+    case n: Number => isSame(Real(n), confidence)
     case _ => throw CoreException(s"Real.isSame: cannot compare Real with $f")
   }
 

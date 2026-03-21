@@ -2,6 +2,8 @@
 
 ## Versions
 
+* Version 1.10.1: Fixed issue with over-precise Rational numbers.
+* Version 1.10.0: Improved the Mermaid diagrams, see [docs/diagrams/index.md](docs/diagrams/index.md).
 * Version 1.9.3:
 - See [RELEASENOTES_1_9_3](releaseNotes/1_9_3.md)
 * Version 1.8.1:
