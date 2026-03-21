@@ -17,7 +17,7 @@ trait Numerical extends NumberLike {
     * @param x the other Numerical.
     * @return true if they are most probably the same, otherwise false.
     */
-  def isSame(x: Numerical): Boolean
+  def isSame(x: Numerical, confidence: Double = oneSigma): Boolean
 
   /**
     * Method to determine if this Field has infinite magnitude.

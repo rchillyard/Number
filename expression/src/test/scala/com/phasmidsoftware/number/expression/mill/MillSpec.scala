@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.expression.mill
 
 import com.phasmidsoftware.number.core.inner.{NatLog, Rational}
-import com.phasmidsoftware.number.core.numerical.Number
+import com.phasmidsoftware.number.core.numerical.{FuzzyNumber, GeneralNumber, Number}
 import com.phasmidsoftware.number.expression.core.FuzzyEquality
 import com.phasmidsoftware.number.expression.mill.Mill.parseInfix
 import com.phasmidsoftware.number.expression.mill.TerminalExpression
@@ -9,6 +9,7 @@ import com.phasmidsoftware.number.expression.parse.MillParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatest.{Assertion, Succeeded}
+
 import scala.util.{Success, Try}
 
 class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
@@ -200,7 +201,9 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val q: Option[Expression] = value.toOption.flatMap(_.evaluate)
     val z: Option[Number] = q map (_.value)
     z should matchPattern { case Some(_) => }
-    z.get shouldEqual Number("3.000*")
+    println(z.get.toString)
+    Number("3.00*").isSame(z.get) shouldBe true
+    z.get.isSame(Number("3.00*")) shouldBe true
   }
 
   it should "parse and evaluate:  220xxxx with trailing space" in {

@@ -241,7 +241,6 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
       (if prefix == "1" then "" else prefix) + "𝛑"
     else {
       val maybeReal = convert(Real.zero)
-      println(s"maybeReal = $maybeReal")
       maybeReal.map(_.show) getOrElse "Angle.show: logic error"
     }
   }

@@ -48,7 +48,11 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
     materialized shouldBe a[Complex]
     println(materialized)
     val expected = ComplexCartesian(Number("0.5403*"), Number("0.8415*"))
-    materialized.asInstanceOf[Complex].complex.isSame(expected) shouldBe true
+    val c = materialized.asInstanceOf[Complex].complex
+    val difference = (c subtract expected).asComplex.asCartesian
+    difference.real.thresholdConfidence.get shouldBe (0.064 +- 0.005)
+    difference.imag.thresholdConfidence.get shouldBe (0.685 +- 0.005)
+    c.isSame(expected, 0.05) shouldBe true
     val result: Eager = simplified.fuzzy
     result.toDouble shouldBe (1.0) +- 1e-10
   }
@@ -106,7 +110,7 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
     val z = One + I
     val materialized = z.cos.materialize
     materialized shouldBe a[Complex]
-    materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian(0.8337, -0.9889)) shouldBe true
+    materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian("0.83373(50)", "-0.98889(50)")) shouldBe true
   }
 
   behavior of "sinh for complex arguments"

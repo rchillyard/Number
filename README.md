@@ -40,7 +40,7 @@ Number is organized into multiple modules:
 
 #### Current Version
 
-This version is 1.10.0
+This version is 1.10.1
 The latest published version is 1.9.3 (see [HISTORY](docs/HISTORY.md)).
 That should match the version of the latest release on Maven Central in the badge at the top.
 
@@ -159,8 +159,7 @@ val y = 2.i // to give 2i
 
 ## Mermaid Diagrams
 
-See [docs](docs) for all project diagrams.
-The index of the type hierarchy is in [docs/diagrams/index.md](docs/diagrams/index.md).
+See [docs/DIAGRAMS.md](docs/DIAGRAMS.md) for all project diagrams.
 
 ### Monotone vs Non-Monotone Types
 

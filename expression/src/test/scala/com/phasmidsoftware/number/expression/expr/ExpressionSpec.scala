@@ -311,7 +311,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "evaluate E * 2" in {
     val z: Eager = (E * 2).materialize
     val q = eagerToField(z).normalize
-    q.render shouldBe "5.4365636569180900(51)"
+    q.render shouldBe "5.436563656918090[1]"
   }
 
   behavior of "isExact"

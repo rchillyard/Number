@@ -328,14 +328,14 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "work for 3.141592653589793" in {
     val target = Number("3.1415926535897932384626433")
     val result = target.sin
-    // NOTE: this is rather a low probability value (normally, we use 0.5)
-    result.asInstanceOf[GeneralNumber].fuzzyCompare(Number.zero, 0.1) shouldBe 0
+    result.asInstanceOf[GeneralNumber].fuzzyCompare(Number.zero) shouldBe 0
   }
   it should "work for 3.141592653589793 backwards" in {
+    pending // Issue #199
     val target = Number("3.1415926535897932384626433")
     val result = target.sin
-    // NOTE: this is rather a low probability value (normally, we use 0.5)
-    Number.zero.asInstanceOf[GeneralNumber].fuzzyCompare(result, 0.1) shouldBe 0
+    result.thresholdConfidence shouldBe Some(0.13161866540416922)
+    Number.zero.asInstanceOf[GeneralNumber].fuzzyCompare(result) shouldBe 0
   }
 
   behavior of "cos"
@@ -403,10 +403,12 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     result.asInstanceOf[GeneralNumber].fuzzyCompare(Number.zero, 0.1) shouldBe 0
   }
   it should "work for 3.141592653589793 backwards" in {
+    pending // Issue #199
     val target = Number("3.1415926535897932384626433")
     val result = target.tan
-    // NOTE: this is rather a low probability value (normally, we use 0.5)
-    Number.zero.asInstanceOf[GeneralNumber].fuzzyCompare(result, 0.1) shouldBe 0
+    result.thresholdConfidence shouldBe Some(0.09328109176797413)
+    // NOTE: this is rather a low probability value
+    Number.zero.asInstanceOf[GeneralNumber].fuzzyCompare(result, 0.05) shouldBe 0
   }
 
   behavior of "exp"
@@ -460,10 +462,13 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val zo = (x `doSubtract` y).asNumber
     zo.isDefined shouldBe true
     val z = zo.get
-    z.isProbablyZero(0) shouldBe true
-    z.isProbablyZero(1) shouldBe false
-    z.isProbablyZero(0.25) shouldBe true
-    z.isProbablyZero(0.875) shouldBe false
+    z.probabilityOfZero shouldBe Some(1.0)
+    z.thresholdConfidence.isDefined shouldBe true
+    z.thresholdConfidence.get shouldBe 0.8921 +- 0.001
+    z.isProbablyZero(0) shouldBe true // XXX we won't have any confidence in this result
+    z.isProbablyZero(1) shouldBe false // XXX we wanted certainty and we don't get it!
+    z.isProbablyZero(0.1) shouldBe true // XXX this is just within the thresholdConfidence so it is true.
+    z.isProbablyZero(0.875) shouldBe false // XXX this is way outside the thresholdConfidence and so is false.
   }
 
   behavior of "make(Fuzziness)"

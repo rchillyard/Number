@@ -77,10 +77,10 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * Method to determine the sense of this number: negative, zero, or positive.
     * If this FuzzyNumber cannot be distinguished from zero with p confidence, then
     *
-    * @param p the confidence desired.
+    * @param confidence the confidence desired.
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
     */
-  def signum(p: Double): Int
+  def signum(confidence: Double = oneSigma): Int
 
   /**
     * Method to apply a function to this Number.
@@ -480,7 +480,6 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     */
   def exp: Number
 
-
   /**
     * Method to determine the sine of this Number.
     * The result will be a Number with PureNumber factor.
@@ -558,6 +557,30 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * @return an optional relative Fuzziness.
     */
   def asComparedWith(other: Number): Option[Fuzziness[Double]]
+
+  /**
+    * @param confidence the confidence desired. Ignored if isZero is true.
+    * @return true if this Number is equivalent to zero with at least p confidence.
+    */
+  def isProbablyZero(confidence: Double = oneSigma): Boolean
+
+  /**
+    * Calculates the probability of an event resulting in zero under the given conditions.
+    * The method returns an optional value to represent cases where the probability
+    * cannot be determined.
+    *
+    * @return An Option containing the probability as a Double if it can be computed,
+    *         or None if the probability is indeterminate.
+    */
+  def probabilityOfZero: Option[Double]
+
+  /**
+    * Retrieves the optional threshold value for confidence, which can be used
+    * to determine a cut-off point for decision-making or validation processes.
+    *
+    * @return An `Option[Double]` representing the confidence threshold.
+    *         `Some(value)` indicates a */
+  def thresholdConfidence: Option[Double]
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
@@ -709,12 +732,6 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * @return this or an equivalent Number.
     */
   def modulate: Number
-
-  /**
-    * @param confidence the confidence desired. Ignored if isZero is true.
-    * @return true if this Number is equivalent to zero with at least p confidence.
-    */
-  def isProbablyZero(confidence: Double = oneSigma): Boolean
 }
 
 object Number {
@@ -1415,7 +1432,8 @@ object Number {
   def negate(x: Number): Number =
     x.factor match {
       case p@Scalar(_) =>
-        prepare(x.transformMonadic(p)(MonadicOperationNegate))
+        val number = prepare(x.transformMonadic(p)(MonadicOperationNegate))
+        number
       case NthRoot(_) if Value.signum(x.nominalValue) < 0 =>
         throw CoreException(s"cannot negate imaginary number: $x")
       case _ =>

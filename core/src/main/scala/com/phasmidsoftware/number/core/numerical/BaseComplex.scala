@@ -9,6 +9,7 @@ import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.BaseComplex.narrow
 import com.phasmidsoftware.number.core.numerical.Complex.{convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
+import com.phasmidsoftware.number.core.numerical.Fuzziness.oneSigma
 import com.phasmidsoftware.number.core.numerical.Number.{negate, two, zero, zeroR}
 
 /**
@@ -59,20 +60,18 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     * @param x the other field.
     * @return true if they are the same, otherwise false.
     */
-  def isSame(x: Numerical): Boolean =
+  def isSame(x: Numerical, confidence: Double = oneSigma): Boolean =
     (this, x) match {
       case (z, Real(n)) =>
-        z `isSame` n.asComplex
+        z.`isSame`(n.asComplex, confidence)
       case (c1@ComplexCartesian(_, _), c2@ComplexPolar(_, _, _)) =>
-        c2.isSame(c1)
+        c2.isSame(c1, confidence)
       case (c1@ComplexPolar(_, _, _), c2@ComplexCartesian(_, _)) =>
-        c2.isSame(convertToCartesian(c1))
+        c2.isSame(convertToCartesian(c1), confidence)
       case (c1, c2: Complex) =>
-        val diff = c1 `subtract` c2
-        println(s"isSame: $c1, $c2, diff = $diff")
-        diff.isProbablyZero()
+        (c1 `subtract` c2).isProbablyZero(confidence)
       case (z, x: Number) =>
-        z `isSame` Real(x)
+        z.`isSame`(Real(x), confidence)
       case _ =>
         false
     }
@@ -809,6 +808,16 @@ object ComplexCartesian {
     ComplexCartesian(Number(x), Number(y))
 
   /**
+    * Creates a `ComplexCartesian` instance from the given string representations of the real and imaginary parts.
+    *
+    * @param x the string representation of the real part of the complex number
+    * @param y the string representation of the imaginary part of the complex number
+    * @return a `ComplexCartesian` instance with the given real and imaginary parts
+    */
+  def apply(x: String, y: String): ComplexCartesian =
+    ComplexCartesian(Number(x), Number(y))
+
+  /**
     * Method to create a real-valued ComplexCartesian.
     *
     * @param x the real value.
@@ -1166,6 +1175,16 @@ object ComplexPolar {
     case _ =>
       throw CoreException(s"no match for $theta")
   }
+
+  /**
+    * Creates a ComplexPolar object using the given string representations of the magnitude and angle.
+    *
+    * @param r a string representing the magnitude of the ComplexPolar object
+    * @param i a string representing the angle of the ComplexPolar object
+    * @return a ComplexPolar object with the specified magnitude and angle
+    */
+  def apply(r: String, i: String): ComplexPolar =
+    ComplexPolar(Number(r), Number(i))
 
   /**
     * Method to create a ComplexPolar object with two branches.

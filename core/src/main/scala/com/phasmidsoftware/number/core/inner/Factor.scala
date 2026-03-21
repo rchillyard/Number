@@ -292,6 +292,13 @@ sealed trait Scalar extends Factor {
       None
   }
 
+  /**
+    * This doesn't seem to be invoked and looks wrong anyway.
+    *
+    *
+    * @param x the value to negate
+    * @return an optional `ProtoNumber` representing the negated value, or `None` if the operation is not valid
+    */
   def negate(x: Value): Option[ProtoNumber] =
     for {v <- Operations.doTransformValueMonadic(x)(MonadicOperationNegate.functions)} yield (v, this, None)
 

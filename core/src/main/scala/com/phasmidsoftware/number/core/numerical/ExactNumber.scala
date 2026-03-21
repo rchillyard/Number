@@ -33,15 +33,15 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     * @param x the other Numerical object to compare against. It could be of type Real, FuzzyNumber, ExactNumber, or Complex.
     * @return true if the two Numerical objects are considered the same, otherwise false.
     */
-  def isSame(x: Numerical): Boolean = x match {
+  def isSame(x: Numerical, confidence: Double): Boolean = x match {
     case Real(n) =>
-      isSame(n)
+      isSame(n, confidence)
     case n: FuzzyNumber =>
-      n.isSame(this)
+      n.isSame(this, confidence)
     case n@ExactNumber(v, f) =>
       Value.isEqual(nominalValue, v) && factor == f || doSubtract(n).isZero
     case c: Complex =>
-      c.isSame(Real(this))
+      c.isSame(Real(this), confidence)
   }
 
   /**
@@ -205,10 +205,10 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     * If this `FuzzyNumber` cannot be distinguished from zero with `p` confidence, then
     * the result will be zero.
     *
-    * @param p the confidence desired (ignored).
+    * @param confidence the confidence desired (ignored).
     * @return an `Int` which is negative, zero, or positive, according to the magnitude of this.
     */
-  def signum(p: Double): Int = signum
+  def signum(confidence: Double): Int = signum
 
   /**
     * Method to determine if this Number is probably zero.
@@ -218,6 +218,26 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     * @return true if this Number is actually zero.
     */
   def isProbablyZero(confidence: Double = oneSigma): Boolean = isZero
+
+  /**
+    * Computes the probability that this number is exactly zero.
+    * The calculation depends on the specific implementation details or state of the instance.
+    *
+    * @return an Option containing a Double representing the probability that the number is zero,
+    *         or None if the probability cannot be determined.
+    */
+  def probabilityOfZero: Option[Double] = None
+
+  /**
+    * Retrieves the threshold confidence value associated with this `ExactNumber`.
+    * The threshold confidence represents an optional value that might be
+    * used to determine the confidence level for certain computations
+    * or evaluations involving this number.
+    *
+    * @return an `Option` containing a `Double` that represents the threshold confidence,
+    *         or `None` if the threshold confidence is not set or applicable.
+    */
+  def thresholdConfidence: Option[Double] = None
 
   /**
     * Render this ExactNumber as a String representation.
