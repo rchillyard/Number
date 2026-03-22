@@ -17,7 +17,8 @@ import scala.util.{Either, Failure, Left, Right, Success, Try, Using}
 
 /**
   * This module is concerned with the generic operations for operating on Numbers.
-  * TODO move this into the core module.
+  * TODO resolve duplication.
+  * NOTE this is similar (maybe idential) to `core.misc.FP`.
   */
 object FP {
 

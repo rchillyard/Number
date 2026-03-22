@@ -891,38 +891,45 @@ object Rational {
     * in operations involving rational numbers.
     */
   val zero: Rational = Rational(0)
+  
   /**
     * A constant value representing the rational number equivalent to 1.
     * It is defined as an instance of the `Rational` class initialized with
     * the value of `bigOne`.
     */
   val one: Rational = Rational(bigOne)
+  
   /**
     * Represents the negation of the `Rational` value `one`.
     * The result is a `Rational` object equivalent to -1.
     */
   val negOne: Rational = one.negate
+  
   /**
     * Represents a rational number with an infinite value, defined as the
     * inversion of the `zero` rational number.
     */
   val infinity: Rational = zero.invert
+  
   /**
     * A Rational number representing the reciprocal of `two`.
     * The `invert` method on the `two` object is used to calculate this value.
     */
   val half: Rational = two.invert
+  
   /**
     * Represents the rational number 10 as an instance of the `Rational` type.
     * Utilizes the predefined value `bigTen` to create the `Rational` instance.
     */
   val ten: Rational = Rational(bigTen)
+  
   /**
     * Represents the rational number two as a constant of type Rational.
     * It is constructed using `Rational(bigTwo)`, where `bigTwo` presumably
     * signifies the numerical value 2 in a predefined or imported context.
     */
   lazy val two: Rational = Rational(bigTwo)
+  
   /**
     * Represents a Not-a-Number (NaN) value as a rational number.
     * It is created by initializing a `Rational` object with both numerator
@@ -1084,21 +1091,25 @@ object Rational {
     * Represents the integer value 3 as a `BigInt`.
     */
   private[core] lazy val bigThree: BigInt = BigInt(3)
+  
   /**
     * Represents the rational number three as a constant of type Rational.
     * It is constructed using `Rational(bigThree)`.
     */
   val three: Rational = Rational(bigThree)
+  
   /**
     * A Rational number representing the reciprocal of `three`.
     * The `invert` method on the `three` object is used to calculate this value.
     */
   val third: Rational = three.invert
+  
   /**
     * A constant value representing the rational number 4.
     * This is created using the Rational class.
     */
   val four: Rational = Rational(bigFour)
+  
   /**
     * Represents a rational number equivalent to one-fourth by
     * inverting the value of `four`.
@@ -1107,15 +1118,18 @@ object Rational {
     * resulting in `1/4` or a quarter of a unit.
     */
   val quarter: Rational = four.invert
+  
   /**
     * Represents a Rational number with a value equivalent to five.
     * The value is constructed using an underlying representation of `bigFive`.
     */
   val five: Rational = Rational(bigFive)
+  
   /**
     * Represents the reciprocal (inverted form) of the `five` Rational number.
     */
   val fifth: Rational = five.invert
+  
   /**
     * Represents a rational number instance initialized with the value 9.
     */
@@ -1452,6 +1466,13 @@ object Rational {
     */
   val integerForm: Regex = """^(-?\d+)$""".r
 
+  /**
+    * A regular expression that matches a single Unicode character 
+    * belonging to the specified ranges:
+    * - Superscript digits (⁰)
+    * - Subscript digits (₉)
+    * - Vulgar fractions (½ to ⅞)
+    */
   val unicodeForm: Regex = """^([⁰-₉½-⅞])$""".r
 
   /**

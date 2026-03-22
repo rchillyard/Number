@@ -1433,6 +1433,4 @@ object HasValue {
     */
   implicit object HasValueDouble$ extends HasValueDouble
 
-  //  implicit object HasValueNumber extends HasValueNumber
-
 }

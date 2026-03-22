@@ -15,6 +15,7 @@ object Constants {
     * This is equivalent to the numerical value 1 in mathematical terms.
     */
   lazy val one: Real = Real(Number.one)
+  
   /**
     * Represents the negative of the `one` field element.
     *
@@ -25,6 +26,7 @@ object Constants {
     * of the `Field` trait.
     */
   lazy val minusOne: Field = -one
+  
   /**
     * A constant representing the value 2 as a `Real`.
     *
@@ -32,14 +34,17 @@ object Constants {
     * is part of the mathematical constants defined in `Constants`.
     */
   lazy val two: Real = Real(Number.two)
+  
   /**
     * Represents the mathematical constant three as a `Real` number.
     */
   lazy val three: Real = Real(Number.three)
+  
   /**
     * Represents the mathematical constant 10 as a `Real` number.
     */
   lazy val ten: Real = Real(Number.ten)
+  
   /**
     * Represents the constant value of one-half (0.5) as a `Real`.
     *
@@ -48,11 +53,13 @@ object Constants {
     * in mathematical computations requiring the value of 1/2.
     */
   lazy val half: Real = Real(Number.half)
+  
   /**
     * Represents the constant zero as a `Real` type.
     * Zero is the additive identity in the arithmetic context.
     */
   lazy val zero: Real = Real(Number.zero)
+  
   /**
     * Represents positive infinity in the domain of real numbers.
     *
@@ -60,17 +67,20 @@ object Constants {
     * It is a constant member of the `Constants` class and indicates the concept of unbounded growth in mathematics.
     */
   lazy val infinity: Real = Real(Number(Rational.infinity))
+  
   /**
     * A predefined constant representing negative infinity as a real number.
     * This is constructed using a `Number` wrapping the rational representation of negative infinity.
     */
   lazy val negInfinity: Real = Real(Number(Rational.infinity.negate))
+  
   /**
     * Represents the mathematical constant π (pi) as a `Real` object.
     * π is the ratio of the circumference of a circle to its diameter,
     * approximately equal to 3.14159.
     */
   lazy val pi: Real = Real(Number.pi)
+  
   /**
     * A constant representing the mathematical value 2π (two times pi).
     * This value is useful in various calculations, especially those
@@ -81,11 +91,13 @@ object Constants {
     * constant `Number.twoPi`.
     */
   lazy val twoPi: Real = Real(Number.twoPi)
+  
   /**
     * Represents the mathematical constant π/2 as a Real number.
     * π/2, also known as pi over two, is half the value of π, commonly used in trigonometric calculations.
     */
   lazy val piBy2: Real = Real(Number.piBy2)
+  
   /**
     * Represents the mathematical expression equivalent to \( \pi/2 + \pi \).
     * Combines the predefined mathematical fields `piBy2` and `pi` using the addition operation defined in the `Field` trait.
@@ -93,6 +105,7 @@ object Constants {
     * This value is a constant and belongs to the `Constants` class.
     */
   lazy val piBy2Times3: Field = Number.piBy2 `add` pi
+  
   /**
     * Represents the value of π/4 (quarter of π) as a `Real` object.
     *
@@ -102,6 +115,7 @@ object Constants {
     * It can be used in mathematical computations involving π/4.
     */
   lazy val piBy4: Real = Real(Number.piBy4)
+  
   /**
     * Represents the mathematical constant π/3 as a `Real` type.
     *
@@ -109,22 +123,26 @@ object Constants {
     * which corresponds to an angle of 60 degrees in radians.
     */
   lazy val piBy3: Real = Real(Number.piBy3)
+  
   /**
     * Represents the mathematical constant π (pi) as a `Real` value.
     */
   //noinspection NonAsciiCharacters
   lazy val `𝛑`: Real = Real(Number.`𝛑`)
+  
   /**
     * Represents the mathematical constant e (Euler's number, approximately 2.718),
     * encapsulated as a `Real` value.
     */
   lazy val e: Real = Real(Number.e)
+  
   /**
     * A pre-defined constant for the imaginary unit `i`, which represents the
     * square root of -1. This is a standard component of complex numbers
     * used in fields involving imaginary and real number computations.
     */
   lazy val i: Real = Real(Number.i)
+  
   /**
     * Exact value of iPi.
     */
@@ -138,6 +156,7 @@ object Constants {
     * irrational constant √2 is required, expressed within the `Field` type system.
     */
   lazy val root2: Field = Real(Number.root2)
+  
   /**
     * Represents the constant value √3 encapsulated as a `Field` in the mathematical context.
     *
@@ -146,12 +165,14 @@ object Constants {
     * This constant can be used in various mathematical computations that involve fields.
     */
   lazy val root3: Field = Real(Number.root3)
+  
   /**
     * Represents the square root of 5 as a constant value, conforming to the `Field` type.
     * This value is defined as a member of the `Constants` class and provides numeric and algebraic operations
     * as supported by the `Field` trait.
     */
   lazy val root5: Field = Real(Number.root5)
+  
   /**
     * Exact value of the Complex Number ±√2
     */

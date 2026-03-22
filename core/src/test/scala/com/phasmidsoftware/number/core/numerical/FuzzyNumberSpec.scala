@@ -156,7 +156,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "multiply 1 and 2" in {
     val x = FuzzyNumber(Value.fromInt(1), PureNumber, None)
     val y = Constants.two
-    val z: Number = ((x doMultiply Number.two))
+    val z: Number = x doMultiply Number.two
     z.nominalValue shouldBe Right(2)
     z.factor shouldBe PureNumber
     z.fuzz should matchPattern { case None => }
