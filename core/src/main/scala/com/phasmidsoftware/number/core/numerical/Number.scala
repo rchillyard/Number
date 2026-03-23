@@ -1077,7 +1077,7 @@ object Number {
       case Success(n) =>
         n
       case Failure(e) =>
-        throw CoreExceptionWithCause(s"apply(String, Factor): unable to parse $x", e)
+        throw CoreExceptionWithCause(s"apply(String): unable to parse $x", e)
     }
 
   /**

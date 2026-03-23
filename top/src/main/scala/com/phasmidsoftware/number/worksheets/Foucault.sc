@@ -17,3 +17,4 @@ val expression = g * ((t / Pi / 2) ∧ 2)
 // TODO But it's not exactly correct.
 // Do we have a way to force the fuzziness to be Gaussian? I think we do.
 val length: Eager = expression.materialize
+println(length.fuzzy.render)

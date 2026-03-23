@@ -637,24 +637,22 @@ object Fuzziness {
   def combine[T: HasValue](t1: T, t2: T, relative: Boolean, independent: Boolean)(fuzz: (Option[Fuzziness[T]], Option[Fuzziness[T]])): Option[Fuzziness[T]] = {
     val f1o = doNormalize(fuzz._1, t1, relative)
     val f2o = doNormalize(fuzz._2, t2, relative)
-    (f1o, f2o) match {
-      case (Some(f1), Some(f2)) if f1.shape == Box && f2.shape == Box =>
-        // Box ⊗ Box → Trapezoid (or Box if one is negligible): handled directly by *.
-        Some(f1.*(f2, independent))
-      case (Some(f1), Some(f2)) if f1.shape.isInstanceOf[Trapezoid] || f2.shape.isInstanceOf[Trapezoid] =>
-        // Any combination involving a Trapezoid: handled directly by *.
-        Some(f1.*(f2, independent))
-      case (Some(f1), Some(f2)) =>
-        // All other combinations (Gaussian ⊗ Gaussian): normalise shapes to Gaussian first.
-        Some(f1.normalizeShape.*(f2.normalizeShape, independent))
-      case (Some(f1), None) =>
-        Some(f1)
-      case (None, Some(f2)) =>
-        Some(f2)
-      case _ =>
-        None
-    }
+    composeFuzz(independent, f1o, f2o)
   }
+
+  /**
+    * Combines two potential fuzziness values for a given type `T` using a monadic approach.
+    *
+    * @param t    The input value of type `T` that will be used during the combination.
+    * @param fuzz A tuple containing two optional fuzziness values of type `T` to be combined.
+    * @tparam T The type of the input value and fuzziness values, which must have an implicit
+    *           `HasValue` type class instance available.
+    *
+    * @return An optional fuzziness of type `T` resulting from the monadic combination of
+    *         the provided fuzziness values.
+    */
+  def monadicCombine[T: HasValue](t: T)(fuzz: (Option[Fuzziness[T]], Option[Fuzziness[T]])): Option[Fuzziness[T]] =
+    combine(t, t, true, independent = true)(fuzz)
 
   /**
     * Map the fuzz value with a function (typically the derivative of the function being applied to the Fuzzy quantity).
@@ -740,6 +738,37 @@ object Fuzziness {
     * This is used when combining two equal fuzz values without changing the underlying shape.
     */
   val simpleDoubleFuzzFactor: Double = math.sqrt(2)
+
+  /**
+    * Combines two optional instances of `Fuzziness[T]` into a single optional instance, based on their shapes and
+    * the independent flag. The operation varies depending on whether the shapes of the fuzziness objects are
+    * `Box`, `Trapezoid`, `Gaussian`, or other combinations.
+    *
+    * @param independent A boolean flag indicating if the operation assumes the two inputs are independent.
+    * @param f1o         An optional first `Fuzziness[T]` instance to combine.
+    * @param f2o         An optional second `Fuzziness[T]` instance to combine.
+    * @tparam T The type parameter for which the `Fuzziness` and `HasValue` type classes are defined.
+    * @return An optional `Fuzziness[T]` resulting from the combination of `f1o` and `f2o`, with the specific operation
+    *         depending on their respective shapes.
+    */
+  private def composeFuzz[T: HasValue](independent: Boolean, f1o: Option[Fuzziness[T]], f2o: Option[Fuzziness[T]]) =
+    (f1o, f2o) match {
+      case (Some(f1), Some(f2)) if f1.shape == Box && f2.shape == Box =>
+        // Box ⊗ Box → Trapezoid (or Box if one is negligible): handled directly by *.
+        Some(f1.*(f2, independent))
+      case (Some(f1), Some(f2)) if f1.shape.isInstanceOf[Trapezoid] || f2.shape.isInstanceOf[Trapezoid] =>
+        // Any combination involving a Trapezoid: handled directly by *.
+        Some(f1.*(f2, independent))
+      case (Some(f1), Some(f2)) =>
+        // All other combinations (Gaussian ⊗ Gaussian): normalise shapes to Gaussian first.
+        Some(f1.normalizeShape.*(f2.normalizeShape, independent))
+      case (Some(f1), None) =>
+        Some(f1)
+      case (None, Some(f2)) =>
+        Some(f2)
+      case _ =>
+        None
+    }
 
   /**
     * Sanitize an optional Fuzziness value by returning None if its magnitude
@@ -853,26 +882,23 @@ object Fuzziness {
   /**
     * Calculate the fuzziness for the result of a MonadicOperation.
     *
-    * NOTE: the parameter x is not actually used in this method. It seems like it ought to be used for functionFuzz
-    * but the values produced this way do seem to be correct.
-    * It is possible that the values are correct for relative error bounds but maybe not for absolute error bounds.
+    * We work entirely in relative space. The functionFuzz is the input fuzz propagated
+    * through the derivative of the operation; the opFuzz is the machine's implementation
+    * error for computing the function. These two sources are independent, so they are
+    * combined via RSS convolution. The output `x` is not needed here because we return
+    * relative fuzz, leaving any conversion to absolute to the caller.
     *
     * @param op   the monadic operation.
     * @param t    the magnitude of the input to the monadic operation.
-    * @param x    the magnitude of the result of the monadic operation.
+    * @param x    the magnitude of the result of the monadic operation (not used directly).
     * @param fuzz the (optional) fuzziness of input to the monadic operation.
     * @return the optional fuzziness for the result of the monadic operation.
     */
   def monadicFuzziness(op: MonadicOperation, t: Double, x: Double, fuzz: Option[Fuzziness[Double]]): Option[Fuzziness[Double]] = {
-    val useRelativeFuzz = op.fuzz.isDefined
-    // Always work in relative space for the transform, since relativeFuzz is defined that way
     val relativized: Option[Fuzziness[Double]] = fuzz flatMap (_.normalize(t, relative = true))
     val functionFuzz: Option[Fuzziness[Double]] = sanitize(relativized map (_.transform(op.relativeFuzz)(t)))
-    val operationFuzz = sanitize(createFuzz(op.fuzz))
-    // Combine in relative space, then convert to absolute if operation doesn't introduce precision loss
-    val combined = combine(t, t, relative = true, independent = true)((functionFuzz, operationFuzz))
-    if (useRelativeFuzz) combined
-    else combined flatMap (_.normalize(t, relative = false))
+    val opFuzz = sanitize(createFuzz(op.fuzz))
+    monadicCombine(t)(functionFuzz, opFuzz)
   }
 }
 
