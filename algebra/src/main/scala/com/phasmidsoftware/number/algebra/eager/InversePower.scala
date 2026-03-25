@@ -157,7 +157,7 @@ case class InversePower private(n: Int, number: Number)(val maybeName: Option[St
     */
   def transformation[T: ClassTag]: Option[T] =
     if (implicitly[ClassTag[T]].runtimeClass == classOf[Real])
-      number.approximation(true).flatMap(x => x.power(Rational(n).invert)).asInstanceOf[Option[T]]
+      Some(toReal.asInstanceOf[T])
     else
       None
 
@@ -263,6 +263,8 @@ case class InversePower private(n: Int, number: Number)(val maybeName: Option[St
       x.convert(t)
     case (x: RationalNumber, _) =>
       x.convert(t)
+    case (IsImaginary(_), _) =>
+      None
     case (x: InversePower, _: Real) =>
       x.transformation
     case x =>
@@ -790,6 +792,8 @@ object InversePower {
   * A utility object for pattern matching operations involving positive square roots.
   * The main purpose of this object is to identify whether a given number or expression
   * can be represented as the square root of another number.
+  *
+  * TODO move this to Extractors
   */
 object IsSquareRoot {
   /**
@@ -824,6 +828,8 @@ object IsImaginary {
     * TODO: extend to match any purely imaginary Complex(0, x) where x != 0
     * Currently only matches i = (-1)^(1/2)
     * In this case, we would move this into Extractors.
+    *
+    * TODO move this to Extractors
     *
     * @param x the `Eager` instance to be matched and extracted.
     * @return an `Option` containing the extracted `Number` if the input matches the expected pattern, or `None` otherwise.

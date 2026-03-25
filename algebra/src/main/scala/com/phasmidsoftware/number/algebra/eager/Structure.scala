@@ -13,7 +13,7 @@ import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Fuzziness, RelativeFuzz, WithFuzziness}
+import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Fuzziness, FuzzyDouble, RelativeFuzz, WithFuzziness}
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.annotation.tailrec
@@ -242,7 +242,23 @@ trait Functional extends Structure with MaybeFuzzy with Ordered[Functional] {
     * @return A function that accepts a `Double` value and returns the computed derivative as a `Double`.
     */
   val derivativeFunction: Double => Double
-  
+
+  /**
+    * Converts the current instance of `Functional` into a `Real` representation.
+    *
+    * The conversion is achieved by applying the `scaleFunction` to the value
+    * derived from the `number` method, and optionally utilizing `maybeFuzz`
+    * if available. This process encapsulates the numerical transformation,
+    * resulting in the `Real` type.
+    *
+    * @return a `Real` object representing the scaled and transformed value
+    *         of the current instance.
+    */
+  def toReal: Real = {
+    val fd: FuzzyDouble = FuzzyDouble(nominalValue, maybeFuzz).addFuzz(Fuzziness.doublePrecision).asInstanceOf[FuzzyDouble]
+    Real(fd.x, fd.fuzz)
+  }
+
   /**
     * Retrieves an optional fuzziness value for a given number.
     *
@@ -250,6 +266,7 @@ trait Functional extends Structure with MaybeFuzzy with Ordered[Functional] {
     */
   lazy val maybeFuzz: Option[Fuzziness[Double]] =
     number.fuzz map { fuzz =>
+      println(s"DEBUG: ${number.toDouble}")
       val fuzzFunction: Double => Double = fuzz match {
         case _: RelativeFuzz[Double] => x => derivativeFunction(x) * x / scaleFunction(x)
         case _: AbsoluteFuzz[Double] => x => derivativeFunction(x)

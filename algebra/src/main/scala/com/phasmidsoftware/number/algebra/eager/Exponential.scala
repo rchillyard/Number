@@ -95,8 +95,8 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
             Real.∞
           case q: Q =>
             Real(scaleFunction(q.toDouble))
-          case Real(value, fuzz) =>
-            Real(scaleFunction(value), fuzz)
+          case Real(_, _) =>
+            toReal
           case _ =>
             throw AlgebraException(s"NaturalExponential.transformation: $number not supported")
         }

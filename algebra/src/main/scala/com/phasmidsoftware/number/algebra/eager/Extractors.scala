@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.algebra.eager
 
 import com.phasmidsoftware.number.algebra.core.{Q, Z}
+import com.phasmidsoftware.number.core.numerical.Fuzziness
 
 /**
   * The Extractors object provides utility methods and patterns for extracting
@@ -26,6 +27,28 @@ object IsZero {
     */
   def unapply(eager: Eager): Option[Eager] =
     Option.when(eager.isZero)(eager)
+}
+
+/**
+  * Provides an extractor for identifying whether an `Eager` instance satisfies
+  * the `isZero` condition.
+  */
+object IsFuzzy {
+  /**
+    * Extractor method for determining if an `Eager` instance satisfies the `isZero` condition.
+    *
+    * @param eager The `Eager` instance to be evaluated.
+    * @return An `Option` containing the `Eager` instance if it satisfies the `isZero` condition; otherwise, `None`.
+    */
+  def unapply(eager: Eager): Option[(Double, Fuzziness[Double])] = eager match {
+    case functional: Functional =>
+      functional.maybeFuzz map (f => functional.nominalValue -> f)
+    case Real(value, fuzz) =>
+      fuzz map (f => value -> f)
+    case _ =>
+      None
+  }
+
 }
 
 /**

@@ -121,9 +121,9 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
   }
 
   it should "render fuzzy InversePower with relative fuzz using asAbsolute" in {
-    pending // FIXME Issue #204
+    // Test for Issue #204
     val ip = squareRoot(Real(2, Some(RelativeFuzz(0.05, Gaussian))))
-    ip.render shouldBe "√2.0±2.5%"
+    ip.render shouldBe "√2.0±5%"
     ip.asAbsolute shouldBe "1.414(35)"
   }
 
