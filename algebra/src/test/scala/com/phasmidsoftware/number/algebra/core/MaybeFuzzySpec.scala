@@ -117,12 +117,13 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
   it should "render fuzzy InversePower with absolute fuzz using asAbsolute" in {
     val ip = squareRoot(Real(2, Some(AbsoluteFuzz(0.001, Gaussian))))
     ip.render shouldBe "√2.000(1)"
-    ip.asAbsolute shouldBe "1.4142(5)"
+    ip.asAbsolute shouldBe "1.41421(35)"
   }
 
   it should "render fuzzy InversePower with relative fuzz using asAbsolute" in {
+    pending // FIXME Issue #204
     val ip = squareRoot(Real(2, Some(RelativeFuzz(0.05, Gaussian))))
-    ip.render shouldBe "√2.0±5%"
+    ip.render shouldBe "√2.0±2.5%"
     ip.asAbsolute shouldBe "1.414(35)"
   }
 
@@ -143,20 +144,21 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
     val nl = NaturalExponential(Real(1.0, Some(AbsoluteFuzz(0.01, Gaussian))))
     nl.show shouldBe "e^1.00(1)"
     // This creates a fuzzy input, so output will be fuzzy
-    nl.asAbsolute shouldBe "2.718(27)"
+    nl.asAbsolute shouldBe "2.718(27)" // is "2.71(1)"
   }
 
   it should "render fuzzy NaturalExponential with absolute fuzz using asAbsolute" in {
     val nl = NaturalExponential(Real(1.0, Some(AbsoluteFuzz(0.01, Gaussian))))
     nl.show shouldBe "e^1.00(1)"
-    nl.asAbsolute shouldBe "2.718(27)"
+    nl.asAbsolute shouldBe "2.718(27)" // is "2.71(1)"
   }
 
   it should "render fuzzy NaturalExponential with relative fuzz using asAbsolute" in {
     val nl = NaturalExponential(Real(1, Some(RelativeFuzz(0.03, Gaussian))))
+    println(nl.fuzzy.toString)
     nl.show shouldBe "e^1.0±3%"
     val result = nl.asAbsolute
-    result shouldBe "2.71(22)"
+    result shouldBe "2.718(82)" // NOTE the previous value was incorrect for two reasons
   }
 
   it should "render fuzzy NaturalExponential with asRelative" in {

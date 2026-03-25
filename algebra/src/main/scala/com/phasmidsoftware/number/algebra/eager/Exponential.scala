@@ -59,7 +59,8 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
     *
     * @return a function to transform the nominal value into the actual value as it would appear in a PureNumber context.
     */
-  val scaleFunction: Double => Double = x => math.pow(base.toDouble, x)
+  val scaleFunction: Double => Double =
+    x => math.pow(base.toDouble, x)
   
   /**
     * Represents the derivative function associated with this `Functional` instance.
@@ -73,7 +74,8 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
     *
     * @return A function that accepts a `Double` value and returns the computed derivative as a `Double`.
     */
-  val derivativeFunction: Double => Double = x => math.log(base.toDouble) * scaleFunction(x)
+  val derivativeFunction: Double => Double =
+    x => math.log(base.toDouble) * scaleFunction(x)
 
   /**
     * Defines a transformation that transforms a `Structure` instance into a corresponding `Scalar` value.

@@ -13,7 +13,7 @@ import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
+import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Fuzziness, RelativeFuzz, WithFuzziness}
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.annotation.tailrec
@@ -249,9 +249,12 @@ trait Functional extends Structure with MaybeFuzzy with Ordered[Functional] {
     * @return An Option containing the fuzziness representation of the number, or None if not available.
     */
   lazy val maybeFuzz: Option[Fuzziness[Double]] =
-    number.fuzz map {
-      val fuzzFunction: Double => Double = x => derivativeFunction(x) * x / scaleFunction(x)
-      fuzz => fuzz.transform[Double, Double](fuzzFunction)(scaleFunction(number.toDouble))
+    number.fuzz map { fuzz =>
+      val fuzzFunction: Double => Double = fuzz match {
+        case _: RelativeFuzz[Double] => x => derivativeFunction(x) * x / scaleFunction(x)
+        case _: AbsoluteFuzz[Double] => x => derivativeFunction(x)
+      }
+      fuzz.transform[Double, Double](fuzzFunction)(number.toDouble)
     }
 
   /**

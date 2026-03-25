@@ -596,7 +596,8 @@ object Real {
     * Constructs a `Real` instance with a specified numeric value and optional fuzziness.
     *
     * This method creates a `Real` object using the */
-  def apply(x: Double, fuzz: Option[Fuzziness[Double]]): Real = new Real(x, fuzz)()
+  def apply(x: Double, fuzz: Option[Fuzziness[Double]]): Real =
+    new Real(x, fuzz)()
 
   /**
     * Parses a string representation of a number and constructs a `Real` instance.

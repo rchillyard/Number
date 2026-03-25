@@ -15,7 +15,10 @@ class FoucaultSpec extends AnyFlatSpec with should.Matchers {
     val t: Expression = Real(16.5, Some(RelativeFuzz(0.01, Box)))
     val expression = g * ((t / Pi / 2) ∧ 2)
     val length: Eager = expression.materialize
+    val string = length.toString
+    string shouldBe "Real(67.6514577348514±AbsoluteFuzz(1.3530291546970281,Box))"
     length.render shouldBe "6.76[14]E+01"
+    //    length.render shouldBe "6.77[14]E+01" // Issue #203
     (length ~= Eager(67.65)) shouldBe true
   }
 }
