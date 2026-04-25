@@ -28,30 +28,7 @@ import scala.language.implicitConversions
   * @param b the second expression being operated on.
   * @param f the function to be applied to a and b.
   */
-case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) extends Multiple {
-  /**
-    * Attempts to retrieve a factor based on the provided context.
-    * This method evaluates whether there is an applicable factor within the given context.
-    *
-    * @param context the context in which the factor is evaluated.
-    * @return an optional `Factor` if one qualifies under the provided context; otherwise, `None`.
-    */
-  def maybeFactor(context: Context): Option[Factor] =
-    evaluate(context) flatMap (v => v.maybeFactor(context))
-
-  /**
-    * Determines whether this `Valuable` is exact, i.e., has no approximation.
-    *
-    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
-    *
-    * The method returns `true` if there is no approximate representation
-    * available (i.e., `approximation` is `None`), indicating that the
-    * entity is exact. Otherwise, it returns `false`.
-    *
-    * @return a `Boolean` indicating whether the entity is exact (`true`)
-    *         or has an approximation (`false`).
-    */
-  lazy val isExact: Boolean = a.isExact && b.isExact
+case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) extends BinaryFunction(a, b, f) {
 
   /**
     * Renders the `CompositeExpression` as a string representation of the expression itself,
@@ -71,7 +48,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   lazy val operandsMatcher: em.AutoMatcher[Expression] =
     em.Matcher("BiFunction:operandsMatcher") {
       case x@HasEuler() =>
-        em.Miss(s"BiFunction:simplifyOperands: Euler should not be simplified here: $x", this)
+        em.Miss(s"BiFunction:operandsMatcher: Euler should not be simplified here: $x", this)
       case b: BiFunction =>
         b.simplifyComponents
     }
@@ -228,32 +205,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   }
 
   /**
-    * Method to determine the depth of this Expression.
-    *
-    * @return the depth (an atomic expression has depth of 1).
-    */
-  lazy val depth: Int =
-    1 + math.max(a.depth, b.depth)
-
-  /**
-    * Action to simplify this Expression as a Field.
-    * NOTE that because we need to be able to evaluate this Expression exactly,
-    * we need to be sure that the Context passed in to f.evaluate is not None.
-    *
-    * @return the materialized Field.
-    */
-  def evaluate(context: Context): Option[Eager] =
-    f.evaluate(a, b)(context)
-
-  /**
-    * Provides the terms that comprise this `CompositeExpression`.
-    *
-    * @return a sequence of `Expression` objects representing the individual terms of this `CompositeExpression`.
-    */
-  lazy val terms: Seq[Expression] =
-    Seq(a, b)
-
-  /**
     * Render this BiFunction for debugging purposes.
     *
     * @return a String showing a, f, and b in parentheses (or in braces if not exact).
@@ -270,50 +221,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         case Atan => s"atan(${a.show},${b.show})"
       }
   }
-
-  /**
-    * Provides an approximation of this number, if applicable.
-    *
-    * This method attempts to compute an approximate representation of the number
-    * in the form of a `Real`, which encapsulates uncertainty or imprecision
-    * in its value. If no meaningful approximation is possible for the number, it
-    * returns `None`.
-    *
-    * @return an `Option[Real]` containing the approximate representation
-    *         of this `Number`, or `None` if no approximation is available.
-    */
-  def approximation(force: Boolean): Option[eager.Real] = {
-    val maybeValuable = for {x <- a.approximation(true); y <- b.approximation(true)} yield f(x, y)
-    // TODO asInstanceOf
-    // TODO this cast is a potential problem! We need to force the approximation to be be fuzzy otherwise we get a ClassCastException
-    maybeValuable.asInstanceOf[Option[eager.Real]]
-  }
-
-  /**
-    * Attempts to compute an approximation of a complex operation defined by `f`
-    * using the approximations of components `a` and `b`. The operation can be
-    * a sum, product, power, or other types defined by `f`.
-    *
-    * @param force A boolean flag indicating whether the approximation should
-    *              forcibly be computed even if conditions might not favor it.
-    *
-    * @return An `Option` containing the computed `Eager` result if successful,
-    *         or `None` if the approximation cannot be determined.
-    */
-  override def approximationComplex(force: Boolean = false): Option[Eager] =
-    for {
-      za <- a.approximationComplex(force)
-      zb <- b.approximationComplex(force)
-      result <- f match {
-        case Sum =>
-          Some(Eager(eagerToField(za) + eagerToField(zb)))
-        case Product =>
-          Some(Eager(eagerToField(za) `multiply` eagerToField(zb)))
-        case Power =>
-          Some(Eager(eagerToField(za) `power` eagerToField(zb)))
-        case _ => None
-      }
-    } yield result
 
   /**
     * Regular hashCode method.
@@ -646,6 +553,109 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case _ =>
         Some(false)
     }
+}
+
+/**
+  * This class represents a dyadic function of the two given expressions.
+  *
+  * @param a the first expression being operated on.
+  * @param b the second expression being operated on.
+  * @param f the function to be applied to a and b.
+  */
+abstract class BinaryFunction(a: Expression, b: Expression, f: ExpressionBiFunction) extends Multiple {
+  /**
+    * Attempts to retrieve a factor based on the provided context.
+    * This method evaluates whether there is an applicable factor within the given context.
+    *
+    * @param context the context in which the factor is evaluated.
+    * @return an optional `Factor` if one qualifies under the provided context; otherwise, `None`.
+    */
+  def maybeFactor(context: Context): Option[Factor] =
+    evaluate(context) flatMap (v => v.maybeFactor(context))
+
+  /**
+    * Determines whether this `Valuable` is exact, i.e., has no approximation.
+    *
+    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
+    *
+    * The method returns `true` if there is no approximate representation
+    * available (i.e., `approximation` is `None`), indicating that the
+    * entity is exact. Otherwise, it returns `false`.
+    *
+    * @return a `Boolean` indicating whether the entity is exact (`true`)
+    *         or has an approximation (`false`).
+    */
+  lazy val isExact: Boolean = a.isExact && b.isExact
+
+  /**
+    * Method to determine the depth of this Expression.
+    *
+    * @return the depth (an atomic expression has depth of 1).
+    */
+  lazy val depth: Int =
+    1 + math.max(a.depth, b.depth)
+
+  /**
+    * Action to simplify this Expression as a Field.
+    * NOTE that because we need to be able to evaluate this Expression exactly,
+    * we need to be sure that the Context passed in to f.evaluate is not None.
+    *
+    * @return the materialized Field.
+    */
+  def evaluate(context: Context): Option[Eager] =
+    f.evaluate(a, b)(context)
+
+  /**
+    * Provides the terms that comprise this `CompositeExpression`.
+    *
+    * @return a sequence of `Expression` objects representing the individual terms of this `CompositeExpression`.
+    */
+  lazy val terms: Seq[Expression] =
+    Seq(a, b)
+
+  /**
+    * Provides an approximation of this number, if applicable.
+    *
+    * This method attempts to compute an approximate representation of the number
+    * in the form of a `Real`, which encapsulates uncertainty or imprecision
+    * in its value. If no meaningful approximation is possible for the number, it
+    * returns `None`.
+    *
+    * @return an `Option[Real]` containing the approximate representation
+    *         of this `Number`, or `None` if no approximation is available.
+    */
+  def approximation(force: Boolean): Option[eager.Real] = {
+    val maybeValuable = for {x <- a.approximation(true); y <- b.approximation(true)} yield f(x, y)
+    // TODO asInstanceOf
+    // TODO this cast is a potential problem! We need to force the approximation to be be fuzzy otherwise we get a ClassCastException
+    maybeValuable.asInstanceOf[Option[eager.Real]]
+  }
+
+  /**
+    * Attempts to compute an approximation of a complex operation defined by `f`
+    * using the approximations of components `a` and `b`. The operation can be
+    * a sum, product, power, or other types defined by `f`.
+    *
+    * @param force A boolean flag indicating whether the approximation should
+    *              forcibly be computed even if conditions might not favor it.
+    *
+    * @return An `Option` containing the computed `Eager` result if successful,
+    *         or `None` if the approximation cannot be determined.
+    */
+  override def approximationComplex(force: Boolean = false): Option[Eager] =
+    for {
+      za <- a.approximationComplex(force)
+      zb <- b.approximationComplex(force)
+      result <- f match {
+        case Sum =>
+          Some(Eager(eagerToField(za) + eagerToField(zb)))
+        case Product =>
+          Some(Eager(eagerToField(za) `multiply` eagerToField(zb)))
+        case Power =>
+          Some(Eager(eagerToField(za) `power` eagerToField(zb)))
+        case _ => None
+      }
+    } yield result
 }
 
 object BiFunction {

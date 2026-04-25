@@ -215,9 +215,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     math"\e^∞" shouldBe RationalNumber(Rational.infinity)
   }
   it should "work for Exp neg Infinity" in {
-    // TODO allow Negative Infinity to be used in expressions.
-    val x = expr.UniFunction(Expression(infinity.negate), Exp).simplify
-    x shouldBe Zero
+    expr.UniFunction(-Infinity, Exp).simplify shouldBe Zero
   }
   it should "work for Exp Zero" in {
     val exp = puremath"\e^0"

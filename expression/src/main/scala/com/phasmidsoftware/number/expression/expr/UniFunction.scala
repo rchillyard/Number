@@ -174,6 +174,8 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
         em.Match(BiFunction(b, x, Log))
       case UniFunction(Infinity, Exp) =>
         em.Match(Infinity)
+      case UniFunction(UniFunction(Infinity,Negate), Exp) =>
+        em.Match(Zero)
       case UniFunction(x, Exp) =>
         matchExponential(x)
       case UniFunction(I, Reciprocal) =>
