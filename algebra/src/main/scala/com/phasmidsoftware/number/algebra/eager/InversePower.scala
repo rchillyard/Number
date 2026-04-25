@@ -446,12 +446,11 @@ case class InversePower private(n: Int, number: Number)(val maybeName: Option[St
     * @param that the `Number` used to scale the current instance
     * @return an `Option[T]` containing the result of the scaling operation if successful, or `None` if the operation cannot be performed
     */
-  infix def doScale(that: Number): Option[InversePower] =
+  infix def doScale(that: Number): Option[Eager] =
     (that, number) match {
       case (x: CanPower[Number] @unchecked, y: Z) =>
         val triedRational = y.toRational.power(Rational(n).invert).toOption
-        val value: Option[Number] = triedRational.flatMap(r => x.pow(RationalNumber(r)))
-        value.asInstanceOf[Option[InversePower]]
+        triedRational.flatMap(r => x.pow(RationalNumber(r)))
       // TODO need to match on types, not use isInstanceOf, etc.
       case _ =>
         throw AlgebraException(s"InversePower.doScale: cannot scale $this by $that")

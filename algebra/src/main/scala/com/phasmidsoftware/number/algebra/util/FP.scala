@@ -389,16 +389,24 @@ object FP {
 
   /**
     * Converts a `Try` instance into an `Option`.
-    * Any `Exception` in the input is of course lost.
+    * Any `Exception` in the input is, of course, lost.
     *
     * @param xy The `Try` instance to be converted.
     * @return An `Option` containing the value if the `Try` is a Success, or `None` if the `Try` is a `Failure`.
     */
-  def toOption[X](xy: Try[X]): Option[X] =
-    toOptionWithLog(t => logger.info(s"FP.toOption: $t"))(xy)
+  def toOption[X](xy: => Try[X]): Option[X] =
+    toOptionWithLog(_ => ())(xy)
 
-  def toOptionWithLog[X](log: Throwable => Unit)(xy: Try[X]): Option[X] = xy match {
-    case Success(x) => Some(x)
+  /**
+    * Converts a `Try` instance into an `Option`.
+    * Any `Exception` in the input is logged according to the `log` function.
+    *
+    * @param xy The `Try` instance to be converted.
+    * @return An `Option` containing the value if the `Try` is a Success, or `None` if the `Try` is a `Failure`.
+    */
+  def toOptionWithLog[X](log: Throwable => Unit)(xy: => Try[X]): Option[X] = xy match {
+    case Success(x) =>
+      Some(x)
     case Failure(x) =>
       log(x)
       None

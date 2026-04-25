@@ -163,6 +163,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
       case UniFunction(Pi, Cosine) =>
         em.Match(MinusOne)
 
+      // Match Log and Exp cases
       case UniFunction(IsEuler(Euler(r, θ)), Ln) =>
         em.Match((UniFunction(r, Ln) + (I * θ)).simplify)
       // XXX Take care of the cases whereby the inverse of a log expression is a log expression with operand and base swapped.

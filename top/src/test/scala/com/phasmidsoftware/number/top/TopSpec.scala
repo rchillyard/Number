@@ -237,6 +237,9 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     lazymath"\ln(1)" shouldBe Zero
     math"\ln(1)" shouldBe zero
   }
+  it should "work for Ln MinusOne" in {
+    lazymath"\ln(-1)" shouldBe I * Pi
+  }
   it should "work for Ln e" in {
     lazymath"\ln{\e}" shouldBe One
     math"\ln{\e}" shouldBe one
