@@ -1068,6 +1068,7 @@ The Expression trait supports the following operations:
 * **`simplify`** - Simplifies the expression by applying rules of arithmetic, returning a new `Expression`.
 * **`approximation`** - Approximates the expression as an `Option[Real]` value, but only if the expression is not exact.
   An exact expression can be approximated by passing the parameter `force=true` into this method.
+* **`approximate`** - Approximates the expression as an `Real` value always.
 * **`evaluateAsIs`** - Evaluates the expression to an `Option[Eager]` value, which will be defined providing that the
   expression is exact (i.e., it can be evaluated in the natural context of the expression).
 * **`evaluate(Context)`** - Evaluates the expression to an `Option[Eager]` value, in the given context.
