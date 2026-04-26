@@ -1,7 +1,8 @@
 package com.phasmidsoftware.number.top
 
 import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
-import com.phasmidsoftware.number.algebra.eager.Eager
+import com.phasmidsoftware.number.algebra.eager.{Eager, Real}
+import com.phasmidsoftware.number.core.numerical.{Box, RelativeFuzz}
 import com.phasmidsoftware.number.expression.expr.{Expression, Pi}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -10,10 +11,14 @@ class FoucaultSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Foucault worksheets"
   it should "perform Foucault1" in {
-    val g: Expression = Eager("9.81*")
-    val t: Expression = Eager("16.5*")
+    val g: Expression = Real(9.81, Some(RelativeFuzz(1E-4, Box)))
+    val t: Expression = Real(16.5, Some(RelativeFuzz(0.01, Box)))
     val expression = g * ((t / Pi / 2) ∧ 2)
     val length: Eager = expression.materialize
+    val string = length.toString
+    string shouldBe "Real(67.6514577348514±AbsoluteFuzz(1.3530291546970281,Box))"
+    length.render shouldBe "6.76[14]E+01"
+    //    length.render shouldBe "6.77[14]E+01" // Issue #203
     (length ~= Eager(67.65)) shouldBe true
   }
 }

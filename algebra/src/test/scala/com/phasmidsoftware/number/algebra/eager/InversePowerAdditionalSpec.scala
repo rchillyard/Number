@@ -239,7 +239,7 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
     val real = root.transformation[Real]
 
     real.isDefined shouldBe true
-    real.get shouldBe Real(2.0, None)
+    real.get shouldBe Real(2.0, Some(RelativeFuzz(1.6E-16, Box)))
   }
 
   behavior of "InversePower power operations"

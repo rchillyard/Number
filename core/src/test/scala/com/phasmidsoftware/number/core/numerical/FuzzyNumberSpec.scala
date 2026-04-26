@@ -156,7 +156,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "multiply 1 and 2" in {
     val x = FuzzyNumber(Value.fromInt(1), PureNumber, None)
     val y = Constants.two
-    val z: Number = ((x doMultiply Number.two))
+    val z: Number = x doMultiply Number.two
     z.nominalValue shouldBe Right(2)
     z.factor shouldBe PureNumber
     z.fuzz should matchPattern { case None => }
@@ -552,6 +552,54 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     val length: Option[Number] = square flatMap (x => (x `doMultiply` g).asNumber)
     println(s"length fuzz: ${showFuzz(length.get)}")
     length.get.fuzz shouldBe Some(RelativeFuzz(0.004973615575908292, Gaussian))
+  }
+  it should "calculate length of Foucault's pendulum 2" in {
+    // NOTE this is here to support Foucault2.sc
+    val g = Number("9.81*")
+    println(s"g fuzz: ${showFuzz(g)}")
+    val t = Number("16.5*")
+    println(s"t fuzz: ${showFuzz(t)}")
+
+    val tScaled: Option[Number] = (t `doDivide` twoPi).asNumber
+    println(s"tScaled fuzz: ${showFuzz(tScaled.get)}")
+    val square: Option[Number] = tScaled.flatMap(x => (x `doPower` 2).asNumber)
+    println(s"square fuzz: ${showFuzz(square.get)}")
+
+    square.get.fuzz should matchPattern { case Some(RelativeFuzz(_, Box)) => }
+    square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.0060606 +- 0.000002
+
+    val length: Option[Number] = square flatMap (x => (x `doMultiply` g).asNumber)
+    println(s"length fuzz: ${showFuzz(length.get)}")
+    length.get.fuzz shouldBe Some(RelativeFuzz(0.006060606060606061, Box))
+    println(s"length: ${length.get.render}")
+  }
+  it should "calculate length of Foucault's pendulum 3" in {
+    // NOTE this should match the content of FoucaultSpec
+
+    val g = FuzzyNumber(Value.fromDouble(Some(9.81)), PureNumber, Some(RelativeFuzz(1E-4, Box)))
+    val t = FuzzyNumber(Value.fromDouble(Some(16.5)), PureNumber, Some(RelativeFuzz(0.01, Box)))
+
+    println(s"g fuzz: ${showFuzz(g)}")
+    println(s"t fuzz: ${showFuzz(t)}")
+
+    val tScaled: Option[Number] = (t `doDivide` twoPi).asNumber
+    println(s"tScaled fuzz: ${showFuzz(tScaled.get)}")
+    val square: Option[Number] = tScaled.flatMap(x => (x `doPower` 2).asNumber)
+    println(square)
+    println(s"square fuzz (relative): ${showFuzz(square.get, true)}")
+    println(s"square fuzz (absolute): ${showFuzz(square.get)}")
+
+    square.get.fuzz should matchPattern { case Some(RelativeFuzz(_, Box)) => }
+    //    square.get.fuzz.get.asInstanceOf[RelativeFuzz[Double]].tolerance shouldBe 0.0060606 +- 0.000002
+
+    val length: Option[Number] = square flatMap (x => (x `doMultiply` g).asNumber)
+
+    println(length.get.render)
+    length.get.render shouldBe "67.65145773485139±2%"
+
+    println(s"length fuzz: ${showFuzz(length.get)}")
+    length.get.fuzz shouldBe Some(RelativeFuzz(0.02, Box))
+    println(s"length: ${length.get.render}")
   }
 //  it should "calculate the acceleration due to gravity based on the London Foucault's pendulum" in {
 //    import Expression.ExpressionOps

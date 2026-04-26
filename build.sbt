@@ -2,7 +2,7 @@
 
 ThisBuild / organization := "com.phasmidsoftware"
 
-ThisBuild / version := "1.10.2"
+ThisBuild / version := "1.10.3"
 
 val scalaVersionNumber = "3.7.3"
 val catsVersion = "2.13.0"
@@ -11,9 +11,9 @@ val scalaParserCombinatorsVersion = "2.4.0"
 val nScalaTimeVersion = "2.32.0"
 val apacheCommonsVersion = "3.6.1"
 val matchersVersion = "1.0.16"
-val flogVersion = "1.0.12"
+val flogVersion = "1.0.13"
 val logbackClassicVersion = "1.5.32"
-val configVersion = "1.4.5"
+val configVersion = "1.4.6"
 
 ThisBuild / libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % scalaTestVersion % Test,

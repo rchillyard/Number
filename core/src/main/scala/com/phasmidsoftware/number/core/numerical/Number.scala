@@ -1077,7 +1077,7 @@ object Number {
       case Success(n) =>
         n
       case Failure(e) =>
-        throw CoreExceptionWithCause(s"apply(String, Factor): unable to parse $x", e)
+        throw CoreExceptionWithCause(s"apply(String): unable to parse $x", e)
     }
 
   /**
@@ -1432,8 +1432,7 @@ object Number {
   def negate(x: Number): Number =
     x.factor match {
       case p@Scalar(_) =>
-        val number = prepare(x.transformMonadic(p)(MonadicOperationNegate))
-        number
+        prepare(x.transformMonadic(p)(MonadicOperationNegate))
       case NthRoot(_) if Value.signum(x.nominalValue) < 0 =>
         throw CoreException(s"cannot negate imaginary number: $x")
       case _ =>

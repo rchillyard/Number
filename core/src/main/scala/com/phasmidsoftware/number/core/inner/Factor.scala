@@ -1844,14 +1844,17 @@ object Factor {
     * or matching criteria, potentially related to percentages or division operations.
     */
   lazy val sPercent: String = Percent.toString
+  
   /**
     * Represents the degree symbol ("°") used to denote angular measurement.
     */
   val sDegree = "°"
+  
   /**
     * Represents the Unicode character ℯ (𝜀), which is commonly used to denote Euler's number in mathematics.
     */
   val sE = "\uD835\uDF00"
+  
   /**
     * Represents the Unicode sequence for the mathematical constant ℯ
     * combined with a modifier character.
@@ -1861,18 +1864,21 @@ object Factor {
     * - A modifier character (U+02E3)
     */
   val sEi = "\uD835\uDF00\u2071"
+  
   /**
-    * Represents the symbol for π (pi) in unicode format.
+    * Represents the symbol for π (pi) in Unicode format.
     * This constant can be used to identify and match the mathematical symbol π
     * within the `Factor` class operations and logic.
     */
   val sPi = "\uD835\uDED1"
+  
   /**
     * Alternate representation of the mathematical constant π as a string.
     * Used as one of the predefined constants within the `Factor` class
     * for identifying and handling π-related symbols.
     */
   val sPiAlt0 = "pi"
+  
   /**
     * Represents an alternative designation for the mathematical constant π (pi) in radians.
     *
@@ -1881,6 +1887,7 @@ object Factor {
     * when applying the `Factor` class's methods.
     */
   val sPiAlt1 = "Radian"
+  
   /**
     * Represents an alternative string representation for the mathematical constant π (Pi).
     * This value is one of several predefined symbols within the `Factor` class

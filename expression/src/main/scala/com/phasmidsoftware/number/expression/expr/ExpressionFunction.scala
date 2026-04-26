@@ -9,14 +9,16 @@ import com.phasmidsoftware.number.algebra.core.Context.{AnyLog, AnyRoot, AnyScal
 import com.phasmidsoftware.number.algebra.core.{AnyContext, ImpossibleContext, RestrictedContext, *}
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
+import com.phasmidsoftware.number.algebra.eager.Functional.logger
 import com.phasmidsoftware.number.algebra.eager.{Algebraic, Angle, Eager, RationalNumber, Solution, Structure}
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical.{Real, *}
 import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.expression.expr.ExpressionFunction.{lift1, lift2}
+import org.slf4j.{Logger, LoggerFactory}
 
-import scala.annotation.tailrec
+import scala.util.Try
 
 /**
   * Represents a named, generic computation or transformation from an input of type `P`
@@ -75,6 +77,8 @@ object ExpressionFunction {
   def lift2(f: (Field, Field) => Field): (Eager, Eager) => Eager = {
     (v1, v2) => Eager(f(eagerToField(v1), eagerToField(v2)))
   }
+
+  val logger: Logger = LoggerFactory.getLogger(getClass)
 }
 
 /**
@@ -810,52 +814,63 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x `multipl
   }
 
   /**
-    * Multiplies two Valuable instances under specific conditions and returns the result as an optional Eager.
+    * Applies a binary operation to the provided `Valuable` elements `a` and `b`, with stricter evaluation rules,
+    * and returns an optional result.
+    * The evaluation succeeds only if the operation satisfies specific conditions
+    * (e.g., exact representations or mathematical constraints).
     *
-    * The method checks the type and characteristics of the second operand `b` (the multiplier)
-    * and applies an exact mathematical operation to the first operand `a` (the multiplicand)
-    * if certain criteria are met. If no conditions are satisfied, it returns `None`.
-    *
-    * The final check on `isExact` should be redundant, but it's here to be safe.
-    *
-    * @param a the first operand, a Valuable instance serving as the multiplicand.
-    * @param b the second operand, a Valuable instance serving as the multiplier. This operand is evaluated
-    *          to determine the applicability of exact computations.
-    *
-    * @return an `Option[Valuable]` containing the resulting Valuable if the operation is valid and applicable,
-    *         or `None` if the conditions for exact multiplication are not met.
+    * @param a the first operand, a `Valuable` instance.
+    * @param b the second operand, a `Valuable` instance.
+    * @return an `Option[Valuable]` containing the result of the operation if it can be computed exactly,
+    *         or `None` if the operation fails to meet exactness requirements.
     */
-  @tailrec
-  def applyExact(a: Eager, b: Eager): Option[Eager] = (a, b) match {
-    case (Eager.one, _) =>
-      Some(b)
-    case (_, Eager.one) =>
-      Some(a)
-    case (Eager.zero, _) | (_, Eager.zero) =>
-      Some(Eager.zero)
-    // NOTE do not try to replace RationalNumber with Q. It matches too freely.
-    case (x: Scalable[Eager] @unchecked, y: RationalNumber) =>
-      Some(x * y.toRational)
-    case (x: RationalNumber, y: Scalable[Eager] @unchecked) =>
-      Some(y * x.toRational)
-    case (x: eager.InversePower, y: eager.Number) =>
-      FP.whenever(x.isExact && y.isExact)(x.doScale(y)).filter(_.isExact)
-    case (x: CanMultiply[eager.Number, eager.Number] @unchecked, y: eager.Number) =>
-      // TODO asInstanceOf
-      Option.when(x.isExact && y.isExact)((x * y).materialize).filter(_.isExact)
-    case (x: eager.Number, y: CanMultiply[eager.Number, eager.Number] @unchecked) =>
-      // TODO asInstanceOf
-      Option.when(x.isExact && y.isExact)((y * x).materialize).filter(_.isExact)
-    case (ValueExpression(x, _), y: eager.Number) =>
-      applyExact(x, y)
-    case (ValueExpression(x, _), ValueExpression(y, _)) =>
-      applyExact(x, y)
-    case (x: eager.Number, ValueExpression(y, _)) =>
-      applyExact(x, y)
-    case (x: Scalable[Eager] @unchecked, y: Q) =>
-      Some(x * y.toRational)
-    case _ =>
-      None
+  def applyExact(a: Eager, b: Eager): Option[Eager] =
+    FP.toOptionWithLog(e => logger.warn(s"Failure: Product.applyExact: $e"))(matchExact(a, b)).flatten
+
+  /**
+    * Recursive method matchExact (co-recursive with applyExact).
+    *
+    * Attempts to match two `Eager` elements exactly under specific conditions and returns the result encapsulated
+    * within a `Try` and `Option`. This method evaluates various cases, including specific numeric relationships,
+    * scalable types, rational numbers, and mathematical operations to determine if an exact match is possible.
+    *
+    * CONSIDER using Matchers
+    *
+    * @param a the first `Eager` operand to be matched.
+    * @param b the second `Eager` operand to be matched.
+    * @return a `Try[Option[Eager]]` containing `Some(Eager)` if an exact match is found, `None` if no match is found,
+    *         or a failure if the computation encounters an issue.
+    */
+  private def matchExact(a: Eager, b: Eager): Try[Option[Eager]] = Try {
+    (a, b) match {
+      case (Eager.one, _) =>
+        Some(b)
+      case (_, Eager.one) =>
+        Some(a)
+      case (Eager.zero, _) | (_, Eager.zero) =>
+        Some(Eager.zero)
+      // NOTE do not try to replace RationalNumber with Q. It matches too freely.
+      case (x: Scalable[Eager] @unchecked, y: RationalNumber) =>
+        Some(x * y.toRational)
+      case (x: RationalNumber, y: Scalable[Eager] @unchecked) =>
+        Some(y * x.toRational)
+      case (x: eager.InversePower, y: eager.Number) =>
+        FP.whenever(x.isExact && y.isExact)(x.doScale(y)).filter(_.isExact)
+      case (x: CanMultiply[eager.Number, eager.Number] @unchecked, y: eager.Number) =>
+        Option.when(x.isExact && y.isExact)((x * y).materialize).filter(_.isExact)
+      case (x: eager.Number, y: CanMultiply[eager.Number, eager.Number] @unchecked) =>
+        Option.when(x.isExact && y.isExact)((y * x).materialize).filter(_.isExact)
+      case (ValueExpression(x, _), y: eager.Number) =>
+        applyExact(x, y)
+      case (ValueExpression(x, _), ValueExpression(y, _)) =>
+        applyExact(x, y)
+      case (x: eager.Number, ValueExpression(y, _)) =>
+        applyExact(x, y)
+      case (x: Scalable[Eager] @unchecked, y: Q) =>
+        Some(x * y.toRational)
+      case _ =>
+        None
+    }
   }
 }
 

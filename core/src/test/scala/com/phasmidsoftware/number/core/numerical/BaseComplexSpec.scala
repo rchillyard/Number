@@ -15,7 +15,7 @@ class BaseComplexSpec extends AnyFlatSpec with Matchers {
 
   // Helper method to check approximate equality for complex numbers
   def approxEqual(a: Field, b: Field, tolerance: Double = 1e-10): Boolean = {
-    val diff = a.asComplex `add` (b.asComplex.unary_-)
+    val diff = a.asComplex `add` b.asComplex.unary_-
     diff.asComplex.modulus.toNominalDouble.exists(d => Math.abs(d) < tolerance)
   }
 
@@ -182,7 +182,7 @@ class BaseComplexSpec extends AnyFlatSpec with Matchers {
     val sinOverCos = sinZ `divide` cosZ
 
     // tan(z) should equal sin(z)/cos(z)
-    val diff = tanZ.asComplex `add` (sinOverCos.asComplex.unary_-)
+    val diff = tanZ.asComplex `add` sinOverCos.asComplex.unary_-
     diff.asComplex.modulus.toNominalDouble.get should be < 1e-8
   }
 
@@ -302,7 +302,7 @@ class BaseComplexSpec extends AnyFlatSpec with Matchers {
     val expProduct = expZ1.asComplex `multiply` expZ2
     println(s"expProduct = $expProduct")
 
-    val diff = expSum.asComplex `add` (expProduct.asComplex.unary_-)
+    val diff = expSum.asComplex `add` expProduct.asComplex.unary_-
     diff.asComplex.modulus.toNominalDouble.get should be < 1e-8
   }
 
@@ -508,7 +508,7 @@ class BaseComplexSpec extends AnyFlatSpec with Matchers {
     val expZ = z.exp.asComplex
     val lnExpZ = expZ.ln
 
-    val diff = lnExpZ.asComplex `add` (z.unary_-)
+    val diff = lnExpZ.asComplex `add` z.unary_-
     diff.asComplex.modulus.toNominalDouble.get should be < 1e-8
   }
 
@@ -517,7 +517,7 @@ class BaseComplexSpec extends AnyFlatSpec with Matchers {
     val lnZ = z.asComplex.ln
     val expLnZ = lnZ.asComplex.exp
 
-    val diff = expLnZ.asComplex `add` (z.unary_-)
+    val diff = expLnZ.asComplex `add` z.unary_-
     diff.asComplex.modulus.toNominalDouble.get should be < 1e-8
   }
 }

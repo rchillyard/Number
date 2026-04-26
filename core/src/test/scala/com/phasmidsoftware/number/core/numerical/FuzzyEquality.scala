@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.algebraic.{Solution}
+import com.phasmidsoftware.number.core.algebraic.Solution
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalactic.Equality
 

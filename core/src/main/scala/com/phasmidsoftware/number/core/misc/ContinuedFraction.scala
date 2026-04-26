@@ -7,7 +7,7 @@ import scala.annotation.tailrec
 import scala.util.Try
 
 /**
-  * This Class defines a Continued Fraction. See [[https://en.wikipedia.org/wiki/Continued_fraction]].
+  * This Class defines a Continued Fraction. See [[https://en.wikipedia.org/wiki/Continued_fraction Continued Fraction]].
   *
   * Continued fractions are an interesting way of defining irrational (or rational) numbers.
   * There are two distinct types:
@@ -125,10 +125,10 @@ object ContinuedFraction {
     *
     * CONSIDER changing the f to be Int => Pair.
     *
-    * @param f        a function which yields a LazyList of Pairs..
+    * @param f        a function which yields a `LazyList` of `Pairs`.
     * @param infinite true if xs is infinite (defaults to true).
-    * @param markov   the value of Markov constant (defaults to Hurwitz).
-    * @return a ContinuedFraction
+    * @param markov   the value of the `Markov` constant (defaults to `Hurwitz`).
+    * @return a `ContinuedFraction`
     */
   def apply(f: () => LazyList[Pair], infinite: Boolean, markov: Double): ContinuedFraction =
     ContinuedFraction(f(), infinite, markov)
@@ -674,8 +674,8 @@ object ConFrac {
   *
   * CONSIDER making CF a trait.
   *
-  * @param a the a coefficient to apply to c.
-  * @param c the ConFrac.
+  * @param a the coefficient to apply to c`.
+  * @param c a `ConFrac`.
   */
 case class CF(a: Long, c: ConFrac) {
   def render(depth: Int): String = s"$a/{${c.render(depth)}}"
@@ -688,8 +688,8 @@ case class CF(a: Long, c: ConFrac) {
   *
   * CONSIDER representing this by a Rational. However, these coefficients are really independent entities.
   *
-  * @param b the b value.
-  * @param a the a value.
+  * @param b the `b` value.
+  * @param a the `a` value.
   */
 case class Pair(b: Long, a: Long) {
   /**
@@ -724,9 +724,9 @@ object Pair {
   /**
     * Method to zip together two LazyLists of Long such that the result is a LazyList of Pair.
     *
-    * @param bs the b coefficients (according to the figure on Wikipedia describing Generalized ContinuedFraction).
-    * @param as the a coefficients (according to the figure on Wikipedia describing Generalized ContinuedFraction).
-    * @return a LazyList of Longs.
+    * @param bs the `b` coefficients (according to the figure on [[https://en.wikipedia.org/wiki/Continued_fraction Wikipedia article]] describing Generalized ContinuedFraction).
+    * @param as the `a` coefficients (according to the figure on [[https://en.wikipedia.org/wiki/Continued_fraction Wikipedia article]] describing Generalized ContinuedFraction).
+    * @return a `LazyList` of `Long`s.
     */
   def zip(bs: LazyList[Long], as: LazyList[Long]): LazyList[Pair] = bs zip as map (t => Pair(t._1, t._2))
 }

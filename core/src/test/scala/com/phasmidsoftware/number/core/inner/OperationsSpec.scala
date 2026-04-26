@@ -186,14 +186,15 @@ class OperationsSpec extends AnyFlatSpec with should.Matchers {
     val x = FuzzyNumber(Value.fromDouble(Some(3.0)), PureNumber, Some(AbsoluteFuzz(0.005, Box)))
     val result = Number.negate(x)
     result.fuzz.isDefined shouldBe true
-    result.toNominalDouble shouldBe Some(-3.0)
-    result.fuzz shouldBe Some(AbsoluteFuzz(0.005, Box)) // fuzz unchanged
+    val z = result.toNominalDouble
+    z shouldBe Some(-3.0)
+    result.fuzz.flatMap(_.normalize(z.get, false)) shouldBe Some(AbsoluteFuzz(0.005, Box)) // fuzz unchanged
   }
 
   it should "preserve relative fuzz through negate" in {
     val x = FuzzyNumber(Value.fromDouble(Some(3.0)), PureNumber, Some(RelativeFuzz(0.01, Gaussian)))
     val result = Number.negate(x)
-    result.fuzz shouldBe Some(AbsoluteFuzz(0.03, Gaussian))
+    result.fuzz shouldBe Some(RelativeFuzz(0.01, Gaussian))
     result.toNominalDouble shouldBe Some(-3.0)
   }
 
