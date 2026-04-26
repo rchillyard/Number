@@ -47,6 +47,19 @@ trait Approximate {
   def approximation(force: Boolean = false): Option[Real]
 
   /**
+    * Computes an approximate representation of the current value.
+    *
+    * This method utilizes the `approximation` mechanism to derive the most
+    * likely value in the form of a `Real`. Should the approximation fail,
+    * an `AlgebraException` will be raised to indicate the error.
+    *
+    * @return the approximate value as a `Real` if successful;
+    *         throws an `AlgebraException` otherwise.
+    */
+  def approximate: Real =
+    recover(approximation(true))(AlgebraException(s"Error approximating $this"))
+
+  /**
     * Attempts to compute an approximate complex representation of the current value.
     *
     * This method provides an optional approximation in the form of an `Eager` type.
@@ -80,6 +93,6 @@ trait Approximate {
       x.complex.modulus.toNominalDouble.getOrElse(throw AlgebraException(s"Complex.toDouble: no approximation: $x"))
     case _ =>
       // NOTE: it is possible for this to recurse infinitely if approximation(true) returns `Some(this)`.
-      recover(approximation(true).map(_.toDouble))(AlgebraException("Approximate.toDouble: logic error"))
+      approximate.toDouble
   }
 }

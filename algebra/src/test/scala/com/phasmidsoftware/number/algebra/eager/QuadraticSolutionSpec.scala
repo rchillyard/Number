@@ -409,9 +409,8 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
 
   it should "provide approximation for non-exact solutions" in {
     val solution = QuadraticSolution(RationalNumber.half, squareRoot(RationalNumber(2)), 1, false)
-    val approx = solution.approximation(force = true)
-    approx shouldBe defined
-    approx.get shouldBe a[Real]
+    val approx = solution.approximate
+    approx shouldBe a[Real]
   }
 
   it should "handle approximation for pure number solutions" in {
@@ -421,7 +420,7 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
 
     // Pure numbers might not need approximation
     // Test that it doesn't throw
-    noException should be thrownBy solution.approximation(force = true)
+    noException should be thrownBy solution.approximate
   }
 
   behavior of "QuadraticSolution with imaginary flag integration"

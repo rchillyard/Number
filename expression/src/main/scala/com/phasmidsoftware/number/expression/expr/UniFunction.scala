@@ -90,13 +90,14 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     *         of this `Number`, or `None` if no approximation is available.
     */
   def approximation(force: Boolean): Option[eager.Real] =
-    // CONSIDER is this correct? Shouldn't we try to evaluate first?
     x.approximation(force) flatMap (
-      x =>
-        f.apply(x) match {
+      z =>
+        f.apply(z) match {
           case r: eager.Real =>
             Some(r)
-          case _ =>
+          case q: Structure =>
+            q.convert(Real.zero)
+          case q =>
             None
 
         }
@@ -163,6 +164,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
       case UniFunction(Pi, Cosine) =>
         em.Match(MinusOne)
 
+      // Match Log and Exp cases
       case UniFunction(IsEuler(Euler(r, θ)), Ln) =>
         em.Match((UniFunction(r, Ln) + (I * θ)).simplify)
       // XXX Take care of the cases whereby the inverse of a log expression is a log expression with operand and base swapped.
@@ -174,6 +176,8 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
         em.Match(BiFunction(b, x, Log))
       case UniFunction(Infinity, Exp) =>
         em.Match(Infinity)
+      case UniFunction(UniFunction(Infinity,Negate), Exp) =>
+        em.Match(Zero)
       case UniFunction(x, Exp) =>
         matchExponential(x)
       case UniFunction(I, Reciprocal) =>

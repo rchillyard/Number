@@ -10,12 +10,10 @@ import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.core.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.eager.InversePower.squareRoot
-import com.phasmidsoftware.number.algebra.util.FP.recover
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.core.numerical.Complex.convertToCartesian
-import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, CoreExceptionWithCause, Field}
+import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, CoreExceptionWithCause, Field}
 import com.phasmidsoftware.number.core.parse.NumberParser
 import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.{algebra, core}
@@ -71,7 +69,7 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     * @return An instance of `Eager` if the approximation is successful.
     */
   def fuzzy: Eager =
-    recover(approximation(true))(AlgebraException(s"fuzzy: unable to convert a ${this.getClass.getSimpleName} (${this.toString}) to Eager"))
+    approximate
 
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
@@ -689,31 +687,4 @@ object Eager {
 
   private def complexToEager(c: Complex): Option[Eager] =
     FP.whenever(c.complex.isReal && c.complex.isExact)(c.complex.asReal.map(Eager(_)))
-}
-
-/**
-  * The `HasImaginary` object provides utilities for working with complex mathematical objects,
-  * particularly for extracting and transforming specific patterns in `Eager` instances.
-  */
-object HasImaginary {
-  /**
-    * Extractor method for optionally extracting the imaginary part of an `Eager` instance.
-    * If the input is a complex number, it returns the imaginary part as an `Eager` instance.
-    * If the input is an InversePower with a negative value, then it returns the square root of the negated value.
-    *
-    * @param x the input value of type `Eager` to be analyzed and transformed.
-    * @return an `Option` containing a transformed `Eager` instance if a match is found,
-    *         or `None` if no pattern matches the input.
-    */
-  @tailrec
-  def unapply(x: Eager): Option[Eager] = x match {
-    case Complex(ComplexCartesian(_, i)) =>
-      Some(Eager(numerical.Real(i)))
-    case Complex(cp: ComplexPolar) =>
-      unapply(Complex(convertToCartesian(cp)))
-    case IsImaginary(z) =>
-      Some(z)
-    case _ =>
-      None
-  }
 }

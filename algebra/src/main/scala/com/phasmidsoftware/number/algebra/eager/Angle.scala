@@ -11,7 +11,8 @@ import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.Angle.{angleIsCommutativeGroup, r180}
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.util.AlgebraException
+import com.phasmidsoftware.number.algebra.util.FP.recover
 import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational, Value}
 import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Fuzziness}
 
@@ -130,7 +131,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     case x if x.getClass == this.getClass =>
       Some(this.asInstanceOf[T])
     case _: Real =>
-      toMaybeReal.asInstanceOf[Option[T]]
+      Some(toReal).asInstanceOf[Option[T]]
     case _ =>
       None
   }
@@ -241,7 +242,6 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
       (if prefix == "1" then "" else prefix) + "𝛑"
     else {
       val maybeReal = convert(Real.zero)
-      println(s"maybeReal = $maybeReal")
       maybeReal.map(_.show) getOrElse "Angle.show: logic error"
     }
   }
@@ -401,20 +401,6 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
   }
 
   override def toString: String = s"Angle(${number.show})"
-
-  /**
-    * Converts the current instance to an optional scaled representation as a `Real`.
-    * TODO normalize before conversion
-    *
-    * This method approximates the `radians` value of the instance with forced scaling
-    * by π and returns the result wrapped in an `Option`. If the approximation is not
-    * possible, the method returns `None`.
-    *
-    * @return an `Option[Real]` containing the scaled representation of the current instance,
-    *         or `None` if the approximation fails.
-    */
-  private lazy val toMaybeReal: Option[Real] =
-    number.approximation(true).map(x => x.scaleByPi)
 }
 
 /**
@@ -704,7 +690,7 @@ object Angle {
     def plus(x: Angle, y: Angle): Angle = (x, y) match {
       case (Angle(x1: CanAdd[Number, Number] @unchecked, _), Angle(x2: CanAdd[Number, Number] @unchecked, _)) =>
         val maybeMonotone = x1 plus x2
-        Angle.create(FP.getOrThrow(maybeMonotone, new UnsupportedOperationException("Angle.combine"))).normalize
+        Angle.create(recover(maybeMonotone)(new UnsupportedOperationException("Angle.combine"))).normalize
       case _ =>
         throw new UnsupportedOperationException(s"Angle.combine: $x + $y")
     }

@@ -162,12 +162,12 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for E∧2 as Real" in {
     val target = Number("2\uD835\uDF00").normalize.asInstanceOf[Real]
-    target.x.scale(PureNumber).render shouldBe "7.389056098930650(3)"
+    target.x.scale(PureNumber).render shouldBe "7.3890560989306500[95]"
   }
   it should "work for E, SquareRoot" in {
     val target = Number(math.E * math.E)
     val result = target.sqrt.normalize.asInstanceOf[Real]
-    result.render shouldBe "2.7182818284590450[49]"
+    result.render shouldBe "2.7182818284590450[35]"
   }
   // TODO fix this--it fails in CircleCI (fails here, too)
   // NOTE this is quite bizarre
@@ -770,7 +770,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "add 1 to pi" in {
     val x1 = Number.one
     val x2 = Constants.pi
-    (x1 `add` x2).render shouldBe "4.14159265358979300[41]"
+    (x1 `add` x2).render shouldBe "4.141592653589793*"
   }
   it should "add 1 to e" in {
     val x1 = Number.one
@@ -867,7 +867,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "multiply Radian and 2" in {
     val x = Number(1, Radian)
     val y = Constants.two
-    (x `multiply` y) `isSame` Real(Number.zeroR)
+    (x `multiply` y).`isSame`(Real(Number.zeroR))
   }
   it should "multiply rational by Int" in {
     val target = Number("3/5")
@@ -939,11 +939,11 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for squaring SquareRoot" in {
     val target = Number.root2
-    Real(target.power(2)) `isSame` Constants.two
+    Real(target.power(2)).`isSame`(Constants.two)
   }
   it should "work for squaring CubeRoot" in {
     val target = Number.root3
-    Real(target.power(2)) `isSame` Real(3)
+    Real(target.power(2)).`isSame`(Real(3))
   }
   it should "work for cubing cube-root2" in {
     val target = Number(2, CubeRoot)
@@ -1045,7 +1045,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "work for 1/3" in {
     // Get the sine of 1/3 as a pure number.
-    Number(Rational(1, 3)).sin shouldBe FuzzyNumber(Left(Left(Some(0.3271946967961522))), PureNumber, Some(RelativeFuzz(1.810193359837562E-15, Box)))
+    Number(Rational(1, 3)).sin shouldBe FuzzyNumber(Left(Left(Some(0.3271946967961522))), PureNumber, Some(RelativeFuzz(1.28E-15, Box)))
   }
 
   behavior of "cos"

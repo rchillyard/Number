@@ -506,6 +506,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     val t = -0.009003823032986082 // the input to the inversion.
     val x = -111.06393321330684 // the output from the inversion.
     val fuzz = Some(RelativeFuzz(1.0846958231396446E-9, Gaussian))
-    monadicFuzziness(op, t, x, fuzz)
+    val q: Option[Fuzziness[Double]] = monadicFuzziness(op, t, x, fuzz)
+    q.get shouldBe RelativeFuzz(1.0846958231396446E-9, Gaussian)
   }
 }

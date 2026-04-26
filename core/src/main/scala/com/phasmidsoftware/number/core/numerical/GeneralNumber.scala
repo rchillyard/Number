@@ -187,8 +187,12 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * @param n another Number.
     * @return this quotient of this and n, i.e. this/n.
     */
-  def doDivide(n: Number): Number =
-    doMultiply(Number.inverse(n))
+  def doDivide(n: Number): Number = n.factor match {
+    case Radian =>
+      doMultiply(Number.inverse(n.scale(PureNumber)))
+    case _ =>
+      doMultiply(Number.inverse(n))
+  }
 
   /**
     * Yields the square root of this Number.
@@ -285,7 +289,10 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * @return a Number based on this and factor.
     */
   def scale(f: Factor): Number =
-    Number.scale(this, f).specialize
+    if (f == factor)
+      this
+    else
+      Number.scale(this, f).specialize
 
   /**
     * Perform a fuzzy comparison where we only require p confidence to know that this and other are effectively the same.
@@ -521,21 +528,20 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
       this
   }
 
-  private def createNumberFromDouble(d: Value, x: Double) =
-    Rational.createExact(x) match {
+  private def createNumberFromDouble(d: Value, x: Double): Number =
+    if (fuzz.isDefined) this // already has fuzz — don't add more
+    else Rational.createExact(x) match {
       case Success(r) =>
         r.toBigDecimal.map(_.scale) match {
           case Some(0) | Some(1) | Some(2) =>
-            make(r).specialize
+            make(r)
           case Some(n) =>
-            // NOTE for some reason, we recreate the fuzz for this case. Let's not double-count it.
-            FuzzyNumber(d, factor, fuzz).addFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -(n + 1)), Box))
-          //              FuzzyNumber(d, factor, fuzz).maybeAddFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -(n + 1)), Box))
+            FuzzyNumber(d, factor, None).addFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -(n + 1)), Box))
           case _ =>
-            FuzzyNumber(d, factor, fuzz).addFuzz(Fuzziness.doublePrecision)
+            FuzzyNumber(d, factor, None).addFuzz(Fuzziness.doublePrecision)
         }
       case Failure(_) =>
-        FuzzyNumber(d, factor, fuzz).addFuzz(Fuzziness.doublePrecision)
+        FuzzyNumber(d, factor, None).addFuzz(Fuzziness.doublePrecision)
     }
 
   /**
@@ -803,56 +809,14 @@ object GeneralNumber {
               p.make(PureNumber)
             // NOTE see RQRSpec for discussion of this code.
             case (r@NthRoot(_), g) =>
-              // NOTE duplicate code below
-              r.multiply(p.nominalValue, q.nominalValue, g) match {
-                case Some((v, f, _)) =>
-                  p.make(v, f)
-                case None =>
-                  times(p.scale(PureNumber), q.scale(PureNumber))
-              }
+              product4(r, p, q, g)
             case (g, r@NthRoot(_)) =>
-              g.multiply(p.nominalValue, q.nominalValue, r) match {
-                case Some((v, f, _)) =>
-                  p.make(v, f)
-                case None =>
-                  times(p.scale(PureNumber), q.scale(PureNumber))
-              }
+              product4(g, p, q, r)
             case _ =>
               times(p.scale(PureNumber), q.scale(PureNumber))
           }
       }
   }
-//  def times(x: Number, y: Number): Number = (x, y) match {
-//    case (_, Number.zero) | (Number.zero, _) => Number.zero
-//    case (a, Number.one) => a
-//    case (Number.one, b) => b
-//    case (a: ExactNumber, b: FuzzyNumber) => b doMultiply a
-//    case (a: FuzzyNumber, b) => a doMultiply b
-//    case (a: ExactNumber, b: ExactNumber) => ExactNumber.product(a, b)
-//    case _ => throw CoreException(s"GeneralNumber.times($x, $y): no match")
-//  }
-
-//    x match {
-  //    case ExactNumber(Right(0), PureNumber) => Number.zero
-  //    case ExactNumber(Right(1), PureNumber) => y
-//    case a: GeneralNumber =>
-//      y match {
-  //        case ExactNumber(Right(0), PureNumber) => Number.zero
-  //        case ExactNumber(Right(1), PureNumber) => x
-//        case n@FuzzyNumber(_, _, _) => n doMultiply x
-//        case z: GeneralNumber =>
-//          val (p, q) = a.alignTypes(z)
-//          (p.factor, q.factor) match {
-  //            case (Scalar(_), PureNumber) => doTimes(p, q, p.factor)
-  //            case (PureNumber, Scalar(_)) => doTimes(p, q, q.factor)
-  //            case (f: Logarithmic, PureNumber) if q.signum > 0 => prepareWithSpecialize(p.composeDyadic(q.scale(f), f)(DyadicOperationPlus))
-  //            case (_: Logarithmic, PureNumber) => times(p.scale(PureNumber), q)
-  //            case (NthRoot(_), NthRoot(_)) if p == q => p.make(PureNumber)
-//            case (NthRoot(_), NthRoot(_)) => doTimes(p, q.scale(p.factor), p.factor)
-  //            case _ => times(p.scale(PureNumber), q.scale(PureNumber))
-//          }
-//      }
-//  }
 
   /**
     * Method to raise an (exact) Number to a power.
@@ -884,6 +848,24 @@ object GeneralNumber {
     *         using elements of the given `ProtoNumber`.
     */
   val protoNumberFunction: Number => ProtoNumber => Number = number => protoNumber => number.make(protoNumber._1, protoNumber._2)
+
+  /**
+    * Computes the product of two `Number` instances, taking into account scaling and multiplication 
+    * factors provided as the parameters `f1` and `f2`. It applies the specified factors to map the 
+    * multiplication process and returns a new `Number` instance that encapsulates the result.
+    *
+    * @param f1 the first factor to be applied to the multiplication operation
+    * @param p  the first operand, represented as a `Number` instance
+    * @param q  the second operand, represented as a `Number` instance
+    * @param f2 the second factor to be applied to the multiplication operation
+    */
+  private def product4(f1: Factor, p: Number, q: Number, f2: Factor) =
+    f1.multiply(p.nominalValue, q.nominalValue, f2) match {
+      case Some((v, f, _)) =>
+        p.make(v, f)
+      case None =>
+        times(p.scale(PureNumber), q.scale(PureNumber))
+    }
 
   /**
     * Method to raise an (exact) Number to a Rational power.
@@ -993,8 +975,10 @@ object GeneralNumber {
     */
   private def plusAligned(x: Number, y: Number): Number = (x, y) match {
     case (a: GeneralNumber, b: GeneralNumber) =>
-      y match {
-        case n@FuzzyNumber(_, _, _) =>
+      (x, y) match {
+        case (n@FuzzyNumber(_, _, _), _) =>
+          n `doAdd` y
+        case (_, n@FuzzyNumber(_, _, _)) =>
           n `doAdd` x
         case _ =>
           val (p, q) = a.alignTypes(b)

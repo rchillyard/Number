@@ -4,6 +4,8 @@
 
 package com.phasmidsoftware.number.core.numerical
 
+import com.phasmidsoftware.number.core.numerical.HasValue.HasValueDouble$
+
 import scala.Option.when
 import scala.util.Try
 
@@ -78,6 +80,35 @@ trait Series[X] {
 }
 
 /**
+  * Companion object for the `Series` class.
+  */
+object Series {
+  /**
+    * Composes a fuzziness value for the given input of type `X` wrapped in a `Try`.
+    * The method calculates and adds fuzziness to the input using either the existing fuzziness 
+    * or a default no-fuzz value, scaled by a given `ratio`.
+    *
+    * NOTE designed to be used to two evaluation methods that share same code. Not used at present.
+    *
+    * @param ratio  the ratio of epsilong / convergenceRate.
+    * @param triedX a `Try` wrapping the input value of type `X` that may have associated fuzziness.
+    * @return a `Try` wrapping a `Fuzz[X]` instance with composed fuzziness applied to the input value.
+    */
+  def composeFuzz[X: HasValue](ratio: Double)(triedX: Try[X]): Try[Fuzz[Double]] =
+    triedX map {
+      case f: Fuzz[X] @unchecked =>
+        val r = implicitly[HasValue[X]].fromDouble(ratio)
+        f.fuzz match {
+          case Some(z) =>
+            f.addFuzz(z.asInstanceOf[Fuzziness[X]].uncertainty(r))
+          case None =>
+            f.addFuzz(f.noFuzz.uncertainty(r))
+        }
+    }
+
+}
+
+/**
   * Represents an abstract mathematical series, inheriting from the `Series` trait.
   * Provides methods for evaluating the series and accessing individual terms.
   * This class facilitates the representation and evaluation of a series where
@@ -112,6 +143,7 @@ abstract class AbstractSeries[X: Numeric](terms: Seq[X]) extends Series[X] {
             f.addFuzz(f.noFuzz.uncertainty(epsilon / convergenceRate))
         }
     }
+    //    val result: Try[Fuzz[Double]] = Series.composeFuzz[Double](ratio)(triedDouble)
     result.asInstanceOf[Try[X]]
   }
 
@@ -199,6 +231,26 @@ abstract class AbstractInfiniteSeries[X: Numeric](terms: LazyList[X]) extends Se
     }
     result.asInstanceOf[Try[X]]
   }
+
+  /**
+    * Creates a new series from a lazy list of terms, providing a representation of a mathematical series.
+    * The terms of the series are derived from the elements of the provided `LazyList`.
+    *
+    * @param ys A `LazyList` of terms from which the series will be constructed.
+    *           The terms must be of a numeric type, and a `Numeric` context bound is required
+    *           for the type parameter `Y`.
+    * @return A `Series[Y]`, representing the mathematical series defined by the input terms.
+    */
+  def unit[Y: Numeric](ys: LazyList[Y]): AbstractInfiniteSeries[Y]
+
+  /**
+    * Transforms the elements of the series using the provided function and returns a new series.
+    *
+    * @param f A function that maps each element of type `X` in the series to a new element of type `Y`.
+    * @tparam Y The type of the elements in the resulting series, constrained by the `Numeric` type class.
+    * @return A new series where each element is the result of applying the function `f` to the corresponding element in the original series.
+    */
+  def map[Y: Numeric](f: X => Y): AbstractInfiniteSeries[Y] = unit(terms map f)
 
   /**
     * Returns the default convergence rate used for evaluating the series.
@@ -291,4 +343,18 @@ case class InfiniteSeries[X: Numeric](terms: LazyList[X], convergenceRate: Doubl
     * @return None.
     */
   def nTerms: Option[Int] = None
+
+  /**
+    * Creates a new series from a lazy list of terms, providing a representation of a mathematical series.
+    * The terms of the series are derived from the elements of the provided `LazyList`.
+    *
+    * @param ys A `LazyList` of terms from which the series will be constructed.
+    *           The terms must be of a numeric type, and a `Numeric` context bound is required
+    *           for the type parameter `Y`.
+    *
+    * @return   A `Series[Y]`, representing the mathematical series defined by the input terms.
+    */
+  def unit[Y: Numeric](ys: LazyList[Y]): InfiniteSeries[Y] = copy(terms = ys)
+
+  override def map[Y: Numeric](f: X => Y): InfiniteSeries[Y] = super.map(f).asInstanceOf[InfiniteSeries[Y]]
 }

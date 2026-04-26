@@ -662,6 +662,23 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     this * Rational(that)
 
   /**
+    * Determines if the given delta exceeds the precision of the rational resolution.
+    *
+    * @param maybeDelta The optional value to be compared against the precision of the rational resolution.
+    *                   This should come from the wiggle room of Absolute fuzz.
+    *
+    * @return True if the absolute value of the input exceeds the precision of the rational resolution, false otherwise.
+    *         False if maybeDelta is None.
+    */
+  def exceedsPrecision(maybeDelta: Option[Double]): Boolean = maybeDelta match {
+    case Some(delta) =>
+      val resolution = 1.0 / d.toDouble // finest distinction this rational can represent
+      resolution < math.abs(delta) // rational is more precise than x warrants
+    case None =>
+      false
+  }
+
+  /**
     * Finds and returns the repeating sequence in the decimal representation of a fraction.
     * The method uses the numerator, denominator, and the prime factorization of the denominator
     * to compute the repeating sequence.
@@ -795,7 +812,7 @@ object Rational {
       val strings = sc.parts.iterator
       val expressions = args.iterator
       val sb = new StringBuffer()
-      while (strings.hasNext) {
+      while (strings.hasNext) { // NOTE using "while" here on a mutable object.
         val s = strings.next()
         if (s.isEmpty) {
           if (expressions.hasNext)
@@ -874,38 +891,45 @@ object Rational {
     * in operations involving rational numbers.
     */
   val zero: Rational = Rational(0)
+  
   /**
     * A constant value representing the rational number equivalent to 1.
     * It is defined as an instance of the `Rational` class initialized with
     * the value of `bigOne`.
     */
   val one: Rational = Rational(bigOne)
+  
   /**
     * Represents the negation of the `Rational` value `one`.
     * The result is a `Rational` object equivalent to -1.
     */
   val negOne: Rational = one.negate
+  
   /**
     * Represents a rational number with an infinite value, defined as the
     * inversion of the `zero` rational number.
     */
   val infinity: Rational = zero.invert
+  
   /**
     * A Rational number representing the reciprocal of `two`.
     * The `invert` method on the `two` object is used to calculate this value.
     */
   val half: Rational = two.invert
+  
   /**
     * Represents the rational number 10 as an instance of the `Rational` type.
     * Utilizes the predefined value `bigTen` to create the `Rational` instance.
     */
   val ten: Rational = Rational(bigTen)
+  
   /**
     * Represents the rational number two as a constant of type Rational.
     * It is constructed using `Rational(bigTwo)`, where `bigTwo` presumably
     * signifies the numerical value 2 in a predefined or imported context.
     */
   lazy val two: Rational = Rational(bigTwo)
+  
   /**
     * Represents a Not-a-Number (NaN) value as a rational number.
     * It is created by initializing a `Rational` object with both numerator
@@ -1067,21 +1091,25 @@ object Rational {
     * Represents the integer value 3 as a `BigInt`.
     */
   private[core] lazy val bigThree: BigInt = BigInt(3)
+  
   /**
     * Represents the rational number three as a constant of type Rational.
     * It is constructed using `Rational(bigThree)`.
     */
   val three: Rational = Rational(bigThree)
+  
   /**
     * A Rational number representing the reciprocal of `three`.
     * The `invert` method on the `three` object is used to calculate this value.
     */
   val third: Rational = three.invert
+  
   /**
     * A constant value representing the rational number 4.
     * This is created using the Rational class.
     */
   val four: Rational = Rational(bigFour)
+  
   /**
     * Represents a rational number equivalent to one-fourth by
     * inverting the value of `four`.
@@ -1090,15 +1118,18 @@ object Rational {
     * resulting in `1/4` or a quarter of a unit.
     */
   val quarter: Rational = four.invert
+  
   /**
     * Represents a Rational number with a value equivalent to five.
     * The value is constructed using an underlying representation of `bigFive`.
     */
   val five: Rational = Rational(bigFive)
+  
   /**
     * Represents the reciprocal (inverted form) of the `five` Rational number.
     */
   val fifth: Rational = five.invert
+  
   /**
     * Represents a rational number instance initialized with the value 9.
     */
@@ -1175,7 +1206,8 @@ object Rational {
         else
           throw new ArithmeticException(s"Rational.createExact: $x is not exact")
       }
-      else Failure(new ArithmeticException(s"Cannot create exact Rational from Double: $x"))
+      else
+        Failure(new ArithmeticException(s"Cannot create exact Rational from Double: $x"))
     }
 
   /**
@@ -1434,6 +1466,13 @@ object Rational {
     */
   val integerForm: Regex = """^(-?\d+)$""".r
 
+  /**
+    * A regular expression that matches a single Unicode character 
+    * belonging to the specified ranges:
+    * - Superscript digits (⁰)
+    * - Subscript digits (₉)
+    * - Vulgar fractions (½ to ⅞)
+    */
   val unicodeForm: Regex = """^([⁰-₉½-⅞])$""".r
 
   /**

@@ -2,7 +2,7 @@
 
 ThisBuild / organization := "com.phasmidsoftware"
 
-ThisBuild / version := "1.9.3"
+ThisBuild / version := "1.10.4"
 
 val scalaVersionNumber = "3.7.3"
 val catsVersion = "2.13.0"
@@ -11,9 +11,9 @@ val scalaParserCombinatorsVersion = "2.4.0"
 val nScalaTimeVersion = "2.32.0"
 val apacheCommonsVersion = "3.6.1"
 val matchersVersion = "1.0.16"
-val flogVersion = "1.0.12"
+val flogVersion = "1.0.13"
 val logbackClassicVersion = "1.5.32"
-val configVersion = "1.4.5"
+val configVersion = "1.4.6"
 
 ThisBuild / libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
@@ -56,15 +56,28 @@ val scala3TestSettings = Seq(
   Test / scalacOptions := scalacOptions.value.filterNot(_ == "-Wnonunit-statement")
 )
 
-import MermaidDiagramGenerator.autoImport.generateMermaidDiagrams
-
 // ============================================================================
 // MODULE DEFINITIONS
 // ============================================================================
 
+// ----------------------------------------------------------------------------
+// BUILD TOOLING — not a library module, not published
+// Provides the Scala 3 TASTy-walking process launched by generateMermaidDiagram.
+// ----------------------------------------------------------------------------
+lazy val mermaid = (project in file("mermaid"))
+  .settings(
+    name             := "mermaid",
+    scalaVersion     := scalaVersionNumber,
+    publish / skip   := true,
+    Test / test      := {},
+    libraryDependencies += "ch.epfl.scala" %% "tasty-query" % "1.6.1",
+    scalacOptions    := commonScalacOptions
+  )
+
 lazy val root = (project in file("."))
-  .enablePlugins(ScalaUnidocPlugin)
+  .enablePlugins(ScalaUnidocPlugin, MermaidDiagramGenerator)
   .aggregate(core, algebra, expression, parse, dimensions, top)
+  // mermaid is NOT in aggregate: it is build tooling, not a library module
   .dependsOn(top)
   .settings(
     name := "number",
@@ -164,8 +177,6 @@ Test / parallelExecution := false
 
 Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports")
 
-// Only enable the task in the root project
-generateMermaidDiagrams / aggregate := false
 
 // ============================================================================
 // USAGE NOTES

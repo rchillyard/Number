@@ -177,12 +177,12 @@ object FP {
     lRe.left.toOption.map(l2Zy) getOrElse Failure(new NoSuchElementException)
 
   /**
-    * This method is similar to doMap but with some important differences.
-    * To yield the (tried) result, we map the right-hand member of the input (lRe) with a function rToZy.
+    * This method is similar to `doMap` but with some important differences.
+    * To yield the (tried) result, we map the right-hand member of the input (`lRe`) with a function `rToZy`.
     * The result of this is then pattern-matched:
-    * In the Some(Success(z)) case, we return the Success(z).
-    * In the Some(Failure) case, we invoke tryMapLeft with the transpose of lRe and the function l2Zy.
-    * In the None case, we return the result of tryMapLeft applied to the lRe with the function l2Zy.
+    * In the case of `Some(Success(z))`, we return the `Success(z)`.
+    * In the case of `Some(Failure)`, we invoke `tryMapLeft` with the transpose of `lRe` and the function `l2Zy`.
+    * In the case of `None`, we return the result of `tryMapLeft` applied to the `lRe` with the function `l2Zy`.
     *
     * @param lRe  the input, an Either[L,R].
     * @param r2Zy a function R => Try[Z].

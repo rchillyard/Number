@@ -11,6 +11,7 @@ import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.Real.realIsRing
+import com.phasmidsoftware.number.algebra.util.FP.recover
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.numerical
@@ -271,7 +272,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     case r: Real =>
       realIsRing.compare(this, r)
     case n =>
-      FP.getOrThrow(n.approximation(true).map(a => compare(a)), AlgebraException(s"Real.compare: logic error: $this, $that"))
+      recover(n.approximation(true).map(a => compare(a)))(AlgebraException(s"Real.compare: logic error: $this, $that"))
   }
 
   /**
@@ -596,7 +597,8 @@ object Real {
     * Constructs a `Real` instance with a specified numeric value and optional fuzziness.
     *
     * This method creates a `Real` object using the */
-  def apply(x: Double, fuzz: Option[Fuzziness[Double]]): Real = new Real(x, fuzz)()
+  def apply(x: Double, fuzz: Option[Fuzziness[Double]]): Real =
+    new Real(x, fuzz)()
 
   /**
     * Parses a string representation of a number and constructs a `Real` instance.

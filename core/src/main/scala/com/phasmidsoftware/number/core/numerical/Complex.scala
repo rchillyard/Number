@@ -150,7 +150,6 @@ object Complex {
     case c: ComplexPolar =>
       ComplexCartesian(c.r `doMultiply` c.theta.cos, c.r `doMultiply` c.theta.sin)
   }
-  //    apply(Real(c.r `doMultiply` c.theta.cos), Real(c.r `doMultiply` c.theta.sin), ComplexCartesian.apply, ComplexException(s"logic error: convertToCartesian: $c"))
 
   /**
     * Method to construct a Complex from two fields, a (Number,Number)=>BaseComplex function, and an exception.
@@ -207,9 +206,9 @@ object Complex {
   def parse(w: String): Try[Complex] = ComplexParser.parse(w)
 
   /**
-    * Implicit class ComplexHelper to allow definition of ComplexHelper by Strings of the form C"x+iy".
+    * Implicit class `ComplexHelper` to allow definition of `Complex` instances by Strings of the form `C"x+iy"`.
     *
-    * @param sc a StringContext.
+    * @param sc a `StringContext`.
     */
   implicit class ComplexHelper(val sc: StringContext) extends AnyVal {
     def C(args: Any*): Complex = {

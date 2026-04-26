@@ -40,7 +40,7 @@ Number is organized into multiple modules:
 
 #### Current Version
 
-This version is 1.9.3
+This version is 1.10.1
 The latest published version is 1.9.3 (see [HISTORY](docs/HISTORY.md)).
 That should match the version of the latest release on Maven Central in the badge at the top.
 
@@ -1068,6 +1068,7 @@ The Expression trait supports the following operations:
 * **`simplify`** - Simplifies the expression by applying rules of arithmetic, returning a new `Expression`.
 * **`approximation`** - Approximates the expression as an `Option[Real]` value, but only if the expression is not exact.
   An exact expression can be approximated by passing the parameter `force=true` into this method.
+* **`approximate`** - Approximates the expression as an `Real` value always.
 * **`evaluateAsIs`** - Evaluates the expression to an `Option[Eager]` value, which will be defined providing that the
   expression is exact (i.e., it can be evaluated in the natural context of the expression).
 * **`evaluate(Context)`** - Evaluates the expression to an `Option[Eager]` value, in the given context.

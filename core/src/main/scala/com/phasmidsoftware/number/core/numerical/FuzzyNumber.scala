@@ -46,13 +46,13 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     * @param x the other numerical.
     * @return true if they are the same, otherwise false.
     */
-  def isSame(x: Numerical): Boolean = x match {
+  def isSame(x: Numerical, confidence: Double): Boolean = x match {
     case Real(n) =>
-      isSame(n)
+      isSame(n, confidence)
     case n: Number =>
-      fuzzyCompare(n) == 0
+      fuzzyCompare(n, confidence) == 0
     case c: Complex =>
-      c.isSame(Real(this))
+      c.isSame(Real(this), confidence)
   }
 
   /**
@@ -101,7 +101,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     * @return the product.
     */
   def doMultiply(x: Number): Number =
-    FuzzyNumber.times(this, x) // NOTE: required but why?
+    FuzzyNumber.times(this, x)
 
   /**
     * Raise this Number to the power p.
@@ -123,7 +123,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     * @return -1, 0, or 1 according to whether x is <, =, or > y.
     */
   def compare(other: Number): Int =
-    fuzzyCompare(other)
+    fuzzyCompare(other, oneSigma)
 
   /**
     * NOTE this method can be eliminated but the compare query operation doesn't appear to take fuzziness into account.
@@ -141,8 +141,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     *
     * @return an Int which is negative, zero, or positive according to the magnitude of this.
     */
-  lazy val signum: Int =
-    signum()
+  lazy val signum: Int = signum()
 
   /**
     * Method to determine the sense of this number: negative, zero, or positive.
@@ -160,6 +159,18 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     */
   def isProbablyZero(confidence: Double = oneSigma): Boolean =
     GeneralNumber.isZero(this) || (for (f <- fuzz; x <- toNominalDouble) yield withinWiggleRoom(confidence, f, x)).getOrElse(false)
+
+  def probabilityOfZero: Option[Double] =
+    for {
+      f <- fuzz
+      x <- Value.maybeDouble(nominalValue)
+    } yield f.probabilityOfZero(x)
+
+  def thresholdConfidence: Option[Double] =
+    for {
+      f <- fuzz
+      x <- Value.maybeDouble(nominalValue)
+    } yield f.normalizeShape.thresholdConfidence(x)
 
   /**
     * Evaluate a dyadic operator on this and other, using either plus, times, ... according to the value of op.
@@ -299,6 +310,29 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
 object FuzzyNumber {
 
   /**
+    * Constructs a new FuzzyNumber based on the provided nominal value, factor, and optional fuzziness.
+    * Applies specific logic to determine how fuzziness impacts the nominal value.
+    *
+    * @param nominalValue the central value of the FuzzyNumber, represented as a Value.
+    * @param factor       the Factor associated with the FuzzyNumber, which may influence its properties or behavior.
+    * @param fuzz         an optional Fuzziness[Double] representing uncertainty or variability around the nominal value.
+    *                     If defined, it may modify the resulting instance based on internal criteria.
+    * @return a new instance of FuzzyNumber that encapsulates the provided parameters and applies
+    *         any necessary adjustments for fuzziness.
+    */
+  def apply(nominalValue: Value, factor: Factor, fuzz: Option[Fuzziness[Double]]): FuzzyNumber = (nominalValue, fuzz) match {
+    case (Left(Right(rational)), Some(f)) =>
+      val x: Double = rational.toDouble
+      val wo: Option[Double] = f.normalize(x, false).map(_.wiggle(oneSigma))
+      if (rational.exceedsPrecision(wo))
+        new FuzzyNumber(Value.fromDouble(Some(x)), factor, fuzz)
+      else
+        new FuzzyNumber(nominalValue, factor, fuzz)
+    case _ =>
+      new FuzzyNumber(nominalValue, factor, fuzz)
+  }
+
+  /**
     * Round a Double value to the given number of significant figures, returning a String.
     *
     * @param value   the value to round.
@@ -332,13 +366,13 @@ object FuzzyNumber {
     /**
       * Method to determine if x1 and x2 can be considered the same with a probability of p.
       *
-      * @param p  a probability between 0 and 1 -- 0 would always result in true; 1 will result in false unless x1 actually is x2.
+      * @param confidence a probability between 0 and 1 -- 0 would always result in true; 1 will result in false unless x1 actually is x2.
       * @param x1 a value of X.
       * @param x2 a value of X.
       * @return true if x1 and x2 are considered equal with probability p.
       */
-    def same(p: Double)(x1: Number, x2: Number): Boolean =
-      x1.doAdd(x2.makeNegative).isProbablyZero(p)
+    def same(confidence: Double)(x1: Number, x2: Number): Boolean =
+      x1.doAdd(x2.makeNegative).isProbablyZero(confidence)
   }
 
   /**
@@ -353,10 +387,7 @@ object FuzzyNumber {
     * @return an Int representing the order.
     */
   def fuzzyCompare(x: Number, y: Number, confidence: Double = oneSigma): Int =
-    if (implicitly[Fuzzy[Number]].same(confidence)(x, y))
-      0
-    else
-      GeneralNumber.plus(x, Number.negate(y)).signum(confidence)
+    GeneralNumber.plus(x, Number.negate(y)).signum(confidence)
 
   /**
     * Method to construct an invalid Number.

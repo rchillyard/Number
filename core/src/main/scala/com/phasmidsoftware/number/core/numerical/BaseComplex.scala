@@ -9,6 +9,7 @@ import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.BaseComplex.narrow
 import com.phasmidsoftware.number.core.numerical.Complex.{convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
+import com.phasmidsoftware.number.core.numerical.Fuzziness.oneSigma
 import com.phasmidsoftware.number.core.numerical.Number.{negate, two, zero, zeroR}
 
 /**
@@ -59,20 +60,18 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     * @param x the other field.
     * @return true if they are the same, otherwise false.
     */
-  def isSame(x: Numerical): Boolean =
+  def isSame(x: Numerical, confidence: Double = oneSigma): Boolean =
     (this, x) match {
       case (z, Real(n)) =>
-        z `isSame` n.asComplex
+        z.`isSame`(n.asComplex, confidence)
       case (c1@ComplexCartesian(_, _), c2@ComplexPolar(_, _, _)) =>
-        c2.isSame(c1)
+        c2.isSame(c1, confidence)
       case (c1@ComplexPolar(_, _, _), c2@ComplexCartesian(_, _)) =>
-        c2.isSame(convertToCartesian(c1))
+        c2.isSame(convertToCartesian(c1), confidence)
       case (c1, c2: Complex) =>
-        val diff = c1 `subtract` c2
-        println(s"isSame: $c1, $c2, diff = $diff")
-        diff.isProbablyZero()
+        (c1 `subtract` c2).isProbablyZero(confidence)
       case (z, x: Number) =>
-        z `isSame` Real(x)
+        z.`isSame`(Real(x), confidence)
       case _ =>
         false
     }
@@ -175,10 +174,10 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
   }
 
   /**
-    * Raise this Complex to the power p.
+    * Raise this `Complex` to the power `p`.
     *
-    * @param p a Number.
-    * @return this Number raised to power p.
+    * @param p a `Number`.
+    * @return this `Number` raised to power `p`.
     */
   def power(p: Field): Field = (this, p) match {
     case (_, Constants.zero) =>
@@ -261,11 +260,8 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
   lazy val sin: Field = this match {
     case c@ComplexCartesian(x, y) =>
       // sin(z) = (exp(iz) - exp(-iz)) / (2i)
-      val iz = ComplexCartesian(y.makeNegative, x) // iz = i(x+iy) = -y + ix
-      val negIz = ComplexCartesian(y, x.makeNegative) // -iz = y - ix
-      val expIz = iz.exp
-      val expNegIz = negIz.exp
-      val numerator = expIz.asComplex `add` (expNegIz.asComplex.unary_-)
+      val (expIz: Field, expNegIz: Field) = asExponents(x, y)
+      val numerator = expIz.asComplex `add` -expNegIz.asComplex
       val twoI = ComplexCartesian(Number.zero, Number.two)
       numerator `divide` twoI
     case c@ComplexPolar(_, _, _) =>
@@ -282,10 +278,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
   lazy val cos: Field = this match {
     case c@ComplexCartesian(x, y) =>
       // cos(z) = (exp(iz) + exp(-iz)) / 2
-      val iz = ComplexCartesian(y.makeNegative, x) // iz = i(x+iy) = -y + ix
-      val negIz = ComplexCartesian(y, x.makeNegative) // -iz = y - ix
-      val expIz = iz.exp
-      val expNegIz = negIz.exp
+      val (expIz: _root_.com.phasmidsoftware.number.core.numerical.Field, expNegIz: _root_.com.phasmidsoftware.number.core.numerical.Field) = asExponents(x, y) // iz = i(x+iy) = -y + ix
       val numerator = expIz.asComplex `add` expNegIz
       numerator `divide` Real(Number.two)
     case c@ComplexPolar(_, _, _) =>
@@ -382,7 +375,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
   /**
     * Computes the natural logarithm of this Field.
     * For a real number x, this is equivalent to the logarithm base e: ln(x).
-    * For a complex number, this computes the multi-valued complex logarithm.
+    * For a complex number, this computes the multivalued complex logarithm.
     *
     * @return the natural logarithm of this Field as a Field.
     */
@@ -410,6 +403,22 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     case c@ComplexPolar(r, theta, n) =>
       // For polar form, convert to Cartesian first
       convertToCartesian(c).exp
+  }
+
+  /**
+    * Computes the exponential values of a complex number represented with the given real and imaginary parts.
+    * Specifically, calculates the exponentials of the complex numbers i(x + iy) and -i(x + iy),
+    * where `x` and `y` are the real and imaginary components, respectively.
+    *
+    * @param x the real component of the input complex number.
+    * @param y the imaginary component of the input complex number.
+    * @return a tuple containing two computed exponential results:
+    *         (exp(i(x + iy)), exp(-i(x + iy))).
+    */
+  private def asExponents(x: Number, y: Number) = {
+    val iz = ComplexCartesian(y.makeNegative, x) // iz = i(x+iy) = -y + ix
+    val negIz = ComplexCartesian(y, x.makeNegative) // -iz = y - ix
+    (iz.exp, negIz.exp)
   }
 
   /**
@@ -475,7 +484,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     * @param re the radial component (magnitude) of the complex number in polar form.
     * @param im the angular component (argument) of the complex number in polar form.
     * @param w  the number of branches to consider for the result, typically used for
-    *           handling multi-valued functions like roots in the complex plane.
+    *           handling multivalued functions like roots in the complex plane.
     */
   private def doRationalPowerForComplexPolar(n: Number, re: Number, im: Number, w: Int) = recover(
     for {
@@ -531,10 +540,10 @@ object BaseComplex {
 case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
 
   /**
-    * Method to determine if this NumberLike object is exact.
-    * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
+    * Method to determine if this `NumberLike` object is exact.
+    * For instance, `Number.pi` is exact, although if you converted it into a `PureNumber`, it would no longer be exact.
     *
-    * @return true if this NumberLike object is exact in the context of No factor, else false.
+    * @return true if this `NumberLike` object is exact in a factor-less context, else false.
     */
   lazy val isExact: Boolean =
     x.isExact && y.isExact
@@ -642,7 +651,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
   /**
     * Computes the natural logarithm of this Field.
     * For a real number x, this is equivalent to the logarithm base e: ln(x).
-    * For a complex number, this computes the multi-valued complex logarithm.
+    * For a complex number, this computes the multivalued complex logarithm.
     *
     * @return the natural logarithm of this Field as a Field.
     */
@@ -809,6 +818,16 @@ object ComplexCartesian {
     ComplexCartesian(Number(x), Number(y))
 
   /**
+    * Creates a `ComplexCartesian` instance from the given string representations of the real and imaginary parts.
+    *
+    * @param x the string representation of the real part of the complex number
+    * @param y the string representation of the imaginary part of the complex number
+    * @return a `ComplexCartesian` instance with the given real and imaginary parts
+    */
+  def apply(x: String, y: String): ComplexCartesian =
+    ComplexCartesian(Number(x), Number(y))
+
+  /**
     * Method to create a real-valued ComplexCartesian.
     *
     * @param x the real value.
@@ -844,10 +863,10 @@ object ComplexCartesian {
   */
 case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComplex(r, theta) {
   /**
-    * Method to determine if this NumberLike object is exact.
-    * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
+    * Method to determine if this `NumberLike` object is exact.
+    * For instance, `Number.pi` is exact, although if you converted it into a `PureNumber`, it would no longer be exact.
     *
-    * @return true if this NumberLike object is exact in the context of No factor, else false.
+    * @return true if this `NumberLike` object is exact in a factor-less context, else false.
     */
   lazy val isExact: Boolean =
     r.isExact && theta.isExact
@@ -927,7 +946,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
   /**
     * Computes the natural logarithm of this Field.
     * For a real number x, this is equivalent to the logarithm base e: ln(x).
-    * For a complex number, this computes the multi-valued complex logarithm.
+    * For a complex number, this computes the multivalued complex logarithm.
     *
     * @return the natural logarithm of this Field as a Field.
     */
@@ -1166,6 +1185,16 @@ object ComplexPolar {
     case _ =>
       throw CoreException(s"no match for $theta")
   }
+
+  /**
+    * Creates a ComplexPolar object using the given string representations of the magnitude and angle.
+    *
+    * @param r a string representing the magnitude of the ComplexPolar object
+    * @param i a string representing the angle of the ComplexPolar object
+    * @return a ComplexPolar object with the specified magnitude and angle
+    */
+  def apply(r: String, i: String): ComplexPolar =
+    ComplexPolar(Number(r), Number(i))
 
   /**
     * Method to create a ComplexPolar object with two branches.

@@ -15,7 +15,7 @@ class FuzzySpec extends AnyFlatSpec with should.Matchers {
     def apply(r: Int, g: Int, b: Int): Color = Color(r.toShort, g.toShort, b.toShort)
 
     trait FuzzyColor extends Fuzzy[Color] {
-      def same(p: Double)(x1: Color, x2: Color): Boolean = -math.log(x1.difference(x2).whiteness) / 3 > p
+      def same(confidence: Double)(x1: Color, x2: Color): Boolean = -math.log(x1.difference(x2).whiteness) / 3 > confidence
     }
 
     implicit object FuzzyColor extends FuzzyColor
@@ -23,7 +23,7 @@ class FuzzySpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Fuzzy"
 
-  import Color._
+  import Color.*
 
   private val white = Color(255, 255, 255)
   private val red = Color(255, 0, 0)

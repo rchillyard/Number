@@ -8,6 +8,7 @@ import com.phasmidsoftware.number.core.inner.{MonadicOperation, Percent}
 import com.phasmidsoftware.number.core.misc.Variance.{convolution, rootSumSquares}
 import com.phasmidsoftware.number.core.numerical.Fuzziness.{oneSigma, toDecimalPower, zipStrings}
 import com.phasmidsoftware.number.core.numerical.HasValue.HasValueDouble$
+import com.phasmidsoftware.number.core.numerical.Number.NumberIsFractional
 import org.apache.commons.math3.special.Erf.{erf, erfInv}
 
 import scala.math.Numeric.DoubleIsFractional
@@ -113,6 +114,27 @@ sealed trait Fuzziness[T] {
     */
   def probability(l: Double, x: Double): Double =
     shape.probability(l, x)
+
+  /**
+    * Returns the probability that a number with this fuzz and nominal value `x`
+    * is actually zero, i.e. the probability mass at or beyond |x| from the center.
+    *
+    * @param x the nominal (absolute) value of the number
+    * @return probability in [0, 1], where 1.0 means x is certainly zero
+    *         and 0.0 means x is certainly non-zero
+    */
+  def probabilityOfZero(x: Double): Double =
+    probability(math.abs(x), shape.wiggle(oneSigma))
+
+  /**
+    * Returns the confidence level at which this fuzz just covers the value `x`,
+    * i.e. the value `c` such that `wiggle(c) == |x|`.
+    * This is the threshold confidence for `isProbablyZero`.
+    *
+    * @param x the nominal (absolute) value of the number
+    * @return the threshold confidence in [0, 1]
+    */
+  def thresholdConfidence(x: Double): Double
 
   /**
     * Creates a Fuzziness instance with an absolute fuzz value of zero,
@@ -298,6 +320,19 @@ case class RelativeFuzz[T: HasValue](tolerance: Double, shape: Shape) extends Fu
     tv.fromDouble(shape.wiggle(tolerance, confidence))
 
   /**
+    * Computes the threshold confidence value for a given input based on the shape of the distribution.
+    * The distribution shape is assumed to be Gaussian, and it uses the absolute value of the input
+    * along with a predefined tolerance to calculate the result.
+    *
+    * @param x the input value for which the threshold confidence is calculated. It is expected to be a double precision number.
+    * @return the threshold confidence as a Double, representing the probability/confidence threshold determined by the Gaussian shape.
+    */
+  def thresholdConfidence(x: Double): Double = {
+    assert(shape == Gaussian) // NOTE the shape will always be Gaussian
+    normalizeShape.shape.thresholdConfidence(math.abs(x), tolerance)
+  }
+
+  /**
     * True.
     */
   val style: Boolean = true
@@ -389,14 +424,18 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
       }
       val sigma2 = convolute.shape match {
         case tr: Trapezoid => tr.sigma
-        case Box => Box.toGaussianRelative(tv.toDouble(m))
-        case Gaussian => tv.toDouble(m)
+        case Box =>
+          Box.toGaussianRelative(tv.toDouble(m))
+        case Gaussian =>
+          tv.toDouble(m)
       }
       Fuzziness.applyRules(sigma1, sigma2) {
         AbsoluteFuzz(tv.fromDouble(Gaussian.convolutionSum(sigma1, sigma2)), Gaussian)
       } match {
-        case Left(m) => AbsoluteFuzz(tv.fromDouble(m), Gaussian)
-        case Right(r) => r
+        case Left(m) =>
+          AbsoluteFuzz(tv.fromDouble(m), Gaussian)
+        case Right(r) =>
+          r
       }
     case _ =>
       throw FuzzyNumberException(s"* operation on incompatible styles: $this, $convolute")
@@ -417,6 +456,7 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
     case t: Trapezoid =>
       AbsoluteFuzz(t.toGaussianAbsolute[T], Gaussian)
   }
+
   /**
     * Method to do accurate rounding of Double.
     *
@@ -491,6 +531,22 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
     */
   def wiggle(confidence: Double = oneSigma): T =
     tv.fromDouble(shape.wiggle(tv.toDouble(magnitude), confidence))
+
+  /**
+    * Computes a threshold confidence value for the given input `x` based on a normalized Gaussian distribution.
+    *
+    * The calculation is implemented by asserting the shape is Gaussian, then using `normalizeShape.shape`
+    * to determine the threshold confidence value while factoring in the magnitude as a scale parameter.
+    * This method leverages the `thresholdConfidence` implementation specific to the Gaussian shape.
+    *
+    * @param x the input value for which the threshold confidence is to be calculated; must be a non-negative value.
+    * @return the threshold confidence as a `Double` value, derived from the input `x` and the magnitude of the instance.
+    *         The returned value represents the confidence level corresponding to the specific threshold.
+    */
+  def thresholdConfidence(x: Double): Double = {
+    assert(shape == Gaussian) // NOTE the shape will always be Gaussian
+    normalizeShape.shape.thresholdConfidence(math.abs(x), tv.toDouble(magnitude))
+  }
 
   /**
     * False.
@@ -581,24 +637,22 @@ object Fuzziness {
   def combine[T: HasValue](t1: T, t2: T, relative: Boolean, independent: Boolean)(fuzz: (Option[Fuzziness[T]], Option[Fuzziness[T]])): Option[Fuzziness[T]] = {
     val f1o = doNormalize(fuzz._1, t1, relative)
     val f2o = doNormalize(fuzz._2, t2, relative)
-    (f1o, f2o) match {
-      case (Some(f1), Some(f2)) if f1.shape == Box && f2.shape == Box =>
-        // Box ⊗ Box → Trapezoid (or Box if one is negligible): handled directly by *.
-        Some(f1.*(f2, independent))
-      case (Some(f1), Some(f2)) if f1.shape.isInstanceOf[Trapezoid] || f2.shape.isInstanceOf[Trapezoid] =>
-        // Any combination involving a Trapezoid: handled directly by *.
-        Some(f1.*(f2, independent))
-      case (Some(f1), Some(f2)) =>
-        // All other combinations (Gaussian ⊗ Gaussian): normalise shapes to Gaussian first.
-        Some(f1.normalizeShape.*(f2.normalizeShape, independent))
-      case (Some(f1), None) =>
-        Some(f1)
-      case (None, Some(f2)) =>
-        Some(f2)
-      case _ =>
-        None
-    }
+    composeFuzz(independent, f1o, f2o)
   }
+
+  /**
+    * Combines two potential fuzziness values for a given type `T` using a monadic approach.
+    *
+    * @param t    The input value of type `T` that will be used during the combination.
+    * @param fuzz A tuple containing two optional fuzziness values of type `T` to be combined.
+    * @tparam T The type of the input value and fuzziness values, which must have an implicit
+    *           `HasValue` type class instance available.
+    *
+    * @return An optional fuzziness of type `T` resulting from the monadic combination of
+    *         the provided fuzziness values.
+    */
+  def monadicCombine[T: HasValue](t: T)(fuzz: (Option[Fuzziness[T]], Option[Fuzziness[T]])): Option[Fuzziness[T]] =
+    combine(t, t, true, independent = true)(fuzz)
 
   /**
     * Map the fuzz value with a function (typically the derivative of the function being applied to the Fuzzy quantity).
@@ -656,12 +710,14 @@ object Fuzziness {
   lazy val doublePrecision: Fuzziness[Double] = RelativeFuzz[Double](DoublePrecisionTolerance, Box)
 
   /**
-    * The ratio above which one fuzz distribution is considered negligible relative to another.
-    * If the larger is more than this many times the smaller, the smaller is ignored and
-    * the larger is returned unchanged (preventing spurious shape promotion).
-    * A ratio of 9 means: a 10x or greater difference suppresses combination.
+    * A constant value representing the threshold ratio between large and small values,
+    * above which the smaller fuzz contribution is considered negligible in the
+    * combined quadrature result. Specifically, if large/small > this ratio,
+    * the smaller fuzz contributes less than 0.5% and is treated as insignificant.
+    * If large/small > 10, the smaller fuzz contributes < 0.5% to the
+    * combined quadrature result and is treated as negligible.
     */
-  val negligibleRatio: Double = 9.0
+  val negligibleRatio: Double = 10.0
 
   /**
     * The floor below which a fuzz magnitude is considered pure double-precision noise.
@@ -684,6 +740,37 @@ object Fuzziness {
   val simpleDoubleFuzzFactor: Double = math.sqrt(2)
 
   /**
+    * Combines two optional instances of `Fuzziness[T]` into a single optional instance, based on their shapes and
+    * the independent flag. The operation varies depending on whether the shapes of the fuzziness objects are
+    * `Box`, `Trapezoid`, `Gaussian`, or other combinations.
+    *
+    * @param independent A boolean flag indicating if the operation assumes the two inputs are independent.
+    * @param f1o         An optional first `Fuzziness[T]` instance to combine.
+    * @param f2o         An optional second `Fuzziness[T]` instance to combine.
+    * @tparam T The type parameter for which the `Fuzziness` and `HasValue` type classes are defined.
+    * @return An optional `Fuzziness[T]` resulting from the combination of `f1o` and `f2o`, with the specific operation
+    *         depending on their respective shapes.
+    */
+  private def composeFuzz[T: HasValue](independent: Boolean, f1o: Option[Fuzziness[T]], f2o: Option[Fuzziness[T]]) =
+    (f1o, f2o) match {
+      case (Some(f1), Some(f2)) if f1.shape == Box && f2.shape == Box =>
+        // Box ⊗ Box → Trapezoid (or Box if one is negligible): handled directly by *.
+        Some(f1.*(f2, independent))
+      case (Some(f1), Some(f2)) if f1.shape.isInstanceOf[Trapezoid] || f2.shape.isInstanceOf[Trapezoid] =>
+        // Any combination involving a Trapezoid: handled directly by *.
+        Some(f1.*(f2, independent))
+      case (Some(f1), Some(f2)) =>
+        // All other combinations (Gaussian ⊗ Gaussian): normalise shapes to Gaussian first.
+        Some(f1.normalizeShape.*(f2.normalizeShape, independent))
+      case (Some(f1), None) =>
+        Some(f1)
+      case (None, Some(f2)) =>
+        Some(f2)
+      case _ =>
+        None
+    }
+
+  /**
     * Sanitize an optional Fuzziness value by returning None if its magnitude
     * is NaN or infinite. This prevents NaN from propagating into combination
     * logic (e.g. Trapezoid constructor) when derivatives are undefined.
@@ -693,11 +780,13 @@ object Fuzziness {
     * @return the original value, or None if the magnitude is NaN or infinite.
     */
   private def sanitize[T: HasValue](f: Option[Fuzziness[T]]): Option[Fuzziness[T]] =
-    f.filter {
-      case AbsoluteFuzz(m, _) => val x = implicitly[HasValue[T]].toDouble(m); !x.isNaN && !x.isInfinite
-      case RelativeFuzz(t, _) => !t.isNaN && !t.isInfinite
+    f.map {
+      case AbsoluteFuzz(m, s) => AbsoluteFuzz(implicitly[HasValue[T]].normalize(m), s) // normalize = abs
+      case RelativeFuzz(t, s) => RelativeFuzz(math.abs(t), s)
+    }.filter {
+      case AbsoluteFuzz(m, _) => val x = implicitly[HasValue[T]].toDouble(m); !x.isNaN && !x.isInfinite && x >= 0
+      case RelativeFuzz(t, _) => !t.isNaN && !t.isInfinite && t >= 0
     }
-
   /**
     * Apply the three-tier combination rules to two fuzz magnitudes and shapes,
     * returning the effective (combinedMagnitude, combinedShape):
@@ -793,28 +882,23 @@ object Fuzziness {
   /**
     * Calculate the fuzziness for the result of a MonadicOperation.
     *
-    * NOTE: the parameter x is not actually used in this method. It seems like it ought to be used for functionFuzz
-    * but the values produced this way do seem to be correct.
-    * It is possible that the values are correct for relative error bounds but maybe not for absolute error bounds.
+    * We work entirely in relative space. The functionFuzz is the input fuzz propagated
+    * through the derivative of the operation; the opFuzz is the machine's implementation
+    * error for computing the function. These two sources are independent, so they are
+    * combined via RSS convolution. The output `x` is not needed here because we return
+    * relative fuzz, leaving any conversion to absolute to the caller.
     *
     * @param op   the monadic operation.
     * @param t    the magnitude of the input to the monadic operation.
-    * @param x    the magnitude of the result of the monadic operation.
+    * @param x    the magnitude of the result of the monadic operation (not used directly).
     * @param fuzz the (optional) fuzziness of input to the monadic operation.
     * @return the optional fuzziness for the result of the monadic operation.
     */
   def monadicFuzziness(op: MonadicOperation, t: Double, x: Double, fuzz: Option[Fuzziness[Double]]): Option[Fuzziness[Double]] = {
-    val useRelativeFuzz = op.fuzz.isDefined
-    // CONSIDER using map again (which itself uses transform) -- but be careful!
-    // First, ensure that the fuzz we are given is relative if the operation is not an exact operation.
-    val relativeFuzz: Option[Fuzziness[Double]] = fuzz flatMap (_.normalize(t, relative = useRelativeFuzz))
-    // Next, calculate the relative fuzziness of the result, according to the function being applied.
-    val functionFuzz: Option[Fuzziness[Double]] = sanitize(relativeFuzz map (_.transform(op.relativeFuzz)(t)))
-    // Finally, we calculate the precision loss (if any) occasioned by the actual implementation of the operation function itself.
-    val operationFuzz = sanitize(createFuzz(op.fuzz))
-    // Combine the functionFuzz with the operationFuzz
-    combine(t, t, relative = useRelativeFuzz, independent = true)((functionFuzz, operationFuzz))
-    //      ^  ^ <-- Use 'x' (output value) for both, since both errors are now relative to the output
+    val relativized: Option[Fuzziness[Double]] = fuzz flatMap (_.normalize(t, relative = true))
+    val functionFuzz: Option[Fuzziness[Double]] = sanitize(relativized map (_.transform(op.relativeFuzz)(t)))
+    val opFuzz = sanitize(createFuzz(op.fuzz))
+    monadicCombine(t)(functionFuzz, opFuzz)
   }
 }
 
@@ -847,6 +931,8 @@ trait Shape {
     * @return the calculated probability density at the given point.
     */
   def probability(l: Double, x: Double): Double
+
+  def thresholdConfidence(x: Double, l: Double): Double
 
   /**
     * Computes the effective magnitude for the given scale parameter of the distribution.
@@ -920,6 +1006,14 @@ case object Box extends Shape {
     case y if y >= l => 1.0
     case _ => x / l
   }
+
+  // In Box:
+
+  /**
+    * wiggle(c) = l * c (linear)
+    * Inverting: c = x / l
+    */
+  def thresholdConfidence(x: Double, l: Double): Double = math.min(x / l, 1.0)
 
   /**
     * Calculates the effective magnitude of a given size or scale.
@@ -995,6 +1089,12 @@ case class Trapezoid(a: Double, b: Double) extends Shape {
     case y => // ramp region
       (b - a) / b + (1.0 / (4 * a * b)) * (4 * a * a - (a + b - y) * (a + b - y))
   }
+
+  def thresholdConfidence(x: Double, l: Double): Double =
+    if (x <= b - a)
+      a / b // x is within the flat-top wiggle, threshold is the boundary confidence
+    else
+      math.min(((a + b) - x) * ((a + b) - x) / (4 * a * b), 1.0)
 
   /**
     * Calculates the effective magnitude of the trapezoid based on the given parameter.
@@ -1072,6 +1172,13 @@ case object Gaussian extends Shape {
     case _ =>
       erf(x * sigma / l)
   }
+  // In Gaussian:
+
+  /**
+    * wiggle(c) = l * erfinv(c) / sigma
+    * Inverting: c = erf(x * sigma / l)
+    */
+  def thresholdConfidence(x: Double, l: Double): Double = erf(x * sigma / l)
 
   /**
     * The standard deviation of a normal distribution whose variance is 1/2.
@@ -1284,6 +1391,50 @@ trait HasValueDouble extends HasValue[Double] with DoubleIsFractional with Order
     */
   def normalize(x: Double): Double =
     math.abs(x)
+}
+
+/**
+  * Trait HasValueNumber. Not used at present.
+  *
+  * Extends the HasValue trait for values of type Number and provides additional
+  * operations specific to handling numeric values.
+  */
+trait HasValueNumber extends HasValue[Number] with NumberIsFractional {
+  /**
+    * Method to return a String representation of a T value.
+    *
+    * @param t a T value.
+    * @return the corresponding String.
+    */
+  def render(t: Number): String = t.render
+
+  /**
+    * Method to yield a T from a Double.
+    *
+    * @param x a Double.
+    * @return the corresponding value of T.
+    */
+  def fromDouble(x: Double): Number = Number(x)
+
+  /**
+    * Method to scale a T value, according to a constant.
+    *
+    * This is essentially the inverse of the ratio method.
+    *
+    * @param t a T value.
+    * @param f a factor (a Double, i.e., dimensionless).
+    * @return a scaled value of T.
+    */
+  def scale(t: Number, f: Double): Number = t.doMultiply(Number(f))
+
+  /**
+    * Method to yield a "normalized" version of x.
+    * For a Numeric object, this implies the absolute value, i.e., with no sign.
+    *
+    * @param x the value.
+    * @return the value, without any sign.
+    */
+  def normalize(x: Number): Number = x.abs
 }
 
 /**

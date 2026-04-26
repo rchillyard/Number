@@ -243,7 +243,7 @@ object Euler {
 object IsEuler {
   /**
     * Extracts an instance of Euler from a given Expression, if the expression matches
-    * a known Euler form.
+    * a known Euler form, including -1, i, negative Euler values.
     *
     * @param e the expression to be evaluated for extraction
     * @return an Option containing the extracted Euler instance if the expression matches;
@@ -256,6 +256,8 @@ object IsEuler {
       Some(Euler(One, BiFunction(Pi, Half, Product)))
     case UniFunction(IsEuler(eu), Negate) =>
       Some(Euler(eu.r, UniFunction(eu.θ, Negate)))
+    case e@Euler(_, _) =>
+      Some(e) // CONSIDER eliminating this as it doesn't appear to be necessary.
     case _ =>
       None
   }

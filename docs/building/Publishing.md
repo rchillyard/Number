@@ -12,6 +12,7 @@ well with other windows.
 
 ### Step 1: publish signed in SBT shell
 
+- `clean`
 - `publishSigned`
 - `sonaUpload`
 

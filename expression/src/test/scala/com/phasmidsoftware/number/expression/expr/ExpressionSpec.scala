@@ -196,7 +196,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val e = BiFunction(Literal(1), Pi, Sum)
     e.toString shouldBe """(1 + 𝛑)"""
     e.render shouldBe "(1 + 𝛑)"
-    e.materialize.render shouldBe "4.14159265358979300[65]"
+    e.materialize.render shouldBe "4.141592653589793*"
   }
   it should "evaluate 3 5 + 7 2 – *" in {
     val expression = (Expression(3) :+ 5) * (7 - 2)
@@ -275,6 +275,20 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val y: Expression = x.ln
     y.materialize shouldBe Eager.one
   }
+  it should "evaluate e^E" in {
+    val x: Expression = E
+    val y: Expression = x.exp
+    val materialized: Eager = y.materialize
+    materialized should ===(Real("15.154262241479259"))
+  }
+  it should "evaluate 1 from complex expression 1" in {
+    val e = E + -(MinusOne + E)
+    e.simplify shouldBe One
+  }
+  it should "evaluate 1 from complex expression 2" in {
+    val e = ∅ -(E - 1) + E
+    e.simplify shouldBe One
+  }
   // TODO Issue #140
   it should "evaluate ln 2E" in {
     val x: Expression = E * 2
@@ -311,7 +325,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "evaluate E * 2" in {
     val z: Eager = (E * 2).materialize
     val q = eagerToField(z).normalize
-    q.render shouldBe "5.4365636569180900(41)"
+    q.render shouldBe "5.436563656918090[1]"
   }
 
   behavior of "isExact"
