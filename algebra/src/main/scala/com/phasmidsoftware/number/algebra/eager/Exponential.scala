@@ -89,7 +89,7 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
     if (implicitly[ClassTag[T]].runtimeClass == classOf[Real]) {
       val result: Real =
         number match {
-          case WholeNumber.one | RationalNumber(Rational.one, _) =>
+          case IsUnity(_) =>
             Real(base.toDouble)
           case RationalNumber(Rational.infinity, _) =>
             Real.∞

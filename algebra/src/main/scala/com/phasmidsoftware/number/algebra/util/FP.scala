@@ -111,11 +111,15 @@ object FP {
     * @return t if to is Some(t); otherwise x will be thrown.
     * @note Throws java.lang.Throwable x
     */
-  def recover[T](to: Option[T])(x: => Throwable): T = to match {
-    case Some(t) => t
-    case None => throw x
-  }
+  def recover[T](to: Option[T])(x: => Throwable): T = to.getOrElse(throw x)
 
+  /**
+    * Converts an `Option` into a `Try`, providing a failure cause if the `Option` is `None`.
+    *
+    * @param to The optional value to convert into a `Try`.
+    * @param x  The throwable to use as the failure cause if the `Option` is `None`.
+    * @return A `Success` containing the value from the `Option` if it is `Some`, or a `Failure` if it is `None`.
+    */
   def recoverAsTry[T](to: Option[T])(x: => Throwable): Try[T] = to match {
     case Some(t) => Success(t)
     case None => Failure(x)
@@ -305,20 +309,6 @@ object FP {
     */
   def optional[T](p: T => Boolean)(t: T): Option[T] =
     Some(t).filter(p)
-
-  /**
-    * Method to get the value of an Option[X] but throwing a given exception rather than the usual NoSuchElement.
-    * TODO merge with recover.
-    *
-    *
-    * @param xo an optional value of X (called by name).
-    * @param t  a throwable.
-    * @tparam X the underlying type of xo and the type of the result.
-    * @return the value of xo or throws t.
-    * @note Throws java.lang.Throwable t
-    */
-  def getOrThrow[X](xo: => Option[X], t: => Throwable): X =
-    xo.getOrElse(throw t)
 
   /**
     * Reads data from a specified resource file, applies a transformation function to each line,

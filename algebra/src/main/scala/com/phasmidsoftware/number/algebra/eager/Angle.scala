@@ -11,7 +11,8 @@ import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.Angle.{angleIsCommutativeGroup, r180}
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.util.AlgebraException
+import com.phasmidsoftware.number.algebra.util.FP.recover
 import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational, Value}
 import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Fuzziness}
 
@@ -689,7 +690,7 @@ object Angle {
     def plus(x: Angle, y: Angle): Angle = (x, y) match {
       case (Angle(x1: CanAdd[Number, Number] @unchecked, _), Angle(x2: CanAdd[Number, Number] @unchecked, _)) =>
         val maybeMonotone = x1 plus x2
-        Angle.create(FP.getOrThrow(maybeMonotone, new UnsupportedOperationException("Angle.combine"))).normalize
+        Angle.create(recover(maybeMonotone)(new UnsupportedOperationException("Angle.combine"))).normalize
       case _ =>
         throw new UnsupportedOperationException(s"Angle.combine: $x + $y")
     }

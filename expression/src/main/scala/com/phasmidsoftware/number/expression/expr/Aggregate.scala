@@ -203,7 +203,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     xs.map(_.depth).max + 1
 
   /**
-    * Provides an approximation of this number, if applicable.
+    * Provides an approximation of this Aggregate, if applicable.
     *
     * This method attempts to compute an approximate representation of the number
     * in the form of a `Real`, which encapsulates uncertainty or imprecision
@@ -215,7 +215,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     */
   def approximation(force: Boolean): Option[eager.Real] = {
     val identity: Eager = function.maybeIdentityL.getOrElse(Eager.zero) // NOTE should never require the default
-    val vos: Seq[Option[eager.Real]] = xs map (x => x.approximation(force))
+    val vos: Seq[Option[eager.Real]] = xs map (x => x.approximation(force)) // CONSIDER treating empty approximation result as an error
     // TODO asInstanceOf
     FP.sequence(vos) map (xs => xs.foldLeft[Eager](identity)(function.apply).asInstanceOf[eager.Real])
   }

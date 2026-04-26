@@ -625,6 +625,7 @@ abstract class BinaryFunction(a: Expression, b: Expression, f: ExpressionBiFunct
     *         of this `Number`, or `None` if no approximation is available.
     */
   def approximation(force: Boolean): Option[eager.Real] = {
+    // CONSIDER treating empty approximation results as an error.
     val maybeValuable = for {x <- a.approximation(true); y <- b.approximation(true)} yield f(x, y)
     // TODO asInstanceOf
     // TODO this cast is a potential problem! We need to force the approximation to be be fuzzy otherwise we get a ClassCastException

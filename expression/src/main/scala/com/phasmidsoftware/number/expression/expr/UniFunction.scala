@@ -90,13 +90,14 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     *         of this `Number`, or `None` if no approximation is available.
     */
   def approximation(force: Boolean): Option[eager.Real] =
-    // CONSIDER is this correct? Shouldn't we try to evaluate first?
     x.approximation(force) flatMap (
-      x =>
-        f.apply(x) match {
+      z =>
+        f.apply(z) match {
           case r: eager.Real =>
             Some(r)
-          case _ =>
+          case q: Structure =>
+            q.convert(Real.zero)
+          case q =>
             None
 
         }

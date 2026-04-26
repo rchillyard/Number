@@ -10,7 +10,6 @@ import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.core.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.eager.InversePower.squareRoot
-import com.phasmidsoftware.number.algebra.util.FP.recover
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core.inner.Rational
@@ -70,7 +69,7 @@ trait Eager extends Valuable with Approximate with DyadicOps {
     * @return An instance of `Eager` if the approximation is successful.
     */
   def fuzzy: Eager =
-    recover(approximation(true))(AlgebraException(s"fuzzy: unable to convert a ${this.getClass.getSimpleName} (${this.toString}) to Eager"))
+    approximate
 
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
