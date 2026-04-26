@@ -702,6 +702,11 @@ object BiFunction {
       Some(Aggregate(Sum, Seq(w :* y, w :* z, x :* y, x :* z)).simplify) // TODO why simplify?
     case BiFunction(BiFunction(w, x, Power), y, Power) =>
       Some(Aggregate(Power, Seq(w, x :* y)))
+      // TODO combine the following two cases
+    case BiFunction(a, UniFunction(BiFunction(b, c, Sum), Negate), Sum) =>
+      Some(Aggregate(Sum, Seq(a, -b, -c)))
+    case BiFunction(UniFunction(BiFunction(a, b, Sum), Negate), c, Sum) =>
+      Some(Aggregate(Sum, Seq(-a, -b, c)))
     case x =>
       None
   }

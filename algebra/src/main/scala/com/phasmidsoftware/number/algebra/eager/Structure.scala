@@ -266,7 +266,6 @@ trait Functional extends Structure with MaybeFuzzy with Ordered[Functional] {
     */
   lazy val maybeFuzz: Option[Fuzziness[Double]] =
     number.fuzz map { fuzz =>
-      println(s"DEBUG: ${number.toDouble}")
       val fuzzFunction: Double => Double = fuzz match {
         case _: RelativeFuzz[Double] => x => derivativeFunction(x) * x / scaleFunction(x)
         case _: AbsoluteFuzz[Double] => x => derivativeFunction(x)

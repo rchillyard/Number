@@ -281,6 +281,14 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val materialized: Eager = y.materialize
     materialized should ===(Real("15.154262241479259"))
   }
+  it should "evaluate 1 from complex expression 1" in {
+    val e = E + -(MinusOne + E)
+    e.simplify shouldBe One
+  }
+  it should "evaluate 1 from complex expression 2" in {
+    val e = ∅ -(E - 1) + E
+    e.simplify shouldBe One
+  }
   // TODO Issue #140
   it should "evaluate ln 2E" in {
     val x: Expression = E * 2
