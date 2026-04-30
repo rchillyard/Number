@@ -1,7 +1,7 @@
 # Migration and Version History
 
 ## Versions
-
+* Version 1.10.5: Fixed various issues (mostly regarding infinity) exposed by the EML expansion.
 * Version 1.10.1: Fixed issue with over-precise Rational numbers.
 * Version 1.10.0: Improved the Mermaid diagrams, see [docs/diagrams/index.md](docs/diagrams/index.md).
 * Version 1.9.3:
