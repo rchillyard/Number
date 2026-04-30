@@ -265,7 +265,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * @return true if this NumberLike object is exact in the context of No factor, else false.
     */
   lazy val isExact: Boolean =
-    !(isInfinity || isNaN)
+    !(isInfinite || isNaN)
 
   /**
     * Determines if the Rational object represents "not a number" (NaN).
@@ -421,17 +421,17 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * @note Throws RationalException if the Rational number is infinity.
     */
   lazy val forceToBigDecimal: BigDecimal =
-    if (!isInfinity)
+    if (!isInfinite)
       BigDecimal(n) / BigDecimal(d)
     else
       throw RationalException(s"cannot convert infinity to BigDecimal: $this")
 
   /**
-    * Method to determine if the given Rational represents an infinity.
+    * Method to determine if the given Rational represents an infinity (positive or negative).
     *
     * @return true if the denominator is zero; false otherwise.
     */
-  lazy val isInfinity: Boolean =
+  lazy val isInfinite: Boolean =
     d == bigZero && n != bigZero
 
   /**
@@ -531,7 +531,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * @return the mediant of this and other.
     */
   def mediant(other: Rational): Rational =
-    if (signum >= 0 && other.signum >= 0 && !isInfinity && !other.isInfinity)
+    if (signum >= 0 && other.signum >= 0 && !isInfinite && !other.isInfinite)
       Rational(n + other.n, d + other.d)
     else
       NaN
@@ -615,7 +615,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
       "NaN"
     case _ if isZero && d < 0 =>
       "-0"
-    case _ if isInfinity =>
+    case _ if isInfinite =>
       (if (n > 0) "" else "-") + "∞"
     case _ if isWhole =>
       toBigInt.toString
@@ -1329,7 +1329,7 @@ object Rational {
     if (x.isWhole)
       Success(x.n)
     else
-      Failure(RationalException(s"toBigInt: $x is " + (if (x.isInfinity)
+      Failure(RationalException(s"toBigInt: $x is " + (if (x.isInfinite)
         "infinite" else "not whole")))
 
   /**
@@ -1356,7 +1356,7 @@ object Rational {
     */// CONSIDER making this private or moving back into RationalSpec
   def hasCorrectRatio(r: Rational, top: BigInt, bottom: BigInt): Boolean = {
     val _a = r * bottom
-    val result = bottom == 0 || _a.isInfinity || (_a.isWhole && _a.toBigInt == top)
+    val result = bottom == 0 || _a.isInfinite || (_a.isWhole && _a.toBigInt == top)
     if (!result)
       throw RationalException(s"incorrect ratio: r=${r.n}/${r.d}, top=$top, bottom=$bottom, _a=${_a}, gcd=${top.gcd(bottom)}")
     result

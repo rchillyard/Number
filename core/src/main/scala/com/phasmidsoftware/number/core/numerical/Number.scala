@@ -299,6 +299,12 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * @return the result of the multiplication as a Field
     */
   def multiply(x: Field): Field = (this, x) match {
+    case (Constants.zero, _) if x.isInfinite =>
+      Constants.NaN
+    case (_, Constants.zero) if this.isInfinite =>
+      Constants.NaN
+    case (a, b) if a.isInfinite || b.isInfinite =>
+      Constants.infinity
     case (Number.zero, _) | (_, Constants.zero) =>
       Constants.zero
     case (Number.one, _) =>

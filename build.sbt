@@ -21,6 +21,9 @@ ThisBuild / libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % logbackClassicVersion % "runtime"
 )
 
+// CONSIDER removing this (for performance reasons) if publishLocal runs fine without it.
+Global / concurrentRestrictions += Tags.limitAll(1)
+
 // ============================================================================
 // COMPILER OPTIONS - Moderate settings focused on catching + operator issues
 // ============================================================================
