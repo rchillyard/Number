@@ -224,6 +224,8 @@ object ValueExpression {
 
   /**
     * Creates a `ValueExpression` instance by wrapping the provided `Valuable` object.
+    * NOTE: client code should not normally invoke this method directly.
+    * Prefer to use the `Expression.apply` method for creating `ValueExpression` instances.
     *
     * @param v the `Eager` instance to be encapsulated within a `ValueExpression`.
     * @return a `ValueExpression` representing the provided `Eager` object, with its rendered representation.
@@ -409,7 +411,7 @@ object Literal {
       One
     case numerical.Number.zero =>
       Zero
-    case numerical.Number.pi =>
+    case numerical.Number.pi | numerical.Number.`𝛑` =>
       Pi
     case numerical.Number.two =>
       Two
@@ -419,7 +421,10 @@ object Literal {
       Half
     case numerical.Number.e =>
       E
+    case numerical.Number.`∞` =>
+      Infinity
     case _ =>
+      // XXX take care that we do not recurse infinitely here.
       ValueExpression(Scalar(x))
   }
 

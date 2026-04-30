@@ -66,7 +66,7 @@ class ExpressionParserSpec extends AnyFlatSpec with should.Matchers {
   it should "lazymath e" in {
     lazymath"""\e""" shouldBe E
     lazymath"""\mathrm{e}""" shouldBe E
-    lazymath"""\e^2""" shouldBe Literal(NaturalExponential(WholeNumber(2)), Some("e^2"))
+    lazymath"""\e^2""" shouldBe UniFunction(2, Exp)
   }
   it should "puremath functions" in {
     puremath"""\sin(\pi)""" shouldBe UniFunction(Pi, Sine)

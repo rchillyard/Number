@@ -834,6 +834,13 @@ object Number {
     * Exact value of i
     */
   lazy val i: Number = ExactNumber(-1, SquareRoot)
+
+  /**
+    * Represents the mathematical concept of infinity as a lazy value of type `Number`.
+    * The value is constructed using an exact representation of infinity via the `ExactNumber` class.
+    */
+  lazy val `∞`: Number = ExactNumber(Rational.infinity)
+
   /**
     * Exact value of the Number √2 (not Complex)
     */

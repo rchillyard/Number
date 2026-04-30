@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.core.*
-import com.phasmidsoftware.number.algebra.eager.{Complex, Eager, Real}
+import com.phasmidsoftware.number.algebra.eager.{Complex, Eager, InversePower, Real}
 import com.phasmidsoftware.number.core.inner.Factor
 import com.phasmidsoftware.number.expression.expr.Expression.em
 
@@ -149,6 +149,16 @@ case class Noop(w: String) extends AtomicExpression {
     throw new UnsupportedOperationException(s"Can''t evaluate: $this")
 
   /**
+    * Represents a lazy evaluation result of this `Noop` expression as-is, without any modification or processing.
+    *
+    * This method is overridden and fixed to always return `None`, indicating that 
+    * the `Noop` expression does not inherently evaluate to any meaningful result.
+    *
+    * @return an `Option[Eager]`, which is always `None`.
+    */
+  override lazy val evaluateAsIs: Option[Eager] = None
+  
+  /**
     * Method to render this Renderable in a presentable manner.
     *
     * @return a String
@@ -207,5 +217,6 @@ case class Noop(w: String) extends AtomicExpression {
 }
 
 object Noop {
+  def apply: Noop = Noop("NaN")
   val TEST_STRING = "Error tester"
 }
