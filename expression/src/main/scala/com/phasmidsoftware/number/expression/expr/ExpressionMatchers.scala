@@ -434,7 +434,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     // CONSIDER the following:
     //      Match(Aggregate(f, list)) `map` (_.simplify)
     else
-      Miss(s"complementaryTermsEliminatorAggregate: $a", a)
+      Miss(s"matchOrMiss: $a", a)
 
   /**
     * Matches an expression to its additive identity based on its components.

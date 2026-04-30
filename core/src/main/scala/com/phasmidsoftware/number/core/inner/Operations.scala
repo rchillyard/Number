@@ -198,7 +198,7 @@ case object MonadicOperationExp extends MonadicOperation {
     * This function operates within a `Try` monad to handle potential failures.
     */
   private lazy val expRat: Rational => Try[Rational] = {
-    case r if r.isInfinity && r.signum < 0 =>
+    case r if r.isInfinite && r.signum < 0 =>
       Success(Rational.zero)
     case r =>
       fail("can't do exp Rational=>Rational for non-zero parameter")(r)
@@ -845,7 +845,7 @@ case object QueryOperationIsInfinite extends QueryOperation[Boolean] {
     */
   def getFunctions: BooleanQueryFunctions = new QueryFunctions[Boolean] {
     val fInt: Int => Try[Boolean] = tryF[Int, Boolean](_ => false)
-    val fRat: Rational => Try[Boolean] = tryF[Rational, Boolean](x => x.isInfinity)
+    val fRat: Rational => Try[Boolean] = tryF[Rational, Boolean](x => x.isInfinite)
     val fDouble: Double => Try[Boolean] = tryF[Double, Boolean](x => x == Double.PositiveInfinity || x == Double.NegativeInfinity)
   }
 }

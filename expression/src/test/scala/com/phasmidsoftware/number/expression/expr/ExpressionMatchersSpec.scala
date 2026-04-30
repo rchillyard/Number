@@ -513,7 +513,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
   it should "work for Ln Zero" in {
     val x = expr.UniFunction(Zero, Ln)
-    x.simplify shouldBe Expression(infinity.negate)
+    x.simplify shouldBe UniFunction(Infinity, Negate)
   }
   it should "work for Ln One" in {
     val x = expr.UniFunction(One, Ln)

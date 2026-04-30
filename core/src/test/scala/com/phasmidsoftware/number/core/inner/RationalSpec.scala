@@ -20,7 +20,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   private val zeroSymbol = Symbol("zero")
   private val toBigIntSymbol = Symbol("toBigInt")
   private val wholeSymbol = Symbol("whole")
-  private val infinitySymbol = Symbol("infinity")
+  private val infinitySymbol = Symbol("infinite")
   private val unitySymbol = Symbol("unity")
   private val narrowSymbol = Symbol("narrow")
   private val normalizeSymbol = Symbol("normalize")
@@ -34,7 +34,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   }
   it should "yield infinity for 1, 0" in {
     val r = new Rational(BigInt(1), 0L)
-    r.isInfinity shouldBe true
+    r.isInfinite shouldBe true
   }
   it should "yield NaN for 0, 0" in {
     new Rational(BigInt(0), 0L).isNaN shouldBe true
@@ -101,18 +101,18 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   }
   it should "work for 1, 0" in {
     val r = Rational(1, 0)
-    r.isInfinity shouldBe true
+    r.isInfinite shouldBe true
     r shouldBe Rational.infinity
     r.render shouldBe "∞"
   }
   it should "work for -1, 0" in {
     val r = Rational(-1, 0)
-    r.isInfinity shouldBe true
+    r.isInfinite shouldBe true
     r.render shouldBe "-∞"
   }
   it should "work for -1, -2" in {
     val r = Rational(-1, -2)
-    r.isInfinity shouldBe false
+    r.isInfinite shouldBe false
     r shouldBe Rational.half
   }
   it should "work for -2624712818L, -1" in {
@@ -829,7 +829,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   behavior of "r-interpolator"
   it should "work for -1/0" in {
     val r = r"-1/0"
-    r.isInfinity shouldBe true
+    r.isInfinite shouldBe true
     r shouldBe Rational(-1, 0)
   }
   it should "work for 1/-2147483648" in {

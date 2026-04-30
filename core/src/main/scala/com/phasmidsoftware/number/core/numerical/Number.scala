@@ -299,6 +299,12 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * @return the result of the multiplication as a Field
     */
   def multiply(x: Field): Field = (this, x) match {
+    case (Constants.zero, _) if x.isInfinite =>
+      Constants.NaN
+    case (_, Constants.zero) if this.isInfinite =>
+      Constants.NaN
+    case (a, b) if a.isInfinite || b.isInfinite =>
+      Constants.infinity
     case (Number.zero, _) | (_, Constants.zero) =>
       Constants.zero
     case (Number.one, _) =>
@@ -834,6 +840,13 @@ object Number {
     * Exact value of i
     */
   lazy val i: Number = ExactNumber(-1, SquareRoot)
+
+  /**
+    * Represents the mathematical concept of infinity as a lazy value of type `Number`.
+    * The value is constructed using an exact representation of infinity via the `ExactNumber` class.
+    */
+  lazy val `∞`: Number = ExactNumber(Rational.infinity)
+
   /**
     * Exact value of the Number √2 (not Complex)
     */

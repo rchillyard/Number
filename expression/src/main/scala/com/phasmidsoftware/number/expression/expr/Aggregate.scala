@@ -129,7 +129,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
       case Product =>
         x => if x < 1 then 1 / x else x
       case _ =>
-        throw new IllegalArgumentException("complementaryTermsEliminatorAggregate: Power function not supported")
+        throw new IllegalArgumentException("eliminateComplementaryTerms: Power function not supported")
     }
 
     // NOTE this ordering is really only appropriate when f is Sum.
