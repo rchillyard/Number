@@ -390,6 +390,7 @@ object Eager {
     * to initialize the encapsulated value.
     */
   lazy val infinity: Eager = RationalNumber(Rational.infinity)
+  
   /**
     * Represents the mathematical concept of negative infinity as an `Eager` instance.
     *

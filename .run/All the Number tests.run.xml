@@ -8,6 +8,7 @@
     <option name="classpathModifications">
       <list />
     </option>
+    <option name="defaultTargetName" />
     <option name="envFilePaths">
       <list />
     </option>
@@ -88,6 +89,7 @@
         <option value="com.phasmidsoftware.number.expression.expr.RootSpec" />
         <option value="com.phasmidsoftware.number.expression.expr.TranscendentalSpec" />
         <option value="com.phasmidsoftware.number.problems.PotHolesSpec" />
+        <option value="com.phasmidsoftware.number.algebra.util.FactorSpec" />
         <option value="com.phasmidsoftware.number.algebra.util.LatexRendererInstancesSpec" />
         <option value="com.phasmidsoftware.number.algebra.util.LatexRendererSpec" />
         <option value="com.phasmidsoftware.number.algebra.eager.AngleSpec" />
@@ -114,7 +116,7 @@
         <option value="com.phasmidsoftware.number.dimensions.core.PowerUnitSpec" />
         <option value="com.phasmidsoftware.number.dimensions.core.TRationalSpec" />
         <option value="com.phasmidsoftware.number.dimensions.core.UnitsSpec" />
-          <option value="com.phasmidsoftware.number.core.numerical.AbsoluteFuzzRenderSpec"/>
+        <option value="com.phasmidsoftware.number.core.numerical.AbsoluteFuzzRenderSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.BaseComplexSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.ComplexSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.ConstantsSpec" />

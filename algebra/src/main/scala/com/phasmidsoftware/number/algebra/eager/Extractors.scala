@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number.algebra.eager
 
 import com.phasmidsoftware.number.algebra.core.{CanPower, Q, Z}
+import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Complex.convertToCartesian
@@ -53,7 +54,6 @@ object IsFuzzy {
     case _ =>
       None
   }
-
 }
 
 /**
@@ -150,6 +150,45 @@ object IsImaginary {
   }
 }
 
+/**
+  * An object providing a custom extractor to check if a given `Eager` instance represents a finite value.
+  *
+  * The `IsFinite` object can be used for pattern matching and extracting instances of `Eager`
+  * that are determined to be finite values, as determined by the absence of conditions that make it infinite.
+  */
+object IsFinite {
+  /**
+    * Returns `Some(x)` if `this` is finite.
+    *
+    * @param x the `Eager` instance to be matched and extracted.
+    * @return an `Option` containing the extracted `Number` if the input matches the expected pattern, or `None` otherwise.
+    */
+  def unapply(x: Eager): Option[Eager] =
+    Option.when(IsInfinite.unapply(x).isEmpty)(x)
+
+}
+
+/**
+  * Provides a utility for extracting infinite values from an `Eager` instance.
+  */
+object IsInfinite {
+  /**
+    * Returns `Some(x)` if `this` is infinite.
+    *
+    * @param x the `Eager` instance to be matched and extracted.
+    * @return an `Option` containing the extracted `Number` if the input matches the expected pattern, or `None` otherwise.
+    */
+  def unapply(x: Eager): Option[Eager] = x.normalize match {
+    case Eager.infinity | Eager.negInfinity =>
+      Some(x)
+    case Real(Double.PositiveInfinity, _) | Real(Double.NegativeInfinity, _) =>
+      Some(x)
+    case RationalNumber(z, _) if z.isInfinite =>
+      Some(x)
+    case x =>
+      None
+  }
+}
 
 /**
   * The `HasImaginary` object provides utilities for working with complex mathematical objects,
