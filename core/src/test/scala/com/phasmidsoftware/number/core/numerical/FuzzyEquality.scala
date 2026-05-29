@@ -1,6 +1,5 @@
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.algebraic.Solution
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalactic.Equality
 
@@ -28,8 +27,6 @@ trait FuzzyEquality {
   implicit object NumberLikeEquality extends Equality[NumberLike] {
 
     def areEqual(a: NumberLike, b: Any): Boolean = a match {
-      case s: Solution =>
-        FieldEquality.areEqual(s.asField, b)
       case r: Rational =>
         NumberEquality.areEqual(Number(r), b)
       case f: Field =>

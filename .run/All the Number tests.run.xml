@@ -142,8 +142,6 @@
         <option value="com.phasmidsoftware.number.core.numerical.PrimesSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.RealSpec" />
         <option value="com.phasmidsoftware.number.core.numerical.SeriesSpec" />
-        <option value="com.phasmidsoftware.number.core.algebraic.LinearSpec" />
-        <option value="com.phasmidsoftware.number.core.algebraic.SolutionSpec" />
         <option value="com.phasmidsoftware.number.core.applications.ApproximationSpec" />
         <option value="com.phasmidsoftware.number.core.parse.ComplexParserSpec" />
         <option value="com.phasmidsoftware.number.core.parse.ExpressionParserSpec" />
