@@ -47,7 +47,6 @@ class InversePowerSpec extends AnyFlatSpec with Matchers {
 
   it should "handle negative radicands with odd roots" in {
     val expr = Expression(-8) ∧ Rational(1, 3)
-    val simplified = expr.simplify
     expr.materialize shouldBe Eager(-2)
   }
 

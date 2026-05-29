@@ -100,7 +100,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val factor: Fa
     * @param x the multiplicand.
     * @return the product.
     */
-  def doMultiply(x: Number): Number =
+  infix def doMultiply(x: Number): Number =
     FuzzyNumber.times(this, x)
 
   /**

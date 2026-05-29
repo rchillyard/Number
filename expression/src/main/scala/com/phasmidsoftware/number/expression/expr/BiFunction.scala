@@ -392,29 +392,6 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     }
 
   /**
-    * Simplifies a complex product operation by attempting to evaluate the provided expression
-    * and transform it into a simplified complex literal if possible.
-    *
-    * @param m an Eager instance representing a component of the product to simplify.
-    * @param x an Expression to be evaluated and potentially simplified as part of the product.
-    */
-  private def simplifyComplexProduct(m: Eager, x: Expression) =
-    em.matchIfDefined(
-      for {
-        xv <- x.evaluateAsIs
-        n <- (xv `multiply` m).toOption
-        z <- Eager.eagerToField(n) match {
-          case Real(x) =>
-            Some(Complex(ComplexCartesian(x)))
-          case c: CoreComplex =>
-            Some(Complex(c))
-          case _ =>
-            None
-        }
-      } yield Literal(z)
-    )(x)
-
-  /**
     * Simplifies the multiplication of an `InversePower` instance with a number that supports exponentiation.
     *
     * @param ip The `InversePower` instance representing an inverse power.

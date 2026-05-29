@@ -16,21 +16,24 @@ class LaTeXParserSpec extends AnyFlatSpec with should.Matchers {
   // Helper: assert the input parses successfully to the expected expression.
   private def assertParses(input: String, expected: Expression): Unit =
     LaTeXParser.parse(input) match {
-      case LaTeXParser.Success(result, next) if next.atEnd => result shouldBe expected
-      case LaTeXParser.Success(_, next) => fail(s"Did not consume all input, remainder: '${next.source.toString.drop(next.offset)}'")
-      case f: LaTeXParser.NoSuccess => fail(s"Parse failed: ${f.msg}")
+      case LaTeXParser.Success(result, next) if next.atEnd =>
+        result shouldBe expected : Unit
+      case LaTeXParser.Success(_, next) =>
+        fail(s"Did not consume all input, remainder: '${next.source.toString.drop(next.offset)}'")
+      case f: LaTeXParser.NoSuccess =>
+        fail(s"Parse failed: ${f.msg}")
     }
 
   // Helper: assert the input does not parse successfully.
   private def assertFails(input: String): Unit =
     LaTeXParser.parse(input) match {
-      case LaTeXParser.Success(_, next) if next.atEnd => fail(s"Expected failure but '$input' parsed successfully")
+      case LaTeXParser.Success(_, next) if next.atEnd =>
+        fail(s"Expected failure but '$input' parsed successfully")
       case _ => // expected
     }
 
   // Helpers for complex tests
   private val halfPi: Expression = BiFunction(Pi, Half, Product)
-  private val minusHalfPi: Expression = UniFunction(halfPi, Negate)
 
   behavior of "LaTeXParser"
 

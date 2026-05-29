@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.expression.core
 
 import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
 import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
-import com.phasmidsoftware.number.algebra.eager.{Algebraic, Eager, Solution}
+import com.phasmidsoftware.number.algebra.eager.{Eager, Solution}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{Complex, Field, Number, Numerical, Real}

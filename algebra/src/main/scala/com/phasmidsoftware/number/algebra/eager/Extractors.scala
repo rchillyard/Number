@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number.algebra.eager
 
 import com.phasmidsoftware.number.algebra.core.{CanPower, Q, Z}
-import com.phasmidsoftware.number.algebra.util.FP
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Complex.convertToCartesian

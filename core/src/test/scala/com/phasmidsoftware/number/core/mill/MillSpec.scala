@@ -4,16 +4,12 @@
 
 package com.phasmidsoftware.number.core.mill
 
-import com.phasmidsoftware.number.core.inner.{NatLog, Rational}
-import com.phasmidsoftware.number.core.mill.CoreMill.parseInfix
 import com.phasmidsoftware.number.core.mill.{Add, CoreMill, CoreMillItem, Empty, Expr, MillException, Stack, TerminalExpression}
-import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
-import com.phasmidsoftware.number.core.numerical.{Field, FuzzyEquality, Number, Real}
+import com.phasmidsoftware.number.core.numerical.{FuzzyEquality, Number}
 import com.phasmidsoftware.number.core.parse.MillParser
+import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-import org.scalatest.{Assertion, Succeeded}
-import scala.util.{Success, Try}
 
 class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
 

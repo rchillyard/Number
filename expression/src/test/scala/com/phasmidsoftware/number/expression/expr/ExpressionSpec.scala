@@ -212,8 +212,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     eagerToField(result) shouldEqual numerical.Real(numerical.Number(Math.PI + 1))
   }
   it should "render" in {
-    val x1 = Eager.one
-    val x2 = Eager.pi
     val e = BiFunction(Literal(1), Pi, Sum)
     e.toString shouldBe """(1 + 𝛑)"""
     e.render shouldBe "(1 + 𝛑)"

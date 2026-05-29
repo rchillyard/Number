@@ -59,7 +59,6 @@ class BaseComplexSpec extends AnyFlatSpec with Matchers {
 
   it should "handle this simple test" in {
     val z = ComplexCartesian(Number.zero, Number.one) // just i
-    val angle = z.imag.make(Radian)
     val result = z.exp // should be e^(i) = cos(1) + i*sin(1)
     result match {
       case c: Complex =>

@@ -22,8 +22,6 @@ import scala.util.{Either, Failure, Left, Right, Success, Try, Using}
   */
 object FP {
 
-  private val logger = LoggerFactory.getLogger(getClass)
-
   /**
     * Executes the provided computation if the given condition is true; otherwise, returns a Failure.
     *

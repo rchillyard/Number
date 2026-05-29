@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.core.*
-import com.phasmidsoftware.number.algebra.eager.{Complex, Eager, InversePower, Real}
+import com.phasmidsoftware.number.algebra.eager.{Complex, Eager, Real}
 import com.phasmidsoftware.number.core.inner.Factor
 import com.phasmidsoftware.number.expression.expr.Expression.em
 

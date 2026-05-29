@@ -5,11 +5,9 @@
 package com.phasmidsoftware.number.core.misc
 
 import com.phasmidsoftware.number.core.misc.{ContinuedFraction, Newton}
-import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.Constants
-import com.phasmidsoftware.number.core.numerical.Number.piBy2
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Success}
 
 class NewtonSpec extends AnyFlatSpec with should.Matchers {

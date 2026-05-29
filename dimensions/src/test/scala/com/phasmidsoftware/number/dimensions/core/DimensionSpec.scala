@@ -3,8 +3,6 @@ package com.phasmidsoftware.number.dimensions.core
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
-import scala.compiletime.ops.int.*
-
 class DimensionSpec extends AnyFlatSpec with should.Matchers {
   behavior of "Basic Dimensions"
 

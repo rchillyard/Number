@@ -4,7 +4,6 @@ import com.phasmidsoftware.number.algebra.core.Valuable
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.dimensions.core.*
-import com.phasmidsoftware.number.dimensions.core.DimensionWitness.area
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
