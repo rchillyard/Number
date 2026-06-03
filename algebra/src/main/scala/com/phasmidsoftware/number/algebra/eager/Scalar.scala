@@ -104,7 +104,7 @@ trait Scalar extends Structure {
     * @return a `Try[Scalar]` containing the resulting `Scalar` if the addition
     *         is successful, or a `Failure` if the operation cannot be performed
     */
-  def add[B <: Scalar](y: B): Try[Scalar] =
+  infix def add[B <: Scalar](y: B): Try[Scalar] =
     summon[DyadicOperator[Scalar]].op[B, Scalar](addScalars)(this, y)
 
   /**

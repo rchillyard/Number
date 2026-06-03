@@ -13,9 +13,9 @@ import com.phasmidsoftware.number.algebra.eager.InversePower.squareRoot
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, CoreExceptionWithCause, Field}
 import com.phasmidsoftware.number.core.parse.NumberParser
-import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.{algebra, core}
 
 import scala.Option.when
@@ -210,10 +210,14 @@ trait Eager extends Valuable with Approximate with DyadicOps {
   private def multiplyEagers(x: Eager, y: Eager): Try[Eager] = (x, y) match
     case (a: Structure, b: Structure) =>
       a.multiply(b)
-    case (a: Solution, b: Rational) =>
-      Success(a.scale(b))
-    case (a: Rational, b: Solution) =>
-      Success(b.scale(a))
+    case (a: Nat, b: Nat) =>
+      Success(Nat.natIsSemiring.times(a, b))
+    case (a: Algebraic, b: Algebraic) =>
+      Success(a * b)
+    case (a: Solution, b: RationalNumber) =>
+      Success(a.scale(b.r))
+    case (a: RationalNumber, b: Solution) =>
+      Success(b.scale(a.r))
     case _ =>
       Failure(AlgebraException(s"Cannot multiply $x and $y"))
 

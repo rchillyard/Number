@@ -98,6 +98,7 @@
         <option value="com.phasmidsoftware.number.algebra.eager.ExponentialSpec" />
         <option value="com.phasmidsoftware.number.algebra.eager.InversePowerAdditionalSpec" />
         <option value="com.phasmidsoftware.number.algebra.eager.InversePowerSpec" />
+        <option value="com.phasmidsoftware.number.algebra.eager.LinearSolutionSpec" />
         <option value="com.phasmidsoftware.number.algebra.eager.NatSpec" />
         <option value="com.phasmidsoftware.number.algebra.eager.NormalizeIntegrationSpec" />
         <option value="com.phasmidsoftware.number.algebra.eager.NormalizeRootSpec" />

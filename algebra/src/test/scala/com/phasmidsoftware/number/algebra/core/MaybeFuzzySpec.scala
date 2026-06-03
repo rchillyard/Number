@@ -12,8 +12,9 @@ import org.scalatest.matchers.should.Matchers
   * `InversePower`, and `NaturalExponential`. These methods facilitate rendering and representation adjustments
   * for both exact and fuzzy values under various configurations.
   *
-  * TODO these tests document the current behavior of these methods and types but this isn't
-  * necessarily the best way to do it. We should consider revising the API to make it more intuitive.
+  * CONSIDER these tests document the current behavior of these methods and types but this isn't
+  * necessarily the best way to do it.
+  * We should consider revising the API to make it more intuitive.
   *
   * The tests cover the following primary scenarios:
   * - Rendering exact and fuzzy values using absolute fuzziness (`asAbsolute`).
