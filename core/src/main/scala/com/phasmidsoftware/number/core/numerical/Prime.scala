@@ -230,7 +230,8 @@ case class Prime(n: BigInt) {
     * @return true if this number is prime.
     */
   @unused
-  private lazy val validate: Boolean = isProbablePrime && Prime.primeFactors(n).forall(_ == this)
+  private lazy val validate: Boolean = 
+  isProbablePrime && Prime.primeFactors(n).forall(_ == this)
 
   /**
     * Return a Boolean which is true if a.pow(c/q) != 1 mod n for all q where q is a prime factor of c.
@@ -498,7 +499,42 @@ object Prime {
     * @param i the index of the exponent of two.
     * @return an Option[Prime]
     */
-  def createMersennePrime(i: Int): Option[Prime] = create(mersenneNumber(i))
+
+  /**
+    * Create an (optional) Mersenne Prime of form (2 to the power of the ith prime) - 1.
+    * Returns Some only if the candidate passes the Lucas-Lehmer primality test.
+    *
+    * @param i the index of the exponent of two.
+    * @return an Option[Prime]
+    */
+  def createMersennePrime(i: Int): Option[Prime] =
+    val p = allPrimes(i).n.toInt
+    Option.when(lucasLehmer(p))(Prime(mersenneNumber(i)))
+
+  /**
+    * Method to test whether a Mersenne number M_p = 2^p - 1 is prime
+    * using the Lucas-Lehmer primality test.
+    *
+    * @param p the exponent; M_p is prime iff p is prime, so callers should ensure this.
+    * @return true if M_p is a Mersenne prime.
+    */
+  def lucasLehmer(p: Int): Boolean =
+    lucasLehmer(Prime(p))
+
+  /**
+    * Performs the Lucas-Lehmer primality test for Mersenne numbers.
+    *
+    * @param p A Prime number object that contains the exponent for the Mersenne number.
+    * @return Boolean value indicating whether the Mersenne number of the form 2^p - 1 is prime.
+    */
+  def lucasLehmer(p: Prime): Boolean =
+    require(p.validate, "p must be prime")
+    val exp = p.n.toInt
+    val mp = (BigInt(1) << exp) - 1
+    exp == 2 || (0 until exp - 2).foldLeft(BigInt(4))((s, _) => (s * s - 2).mod(mp)) == 0
+
+  def createMersennePrime(p: Prime): Option[Prime] =
+    Option.when(lucasLehmer(p))(Prime(mersenneNumber(p)))
 
   /**
     * Method to yield a Mersenne number: (2 to the power of the ith prime) - 1.
@@ -515,7 +551,8 @@ object Prime {
     *          NOTE that no explicit check is made to ensure that n is prime.
     * @return a BigInt.
     */
-  def mersenneNumber(p: Prime): BigInt = BigInt(2).pow(p.n.toInt) - 1
+  def mersenneNumber(p: Prime): BigInt =
+    (BigInt(1) << p.n.toInt) - 1
 
   /**
     * Method to detect if x has one of the smaller factors.
