@@ -9,10 +9,9 @@ import com.phasmidsoftware.number.core.misc.FP.readFromResource
 import com.phasmidsoftware.number.core.numerical.Divides.IntDivides
 import com.phasmidsoftware.number.core.numerical.Prime.{coprime, reciprocalPeriods}
 import com.phasmidsoftware.number.core.numerical.Primes.*
-import com.sun.org.apache.xalan.internal.lib.ExsltDatetime.time
 
 import java.math.BigInteger
-import scala.annotation.{tailrec, unused}
+import scala.annotation.tailrec
 import scala.collection.SortedSet
 import scala.util.{Failure, Try}
 
@@ -144,7 +143,6 @@ case class Prime(n: BigInt) {
     * @param x a BigInt.
     * @return x % n
     */
-  @unused
   def remainder(x: BigInt): BigInt = x % n
 
   /**
@@ -229,9 +227,8 @@ case class Prime(n: BigInt) {
     *
     * @return true if this number is prime.
     */
-  @unused
-  private lazy val validate: Boolean = 
-  isProbablePrime && Prime.primeFactors(n).forall(_ == this)
+  private lazy val validate: Boolean =
+    isProbablePrime && Prime.primeFactors(n).forall(_ == this)
 
   /**
     * Return a Boolean which is true if a.pow(c/q) != 1 mod n for all q where q is a prime factor of c.
@@ -585,7 +582,7 @@ object Prime {
     * @param p a candidate BigInt
     * @return true if p is in hundredPrimes.
     */
-  def isSmallPrime(p: BigInt): Boolean = hundredPrimes.contains(Prime(p))
+  def isSmallPrime(p: BigInt): Boolean = p > 1 && hundredPrimes.contains(Prime(p))
 
   /**
     * Method to determine if n is a probable prime.
@@ -603,7 +600,7 @@ object Prime {
     * @return true if n is a Carmichael Number.
     */
   def isCarmichaelNumber(n: BigInt): Boolean =
-    carmichael.contains(n) || carmichaelFile.contains(n) || !isSmallPrime(n) && n != 1 && !(2 |> n) && carmichaelTheoremApplies(n)
+    carmichael.contains(n) || carmichaelFile.contains(n) || !isSmallPrime(n) && n > 1 && !(2 |> n) && carmichaelTheoremApplies(n)
 
   /**
     * This is the sequence of periods of decimal expansions of reciprocals of Prime numbers, starting with 2.
@@ -646,12 +643,7 @@ object Prime {
     * @tparam X the underlying type of the result.
     * @return a List[X].
     */
-  private def fill[X](n: Int)(x: X): List[X] = {
-    @tailrec
-    def inner(r: List[X], l: Int): List[X] = if (l <= 0) r else inner(r :+ x, l - 1)
-
-    inner(Nil, n)
-  }
+  private def fill[X](n: Int)(x: X): List[X] = List.fill(n)(x)
 
   /**
     * Generates a sequence of random values based on the given prime number.
@@ -854,15 +846,11 @@ object MillerRabin {
       if (isProbablePrime(new BigInt(new BigInteger(number)))) "PRIME"
       else "COMPOSITE"
     else if (action == "genprime") {
-      var nbits: BigInt = 0
-      var p: BigInt = 0
-      nbits = new BigInt(new BigInteger(number))
-      var rand: java.util.Random = new java.util.Random(System.currentTimeMillis())
-      p = new BigInt(new BigInteger(nbits.intValue, rand))
-      while (!isProbablePrime(p) || (2 |> p) || (3 |> p) || (5 |> p) || (7 |> p)) {
-        rand = new java.util.Random(System.currentTimeMillis())
-        p = new BigInt(new BigInteger(nbits.intValue, rand))
-      }
+      val nbits = new BigInt(new BigInteger(number)).intValue
+      val rand = new java.util.Random()
+      var p = new BigInt(new BigInteger(nbits, rand))
+      while (!isProbablePrime(p) || (2 |> p) || (3 |> p) || (5 |> p) || (7 |> p))
+        p = new BigInt(new BigInteger(nbits, rand))
       p.toString()
     }
     else s"invalid action: $action"
@@ -899,14 +887,10 @@ object MillerRabin {
     * @return A tuple `(d, s)` where `d` is an odd number and `s` is the largest 
     *         exponent such that `n - 1 = d * 2^s`.
     */
-  private def decompose(n: BigInt) = {
-    var d: BigInt = n - 1
-    var s: Int = 0
-    while (2 |> d) {
-      d >>= 1
-      s += 1
-    }
-    (d, s)
+  private def decompose(n: BigInt): (BigInt, Int) = {
+    @tailrec def inner(d: BigInt, s: Int): (BigInt, Int) =
+      if (2 |> d) inner(d >> 1, s + 1) else (d, s)
+    inner(n - 1, 0)
   }
 }
 
@@ -934,7 +918,7 @@ object Goldbach {
   private def doGoldbachEven(x: BigInt) =
     possiblePairs(x) find (_._2.isProbablePrime) match {
       case Some((p1, p2)) => p1 -> p2
-      case None => throw new IllegalArgumentException
+      case None => throw new IllegalArgumentException(s"goldbach: no prime pair found summing to $x")
     }
 
   /**
@@ -953,22 +937,3 @@ object Goldbach {
   */
 case class PrimeException(str: String) extends Exception(str)
 
-/**
-  * The Main object serves as the entry point of the application. It extends the `App` trait,
-  * which eliminates the need for an explicit main method.
-  *
-  * CONSIDER eliminating this main program.
-  *
-  * This object previously contained functionality to benchmark the performance of the
-  * Eratosthenes sieve algorithm for prime number calculation. The benchmark logic, which
-  * leverages the `Benchmark` class and the `Primes.eSieve` method, is currently commented out.
-  *
-  * The remaining functionality outputs a message indicating the time taken by the
-  * Eratosthenes sieve for a specific range of values.
-  */
-object Main extends App {
-
-  //  val benchmark: Benchmark[BigInteger] = new Benchmark[BigInteger]("Eratosthenes", null, (t: BigInteger) => Primes.eSieve(t.intValue()), null)
-  //  val time: Double = benchmark.run(BigInteger.valueOf(1000000), 10)
-  println(s"Eratosthenes Sieve for 1000000 takes $time millisecs")
-}
