@@ -4,9 +4,47 @@ import com.phasmidsoftware.number.core.numerical.Prime.{mersenneNumber, multipli
 import com.phasmidsoftware.number.core.numerical.Primes.allPrimes
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.{Failure, Success}
 
 class PrimeSpec extends AnyFlatSpec with should.Matchers {
+
+  /**
+    * 1 (not actually a prime number)
+    */
+  private val p0: Prime = Prime(1) // Not actually a prime number
+  /**
+    * 2
+    */
+  private val p1: Prime = allPrimes.head
+  /**
+    * 3
+    */
+  private val p2: Prime = allPrimes(1)
+  /**
+    * 5
+    */
+  private val p3: Prime = allPrimes(2)
+  /**
+    * 7
+    */
+  private val p4: Prime = allPrimes(3)
+  /**
+    * 11
+    */
+  private val p5: Prime = allPrimes(4)
+  /**
+    * 13
+    */
+  private val p6: Prime = allPrimes(5)
+  /**
+    * 17
+    */
+  private val p7: Prime = allPrimes(6)
+  /**
+    * 23
+    */
+  private val p9: Prime = allPrimes(8)
 
   behavior of "Prime"
 
@@ -129,42 +167,6 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     val p = Primes.randomPrime(64)
     p.isProbablePrime shouldBe true
   }
-  /**
-    * 1 (not actually a prime number)
-    */
-  private val p0: Prime = Prime(1) // Not actually a prime number
-  /**
-    * 2
-    */
-  private val p1: Prime = allPrimes.head
-  /**
-    * 3
-    */
-  private val p2: Prime = allPrimes(1)
-  /**
-    * 5
-    */
-  private val p3: Prime = allPrimes(2)
-  /**
-    * 7
-    */
-  private val p4: Prime = allPrimes(3)
-  /**
-    * 11
-    */
-  private val p5: Prime = allPrimes(4)
-  /**
-    * 13
-    */
-  private val p6: Prime = allPrimes(5)
-  /**
-    * 17
-    */
-  private val p7: Prime = allPrimes(6)
-  /**
-    * 23
-    */
-  private val p9: Prime = allPrimes(8)
   it should "fermat" in {
     p4.fermat(2) shouldBe 1
     Prime(71).fermat(9) shouldBe 1
@@ -360,7 +362,10 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     val f = Factor(Prime(7), 2)
     f.p shouldBe Prime(7)
     f.r shouldBe 2
-    Prime.totient(f) shouldBe 42    // φ(7²) = 7^(2-1) * (7-1) = 42
+    f.totient shouldBe 42 // φ(7²) = 7^(2-1) * (7-1) = 42
+    Prime.totient(f) shouldBe 42 // forwarding method still works
+    f.reducedTotient shouldBe 42 // not 2^r with r>=3, so same as totient
+    Factor(Prime(2), 3).reducedTotient shouldBe 2 // λ(8) = φ(8)/2 = 2
   }
   it should "reducedTotient" in {
     Prime.reducedTotient(1) shouldBe 1
