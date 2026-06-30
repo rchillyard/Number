@@ -20,10 +20,17 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     Prime(7919).bits shouldBe 13
   }
   it should "isProbablePrime" in {
+    // edge cases
+    Prime.isProbablePrime(0) shouldBe false
+    Prime.isProbablePrime(1) shouldBe false
+    Prime.isProbablePrime(-1) shouldBe false
+    // small primes and composites
     Prime.isProbablePrime(2) shouldBe true
     Prime.isProbablePrime(7) shouldBe true
     Prime.isProbablePrime(8) shouldBe false
     Prime.isProbablePrime(11) shouldBe true
+    // Carmichael number: passes Fermat but is composite
+    Prime.isProbablePrime(561) shouldBe false
     Prime.isProbablePrime(BigInt("35742549198872617291353508656626642567")) shouldBe true
   }
   it should "isProbableOddPrime" in {

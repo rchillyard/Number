@@ -594,7 +594,7 @@ object Prime {
     * @param p a BigInt.
     * @return true if n is probably prime.
     */
-  def isProbablePrime(p: BigInt): Boolean = (p == 2 || !(2 |> p)) && isProbableOddPrime(p)
+  def isProbablePrime(p: BigInt): Boolean = p > 1 && (p == 2 || !(2 |> p)) && isProbableOddPrime(p)
 
   /**
     * Test n to determine if it is a Carmichael Number.
@@ -922,7 +922,7 @@ object Goldbach {
     * @return a Try of a tuple of (p1, p2) where p1, p2 are primes such that p1 + p2 = x.
     */
   def goldbach(x: BigInt): Try[(Prime, Prime)] =
-    if (x > 2 && x % 2 == 0) Try(doGoldbachEven(x))
+    if (x > 2 && !x.testBit(0)) Try(doGoldbachEven(x))
     else Failure(new IllegalArgumentException("goldbach: input must be positive and even"))
 
   /**
