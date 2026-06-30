@@ -61,12 +61,12 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     Prime.primeFactors(7894609062L).sorted shouldBe Seq(2, 3, 67, 1721, 11411).map(Prime(_))
   }
   it should "implement primeFactorMultiplicity" in {
-    Prime.primeFactorMultiplicity(23) shouldBe Map(Prime(23) -> 1)
-    Prime.primeFactorMultiplicity(70) shouldBe Map(Prime(2) -> 1, Prime(5) -> 1, Prime(7) -> 1)
-    Prime.primeFactorMultiplicity(827) shouldBe Map(Prime(827) -> 1)
-    Prime.primeFactorMultiplicity(70906) shouldBe Map(Prime(2) -> 1, Prime(11) -> 2, Prime(293) -> 1)
-    Prime.primeFactorMultiplicity(663168016) shouldBe Map(Prime(2) -> 4, Prime(7) -> 1, Prime(5987) -> 1, Prime(43) -> 1, Prime(23) -> 1)
-    Prime.primeFactorMultiplicity(7894609062L) shouldBe Map(Prime(2) -> 1, Prime(11411) -> 1, Prime(3) -> 1, Prime(67) -> 1, Prime(1721) -> 1)
+    Prime.primeFactorMultiplicity(23) shouldBe Seq(Factor(Prime(23), 1))
+    Prime.primeFactorMultiplicity(70) shouldBe Seq(Factor(Prime(2), 1), Factor(Prime(5), 1), Factor(Prime(7), 1))
+    Prime.primeFactorMultiplicity(827) shouldBe Seq(Factor(Prime(827), 1))
+    Prime.primeFactorMultiplicity(70906) shouldBe Seq(Factor(Prime(2), 1), Factor(Prime(11), 2), Factor(Prime(293), 1))
+    Prime.primeFactorMultiplicity(663168016) shouldBe Seq(Factor(Prime(2), 4), Factor(Prime(23), 1), Factor(Prime(43), 1), Factor(Prime(5987), 1), Factor(Prime(7), 1))
+    Prime.primeFactorMultiplicity(7894609062L) shouldBe Seq(Factor(Prime(2), 1), Factor(Prime(3), 1), Factor(Prime(67), 1), Factor(Prime(1721), 1), Factor(Prime(11411), 1))
   }
   it should "implement Lucas()" in {
     val p = Prime(71)

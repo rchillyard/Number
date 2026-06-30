@@ -312,17 +312,16 @@ object Prime {
     * @param x a BigInt for which we require Euler's totient function.
     * @return a BigInt, which represents the number of elements less than n which are relatively prime to x.
     */
-  def totient(x: BigInt): BigInt = primeFactorMultiplicity(x).foldLeft(BigInt(1)) { (phi, factor) => phi * totient(factor) }
+  def totient(x: BigInt): BigInt = 
+    primeFactorMultiplicity(x).foldLeft(BigInt(1))((phi, f) => phi * totient(f))
 
   /**
     * Euler's totient function for a prime power.
     *
-    * @param factor a tuple of Prime and exponent.
+    * @param factor a Factor (prime base and exponent).
     * @return Euler's totient function for this Prime power.
     */
-  def totient(factor: (Prime, Int)): BigInt = factor match {
-    case (p, r) => p.totient(r)
-  }
+  def totient(factor: Factor): BigInt = factor.p.totient(factor.r)
 
   /**
     * Method to calculate the Carmichael (or "reduced") totient for x.
@@ -332,24 +331,18 @@ object Prime {
     * @param x a BigInt for which we require Carmichael's totient function.
     * @return a BigInt, which represents the Carmichael totient function.
     */
-  def reducedTotient(x: BigInt): BigInt = primeFactorMultiplicity(x).foldLeft(BigInt(1)) { (lambda, factor) =>
-    factor match {
-      case (p, r) => Prime.lcm(lambda, reducedTotient(p -> r))
-    }
-  }
+  def reducedTotient(x: BigInt): BigInt = primeFactorMultiplicity(x).foldLeft(BigInt(1))((lambda, f) => Prime.lcm(lambda, reducedTotient(f)))
 
   /**
     * Carmichael's totient function for a prime power.
     * NOTE: often, this will be the same as Euler's totient function, but sometimes it will be one half.
     *
-    * @param factor a tuple of Prime and exponent.
+    * @param factor a Factor (prime base and exponent).
     * @return Carmichael's totient function for this Prime power.
     */
-  private def reducedTotient(factor: (Prime, Int)): BigInt = factor match {
-    case (p, r) =>
-      val phi = totient(factor)
-      if (p.n == 2 && r >= 3) phi / 2 else phi
-  }
+  private def reducedTotient(factor: Factor): BigInt =
+    val phi = totient(factor)
+    if (factor.p.n == 2 && factor.r >= 3) phi / 2 else phi
 
   /**
     * Method to determine how many prime numbers there are which are less than x.
@@ -389,10 +382,7 @@ object Prime {
     * @return a sequence of Prime objects representing the prime factors of the input BigInt.
     */
   def primeFactors(x: BigInt, maybeMax: Option[Int] = None): Seq[Prime] =
-    for {
-      (k, v) <- primeFactorMultiplicity(x, maybeMax).toSeq
-      z <- Prime.fill(v)(k)
-    } yield z
+    primeFactorMultiplicity(x, maybeMax).flatMap(f => List.fill(f.r)(f.p))
 
   /**
     * Computes the prime factorization of the given number `x` and returns a map of prime factors with their respective
@@ -405,14 +395,13 @@ object Prime {
     *                 If not provided, all primes are considered.
     * @return a map where each key is a prime factor of `x` and the corresponding value is its exponent in the prime factorization.
     */
-  def primeFactorMultiplicity(x: BigInt, maybeMax: Option[Int] = None): Map[Prime, Int] = {
+  def primeFactorMultiplicity(x: BigInt, maybeMax: Option[Int] = None): Seq[Factor] = {
     /**
       * Determine how many times p divides into n.
-      * CONSIDER rename x
       *
       * @param p a prime which may be a divisor of n.
       * @param x a (presumptive) composite number.
-      * @return a tuple of
+      * @return the exponent and remaining dividend after dividing out p.
       */
     def factorCount(p: Prime, x: BigInt): (Int, BigInt) = {
       @tailrec
@@ -420,7 +409,6 @@ object Prime {
         case (c, d) if p.toBigInt |> d => inner(c + 1, d / p.toBigInt)
         case _ => r
       }
-
       inner(0 -> x)
     }
 
@@ -430,18 +418,18 @@ object Prime {
       * This is related to (fixed) Issue #85. We really should not call this method with very large n when all we're trying
       * to do is to format a Rational nicely.
       *
-      * @param result the current version of the map.
-      * @param n      a composite number.
-      * @param ps     a list of candidate primes.
-      * @return a Map of primes with their non-zero exponents.
+      * @param result the factors accumulated so far.
+      * @param n      the remaining unfactored portion.
+      * @param ps     candidate primes to try.
+      * @return a Seq of Factors with non-zero exponents.
       */
     @tailrec
-    def factorsR(result: Map[Prime, Int], n: BigInt, ps: LazyList[Prime]): Map[Prime, Int] = (n, ps) match {
-      case (BigOne, _: LazyList[Prime]) => result
+    def factorsR(result: List[Factor], n: BigInt, ps: LazyList[Prime]): List[Factor] = (n, ps) match {
+      case (BigOne, _) => result
       case (m, h #:: t) =>
         val (count, dividend) = factorCount(h, m)
-        factorsR(result + (h -> count), dividend, t)
-      //  NOTE the following case originally threw an exception here: throw new Exception(s"factorsR: logic error: $m, $xs")
+        val newResult = if (count > 0) result :+ Factor(h, count) else result
+        factorsR(newResult, dividend, t)
       case _ => result
     }
 
@@ -449,7 +437,7 @@ object Prime {
       case Some(m) => allPrimes.take(m)
       case None => allPrimes
     }
-    factorsR(Map(), x, candidates.filter(p => p.toBigInt |> x))
+    factorsR(List.empty, x, candidates.filter(p => p.toBigInt |> x))
   }
 
   /**
@@ -629,21 +617,9 @@ object Prime {
     * @param n The number being tested, represented as a `BigInt`.
     * @return A boolean value indicating whether Carmichael's theorem applies to the input number `n`.
     */
-  private def carmichaelTheoremApplies(n: BigInt) = {
-    val factors: Map[Prime, Int] = primeFactorMultiplicity(n)
-    val tests: Iterable[Boolean] = for ((p, r) <- factors) yield r == 1 && (n - 1) % (p.n - 1) == 0
-    factors.size > 2 && tests.forall(p => p)
-  }
-
-  /**
-    * XXX Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
-    *
-    * @param n the number of copies to make.
-    * @param x the value to be copied.
-    * @tparam X the underlying type of the result.
-    * @return a List[X].
-    */
-  private def fill[X](n: Int)(x: X): List[X] = List.fill(n)(x)
+  private def carmichaelTheoremApplies(n: BigInt) =
+    val factors = primeFactorMultiplicity(n)
+    factors.size > 2 && factors.forall(f => f.r == 1 && (n - 1) % (f.p.n - 1) == 0)
 
   /**
     * Generates a sequence of random values based on the given prime number.
@@ -936,4 +912,12 @@ object Goldbach {
   * @param str The message or description of the error.
   */
 case class PrimeException(str: String) extends Exception(str)
+
+/**
+  * Represents a prime-power factor p^r in a factorisation.
+  *
+  * @param p the prime base.
+  * @param r the exponent (multiplicity).
+  */
+case class Factor(p: Prime, r: Int)
 
