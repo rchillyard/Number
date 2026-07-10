@@ -40,7 +40,7 @@ Number is organized into multiple modules:
 
 #### Current Version
 
-This version is 1.10.1
+This version is 1.10.5
 The latest published version is 1.10.5 (see [HISTORY](docs/HISTORY.md)).
 That should match the version of the latest release on Maven Central in the badge at the top.
 
@@ -49,7 +49,7 @@ To use Number in your project, add the following dependency:
 **SBT (Scala 3):**
 
 ```scala
-libraryDependencies += "com.phasmidsoftware" %% "number" % "1.9.3"
+libraryDependencies += "com.phasmidsoftware" %% "number" % "1.10.5"
 ```
 
 **Maven:**
@@ -65,6 +65,8 @@ libraryDependencies += "com.phasmidsoftware" %% "number" % "1.9.3"
 
 **Migration Note**: The `algebra` module is replacing `core.Number` and `core.Field` with a cleaner type hierarchy based on algebraic structures.
 **Migration Note**: For version history and more detail regarding migration, see the [HISTORY](docs/HISTORY.md).
+
+Full Scaladoc is available via [javadoc.io](https://javadoc.io/doc/com.phasmidsoftware/number_3).
 
 ## Quick Start
 
