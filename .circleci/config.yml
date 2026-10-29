@@ -1,18 +1,14 @@
-# Scala CircleCI 2.0 configuration file
+# Scala CircleCI 2.1 configuration file
 #
-# Check https://circleci.com/docs/2.0/sample-config/ for more details
+# Check https://circleci.com/docs/configuration-reference/ for more details
 #
-version: 2
+version: 2.1
+
 jobs:
   build:
     docker:
-      # specify the version you desire here
+      # cimg/openjdk ships Maven and Gradle but not sbt, so sbt is installed below
       - image: cimg/openjdk:17.0
-
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
 
     working_directory: ~/repo
 
@@ -24,19 +20,28 @@ jobs:
     steps:
       - checkout
 
+      - run:
+          name: Install sbt (version pinned in project/build.properties)
+          command: |
+            SBT_VERSION=$(sed -n 's/^sbt.version=//p' project/build.properties)
+            curl -fsSL --retry 3 "https://github.com/sbt/sbt/releases/download/v${SBT_VERSION}/sbt-${SBT_VERSION}.tgz" | tar -xz -C ~
+            echo 'export PATH="$HOME/sbt/bin:$PATH"' >> "$BASH_ENV"
+
       # Download and cache dependencies
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "build.sbt" }}
+            - v2-dependencies-{{ checksum "build.sbt" }}-{{ checksum "project/build.properties" }}-{{ checksum "project/plugins.sbt" }}
             # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
+            - v2-dependencies-
 
-      - run: cat /dev/null | sbt test:compile
+      - run: cat /dev/null | sbt Test/compile
 
       - save_cache:
           paths:
-            - ~/.m2
-          key: v1-dependencies--{{ checksum "build.sbt" }}
+            - ~/.ivy2/cache
+            - ~/.sbt
+            - ~/.cache/coursier
+          key: v2-dependencies-{{ checksum "build.sbt" }}-{{ checksum "project/build.properties" }}-{{ checksum "project/plugins.sbt" }}
 
       # run tests!
       - run:
@@ -53,3 +58,8 @@ jobs:
 
       - store_test_results:
           path: target/test-reports
+
+workflows:
+  build:
+    jobs:
+      - build

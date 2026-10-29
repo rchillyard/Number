@@ -39,8 +39,6 @@ ThisBuild / versionScheme := Some("early-semver")
 ThisBuild / publishConfiguration := publishConfiguration.value.withOverwrite(true)
 ThisBuild / publishLocalConfiguration := publishLocalConfiguration.value.withOverwrite(true)
 
-// Optional: Skip publishing of docs and sources for snapshot versions
-ThisBuild / publishArtifact := true
 
 // Remove all additional repository other than Maven Central from POM
 ThisBuild / pomIncludeRepository := { _ => false }
