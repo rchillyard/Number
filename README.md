@@ -1,4 +1,4 @@
-![Sonatype Central](https://maven-badges.sml.io/sonatype-central/com.phasmidsoftware/number_3/badge.svg?color=blue)
+[![Sonatype Central](https://maven-badges.sml.io/sonatype-central/com.phasmidsoftware/number_3/badge.svg?color=blue)](https://central.sonatype.com/artifact/com.phasmidsoftware/number_3)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/bb7de1b3ea4e4256997e6b1fac66281b)](https://app.codacy.com/gh/rchillyard/Number?utm_source=github.com&utm_medium=referral&utm_content=rchillyard/Number&utm_campaign=Badge_Grade)
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/rchillyard/Number/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/gh/rchillyard/Number/tree/main)
 ![GitHub Top Languages](https://img.shields.io/github/languages/top/rchillyard/Number)
