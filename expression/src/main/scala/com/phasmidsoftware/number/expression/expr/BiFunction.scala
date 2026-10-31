@@ -8,7 +8,7 @@ import cats.implicits.catsSyntaxEq
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
-import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, IsInteger, NaturalExponential, QuadraticSolution, RationalNumber, Structure, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, IsInteger, QuadraticSolution, RationalNumber, Structure, WholeNumber}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian, Rational}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, Number, Real, Complex as CoreComplex}
@@ -109,8 +109,17 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   lazy val structuralMatcher: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction:structuralMatcher") {
     // NOTE: Canonical ordering — swap commutative operands if out of order.
+    case BiFunction(Noop(_), _, _) | BiFunction(_, Noop(_), _) =>
+      em.Match(Noop.apply)
+    case BiFunction(Infinity, UniFunction(Infinity, Negate), Sum) | BiFunction(UniFunction(Infinity, Negate), Infinity, Sum) =>
+      em.Match(Noop.apply)
     case IsCommutative(x, y, f) if summon[Ordering[Expression]].gt(x, y) =>
-      em.Match(BiFunction(y, x, f))
+      em.Match(BiFunction(y, x, f)).flatMap(structuralMatcher)
+    case BiFunction(Zero, Infinity, Product) | BiFunction(Infinity, Zero, Product) =>
+      em.Match(Noop.apply)
+    // NOTE: any other BiFunction involving Infinity results in Infinity
+    case BiFunction(Infinity, _, _) | BiFunction(_, Infinity, _) =>
+      em.Match(Infinity)
     case BiFunction(a, b, Sum) if a == b =>
       em.Match(a * Two)
     case BiFunction(BiFunction(w, x, Power), BiFunction(y, z, Power), Product) if w == y =>
@@ -435,7 +444,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case (E, ValueExpression(Complex(c), _)) if c.isImaginary && c.modulus == numerical.Number.pi =>
         em.Match(MinusOne)
       case (E, ValueExpression(v: eager.Number, _)) =>
-        em.Match(Literal(NaturalExponential(v)))
+        em.Match(UniFunction(v, Exp))
       case (E, UniFunction(x, Ln)) =>
         em.Match(x)
       case (E, BiFunction(x, E, Log)) =>

@@ -101,10 +101,10 @@ trait Expression extends Lazy with Approximate {
 
   /**
     * Evaluates this `Expression` in the context of `AnyContext` without simplification or factor-based conversion.
-    * This allows obtaining a direct evaluation of the `Expression` as a `Field`, if possible.
+    * This allows obtaining a direct evaluation of the `Expression` as a `Eager`, if possible.
     * NOTE: no simplification or factor-based conversion occurs here.
     *
-    * @return an `Option[Field]` containing the evaluated `Field` if evaluation is successful, or `None` otherwise.
+    * @return either a `Some[Eager]` containing the value if evaluation is successful, or `None` otherwise.
     */
   lazy val evaluateAsIs: Option[Eager] =
     evaluate(AnyContext)
@@ -400,7 +400,7 @@ object Expression {
       * @return an Expression representing the lazy product of this expression and the given expression.
       */
     infix def times(y: Expression): Expression = y match {
-      case IsZero(_) =>
+      case IsZero(_) if x != Infinity =>
         Zero
       case IsUnity(_) =>
         x
@@ -627,7 +627,7 @@ object Expression {
     case Eager.infinity =>
       Infinity
     case _ =>
-      Literal(x)
+      Literal(x) // CONSIDER invoking ValueExpression instead
   }
 
   @deprecated("Use puremath or lazymath string interpolators instead", "1.6.5")
@@ -918,11 +918,16 @@ object Expression {
     */
   given Ordering[Expression] with
     def compare(x: Expression, y: Expression): Int = (x, y) match
-      case (a: AtomicExpression, b: AtomicExpression) => atomRank(a) - atomRank(b)
-      case (_: AtomicExpression, _: CompositeExpression) => -1
-      case (_: CompositeExpression, _: AtomicExpression) => 1
-      case (a: CompositeExpression, b: CompositeExpression) => a.depth - b.depth
-      case (a, b) => a.compare(b) // This case should never occur
+      case (a: AtomicExpression, b: AtomicExpression) =>
+        atomRank(a) - atomRank(b)
+      case (_: AtomicExpression, _: CompositeExpression) =>
+        -1
+      case (_: CompositeExpression, _: AtomicExpression) =>
+        1
+      case (a: CompositeExpression, b: CompositeExpression) =>
+        a.depth - b.depth
+      case (a, b) =>
+        a.compare(b) // This case should never occur
 
   private def atomRank(e: AtomicExpression): Int = e match
     case Noop(_) => 0

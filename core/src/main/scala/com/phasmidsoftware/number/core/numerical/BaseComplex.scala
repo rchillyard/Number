@@ -92,7 +92,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     * @return the sum.
     */
   def add(x: Field): Field =
-    sum(narrow(x, polar = false))
+    sum(narrow(x, polar = false)) // CONSIDER dealing with infinity.
 
   /**
     * Method to add this to the given parameter (a Cartesian).

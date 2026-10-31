@@ -13,8 +13,8 @@ import com.phasmidsoftware.number.algebra.eager.Angle.𝛑
 import com.phasmidsoftware.number.algebra.eager.Eager.{e, half, minusOne, negInfinity, one, pi, two, zero}
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.core.inner.Rational.infinity
 import com.phasmidsoftware.number.core.numerical
+import com.phasmidsoftware.number.core.numerical.{Box, RelativeFuzz}
 import com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.expression.expr.{Expression, *}
 import org.scalactic.Equality
@@ -245,6 +245,17 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     lazymath"\ln{\e}" shouldBe One
     math"\ln{\e}" shouldBe one
   }
+  it should "work for Ln e^x" in {
+    lazymath"\ln{\e^2}" shouldBe Two
+    lazymath"\e^{\ln{2}}" shouldBe Two
+  }
+  it should "work for e^{e^e-1}" in {
+    lazymath"\e^{(-1 + \e^\e)}" shouldBe UniFunction(BiFunction(-1, UniFunction(E, Exp), Sum), Exp)
+    lazymath"\e^{(\e^\e + -1)}" shouldBe UniFunction(BiFunction(UniFunction(E, Exp), -1, Sum), Exp)
+    math"\e^{(-1 + \e^\e)}" shouldBe Real(1403194.8655310909, Some(RelativeFuzz(1.0715681594829235E-14, Box)))
+    math"\e^{(\e^\e + -1)}" shouldBe Real(1403194.8655310909, Some(RelativeFuzz(1.0715681594829235E-14, Box)))
+  }
+
   it should "work for Sine 0, etc." in {
     lazymath"\sin(0)" shouldBe Zero
     math"\sin(0)" shouldBe zero

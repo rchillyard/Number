@@ -149,6 +149,16 @@ object Constants {
   lazy val iPi: Complex = ComplexCartesian(0, Number.pi)
 
   /**
+    * Represents a constant Field value of "Not a Number" (NaN).
+    * NaN is used to signify an undefined or unrepresentable value, especially
+    * in numerical computations that result in invalid operations like division by zero
+    * or operations involving undefined values.
+    *
+    * This value is of type Real and wraps the predefined NaN value from the Number type.
+    */
+  lazy val NaN: Field = Real(Number.NaN)
+
+  /**
     * Represents the square root of 2 as a field constant.
     * CONSIDER making this a Complex.
     *

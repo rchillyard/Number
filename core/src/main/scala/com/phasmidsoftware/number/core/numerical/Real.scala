@@ -114,6 +114,10 @@ case class Real(x: Number) extends Field {
     * @return the sum.
     */
   def add(y: Field): Field = y match {
+    case field if this.isInfinite && field.isInfinite && signum != field.signum =>
+      Constants.NaN
+    case field if this.isInfinite || field.isInfinite =>
+      Constants.infinity
     case multivariate: Multivariate =>
       multivariate.add(this)
     case Real(r) =>

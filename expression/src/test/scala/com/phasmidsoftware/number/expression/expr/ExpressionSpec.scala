@@ -12,9 +12,10 @@ import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
 import com.phasmidsoftware.number.algebra.eager.RationalNumber.half
-import com.phasmidsoftware.number.core.inner.{NatLog, Rational}
+import com.phasmidsoftware.number.algebra.eager.Real.∞
+import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, ExactNumber}
+import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar}
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
 import com.phasmidsoftware.number.expression.core.FuzzyEquality
 import com.phasmidsoftware.number.expression.expr
@@ -26,7 +27,7 @@ import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
-class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter with FuzzyEquality {
+class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter with FuzzyEquality with ExpressionMatcherPatterns {
 
   type OldExpression = com.phasmidsoftware.number.expression.expr.Expression
   type OldNumber = com.phasmidsoftware.number.core.numerical.Number
@@ -87,6 +88,26 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
       case scala.util.Success(true) =>
       case _ => fail("evaluate ∅ * 3 * i")
     }
+  }
+
+  behavior of "infinity"
+
+  def simplifiesTo(e: Expression, expected: Expression): org.scalatest.Assertion =
+    e.simplify shouldBe expected
+
+  it should "obey the Infinity rules" in {
+    Expression(∞) shouldBe Infinity
+    simplifiesTo(-Infinity + Infinity, Noop.apply)
+    simplifiesTo(Infinity + -Infinity, Noop.apply)
+    simplifiesTo(Zero * Infinity, Noop.apply)
+    simplifiesTo(Infinity * Zero, Noop.apply)
+  }
+
+  it should "obey the Noop rules" in {
+    simplifiesTo(Noop.apply + Noop.apply, Noop.apply)
+    simplifiesTo(-Noop.apply + Noop.apply, Noop.apply)
+    simplifiesTo(Noop.apply + Noop.apply, Noop.apply)
+    simplifiesTo(Noop.apply + Noop.apply, Noop.apply)
   }
 
   behavior of "parse"
@@ -460,11 +481,11 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "aggregate 2" in {
     val target = (One * Pi * Two * MinusOne).simplify
-    target shouldBe -(Pi * 2)
+    target shouldBe ∅ * -2 * Pi
   }
   it should "evaluate e * e" in {
     val expression: Expression = E * E
-    expression.simplify shouldBe Literal(Eager(numerical.Real(ExactNumber(2, NatLog))))
+    expression.simplify shouldBe UniFunction(2, Exp)
   }
   // TODO Issue #140
   it should "evaluate phi * phi" in {
@@ -511,7 +532,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val y: em.MatchResult[Expression] = x.structuralMatcher(x)
     y shouldBe em.Match(BiFunction(E, ValueExpression(2), Power))
     val simplified = y.get.simplify
-    simplified shouldBe Literal(Eager(numerical.Real(ExactNumber(2, NatLog))))
+    simplified shouldBe UniFunction(2, Exp)
   }
   it should "evaluate phi * phi" in {
     val phi = expr.Root(QuadraticEquation.goldenRatioEquation, 0)

@@ -41,7 +41,7 @@ Number is organized into multiple modules:
 #### Current Version
 
 This version is 1.10.1
-The latest published version is 1.9.3 (see [HISTORY](docs/HISTORY.md)).
+The latest published version is 1.10.5 (see [HISTORY](docs/HISTORY.md)).
 That should match the version of the latest release on Maven Central in the badge at the top.
 
 To use Number in your project, add the following dependency:
@@ -59,7 +59,7 @@ libraryDependencies += "com.phasmidsoftware" %% "number" % "1.9.3"
 <dependency>
     <groupId>com.phasmidsoftware</groupId>
     <artifactId>number_3</artifactId>
-    <version>1.9.3</version>
+    <version>1.10.5</version>
 </dependency>
 ```
 

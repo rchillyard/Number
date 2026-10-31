@@ -2,7 +2,7 @@
 
 ThisBuild / organization := "com.phasmidsoftware"
 
-ThisBuild / version := "1.10.4"
+ThisBuild / version := "1.10.5"
 
 val scalaVersionNumber = "3.7.3"
 val catsVersion = "2.13.0"
@@ -20,6 +20,9 @@ ThisBuild / libraryDependencies ++= Seq(
   "com.typesafe" % "config" % configVersion,
   "ch.qos.logback" % "logback-classic" % logbackClassicVersion % "runtime"
 )
+
+// CONSIDER removing this (for performance reasons) if publishLocal runs fine without it.
+Global / concurrentRestrictions += Tags.limitAll(1)
 
 // ============================================================================
 // COMPILER OPTIONS - Moderate settings focused on catching + operator issues
