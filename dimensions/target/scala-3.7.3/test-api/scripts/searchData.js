@@ -1,7 +1,0 @@
-pages = [{"l":"index.html#","e":false,"i":"","n":"number-dimensions-test","t":"number-dimensions-test","d":"","k":"static","x":""},
-{"l":"com/phasmidsoftware/number/dimensions/core.html#","e":false,"i":"","n":"com.phasmidsoftware.number.dimensions.core","t":"com.phasmidsoftware.number.dimensions.core","d":"","k":"package","x":""},
-{"l":"com/phasmidsoftware/number/dimensions/core/DimensionSpec.html#","e":false,"i":"","n":"DimensionSpec","t":"DimensionSpec extends AnyFlatSpec, Matchers","d":"com.phasmidsoftware.number.dimensions.core","k":"class","x":""},
-{"l":"com/phasmidsoftware/number/dimensions/core/DimensionWitnessSpec.html#","e":false,"i":"","n":"DimensionWitnessSpec","t":"DimensionWitnessSpec extends AnyFlatSpec, Matchers","d":"com.phasmidsoftware.number.dimensions.core","k":"class","x":""},
-{"l":"com/phasmidsoftware/number/dimensions/core/PowerUnitSpec.html#","e":false,"i":"","n":"PowerUnitSpec","t":"PowerUnitSpec extends AnyFlatSpec, Matchers","d":"com.phasmidsoftware.number.dimensions.core","k":"class","x":""},
-{"l":"com/phasmidsoftware/number/dimensions/core/TRationalSpec.html#","e":false,"i":"","n":"TRationalSpec","t":"TRationalSpec extends AnyFlatSpec, Matchers","d":"com.phasmidsoftware.number.dimensions.core","k":"class","x":""},
-{"l":"com/phasmidsoftware/number/dimensions/core/UnitsSpec.html#","e":false,"i":"","n":"UnitsSpec","t":"UnitsSpec extends AnyFlatSpec, Matchers","d":"com.phasmidsoftware.number.dimensions.core","k":"class","x":""}];
