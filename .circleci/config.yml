@@ -1,4 +1,4 @@
-# Scala CircleCI 2.1 configuration file
+# CircleCI configuration for Number (the standard Phasmid template, for a multi-module build)
 #
 # Check https://circleci.com/docs/configuration-reference/ for more details
 #
@@ -8,7 +8,7 @@ jobs:
   build:
     docker:
       # cimg/openjdk ships Maven and Gradle but not sbt, so sbt is installed below
-      - image: cimg/openjdk:17.0
+      - image: cimg/openjdk:21.0
 
     working_directory: ~/repo
 
@@ -34,7 +34,9 @@ jobs:
             # fallback to using the latest cache if no exact match is found
             - v2-dependencies-
 
-      - run: cat /dev/null | sbt Test/compile
+      - run:
+          name: Compile
+          command: cat /dev/null | sbt Test/compile
 
       - save_cache:
           paths:
@@ -43,10 +45,14 @@ jobs:
             - ~/.cache/coursier
           key: v2-dependencies-{{ checksum "build.sbt" }}-{{ checksum "project/build.properties" }}-{{ checksum "project/plugins.sbt" }}
 
-      # run tests!
       - run:
-          name: Run tests
+          name: Test (excluding Slow)
           command: cat /dev/null | sbt "testOnly * -- -l Slow"
+
+      # Generate the unified Scaladoc (catches doc warnings, and it is what GitHub Pages publishes)
+      - run:
+          name: Doc
+          command: cat /dev/null | sbt unidoc
 
       # Collect test results from all modules
       - run:

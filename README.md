@@ -1,11 +1,12 @@
 [![Sonatype Central](https://maven-badges.sml.io/sonatype-central/com.phasmidsoftware/number_3/badge.svg?color=blue)](https://central.sonatype.com/artifact/com.phasmidsoftware/number_3)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/bb7de1b3ea4e4256997e6b1fac66281b)](https://app.codacy.com/gh/rchillyard/Number?utm_source=github.com&utm_medium=referral&utm_content=rchillyard/Number&utm_campaign=Badge_Grade)
+[![API Docs](https://img.shields.io/badge/api-docs-blue)](https://rchillyard.github.io/Number/latest/api/)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/bb7de1b3ea4e4256997e6b1fac66281b)](https://app.codacy.com/gh/rchillyard/Number/dashboard)
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/rchillyard/Number/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/gh/rchillyard/Number/tree/main)
-![GitHub Top Languages](https://img.shields.io/github/languages/top/rchillyard/Number)
-![GitHub](https://img.shields.io/github/license/rchillyard/Number)
-![GitHub last commit](https://img.shields.io/github/last-commit/rchillyard/Number)
-![GitHub issues](https://img.shields.io/github/issues-raw/rchillyard/Number)
-![GitHub issues by-label](https://img.shields.io/github/issues/rchillyard/Number/bug)
+[![GitHub Top Languages](https://img.shields.io/github/languages/top/rchillyard/Number)](https://github.com/rchillyard/Number)
+[![GitHub](https://img.shields.io/github/license/rchillyard/Number)](https://github.com/rchillyard/Number/blob/main/LICENSE)
+[![GitHub last commit](https://img.shields.io/github/last-commit/rchillyard/Number)](https://github.com/rchillyard/Number/commits/main)
+[![GitHub issues](https://img.shields.io/github/issues-raw/rchillyard/Number)](https://github.com/rchillyard/Number/issues)
+[![GitHub issues by-label](https://img.shields.io/github/issues/rchillyard/Number/bug)](https://github.com/rchillyard/Number/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
 ![Logo](docs/images/%20logo.png)
 # Number
 

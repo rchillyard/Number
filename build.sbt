@@ -4,7 +4,7 @@ ThisBuild / organization := "com.phasmidsoftware"
 
 ThisBuild / version := "1.10.5"
 
-val scalaVersionNumber = "3.7.3"
+val scalaVersionNumber = "3.9.0" // the current LTS
 val catsVersion = "2.13.0"
 val scalaTestVersion = "3.2.19"
 val scalaParserCombinatorsVersion = "2.4.0"
@@ -47,9 +47,7 @@ val scala3Options = Seq(
 
   // HELPFUL: Good practices that don't add much burden
   "-explain", // Detailed error explanations
-  "-Wunused:imports", // Catch unused imports
-  "-Wunused:privates", // Catch unused private members
-  "-Wunused:locals", // Catch unused local definitions
+  "-Wunused:all", // Catch unused imports, privates, locals, parameters, etc.
   "-Wconf:msg=Couldn't resolve a member:s" // Try to suppress linker warnings when generating docs
 )
 
@@ -78,7 +76,7 @@ lazy val mermaid = (project in file("mermaid"))
   )
 
 lazy val root = (project in file("."))
-  .enablePlugins(ScalaUnidocPlugin, MermaidDiagramGenerator)
+  .enablePlugins(ScalaUnidocPlugin, MermaidDiagramGenerator, GhpagesPlugin)
   .aggregate(core, algebra, expression, parse, dimensions, top)
   // mermaid is NOT in aggregate: it is build tooling, not a library module
   .dependsOn(top)
@@ -97,7 +95,12 @@ lazy val root = (project in file("."))
       "-doc-version", version.value,
       "-sourcepath", (LocalRootProject / baseDirectory).value.getAbsolutePath,
       "-doc-root-content", (LocalRootProject / baseDirectory).value + "/rootdoc.txt"
-    )
+    ),
+
+    // The unified Scaladoc is published to https://rchillyard.github.io/Number/latest/api/ by `sbt ghpagesPushSite`
+    ScalaUnidoc / siteSubdirName := "latest/api",
+    addMappingsToSiteDir(ScalaUnidoc / packageDoc / mappings, ScalaUnidoc / siteSubdirName),
+    git.remoteRepo := "git@github.com:rchillyard/Number.git"
   )
 lazy val core = (project in file("core"))
   .settings(
