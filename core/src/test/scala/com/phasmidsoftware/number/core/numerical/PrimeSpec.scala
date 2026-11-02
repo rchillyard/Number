@@ -182,10 +182,10 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     Prime.primeFactors(7894609062L).sorted shouldBe Seq(2, 3, 67, 1721, 11411).map(Prime(_))
   }
   it should "implement primeFactorMultiplicity" in {
-    Prime.primeFactorMultiplicity(23) shouldBe Seq(Factor(Prime(23), 1))
-    Prime.primeFactorMultiplicity(70) shouldBe Seq(Factor(Prime(2), 1), Factor(Prime(5), 1), Factor(Prime(7), 1))
-    Prime.primeFactorMultiplicity(70906) shouldBe Seq(Factor(Prime(2), 1), Factor(Prime(11), 2), Factor(Prime(293), 1))
-    Prime.primeFactorMultiplicity(7894609062L) shouldBe Seq(Factor(Prime(2), 1), Factor(Prime(3), 1), Factor(Prime(67), 1), Factor(Prime(1721), 1), Factor(Prime(11411), 1))
+    Prime.primeFactorMultiplicity(23) shouldBe Seq(PrimePower(Prime(23), 1))
+    Prime.primeFactorMultiplicity(70) shouldBe Seq(PrimePower(Prime(2), 1), PrimePower(Prime(5), 1), PrimePower(Prime(7), 1))
+    Prime.primeFactorMultiplicity(70906) shouldBe Seq(PrimePower(Prime(2), 1), PrimePower(Prime(11), 2), PrimePower(Prime(293), 1))
+    Prime.primeFactorMultiplicity(7894609062L) shouldBe Seq(PrimePower(Prime(2), 1), PrimePower(Prime(3), 1), PrimePower(Prime(67), 1), PrimePower(Prime(1721), 1), PrimePower(Prime(11411), 1))
   }
   it should "implement Lucas()" in {
     val p = Prime(71)
@@ -358,14 +358,14 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     Prime(541).reciprocalPeriod shouldBe None // CONSIDER we should get the correct number for this
     Prime(1).reciprocalPeriod shouldBe None
   }
-  it should "Factor" in {
-    val f = Factor(Prime(7), 2)
+  it should "PrimeFactor" in {
+    val f = PrimePower(Prime(7), 2)
     f.p shouldBe Prime(7)
     f.r shouldBe 2
     f.totient shouldBe 42 // φ(7²) = 7^(2-1) * (7-1) = 42
     Prime.totient(f) shouldBe 42 // forwarding method still works
     f.reducedTotient shouldBe 42 // not 2^r with r>=3, so same as totient
-    Factor(Prime(2), 3).reducedTotient shouldBe 2 // λ(8) = φ(8)/2 = 2
+    PrimePower(Prime(2), 3).reducedTotient shouldBe 2 // λ(8) = φ(8)/2 = 2
   }
   it should "reducedTotient" in {
     Prime.reducedTotient(1) shouldBe 1

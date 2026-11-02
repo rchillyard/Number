@@ -319,10 +319,10 @@ object Prime {
   /**
     * Euler's totient function for a prime power.
     *
-    * @param factor a Factor (prime base and exponent).
+    * @param factor a PrimeFactor (prime base and exponent).
     * @return Euler's totient function for this Prime power.
     */
-  def totient(factor: Factor): BigInt = factor.totient
+  def totient(factor: PrimePower): BigInt = factor.totient
 
   /**
     * Checks whether the given number is even.
@@ -397,7 +397,7 @@ object Prime {
     *                 If not provided, all primes are considered.
     * @return a map where each key is a prime factor of `x` and the corresponding value is its exponent in the prime factorization.
     */
-  def primeFactorMultiplicity(x: BigInt, maybeMax: Option[Int] = None): Seq[Factor] = {
+  def primeFactorMultiplicity(x: BigInt, maybeMax: Option[Int] = None): Seq[PrimePower] = {
     /**
       * Determine how many times p divides into n.
       *
@@ -426,12 +426,12 @@ object Prime {
       * @return a Seq of Factors with non-zero exponents.
       */
     @tailrec
-    def factorsR(result: List[Factor], n: BigInt, ps: LazyList[Prime]): List[Factor] = (n, ps) match {
+    def factorsR(result: List[PrimePower], n: BigInt, ps: LazyList[Prime]): List[PrimePower] = (n, ps) match {
       case (BigOne, _) =>
         result
       case (m, h #:: t) =>
         val (count, dividend) = factorCount(h, m)
-        val newResult = if count > 0 then result :+ Factor(h, count) else result
+        val newResult = if count > 0 then result :+ PrimePower(h, count) else result
         factorsR(newResult, dividend, t)
       case _ =>
         result
@@ -933,7 +933,7 @@ case class PrimeException(str: String) extends Exception(str)
   * @param p the prime base.
   * @param r the exponent (multiplicity).
   */
-case class Factor(p: Prime, r: Int):
+case class PrimePower(p: Prime, r: Int):
   /**
     * Computes Euler's Totient function for the prime-power factor p^r.
     * The result is the count of integers less than p^r that are coprime to it.
