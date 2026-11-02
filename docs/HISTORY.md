@@ -1,6 +1,7 @@
 # Migration and Version History
 
 ## Versions
+* Version 1.10.6: Built with Scala 3.9.0 (needs Scala 3.9 or later; use 1.10.5 for 3.7 or 3.8). `Prime.primeFactorMultiplicity` now returns `Seq[PrimePower]` (was `Map[Prime, Int]`); new `PrimePower(p, r)` case class with `totient` and `reducedTotient`. Depends on Flog 1.1.0 and Matchers 1.1.0.
 * Version 1.10.5: Fixed various issues (mostly regarding infinity) exposed by the EML expansion.
 * Version 1.10.1: Fixed issue with over-precise Rational numbers.
 * Version 1.10.0: Improved the Mermaid diagrams, see [docs/diagrams/index.md](docs/diagrams/index.md).
