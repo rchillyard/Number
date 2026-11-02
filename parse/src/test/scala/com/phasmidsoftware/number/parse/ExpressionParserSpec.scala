@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.parse
 
-import com.phasmidsoftware.number.algebra.eager.{Eager, NaturalExponential, WholeNumber}
+import com.phasmidsoftware.number.algebra.eager.{Eager, WholeNumber}
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
 import com.phasmidsoftware.number.expression.expr.*
 import org.scalatest.flatspec.AnyFlatSpec

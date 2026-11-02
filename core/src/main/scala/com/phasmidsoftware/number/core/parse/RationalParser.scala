@@ -169,8 +169,9 @@ abstract class BaseRationalParser extends SignificantSpaceParsers {
   * The `RationalParser` object provides functionality to parse strings into `Rational` objects.
   * It extends the `BaseRationalParser` and implements parsing logic for rational numbers,
   * including components such as sign, integer part, fractional part, and exponent.
+  * 
+  * NOTE unless you are working inside the `core` module, you should prefer com.phasmidsoftware.number.expression.parse.RationalParser instead.
   */
-@deprecated("use com.phasmidsoftware.number.expression.parse.RationalParser instead", "1.6.5")
 object RationalParser extends BaseRationalParser {
   /**
     * Parses the given string into a `Rational` object, if possible.

@@ -11,6 +11,8 @@ import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
+import scala.util.Success
+
 /**
   * Test suite for QuadraticSolution class.
   *
@@ -448,5 +450,217 @@ class QuadraticSolutionSpec extends AnyFlatSpec with Matchers {
   it should "not delegate to render" in {
     val solution = phi
     solution.toString shouldBe "QuadraticSolution(RationalNumber(½),InversePower(2,RationalNumber(1.25)),1,false)"
+  }
+}
+
+
+/**
+  * Test suite for QuadraticSolution class.
+  *
+  * Tests cover:
+  * - Real roots (both perfect square and irrational discriminants)
+  * - Complex roots (negative discriminant with imaginary flag)
+  * - Both branches (k=0 and k=1)
+  * - Normalization behavior
+  * - Conjugate operations
+  * - Equality (exact and fuzzy)
+  * - Rendering
+  * - Edge cases (zero discriminant, zero offset, etc.)
+  */
+class LinearSolutionSpec extends AnyFlatSpec with Matchers {
+
+  behavior of "LinearSolution construction"
+
+  it should "construct" in {
+    val solution = LinearSolution(RationalNumber(Rational(3, 2)))
+    solution.base shouldBe RationalNumber(Rational(3, 2))
+  }
+
+  behavior of "LinearSolution.negate"
+
+  it should "negate base and flip branch" in {
+    val base = RationalNumber(Rational(3, 2))
+    val solution = LinearSolution(base)
+    val negated = solution.negate
+    negated.base shouldBe base.negate
+  }
+
+  it should "negate and conjugate correctly for branch 1" in {
+    val base = RationalNumber(Rational(3, 2))
+    val solution = LinearSolution(base)
+    val negated = solution.negate
+    negated.base shouldBe base.negate
+  }
+
+  behavior of "LinearSolution.normalize"
+
+  it should "normalize to offset when base is zero" in {
+    val base = RationalNumber.zero
+    val solution = LinearSolution(base)
+    val normalized = solution.normalize
+
+    // When base is zero, result should be offset scaled by branched coefficient
+    // For branch 0: branched(0) = -1/2, so result is -5/2
+    normalized shouldBe a[Scalar]
+  }
+
+  it should "normalize to base when offset is zero" in {
+    val base = RationalNumber(Rational(7, 2))
+    val solution = LinearSolution(base)
+    val normalized = solution.normalize
+
+    normalized shouldBe base
+  }
+
+  behavior of "LinearSolution boolean predicates"
+
+  it should "identify zero solution correctly" in {
+    val zero = LinearSolution(RationalNumber.zero)
+    zero.isZero shouldBe true
+  }
+
+  it should "not identify non-zero solution as zero" in {
+    val nonZero = LinearSolution(RationalNumber(Rational(1)))
+    nonZero.isZero shouldBe false
+  }
+
+  it should "identify pure number when offset is zero" in {
+    val pure = LinearSolution(RationalNumber(Rational(5)))
+    pure.isPureNumber shouldBe true
+  }
+
+  it should "identify unity correctly" in {
+    val unity = LinearSolution(RationalNumber.one)
+    unity.isUnity shouldBe true
+  }
+
+  it should "not identify non-unity as unity" in {
+    val notUnity1 = LinearSolution(RationalNumber(Rational(2)))
+    notUnity1.isUnity shouldBe false
+  }
+
+  it should "always report as exact" in {
+    val solution = LinearSolution(RationalNumber.half)
+    solution.isExact shouldBe true
+  }
+
+  behavior of "LinearSolution.add(Rational)"
+
+  it should "add rational to base when base is pure number" in {
+    val base = RationalNumber(Rational(3, 2))
+    val offset = RationalNumber.zero
+    val solution = LinearSolution(base)
+    val addend = Rational(1, 2)
+
+    val result = solution.add(addend)
+
+    result shouldBe a[LinearSolution]
+    // New base should be 3/2 + 1/2 = 2
+    result.asInstanceOf[LinearSolution].base shouldBe WholeNumber(2)
+  }
+
+  behavior of "LinearSolution.add(Solution)"
+
+  it should "add half to half" in {
+    val expected = Success(LinearSolution(WholeNumber.one))
+    LinearSolution(RationalNumber.half).add(LinearSolution(RationalNumber.half)) shouldBe expected
+  }
+
+  behavior of "LinearSolution.multiply(Solution)"
+
+  it should "multiply two by half" in {
+    val expected = Success(LinearSolution(WholeNumber.one))
+    LinearSolution(WholeNumber(2)).multiply(LinearSolution(RationalNumber.half)) shouldBe expected
+  }
+
+  behavior of "LinearSolution.*(Rational)"
+
+  it should "scale both base and offset when both are scalars" in {
+    val base = RationalNumber(Rational(3, 2))
+    val solution = LinearSolution(base)
+    val scale = Rational.two
+    val result = solution * scale
+    result shouldBe a[LinearSolution]
+    val scaled = result.asInstanceOf[LinearSolution]
+    scaled.base shouldBe WholeNumber.three
+  }
+
+  behavior of "LinearSolution equality"
+
+  it should "be equal to itself" in {
+    val solution = LinearSolution(RationalNumber.half)
+    solution.eqv(solution).get shouldBe true
+  }
+
+  it should "be equal to another solution with same base, offset, and branch" in {
+    val solution1 = LinearSolution(RationalNumber.half)
+    val solution2 = LinearSolution(RationalNumber.half)
+    solution1.eqv(solution2).get shouldBe true
+  }
+
+  it should "not be equal if bases differ" in {
+    val solution1 = LinearSolution(RationalNumber.half)
+    val solution2 = LinearSolution(RationalNumber.one)
+    solution1.eqv(solution2).get shouldBe false
+  }
+
+  behavior of "LinearSolution fuzzy equality"
+
+  it should "be fuzzy equal to itself" in {
+    val solution = LinearSolution(RationalNumber.half)
+    solution.fuzzyEqv(0.01)(solution).get shouldBe true
+  }
+
+  it should "be fuzzy equal to similar solution" in {
+    val solution1 = LinearSolution(RationalNumber.half)
+    val solution2 = LinearSolution(RationalNumber.half)
+    solution1.fuzzyEqv(0.01)(solution2).get shouldBe true
+  }
+
+  behavior of "LinearSolution.render"
+
+  it should "render normalized form when offset is zero" in {
+    val solution = LinearSolution(RationalNumber(Rational(5)))
+    val rendered = solution.render
+    // Should normalize to just the base
+    rendered shouldBe "5"
+  }
+
+  behavior of "LinearSolution edge cases"
+
+  it should "handle zero base and zero offset" in {
+    val solution = LinearSolution(RationalNumber.zero)
+    solution.isZero shouldBe true
+    solution.isPureNumber shouldBe true
+    solution.isUnity shouldBe false
+  }
+
+  it should "handle unity base with zero offset" in {
+    val solution = LinearSolution(RationalNumber.one)
+    solution.isZero shouldBe false
+    solution.isPureNumber shouldBe true
+    solution.isUnity shouldBe true
+  }
+
+  it should "handle negative base values" in {
+    val base = RationalNumber(Rational(-3, 2))
+    val solution = LinearSolution(base)
+    solution.base shouldBe base
+    solution.signum should be < 0
+  }
+
+  behavior of "LinearSolution.approximation"
+
+  it should "provide approximation for non-exact solutions" in {
+    val solution = LinearSolution(Real("0.3333333333*"))
+    val approx = solution.approximate
+    approx shouldBe a[Real]
+  }
+
+  behavior of "LinearSolution toString"
+
+  it should "not delegate to render" in {
+    val solution = LinearSolution(RationalNumber.half)
+    solution.toString shouldBe "LinearSolution(RationalNumber(½))"
   }
 }

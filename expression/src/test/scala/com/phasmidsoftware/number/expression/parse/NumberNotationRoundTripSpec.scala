@@ -195,7 +195,7 @@ class NumberNotationRoundTripSpec extends AnyFlatSpec with Matchers {
     // Should either parse as exact 1/3 or fuzzy
     // If exact, should render with repeating notation
     if (parsed.fuzz.isEmpty) {
-      parsed.render should include("<")
+      parsed.render should include("<"): Unit
     }
   }
 

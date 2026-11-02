@@ -4,11 +4,10 @@
 
 package com.phasmidsoftware.number.expression.expr
 
-import com.phasmidsoftware.number.algebra.eager.{HasImaginary, IsImaginary}
+import com.phasmidsoftware.number.algebra.eager.HasImaginary
 import com.phasmidsoftware.number.expression.expr.Expression.matchSimpler
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.matchers.should.Matchers.shouldBe
 import org.scalatest.prop.TableDrivenPropertyChecks
 
 /**

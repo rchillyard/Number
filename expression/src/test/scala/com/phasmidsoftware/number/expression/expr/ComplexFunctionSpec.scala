@@ -28,7 +28,6 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
   // i·π/2 expressed in the expression layer
   private lazy val iPi = BiFunction(I, Pi, Product)
   private lazy val iPiBy2 = BiFunction(I, BiFunction(Pi, Half, Product), Product)
-  private lazy val iOne = I * One
 
   behavior of "exp for complex arguments"
 

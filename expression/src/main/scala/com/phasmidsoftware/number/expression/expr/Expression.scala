@@ -655,6 +655,9 @@ object Expression {
 
   /**
     * Method to parse a String as an Expression.
+    * 
+    * NOTE while not deprecated, this method should normally be rejected
+    * in favor of puremath, lazymath, etc.
     *
     * NOTE that, in particular, this parser fails when the string
     * includes signed numbers.
@@ -662,7 +665,6 @@ object Expression {
     * You can parse the following equivalent string: "3 ∧ ( 2 ∧ (1 chs) )"
     *
     */
-  @deprecated("Use puremath or lazymath string interpolators instead", "1.6.5")
   def parse(x: String): Option[Expression] =
     mill.Expression.parseToExpression(x).map(convertMillExpressionToExpression)
 
@@ -936,13 +938,12 @@ object Expression {
     case E => 3
     case I => 4
     case Infinity => 5
-    case PiTranscendental => 6
-    case ETranscendental => 7
-    case L2 => 8
-    case LgE => 9
-    case EulerMascheroni => 10
-    case _: LinearRoot => 11
-    case _: QuadraticRoot => 12
+    case L2 => 6
+    case LgE => 7
+    case EulerMascheroni => 8
+    case _: LinearRoot => 9
+    case _: QuadraticRoot => 10
+    case _: AbstractTranscendental => 11
 
   /**
     * Determines whether the provided expression `z` is an identity element

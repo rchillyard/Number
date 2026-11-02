@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.algebraic.Solution
 import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
 import com.phasmidsoftware.number.core.misc.FP.recover
 import com.phasmidsoftware.number.core.numerical.Number.{NumberIsFractional, NumberIsOrdering}
@@ -446,8 +445,6 @@ object Real {
       apply(r)
     case x: Number =>
       apply(x)
-    case solution: Solution =>
-      apply(solution.asField)
     case _ =>
       throw CoreException(s"Real.apply: cannot convert $n to a Real")
   }

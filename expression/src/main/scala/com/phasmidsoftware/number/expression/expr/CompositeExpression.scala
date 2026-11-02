@@ -66,8 +66,8 @@ trait CompositeExpression extends Expression {
       (x.keepSymbolic || y.keepSymbolic) && x.maybeName.isDefined && y.maybeName.isDefined
     case UniFunction(x, Sine | Cosine | Sinh | Cosh) =>
       !x.containsI
-    case Euler(x: Nameable, y: Nameable) => // TODO unreachable.
-      (x.keepSymbolic || y.keepSymbolic) && x.maybeName.isDefined && y.maybeName.isDefined
+//    case Euler(x: Nameable, y: Nameable) => // TODO unreachable.
+//      (x.keepSymbolic || y.keepSymbolic) && x.maybeName.isDefined && y.maybeName.isDefined
     case c: CompositeExpression =>
       c.terms.exists {
         case n: Nameable =>

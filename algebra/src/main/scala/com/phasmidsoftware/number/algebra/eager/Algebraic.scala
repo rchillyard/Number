@@ -100,7 +100,16 @@ sealed trait Algebraic extends Solution with Unitary with Scalable[Algebraic] {
     * @return true if this NumberLike object is exact in the context of No factor, else false.
     */
   def isExact: Boolean = true
-//
+
+  /**
+    * Multiplies this `Algebraic` by another `Algebraic` and returns the result.
+    *
+    * @param other the other `Algebraic` to be multiplied with this
+    * @return a new `Algebraic` resulting from the multiplication
+    */
+  def *(other: Algebraic): Algebraic
+
+  //
 //  /**
 //    * Determines whether the current solution is equivalent to another solution.
 //    * This method performs a structural comparison for specific solution types
@@ -236,7 +245,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
     */
   lazy val normalize: Eager = (base.normalize, offset.normalize) match {
     case (x: eager.Number, y: eager.Number) =>
-      x + y.scale(coefficient).asInstanceOf[eager.Number]
+      (x add y.scale(coefficient)).getOrElse(this)
     case (x: Structure, y: Scalar) if x.isZero =>
       y.scale(coefficient)
     case (x, y: Structure) if y.isZero =>
@@ -462,8 +471,10 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
       val rx = RationalNumber(nx)
       val ry = RationalNumber(ny)
       val bb = bx * ry + by * rx
-      // TODO cast
-      val o: Structure = if (bb.isZero) eager.Number.zero.asInstanceOf[Structure] else InversePower(2, bb * bb * px)
+      val o: Structure = eager.Number.zero match {
+        case s: Structure if bb.isZero => s
+        case _ => InversePower(2, bb * bb * px)
+      }
       val pr = px * rx * ry
       QuadraticSolution(bx * by + pr, o, bb.signum, false).normalize
     case (x@QuadraticSolution(bx: eager.Number, ox: eager.Number, nx, false), y@QuadraticSolution(by: eager.Number, oy: eager.Number, ny, false)) =>
@@ -479,14 +490,22 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
 
   // TODO this needs more work and testing.
   def multiply(solution: Algebraic): Option[Eager] = (this, solution) match {
-    // XXX Special case where both ox terms are SquareRoots
-    case (x@QuadraticSolution(_, ox@InversePower(2, px), _, _), y@QuadraticSolution(_, oy@InversePower(2, py), _, _)) if px == py =>
-      Some(x * y)
     case (x: QuadraticSolution, y: QuadraticSolution) =>
       Some(x * y)
     // CONSIDER add more cases
     case _ =>
       None
+  }
+
+  /**
+    * Multiplies this `Algebraic` by another `Algebraic` and returns the result.
+    *
+    * @param other the other `Algebraic` to be multiplied with this
+    * @return a new `Algebraic` resulting from the multiplication
+    */
+  def *(other: Algebraic): Algebraic = multiply(other) match {
+    case Some(result: Algebraic) => result
+    case None => throw AlgebraException(s"QuadraticSolution: $this*$other is not an Algebraic")
   }
 
   /**
@@ -515,7 +534,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
 
   /**
     * Scales the current solution by a given rational number.
-    * TODO do we really need both `*` and `scale`?
+    * CONSIDER do we really need both `*` and `scale`?
     *
     * @param r The rational number by which to scale the current solution.
     * @return A new scaled solution.
@@ -565,6 +584,14 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
       case _ =>
         super.fuzzyEqv(confidence)(that)
     }
+
+  /**
+    * Multiplies the current solution by another solution and returns the resulting solution.
+    *
+    * @param other the other solution to be multiplied with the current solution
+    * @return a new solution resulting from the multiplication
+    */
+  def *(other: Solution): Solution = ???
 }
 
 /**
@@ -850,6 +877,47 @@ case class LinearSolution(value: Structure)(val maybeName: Option[String] = None
     }
 
   /**
+    * Multiplies this `Algebraic` by another `Algebraic` and returns the result.
+    *
+    * @param other the other `Algebraic` to be multiplied with this
+    * @return a new `Algebraic` resulting from the multiplication
+    */
+  def *(other: Algebraic): Algebraic = other match {
+    case RationalNumber(r, _) =>
+      scale(r) match {
+        case a: Algebraic => a
+        case _ => throw AlgebraException(s"Algebraic: *($other) not supported")
+      }
+    case q: QuadraticSolution =>
+      q * this
+    case LinearSolution(x) =>
+      value.multiply(x) match {
+        case Success(s) => LinearSolution(s)
+        case Failure(e) => throw AlgebraException(s"Algebraic: *($other) not successful")
+      }
+    case _ =>
+      throw AlgebraException(s"Algebraic: *($other) not supported")
+  }
+
+  /**
+    * Multiplies this LinearSolution with another Solution instance.
+    * Supports multiplication only with another LinearSolution.
+    * Throws an exception if the provided Solution type is not supported or if the operation fails.
+    *
+    * @param other the Solution instance to multiply with
+    * @return a new Solution resulting from the multiplication
+    */
+  def *(other: Solution): Solution =
+    other match {
+      case LinearSolution(x) =>
+        val triedSolution = value.multiply(x).map(LinearSolution(_))
+        triedSolution.getOrElse(throw AlgebraException(s"LinearSolution: *($other) not successful"))
+      case _ =>
+        throw AlgebraException(s"LinearSolution: *($other) not supported")
+    }
+
+
+  /**
     * Scales the given rational value using the current value to produce an optional solution.
     *
     * @param r the rational value used as a multiplier during scaling
@@ -920,13 +988,18 @@ case class LinearSolution(value: Structure)(val maybeName: Option[String] = None
   */
 object LinearSolution {
 
+
   /**
     * Constructs a new instance of `LinearSolution` using the provided `Structure` value.
     *
     * @param value the `Structure` instance used to initialize the `LinearSolution`
     * @return a new `LinearSolution` instance corresponding to the given `Structure`
     */
-  def apply(value: Structure): LinearSolution = new LinearSolution(value)()
+  def apply(value: Structure): LinearSolution =
+    value.normalize match {
+      case s: Structure => new LinearSolution(s)()
+      case _ => new LinearSolution(value)()
+    }
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 

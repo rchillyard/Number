@@ -915,10 +915,9 @@ object Real {
       * @param y the denominator `Real` (divisor)
       * @return a `Real` representing the result of dividing `x` by `y`
       */
-    def div(x: Real, y: Real): Real = {
+    def div(x: Real, y: Real): Real =
       (realIsRing.inverse(y) map (z => realIsRing.times(x, z))
         ).getOrElse(Real(Double.PositiveInfinity, Fuzziness.createFuzz(Some(0)))())
-    }
 
     /**
       * Converts an integer value into a `Real` representation.

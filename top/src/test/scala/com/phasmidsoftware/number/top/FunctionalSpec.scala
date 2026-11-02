@@ -1,6 +1,5 @@
 package com.phasmidsoftware.number.top
 
-import cats.implicits.toShow
 import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NaturalExponential, WholeNumber}
 import com.phasmidsoftware.number.expression.expr.*
 import com.phasmidsoftware.number.parse.ExpressionParser.puremath
@@ -58,7 +57,5 @@ class FunctionalSpec extends AnyFlatSpec with should.Matchers {
     string shouldBe "√2"
     materialize shouldBe Eager.root2
     root2.toDouble shouldBe 1.4142135623730951
-
-
   }
 }

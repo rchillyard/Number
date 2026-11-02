@@ -156,7 +156,7 @@ class RationalFloorSpec extends AnyFlatSpec with Matchers {
 
     testCases.foreach { r =>
       if (!r.isWhole) {
-        r.ceiling shouldBe r.floor + Rational(1)
+        r.ceiling shouldBe r.floor + Rational(1) : Unit
       }
     }
   }

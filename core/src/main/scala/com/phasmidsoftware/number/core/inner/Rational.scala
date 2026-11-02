@@ -1929,10 +1929,10 @@ object Rational {
 
   private def approximateSmall(x: Double)(implicit epsilon: Tolerance) =
     if (x < 1)
-      approximate(x)
+      approximate(x)(using epsilon)
     else {
       val y = floor(x).toInt
-      approximate(x - y) + y
+      approximate(x - y)(using epsilon) + y
     }
 }
 

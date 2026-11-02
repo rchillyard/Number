@@ -5,35 +5,10 @@ import com.phasmidsoftware.number.core.numerical.Primes.allPrimes
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
+import scala.util.{Failure, Success}
+
 class PrimeSpec extends AnyFlatSpec with should.Matchers {
 
-  behavior of "Prime"
-
-  it should "bits" in {
-    Prime(7).bits shouldBe 3
-    Prime(11).bits shouldBe 4
-    Prime(17).bits shouldBe 5
-    Prime(37).bits shouldBe 6
-    Prime(71).bits shouldBe 7
-    Prime(131).bits shouldBe 8
-    Prime(257).bits shouldBe 9
-    Prime(7919).bits shouldBe 13
-  }
-  it should "isProbablePrime" in {
-    Prime.isProbablePrime(2) shouldBe true
-    Prime.isProbablePrime(7) shouldBe true
-    Prime.isProbablePrime(8) shouldBe false
-    Prime.isProbablePrime(11) shouldBe true
-    Prime.isProbablePrime(BigInt("35742549198872617291353508656626642567")) shouldBe true
-  }
-  it should "isProbableOddPrime" in {
-    // It's OK to call this method on 2 (but not any other even number).
-    Prime.isProbableOddPrime(2) shouldBe true
-    Prime.isProbableOddPrime(7) shouldBe true
-    Prime.isProbableOddPrime(11) shouldBe true
-    Prime.isProbableOddPrime(7919) shouldBe true
-    Prime.isProbableOddPrime(BigInt("35742549198872617291353508656626642567")) shouldBe true
-  }
   /**
     * 1 (not actually a prime number)
     */
@@ -70,6 +45,128 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     * 23
     */
   private val p9: Prime = allPrimes(8)
+
+  behavior of "Prime"
+
+  it should "bits" in {
+    Prime(7).bits shouldBe 3
+    Prime(11).bits shouldBe 4
+    Prime(17).bits shouldBe 5
+    Prime(37).bits shouldBe 6
+    Prime(71).bits shouldBe 7
+    Prime(131).bits shouldBe 8
+    Prime(257).bits shouldBe 9
+    Prime(7919).bits shouldBe 13
+  }
+  it should "isProbablePrime" in {
+    // edge cases
+    Prime.isProbablePrime(0) shouldBe false
+    Prime.isProbablePrime(1) shouldBe false
+    Prime.isProbablePrime(-1) shouldBe false
+    // small primes and composites
+    Prime.isProbablePrime(2) shouldBe true
+    Prime.isProbablePrime(7) shouldBe true
+    Prime.isProbablePrime(8) shouldBe false
+    Prime.isProbablePrime(11) shouldBe true
+    // Carmichael number: passes Fermat but is composite
+    Prime.isProbablePrime(561) shouldBe false
+    Prime.isProbablePrime(BigInt("35742549198872617291353508656626642567")) shouldBe true
+  }
+  it should "isProbableOddPrime" in {
+    // It's OK to call this method on 2 (but not any other even number).
+    Prime.isProbableOddPrime(2) shouldBe true
+    Prime.isProbableOddPrime(7) shouldBe true
+    Prime.isProbableOddPrime(11) shouldBe true
+    Prime.isProbableOddPrime(7919) shouldBe true
+    Prime.isProbableOddPrime(BigInt("35742549198872617291353508656626642567")) shouldBe true
+    // composite odd numbers
+    Prime.isProbableOddPrime(9) shouldBe false
+    Prime.isProbableOddPrime(15) shouldBe false
+    Prime.isProbableOddPrime(25) shouldBe false
+    // Carmichael number must not fool isProbableOddPrime
+    Prime.isProbableOddPrime(561) shouldBe false
+  }
+  it should "hasSmallFactor" in {
+    Prime.hasSmallFactor(9) shouldBe true
+    Prime.hasSmallFactor(15) shouldBe true
+    Prime.hasSmallFactor(35) shouldBe true
+    Prime.hasSmallFactor(11) shouldBe false
+    Prime.hasSmallFactor(13) shouldBe false
+    Prime.hasSmallFactor(17) shouldBe false
+  }
+  it should "isSmallPrime" in {
+    Prime.isSmallPrime(2) shouldBe true
+    Prime.isSmallPrime(541) shouldBe true
+    Prime.isSmallPrime(547) shouldBe false
+    Prime.isSmallPrime(1) shouldBe false
+    Prime.isSmallPrime(0) shouldBe false
+    Prime.isSmallPrime(-1) shouldBe false
+  }
+  it should "apply throws for non-positive" in {
+    an[PrimeException] should be thrownBy Prime(0)
+    an[PrimeException] should be thrownBy Prime(-1)
+  }
+  it should "toIntOption" in {
+    Prime(7).toIntOption shouldBe Some(7)
+    Prime(541).toIntOption shouldBe Some(541)
+    Prime(BigInt("35742549198872617291353508656626642567")).toIntOption shouldBe None
+  }
+  it should "remainder" in {
+    p4.remainder(15) shouldBe 1  // 15 % 7 = 1
+    p4.remainder(14) shouldBe 0  // 14 % 7 = 0
+    p5.remainder(23) shouldBe 1  // 23 % 11 = 1
+    p5.remainder(22) shouldBe 0  // 22 % 11 = 0
+  }
+  it should "coprime" in {
+    Prime.coprime(4, 9) shouldBe true
+    Prime.coprime(4, 6) shouldBe false
+    Prime.coprime(1, 7) shouldBe true
+  }
+  it should "isCoprimeTo" in {
+    p4.isCoprimeTo(10) shouldBe true   // gcd(10, 7) = 1
+    p4.isCoprimeTo(14) shouldBe false  // gcd(14, 7) = 7
+    p5.isCoprimeTo(9) shouldBe true    // gcd(9, 11) = 1
+  }
+  it should "isCarmichaelNumber" in {
+    Prime.isCarmichaelNumber(561) shouldBe true
+    Prime.isCarmichaelNumber(1105) shouldBe true
+    Prime.isCarmichaelNumber(1729) shouldBe true
+    Prime.isCarmichaelNumber(7) shouldBe false
+    Prime.isCarmichaelNumber(11) shouldBe false
+    // must not throw for edge cases
+    Prime.isCarmichaelNumber(0) shouldBe false
+    Prime.isCarmichaelNumber(1) shouldBe false
+  }
+  it should "create from BigInt" in {
+    Prime.create(BigInt(7)) shouldBe Some(Prime(7))
+    Prime.create(BigInt(11)) shouldBe Some(Prime(11))
+    Prime.create(BigInt(4)) shouldBe None
+    Prime.create(BigInt(9)) shouldBe None
+  }
+  it should "create from String" in {
+    Prime.create("7") shouldBe Some(Prime(7))
+    Prime.create("541") shouldBe Some(Prime(541))
+    Prime.create("4") shouldBe None
+  }
+  it should "formatWithCommas" in {
+    Prime.formatWithCommas(1234567, ",") shouldBe "1,234,567"
+    Prime.formatWithCommas(1000000, ",") shouldBe "1,000,000"
+    Prime.formatWithCommas(42, ",") shouldBe "42"
+  }
+  it should "primitiveRoot satisfies definition" in {
+    for (p <- Seq(p3, p4, p5, p6)) {
+      val root = p.primitiveRoot
+      p.testPrimitiveRoot(root) shouldBe true
+    }
+  }
+  it should "primeCountingFunction" in {
+    Prime.primeCountingFunction(10) shouldBe 4   // 2, 3, 5, 7
+    Prime.primeCountingFunction(20) shouldBe 8   // +11, 13, 17, 19
+  }
+  it should "randomPrime is probable prime" in {
+    val p = Primes.randomPrime(64)
+    p.isProbablePrime shouldBe true
+  }
   it should "fermat" in {
     p4.fermat(2) shouldBe 1
     Prime(71).fermat(9) shouldBe 1
@@ -85,10 +182,10 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     Prime.primeFactors(7894609062L).sorted shouldBe Seq(2, 3, 67, 1721, 11411).map(Prime(_))
   }
   it should "implement primeFactorMultiplicity" in {
-    Prime.primeFactorMultiplicity(23) shouldBe Map(Prime(23) -> 1)
-    Prime.primeFactorMultiplicity(70) shouldBe Map(Prime(2) -> 1, Prime(5) -> 1, Prime(7) -> 1)
-    Prime.primeFactorMultiplicity(70906) shouldBe Map(Prime(2) -> 1, Prime(11) -> 2, Prime(293) -> 1)
-    Prime.primeFactorMultiplicity(7894609062L) shouldBe Map(Prime(2) -> 1, Prime(11411) -> 1, Prime(3) -> 1, Prime(67) -> 1, Prime(1721) -> 1)
+    Prime.primeFactorMultiplicity(23) shouldBe Seq(PrimePower(Prime(23), 1))
+    Prime.primeFactorMultiplicity(70) shouldBe Seq(PrimePower(Prime(2), 1), PrimePower(Prime(5), 1), PrimePower(Prime(7), 1))
+    Prime.primeFactorMultiplicity(70906) shouldBe Seq(PrimePower(Prime(2), 1), PrimePower(Prime(11), 2), PrimePower(Prime(293), 1))
+    Prime.primeFactorMultiplicity(7894609062L) shouldBe Seq(PrimePower(Prime(2), 1), PrimePower(Prime(3), 1), PrimePower(Prime(67), 1), PrimePower(Prime(1721), 1), PrimePower(Prime(11411), 1))
   }
   it should "implement Lucas()" in {
     val p = Prime(71)
@@ -254,7 +351,52 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     Prime(13).reciprocalPeriod shouldBe Some(6)
     Prime(17).reciprocalPeriod shouldBe Some(16)
     Prime(19).reciprocalPeriod shouldBe Some(18)
+    Prime(23).reciprocalPeriod shouldBe Some(22)
+    Prime(29).reciprocalPeriod shouldBe Some(28)
+    Prime(31).reciprocalPeriod shouldBe Some(15)
+    Prime(37).reciprocalPeriod shouldBe Some(3)
     Prime(541).reciprocalPeriod shouldBe None // CONSIDER we should get the correct number for this
     Prime(1).reciprocalPeriod shouldBe None
+  }
+  it should "PrimeFactor" in {
+    val f = PrimePower(Prime(7), 2)
+    f.p shouldBe Prime(7)
+    f.r shouldBe 2
+    f.totient shouldBe 42 // φ(7²) = 7^(2-1) * (7-1) = 42
+    Prime.totient(f) shouldBe 42 // forwarding method still works
+    f.reducedTotient shouldBe 42 // not 2^r with r>=3, so same as totient
+    PrimePower(Prime(2), 3).reducedTotient shouldBe 2 // λ(8) = φ(8)/2 = 2
+  }
+  it should "reducedTotient" in {
+    Prime.reducedTotient(1) shouldBe 1
+    Prime.reducedTotient(2) shouldBe 1
+    Prime.reducedTotient(4) shouldBe 2  // λ(4) = φ(4) = 2 (halving only applies for 2^r with r >= 3)
+    Prime.reducedTotient(8) shouldBe 2  // λ(8) = 4/2 = 2 (halving case for 2^r, r>=3)
+    Prime.reducedTotient(6) shouldBe 2  // lcm(λ(2), λ(3)) = lcm(1,2) = 2
+    Prime.reducedTotient(12) shouldBe 2 // lcm(λ(4), λ(3)) = lcm(2,2) = 2
+    Prime.reducedTotient(15) shouldBe 4 // lcm(λ(3), λ(5)) = lcm(2,4) = 4
+  }
+
+  behavior of "Goldbach"
+
+  it should "goldbach" in {
+    Goldbach.goldbach(28) match {
+      case Success((p1, p2)) =>
+        p1.isProbablePrime shouldBe true
+        p2.isProbablePrime shouldBe true
+        (p1.n + p2.n) shouldBe BigInt(28)
+      case Failure(_) => fail("expected a prime pair for 28")
+    }
+    Goldbach.goldbach(100) match {
+      case Success((p1, p2)) => (p1.n + p2.n) shouldBe BigInt(100)
+      case Failure(_) => fail("expected a prime pair for 100")
+    }
+  }
+  it should "goldbach fails for odd input" in {
+    Goldbach.goldbach(7) shouldBe a[Failure[?]]
+  }
+  it should "goldbach fails for input <= 2" in {
+    Goldbach.goldbach(2) shouldBe a[Failure[?]]
+    Goldbach.goldbach(0) shouldBe a[Failure[?]]
   }
 }

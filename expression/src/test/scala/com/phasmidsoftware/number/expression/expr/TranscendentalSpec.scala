@@ -91,9 +91,6 @@ class TranscendentalSpec extends AnyFlatSpec with should.Matchers {
     (Two ∧ LgE.expression).materialize shouldEqual Eager.e
   }
   it should "evaluate gamma" in {
-    val rational = Rational("7215195811269160757581401126030030388026991699249/12500000000000000000000000000000000000000000000000")
-    val fuzz = AbsoluteFuzz(5.0E-51, Box)
-    val value1 = Value.fromRational(rational)
     EulerMascheroni.evaluateAsIs.get.render shouldBe "0.5772156649015329*" // matchPattern { case Some(Real(FuzzyNumber(`value1`, PureNumber, Some(`fuzz`)))) => }
     EulerMascheroni.fuzzy.render shouldBe "0.5772156649015329*"
   }
