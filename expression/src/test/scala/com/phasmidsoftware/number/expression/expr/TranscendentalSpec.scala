@@ -5,11 +5,13 @@
 package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, NaturalExponential, Real}
-import com.phasmidsoftware.number.core.inner.{Rational, Value}
-import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Box}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
+import scala.annotation.nowarn
+
+// These tests test the deprecated PiTranscendental and ETranscendental, among others.
+@nowarn("cat=deprecation")
 class TranscendentalSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Transcendental constants"

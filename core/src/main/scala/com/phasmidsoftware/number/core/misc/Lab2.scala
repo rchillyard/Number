@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core.misc
 
-object Lab2 extends App {
+object Lab2 {
 
   // TODO create a lazy list with the values 1/x∧2
 
@@ -10,13 +10,9 @@ object Lab2 extends App {
 
   val ys = xs.takeWhile(_ >= 1E-6)
 
-  println(ys.size)
-
   val pi = math.sqrt(6 * ys.sum)
 
   val error = math.abs(pi - math.Pi) / math.Pi
-
-  println(s"pi = $pi, with error: $error")
 
   val teamA = Seq(1, 4, 2, 4)
   val teamB = Seq(3, 5)
@@ -27,8 +23,12 @@ object Lab2 extends App {
     val m: Map[Int, Int] = z.toMap
     val q: Map[Int, Map[Int, Int]] = m.groupBy { case (_, v) => v }
     println(q)
-    (for ((k, v) <- q) yield v.size).toSeq
+    (for ((_, v) <- q) yield v.size).toSeq
   }
 
-  println(counts(teamA, teamB).toList)
+  def main(args: Array[String]): Unit = {
+    println(ys.size)
+    println(s"pi = $pi, with error: $error")
+    println(counts(teamA, teamB).toList)
+  }
 }

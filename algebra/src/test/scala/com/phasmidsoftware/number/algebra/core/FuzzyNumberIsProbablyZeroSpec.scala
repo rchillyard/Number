@@ -243,7 +243,7 @@ class FuzzyNumberIsProbablyZeroSpec extends AnyFlatSpec with Matchers with Table
 
   it should "handle fuzzy Real numbers correctly" in {
     forAll(fuzzyRealCases) { (description, value, maybeFuzz, probability, expected) =>
-      val real: Number = maybeFuzz match {
+      val real: Number = (maybeFuzz: Option[Double]) match {
         case Some(fuzz) => Number(value).make(Some(AbsoluteFuzz(fuzz, Box)))
         case None => Number(value)
       }

@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core.misc
 
-object Lab extends App {
+object Lab {
 
   import scala.util.Random
   // TODO a List of Double such that each element is the value of Random.nextDouble
@@ -28,5 +28,5 @@ object Lab extends App {
 
   val m = qs count (_ < 1)
 
-  println(4.0 * m / n)
+  def main(args: Array[String]): Unit = println(4.0 * m / n)
 }

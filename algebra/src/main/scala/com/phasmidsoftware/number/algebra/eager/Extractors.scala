@@ -144,7 +144,7 @@ object IsImaginary {
         z: Real <- n.convert(Real.zero)
         y <- z.negate.power(Rational.half)
       } yield y.normalize
-    case x =>
+    case _ =>
       None
   }
 }
@@ -184,7 +184,7 @@ object IsInfinite {
       Some(x)
     case RationalNumber(z, _) if z.isInfinite =>
       Some(x)
-    case x =>
+    case _ =>
       None
   }
 }

@@ -16,7 +16,7 @@ import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Fuzziness, FuzzyDouble, RelativeFuzz, WithFuzziness}
 import org.slf4j.{Logger, LoggerFactory}
 
-import scala.annotation.tailrec
+import scala.annotation.{tailrec, unused}
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
 import scala.util.{Failure, Try}
@@ -485,7 +485,7 @@ object Functional {
     case f => f.render  // Or throw exception
   }
 
-  private def tryConvertAndCompareFunctional[B <: Functional, Z](f: (Functional, B) => Try[Z])(s: Functional, e: B): Try[Z] =
+  private def tryConvertAndCompareFunctional[B <: Functional, Z](@unused f: (Functional, B) => Try[Z])(s: Functional, e: B): Try[Z] =
     FP.fail(s"Functional: unsupported cross-type operation: ${s.getClass.getSimpleName} op ${e.getClass.getSimpleName}")
 }
 
@@ -532,6 +532,6 @@ object Transformed {
       x === y || x.fuzzyEqv(p)(y).getOrElse(false)
   }
 
-  private def tryConvertAndCompareTransformed[B <: Transformed, Z](f: (Transformed, B) => Try[Z])(s: Transformed, e: B): Try[Z] =
+  private def tryConvertAndCompareTransformed[B <: Transformed, Z](@unused f: (Transformed, B) => Try[Z])(s: Transformed, e: B): Try[Z] =
     FP.fail(s"Transformed: unsupported cross-type operation: ${s.getClass.getSimpleName} op ${e.getClass.getSimpleName}")
 }

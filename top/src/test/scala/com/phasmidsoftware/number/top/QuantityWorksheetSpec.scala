@@ -30,7 +30,7 @@ class QuantityWorksheetSpec extends AnyFlatSpec with should.Matchers {
     // Supposedly, the VAX has a tick value of a microfortnight.
     // Let's see what that would be in seconds.
     Quantity(Rational(1000000).invert, Fortnight).in(Second) match {
-      case Some(q@Quantity[Time] (RationalNumber (x, false), units) ) =>
+      case Some(q@Quantity[Time] (RationalNumber (x, false), _) ) =>
         x shouldBe Rational (756, 625)
         q.unit.symbol shouldBe "s"
       case _ =>
@@ -39,7 +39,7 @@ class QuantityWorksheetSpec extends AnyFlatSpec with should.Matchers {
 
     // Now, let's calculate the speed of light in FFF units
     Quantity(1, C).in(FurlongPerFortnight) match {
-      case Some(q@Quantity[Velocity] (RationalNumber (x, false), units) ) =>
+      case Some(q@Quantity[Velocity] (RationalNumber (x, false), _) ) =>
         x shouldBe Rational(2518256647200000L,1397)
         x.toDouble shouldBe 1.8026E12 +- 1E8
         q.unit.symbol shouldBe "fur/ftn"

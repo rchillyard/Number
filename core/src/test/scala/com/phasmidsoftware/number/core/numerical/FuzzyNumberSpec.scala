@@ -279,7 +279,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     zy should matchPattern { case Success(_) => }
     zy.get.nominalValue shouldBe Right(4)
     zy.get.factor shouldBe PureNumber
-    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(_, x: Trapezoid)) => }
+    zy.get.fuzz should matchPattern { case Some(RelativeFuzz(_, _: Trapezoid)) => }
     zy.get.fuzz.get match {
       case RelativeFuzz(m, Trapezoid(x, y)) =>
         m shouldBe 0.08465735902799726 +- 0.00000000000000001

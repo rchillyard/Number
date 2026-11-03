@@ -14,6 +14,7 @@ import com.phasmidsoftware.number.expression.algebraic.{Equation, LinearEquation
 import com.phasmidsoftware.number.expression.expr.Expression.{em, matchSimpler}
 
 import java.util.Objects
+import scala.annotation.unused
 import scala.language.implicitConversions
 
 /**
@@ -143,7 +144,7 @@ sealed trait Root extends AtomicExpression with Branched[Root] with Zeroable {
   * @param equ    the mathematical equation whose solution is represented by this root
   * @param branch the branch index used to solve the equation
   */
-sealed abstract class AbstractRoot(equ: Equation, branch: Int, maybeName: Option[String]) extends Root {
+sealed abstract class AbstractRoot(equ: Equation, branch: Int, @unused maybeName: Option[String]) extends Root {
 
   /**
     * This indicates whether this `Root` is protected from evaluation during simplification.
@@ -211,11 +212,11 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int, maybeName: Option
     * @return an optional `Factor`.
     */
   def maybeFactor(context: Context): Option[Factor] = solution match {
-    case QuadraticSolution(base, offset, branch, false) if offset.isZero =>
+    case QuadraticSolution(base, offset, _, false) if offset.isZero =>
       base.maybeFactor(context)
-    case QuadraticSolution(base, offset, branch, false) if base.isZero =>
+    case QuadraticSolution(base, offset, _, false) if base.isZero =>
       offset.maybeFactor(context)
-    case QuadraticSolution(base, offset, branch, false) =>
+    case QuadraticSolution(base, offset, _, false) =>
       for {
         baseFactor <- base.maybeFactor(context)
         combinedFactor <- offset.maybeFactor(RestrictedContext(baseFactor))

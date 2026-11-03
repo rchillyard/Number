@@ -11,7 +11,7 @@ import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
 import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, IsInfinite, IsInteger, QuadraticSolution, RationalNumber, Structure, WholeNumber}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian, Rational}
 import com.phasmidsoftware.number.core.numerical
-import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar, Number, Real, Complex as CoreComplex}
+import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Number}
 import com.phasmidsoftware.number.expression.algebraic
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation
 import com.phasmidsoftware.number.expression.expr.Expression.em.DyadicTriple
@@ -338,7 +338,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     (a, b) match {
       case AdditiveIdentityCommutative(a, _) =>
         em.Match(a)
-      case (q1@QuadraticRoot(quadratic: QuadraticEquation, b1, _), q2@QuadraticRoot(e2, b2, _)) if quadratic == e2 && b1 != b2 =>
+      case (QuadraticRoot(quadratic: QuadraticEquation, b1, _), QuadraticRoot(e2, b2, _)) if quadratic == e2 && b1 != b2 =>
         em.Match(quadratic.conjugateSum)
       case (l: Literal, q: QuadraticRoot) => // TODO this should use the commutative extractor
         matchLiteral(l, q, Sum)
@@ -380,7 +380,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       //        simplifyComplexProduct(m, x)
       case InversePowerTimesNumberCommutative(ip, b) if ip.number.signum >= 0 =>
         em.matchIfDefined(simplifyInversePowerTimesNumber(ip, b))(this)
-      case (q1@QuadraticRoot(quadratic: QuadraticEquation, b1, _), q2@QuadraticRoot(e2, b2, _)) if quadratic == e2 && b1 != b2 =>
+      case (QuadraticRoot(quadratic: QuadraticEquation, b1, _), QuadraticRoot(e2, b2, _)) if quadratic == e2 && b1 != b2 =>
         em.Match(quadratic.conjugateProduct)
       // CONSIDER the following case should be copied for Sum (not just Product)
       case (a, b) if !a.isExact && !b.isExact =>
@@ -693,7 +693,7 @@ object BiFunction {
       Some(Aggregate(Sum, Seq(a, -b, -c)))
     case BiFunction(UniFunction(BiFunction(a, b, Sum), Negate), c, Sum) =>
       Some(Aggregate(Sum, Seq(-a, -b, c)))
-    case x =>
+    case _ =>
       None
   }
 

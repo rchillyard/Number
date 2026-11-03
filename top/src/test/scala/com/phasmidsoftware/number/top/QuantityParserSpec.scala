@@ -193,7 +193,7 @@ class QuantityParserSpec extends AnyFlatSpec with Matchers {
       case Right(quantity) =>
         quantity.unit.symbol should include("J")
         quantity.unit.symbol should include("s")
-      case Left(err) =>
+      case Left(_) =>
         // If LaTeX parser doesn't support scientific notation, that's OK
         succeed
     }

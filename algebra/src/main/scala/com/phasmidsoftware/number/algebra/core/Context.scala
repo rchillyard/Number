@@ -32,7 +32,7 @@ trait Context extends CoreContext {
     * @return `true` if the `HasValue` qualifies; otherwise, throws a `AlgebraException` for unsupported types
     */
   def valuableQualifies(v: Valuable): Boolean = (this, v) match {
-    case (_, nat: Nat) =>
+    case (_, _: Nat) =>
       true
     case (AnyContext, _) =>
       true

@@ -173,7 +173,6 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   // NOTE this is quite bizarre
   it should "work for NatLog, SquareRoot" taggedAs Slow in { //fixed
     val target = Number.e
-    val expected = Number(math.E * math.E, SquareRoot)
     val result: Field = target.scale(SquareRoot).normalize
     result.render `startsWith` "2.718281828459045" shouldBe true
     //result should ===(expected)

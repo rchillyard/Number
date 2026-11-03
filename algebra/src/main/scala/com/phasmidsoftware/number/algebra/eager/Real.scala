@@ -20,6 +20,7 @@ import com.phasmidsoftware.number.core.numerical.{Fuzziness, FuzzyNumber}
 import com.phasmidsoftware.number.core.parse.NumberParser
 import org.slf4j.LoggerFactory
 
+import scala.annotation.nowarn
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
@@ -609,6 +610,8 @@ object Real {
     * @param w the input string to be parsed and converted into a `Real` instance
     * @return a `Real` instance constructed from the parsed numeric value of the input string
     */
+  // algebra can't use the replacement, which is in the expression module, so it keeps the deprecated parser.
+  @nowarn("cat=deprecation")
   def apply(w: String): Real = {
     NumberParser.parseNumber(w).map(x => numerical.Real(x)) match {
       case Success(f: numerical.Field) =>

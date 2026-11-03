@@ -32,9 +32,6 @@ class LaTeXParserSpec extends AnyFlatSpec with should.Matchers {
       case _ => // expected
     }
 
-  // Helpers for complex tests
-  private val halfPi: Expression = BiFunction(Pi, Half, Product)
-
   behavior of "LaTeXParser"
 
   it should "apply number expressions" in {

@@ -504,7 +504,7 @@ object ExpressionMatchers {
         Some(Literal(z))
       case Some(z) if f.maybeIdentityL.contains(z) => // CONSIDER this case doesn't add anything
         Some(Literal(z))
-      case x =>
+      case _ =>
         None
     }
 

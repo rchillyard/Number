@@ -257,7 +257,6 @@ class ComplexRootSpec extends AnyFlatSpec with ComplexEquality {
     val complex1 = root1.solution.asInstanceOf[Complex]
 
     // Sum of roots should equal -p
-    val sum = complex0 + complex1
     // The sum should be real and equal to -3
 
     // Product of roots should equal q

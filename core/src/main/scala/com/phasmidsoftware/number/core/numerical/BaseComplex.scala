@@ -258,7 +258,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     * @return the sine of this complex number as an instance of `Field`.
     */
   lazy val sin: Field = this match {
-    case c@ComplexCartesian(x, y) =>
+    case ComplexCartesian(x, y) =>
       // sin(z) = (exp(iz) - exp(-iz)) / (2i)
       val (expIz: Field, expNegIz: Field) = asExponents(x, y)
       val numerator = expIz.asComplex `add` -expNegIz.asComplex
@@ -276,7 +276,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     * @return a `Field` representing the cosine of this field element.
     */
   lazy val cos: Field = this match {
-    case c@ComplexCartesian(x, y) =>
+    case ComplexCartesian(x, y) =>
       // cos(z) = (exp(iz) + exp(-iz)) / 2
       val (expIz: _root_.com.phasmidsoftware.number.core.numerical.Field, expNegIz: _root_.com.phasmidsoftware.number.core.numerical.Field) = asExponents(x, y) // iz = i(x+iy) = -y + ix
       val numerator = expIz.asComplex `add` expNegIz

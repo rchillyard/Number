@@ -55,7 +55,7 @@ object QuantityParser extends RegexParsers with UnitsParser {
   /**
     * Attempts to parse `numStr` with `LaTeXParser`, falling back to `NumberParser`.
     *
-    * @throws LaTeXParserException if both fail.
+    * @throws com.phasmidsoftware.number.parse.LaTeXParserException if both fail.
     */
   def doParseNumber(numStr: String): Expression =
     LaTeXParser.parse(numStr) match {

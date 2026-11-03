@@ -1044,7 +1044,7 @@ abstract class Hyperbolic(sinh: Boolean, parity: Parity) extends ExpressionMonoF
     *         or `None` if the input does not match any predefined constants.
     */
   def applyExact(x: Eager): Option[Eager] = x match {
-    case IsZero(x) =>
+    case IsZero(_) =>
       Some(if sinh then Eager.zero else Eager.one)
     case _ =>
       None

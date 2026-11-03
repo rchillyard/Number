@@ -12,6 +12,7 @@ import com.phasmidsoftware.number.core.inner.PureNumber
 import com.phasmidsoftware.number.expression.expr.Expression.em
 import com.phasmidsoftware.number.{algebra, expression}
 
+import scala.annotation.unused
 import scala.language.implicitConversions
 
 /**
@@ -222,7 +223,7 @@ object CompositeExpression {
     *         - If the sequence contains two elements, a `BiFunction` expression is returned.
     *         - Otherwise, an `Aggregate` expression is created from the sequence.
     */
-  def apply(f: ExpressionBiFunction, xs: Seq[Expression]): Expression =
+  def apply(@unused f: ExpressionBiFunction, xs: Seq[Expression]): Expression =
     xs.toList match {
       case Nil =>
         throw new IllegalArgumentException("Empty Sequence")

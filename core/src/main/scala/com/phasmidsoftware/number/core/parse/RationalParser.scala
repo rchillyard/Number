@@ -6,6 +6,7 @@ package com.phasmidsoftware.number.core.parse
 
 import com.phasmidsoftware.number.core.inner.{Rational, VulgarFraction}
 
+import scala.annotation.nowarn
 import scala.util.Try
 
 /**
@@ -172,6 +173,8 @@ abstract class BaseRationalParser extends SignificantSpaceParsers {
   * 
   * NOTE unless you are working inside the `core` module, you should prefer com.phasmidsoftware.number.expression.parse.RationalParser instead.
   */
+// core can't use the replacement, which is in the expression module, so it keeps the deprecated parser.
+@nowarn("cat=deprecation")
 object RationalParser extends BaseRationalParser {
   /**
     * Parses the given string into a `Rational` object, if possible.

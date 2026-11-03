@@ -110,7 +110,7 @@ class ExtractorsSpec extends AnyFlatSpec with Matchers {
     qs match {
       case QuadraticSolution(base, offset, coefficient, imaginary) =>
         expr match {
-          case NthRoot(radicand, 2, branch) =>
+          case NthRoot(_, 2, _) =>
             // Test passes if it matches
             succeed
           case _ =>

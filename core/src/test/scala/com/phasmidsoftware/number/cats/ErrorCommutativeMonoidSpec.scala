@@ -36,13 +36,9 @@ class ErrorCommutativeMonoidSpec extends AnyFlatSpec with Matchers {
     }
 
     val actualNominal = accumulated.toNominalDouble.getOrElse(Double.NaN)
-    val actualAbs = accumulated match {
-      case f: FuzzyNumber => f.fuzz.collect { case AbsoluteFuzz(m: Double, Gaussian) => m }.getOrElse(Double.NaN)
-      case _ => Double.NaN
-    }
 
     // 2) Decoupled parallel: nominal sum and sigma folding run independently
-    val ((decoupledNominal, decoupledSigma), tParMs) = 1.times {
+    val ((decoupledNominal, _), tParMs) = 1.times {
       val fNominal: Future[Double] = Future {
         terms.flatMap(_.toNominalDouble).sum
       }
@@ -56,13 +52,6 @@ class ErrorCommutativeMonoidSpec extends AnyFlatSpec with Matchers {
       val a = Await.result(fNominal, 5.seconds)
       val b = Await.result(fSigma, 5.seconds)
       (a, b)
-    }
-
-    val decoupled: Number = FuzzyNumber(Value.fromDouble(Some(decoupledNominal)), PureNumber, Some(AbsoluteFuzz(decoupledSigma, Gaussian)))
-
-    val decoupledAbs = decoupled match {
-      case f: FuzzyNumber => f.fuzz.collect { case AbsoluteFuzz(m: Double, Gaussian) => m }.getOrElse(Double.NaN)
-      case _ => Double.NaN
     }
 
     // Compare nominal and absolute sigma
@@ -91,13 +80,9 @@ class ErrorCommutativeMonoidSpec extends AnyFlatSpec with Matchers {
     }
 
     val actualNominal = accumulated.toNominalDouble.getOrElse(Double.NaN)
-    val actualRel = accumulated match {
-      case f: FuzzyNumber => f.fuzz.collect { case RelativeFuzz(m: Double, Gaussian) => m }.getOrElse(Double.NaN)
-      case _ => Double.NaN
-    }
 
     // 2) Decoupled parallel: nominal product and sigma folding run independently
-    val ((decoupledNominal, decoupledSigma), tParMs) = 1.times {
+    val ((decoupledNominal, _), tParMs) = 1.times {
       val fNominal: Future[Double] = Future {
         val headNominal = terms.headOption.flatMap(_.toNominalDouble).getOrElse(Double.NaN)
         terms.tail.foldLeft(headNominal) { (acc, n) =>
@@ -121,13 +106,6 @@ class ErrorCommutativeMonoidSpec extends AnyFlatSpec with Matchers {
       val a = Await.result(fNominal, 5.seconds)
       val b = Await.result(fSigma, 5.seconds)
       (a, b)
-    }
-
-    val decoupled: Number = FuzzyNumber(Value.fromDouble(Some(decoupledNominal)), PureNumber, Some(RelativeFuzz(decoupledSigma, Gaussian)))
-
-    val decoupledRel = decoupled match {
-      case f: FuzzyNumber => f.fuzz.collect { case RelativeFuzz(m: Double, Gaussian) => m }.getOrElse(Double.NaN)
-      case _ => Double.NaN
     }
 
     // Compare nominal and relative sigma

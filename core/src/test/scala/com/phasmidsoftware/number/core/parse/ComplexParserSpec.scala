@@ -8,8 +8,11 @@ import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, ComplexPolar
 import com.phasmidsoftware.number.core.parse.ComplexParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+import scala.annotation.nowarn
 import scala.util._
 
+// These tests test the deprecated ComplexParser.
+@nowarn("cat=deprecation")
 class ComplexParserSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "ComplexParser"

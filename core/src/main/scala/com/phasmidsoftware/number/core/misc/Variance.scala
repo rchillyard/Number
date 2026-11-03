@@ -9,7 +9,7 @@ import scala.language.postfixOps
 /**
   * Object defining a set of mathematical operations related to variance and statistical computations.
   */
-object Variance extends App {
+object Variance {
   /**
     * Computes the sum of the squares of the elements in the given sequence.
     *

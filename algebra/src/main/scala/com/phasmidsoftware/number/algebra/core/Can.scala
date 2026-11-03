@@ -10,6 +10,7 @@ import com.phasmidsoftware.number.algebra.eager.{ExactNumber, Structure}
 import com.phasmidsoftware.number.algebra.util.AlgebraException
 import com.phasmidsoftware.number.core.inner.Rational
 
+import scala.annotation.nowarn
 import scala.reflect.ClassTag
 
 /**
@@ -97,6 +98,8 @@ trait CanNegate[T <: Structure] extends Can[T] {
   * - `T`: A type extending `Structure` that supports addition, subtraction, and negation operations
   *   with an implicit `AdditiveCommutativeGroup[T]` evidence.
   */
+// The ClassTag bound stays, so that the signature doesn't change.
+@nowarn("msg=unused implicit parameter")
 trait CanAddAndSubtract[T <: Structure : ClassTag] extends CanAdd[T, T] with CanNegate[T] {
 
   /**
@@ -135,6 +138,8 @@ trait CanAddAndSubtract[T <: Structure : ClassTag] extends CanAdd[T, T] with Can
   * @tparam T the type of structure that supports multiplication, bounded by `Structure` and requiring a `ClassTag`
   * @tparam U a secondary structure type used in combinatory operations, also bounded by `Structure`
   */
+// The ClassTag bound stays, so that the signature doesn't change.
+@nowarn("msg=unused implicit parameter")
 trait CanMultiply[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
 
   /**
@@ -180,6 +185,8 @@ trait CanMultiply[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
   * @tparam T the primary type of the structure that supports multiplication and division,
   *           constrained to extend `Structure` and requiring a `ClassTag` for runtime type resolution
   */
+// The ClassTag bound stays, so that the signature doesn't change.
+@nowarn("msg=unused implicit parameter")
 trait CanMultiplyAndDivide[T <: Structure : ClassTag] extends CanMultiply[T, T] {
 
   /**
@@ -314,7 +321,7 @@ sealed trait Can[T <: Structure : ClassTag] {
     * is thrown.
     *
     * @return the current instance as an instance of type `T`
-    * @throws AlgebraException if the cast is invalid
+    * @throws com.phasmidsoftware.number.algebra.util.AlgebraException if the cast is invalid
     */
   def asT: T = {
     val clazz = summon[ClassTag[T]].runtimeClass

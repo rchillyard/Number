@@ -342,7 +342,7 @@ object Nat {
 
   // Nat
   given FuzzyEq[Nat] = FuzzyEq.instance {
-    (x, y, p) =>
+    (x, y, _) =>
       x == y
   }
 

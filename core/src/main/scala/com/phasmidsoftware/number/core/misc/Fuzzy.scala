@@ -364,8 +364,8 @@ object Fuzzy {
 
     def toDouble(g: Fuzzy): Double = g match {
       case Exact(x) => x
-      case Gaussian(x, y) => x
-      case Bounded(x, y) => x
+      case Gaussian(x, _) => x
+      case Bounded(x, _) => x
       case _ => throw new UnsupportedOperationException(s"toNominalDouble: $g (not exact)")
     }
   }

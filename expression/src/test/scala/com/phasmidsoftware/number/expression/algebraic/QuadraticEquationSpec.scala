@@ -653,7 +653,7 @@ class LinearEquationSpec extends AnyFlatSpec with Matchers {
     val eq = LinearEquation(Rational(4))
     val transformed = eq.transform(
       (p, q) => p + q, // Not used for linear equations
-      (p, q) => q * Rational.two
+      (_, q) => q * Rational.two
     )
 
     transformed shouldBe LinearEquation(Rational(8)) // 4 * 2
@@ -662,8 +662,8 @@ class LinearEquationSpec extends AnyFlatSpec with Matchers {
   it should "transform ignoring fP function" in {
     val eq = LinearEquation(Rational(3))
     val transformed = eq.transform(
-      (p, q) => Rational(999), // Should be ignored
-      (p, q) => q + Rational.one
+      (_, _) => Rational(999), // Should be ignored
+      (_, q) => q + Rational.one
     )
 
     transformed shouldBe LinearEquation(Rational(4)) // 3 + 1
@@ -672,8 +672,8 @@ class LinearEquationSpec extends AnyFlatSpec with Matchers {
   it should "transform with complex function" in {
     val eq = LinearEquation(Rational(6))
     val transformed = eq.transform(
-      (p, q) => p, // Ignored
-      (p, q) => q / Rational(2)
+      (p, _) => p, // Ignored
+      (_, q) => q / Rational(2)
     )
 
     transformed shouldBe LinearEquation(Rational(3)) // 6 / 2

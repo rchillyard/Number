@@ -12,6 +12,8 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatest.prop.TableDrivenPropertyChecks
 
+import scala.annotation.nowarn
+
 /**
   * Comprehensive test suite for the AtomicExpression trait hierarchy.
   * Uses table-driven tests for repetitive patterns to reduce boilerplate.
@@ -330,7 +332,7 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers with TableDr
 
   it should "have Pi as expression" in {
     PiTranscendental.expression shouldBe Pi
-  }
+  }: @nowarn("cat=deprecation")
 
   it should "be exact" in {
     Pi.isExact shouldBe true
@@ -344,7 +346,7 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers with TableDr
     val sinPi: AbstractTranscendental = PiTranscendental.function(Sine).asInstanceOf[AbstractTranscendental]
     Option(sinPi) shouldBe defined
     sinPi.name should include("sin")
-  }
+  }: @nowarn("cat=deprecation")
 
   // ============================================================================
   // Transcendental Tests - L2, LgE, EulerMascheroni
