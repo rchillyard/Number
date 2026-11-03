@@ -13,7 +13,7 @@ class FuzzyParser extends JavaTokenParsers {
   self =>
   def fuzzy: Parser[Fuzzy] = wholeNumber ~ opt(fraction) ~ opt(fuzz) ~ opt(exponent) ^^ { case i ~ x ~ f ~ e => Fuzzy(i, x, f, e) }
 
-  def fuzzyGaussian: Parser[Fuzzy] = wholeNumber ~ opt(fraction) ~ fuzz ~ opt(exponent) ^^ { case i ~ x ~ f ~ e => Gaussian(i.toDouble, f.toDouble) }
+  def fuzzyGaussian: Parser[Fuzzy] = wholeNumber ~ opt(fraction) ~ fuzz ~ opt(exponent) ^^ { case i ~ _ ~ f ~ _ => Gaussian(i.toDouble, f.toDouble) }
 
   def fraction: Parser[String] = """\.\d*""".r
 

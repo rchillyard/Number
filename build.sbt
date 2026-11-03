@@ -25,37 +25,21 @@ ThisBuild / libraryDependencies ++= Seq(
 Global / concurrentRestrictions += Tags.limitAll(1)
 
 // ============================================================================
-// COMPILER OPTIONS - Moderate settings focused on catching + operator issues
+// COMPILER OPTIONS
 // ============================================================================
 
-// Common options for all Scala versions
-val commonScalacOptions = Seq(
+// The compiler options that all the Phasmid libraries share.
+ThisBuild / scalacOptions ++= Seq(
   "-encoding", "UTF-8",
-  "-unchecked",
   "-deprecation",
-  "-feature"
+  "-feature",
+  "-unchecked",
+  "-Wunused:all",
+  "-Wvalue-discard",
+  "-Wnonunit-statement"
 )
-
-// Scala 3-specific options - FOCUSED on catching string concatenation
-val scala3Options = Seq(
-  // CORE: These three are the minimum to catch the + operator issue
-  //  "-Xfatal-warnings",              // Turn warnings into errors
-  "-Wvalue-discard", // Error on discarded non-Unit values
-  "-Wnonunit-statement", // Error when non-Unit expressions used as statements
-
-  //  "-source:3.7-migration", "-rewrite", // Rewrites, here we do 3.7-migration.
-
-  // HELPFUL: Good practices that don't add much burden
-  "-explain", // Detailed error explanations
-  "-Wunused:all", // Catch unused imports, privates, locals, parameters, etc.
-  "-Wconf:msg=Couldn't resolve a member:s" // Try to suppress linker warnings when generating docs
-)
-
-// Shared test settings for Scala 3 modules
-// Removes -Wnonunit-statement for tests because ScalaTest assertions return Assertion, not Unit
-val scala3TestSettings = Seq(
-  Test / scalacOptions := scalacOptions.value.filterNot(_ == "-Wnonunit-statement")
-)
+// Tests may use a value as a statement (for example, in a matcher), so each project's tests skip -Wnonunit-statement.
+lazy val testScalacOptions = Test / scalacOptions ~= (_.filterNot(_ == "-Wnonunit-statement"))
 
 // ============================================================================
 // MODULE DEFINITIONS
@@ -72,7 +56,7 @@ lazy val mermaid = (project in file("mermaid"))
     publish / skip   := true,
     Test / test      := {},
     libraryDependencies += "ch.epfl.scala" %% "tasty-query" % "1.6.1",
-    scalacOptions    := commonScalacOptions
+    testScalacOptions
   )
 
 lazy val root = (project in file("."))
@@ -81,6 +65,7 @@ lazy val root = (project in file("."))
   // mermaid is NOT in aggregate: it is build tooling, not a library module
   .dependsOn(top)
   .settings(
+    testScalacOptions,
     name := "number",
     scalaVersion := scalaVersionNumber,
 
@@ -105,7 +90,7 @@ lazy val root = (project in file("."))
 lazy val core = (project in file("core"))
   .settings(
     scalaVersion := scalaVersionNumber,
-    scalacOptions ++= commonScalacOptions ++ scala3Options,
+    testScalacOptions,
 
     libraryDependencies ++= Seq(
       "com.phasmidsoftware" %% "flog" % flogVersion,
@@ -124,55 +109,43 @@ lazy val core = (project in file("core"))
       "ch.qos.logback" % "logback-classic" % logbackClassicVersion % "runtime"
     )
   )
-  .settings(scala3TestSettings)
 
 lazy val algebra = (project in file("algebra"))
   .settings(
     scalaVersion := scalaVersionNumber,
-    scalacOptions ++= commonScalacOptions ++ scala3Options
+    testScalacOptions
   )
-  .settings(scala3TestSettings)
   .dependsOn(core)
 
 lazy val expression = (project in file("expression"))
   .settings(
     scalaVersion := scalaVersionNumber,
-    scalacOptions ++= commonScalacOptions ++ scala3Options
+    testScalacOptions
   )
-  .settings(scala3TestSettings)
   .dependsOn(core, algebra)
 
 lazy val parse = (project in file("parse"))
   .settings(
     scalaVersion := scalaVersionNumber,
-    scalacOptions ++= commonScalacOptions ++ scala3Options,
+    testScalacOptions,
 
     libraryDependencies ++= Seq(
     )
   )
-  .settings(scala3TestSettings)
   .dependsOn(core, algebra, expression, dimensions)
 
 lazy val top = (project in file("top"))
   .settings(
     scalaVersion := scalaVersionNumber,
-    scalacOptions ++= commonScalacOptions ++ scala3Options,
-    scalacOptions ++= Seq(
-      "-Wconf:msg=any2stringadd:e" // Make any2stringadd usage an ERROR
-    )
+    testScalacOptions
   )
-  .settings(scala3TestSettings)
   .dependsOn(core, algebra, expression, parse, dimensions)
 
 lazy val dimensions = (project in file("dimensions"))
   .settings(
     scalaVersion := scalaVersionNumber,
-    scalacOptions ++= commonScalacOptions ++ scala3Options,
-    scalacOptions ++= Seq(
-      "-Wconf:msg=any2stringadd:e"  // Make any2stringadd usage an ERROR
-    )
+    testScalacOptions
   )
-  .settings(scala3TestSettings)
   .dependsOn(algebra, core)
 
 // ============================================================================
@@ -185,17 +158,11 @@ Test / parallelExecution := false
 // ============================================================================
 // USAGE NOTES
 // ============================================================================
-// This moderate configuration focuses on catching the rogue + operator issue
-// without being overly strict about other things.
+// The compiler options (above) are the ones that all the Phasmid libraries share.
+// -Wvalue-discard and -Wnonunit-statement catch, among other things, a rogue + operator
+// whose result is silently discarded.
 //
-// The critical options for catching string concatenation are:
-// 1. -Xfatal-warnings: Makes all warnings into compilation errors (currently disabled)
-// 2. -Wvalue-discard: Catches when values are silently discarded
-// 3. -Wnonunit-statement: Catches non-Unit expressions used as statements
-//
-// The -Wnonunit-statement option is filtered out for test code (scala3TestSettings)
+// The -Wnonunit-statement option is filtered out for test code (testScalacOptions)
 // because ScalaTest's assertions return Assertion, not Unit, and having multiple
 // assertions in a test would trigger warnings.
-//
-// To re-enable fatal warnings, uncomment the -Xfatal-warnings line in scala3Options.
 // ============================================================================

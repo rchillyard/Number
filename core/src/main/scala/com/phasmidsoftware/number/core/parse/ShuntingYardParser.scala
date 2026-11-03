@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.core.parse
 
 import com.phasmidsoftware.number.core.mill.*
 import com.phasmidsoftware.number.core.numerical.*
-import scala.annotation.tailrec
+import scala.annotation.{nowarn, tailrec}
 import scala.util.Try
 
 /**
@@ -19,6 +19,8 @@ import scala.util.Try
   *
   * CONSIDER using a TokenParser instead of a RegexParser.
   */
+// core can't use the replacement, which is in the expression module, so it keeps the deprecated parser.
+@nowarn("cat=deprecation")
 object ShuntingYardParser extends BaseMillParser {
 
   /**

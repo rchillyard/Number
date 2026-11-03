@@ -181,7 +181,7 @@ case class InversePower private(n: Int, number: Number)(val maybeName: Option[St
     *         - a positive value indicates this instance is greater than `that`.
     */
   def compare(that: Functional): Int = that match {
-    case i@InversePower(m, x) if isExact && i.isExact =>
+    case i@InversePower(_, _) if isExact && i.isExact =>
       recover(simplified.compareExact(i.simplified))(AlgebraException(s"InversePower.compare: cannot compare $this with InversePower: $that"))
     case _ =>
       recover(for {
@@ -267,7 +267,7 @@ case class InversePower private(n: Int, number: Number)(val maybeName: Option[St
       None
     case (x: InversePower, _: Real) =>
       x.transformation
-    case x =>
+    case _ =>
       None
   }
 
@@ -332,7 +332,7 @@ case class InversePower private(n: Int, number: Number)(val maybeName: Option[St
     *         `false` if they are not equivalent, or a failure if a comparison cannot be performed.
     */
   override def fuzzyEqv(confidence: Double)(that: Eager): Try[Boolean] = (this, that) match {
-    case (a@InversePower(n1, x1), b: Structure) =>
+    case (a@InversePower(_, _), b: Structure) =>
       for {
         r1 <- FP.toTry(a.convert(Real.zero))(FP.fail(s"InversePower.fuzzyEqv: cannot convert $a to Real"))
         r2 <- FP.toTry(b.convert(Real.zero))(FP.fail(s"InversePower.fuzzyEqv: cannot convert $b to Real"))
@@ -640,7 +640,7 @@ object InversePower {
     * @param n The integer exponent to be used in the computation.
     * @param s The input structure to be converted or processed for the inverse power calculation.
     * @return An instance of `InversePower` computed with the specified parameters.
-    * @throws AlgebraException If the input structure cannot be converted to a `Real`.
+    * @throws com.phasmidsoftware.number.algebra.util.AlgebraException If the input structure cannot be converted to a `Real`.
     */
   def create(n: Int, s: Structure): InversePower = s match {
     case x: Number =>
@@ -661,7 +661,7 @@ object InversePower {
     * @return A tuple where the first element represents the extracted product (outside the root)
     *         and the second element represents the remaining product (inside the root).
     *
-    * @throws AlgebraException If any prime factor of the radicand is out of range for an Int.
+    * @throws com.phasmidsoftware.number.algebra.util.AlgebraException If any prime factor of the radicand is out of range for an Int.
     */
   def normalizeIntegralRoot(radicand: Int, rootDegree: Int): (Int, Int) = {
     // We need to check all prime factors up to radicand itself

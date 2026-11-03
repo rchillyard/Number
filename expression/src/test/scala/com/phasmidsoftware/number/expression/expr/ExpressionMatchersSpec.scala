@@ -25,6 +25,8 @@ import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
+import scala.annotation.nowarn
+
 /**
   * Test suite for `ExpressionMatchers` and related functionality, extending `AnyFlatSpec` with ScalaTest matchers functionalities.
   *
@@ -352,13 +354,14 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result shouldBe em.Match(Literal(root3))
   }
   // TODO Issue #140
+  // The interpolators that replace Expression.apply are in the parse module, which these tests can't use.
   it should "simplify root4 * 2 / 2 part 1" in {
     val x = Expression("√4") :* Eager.two
     val y: Expression = Expression(Eager.two).reciprocal
     val product = x :* y
     product.simplify shouldBe Literal(InversePower(2, 4))
     product.materialize shouldBe Eager.two
-  }
+  }: @nowarn("cat=deprecation")
   it should "simplify root4 * 2 / 2 part 2" in {
     BiFunction(Literal(4), Half, Power).materialize shouldBe WholeNumber(2)
   }
@@ -437,7 +440,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val root3: Expression = Expression(3).sqrt
     val x: BiFunction = (root3 :* root3.reciprocal * Eager(3)).asInstanceOf[BiFunction]
     val x1: Expression = asAggregate(x).get
-    val x2: Aggregate = Aggregate(Product, Seq(root3, root3.reciprocal, Eager(3)))
     //    println(s"x1=$x1\nx2=$x2")
     val simplified = x1.simplify
     //    println(s"simplifyAggregate 5:\n  x1=${x1.render};\n  x1 simplified=${x1.simplify.render};\n  x2 simplified=${x2.simplify.render}")
@@ -1541,7 +1543,6 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val triple: DyadicTriple = e
     val result = p(triple)
     result.successful shouldBe true
-    val expected = BiFunction(3, BiFunction(Rational.half, Rational.two, Product), Power)
     val actual = result.get
     actual shouldBe Literal(3)
   }

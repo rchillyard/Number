@@ -336,7 +336,7 @@ object RationalNumber {
     * @return a `FuzzyEq[RationalNumber]` instance defining the fuzzy equality for `RationalNumber`
     */
   given FuzzyEq[RationalNumber] = FuzzyEq.instance {
-    (x, y, p) =>
+    (x, y, _) =>
       x == y  // Use == here, not ===
   }
 

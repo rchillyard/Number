@@ -231,7 +231,6 @@ class ExpressionEdgeCasesSpec extends AnyFlatSpec with Matchers {
   it should "handle phi identity when exponent is not suitable" in {
     // Line 824: Miss case when exponent doesn't evaluate properly
     val phi = QuadraticRoot(QuadraticEquation(Rational(-1), Rational(-1)), 0)
-    val complexExp = UniFunction(E, Ln) // ln(e) - though this should simplify to 1
     // Use a more complex expression that won't easily evaluate
     val complexExp2 = BiFunction(Pi, E, Sum) // π + e
     val power = BiFunction(phi, complexExp2, Power) // φ^(π+e)

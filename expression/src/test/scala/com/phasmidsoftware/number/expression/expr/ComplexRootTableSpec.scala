@@ -253,11 +253,6 @@ class ComplexRootTableSpec extends AnyFlatSpec with ComplexEquality with TableDr
   it should "satisfy Vieta's formula for sum of roots" in {
     forAll(vietaCases) { (description, p, q) =>
       val equation = QuadraticEquation(p, q)
-      val root0 = QuadraticRoot(equation, 0)
-      val root1 = QuadraticRoot(equation, 1)
-
-      val complex0 = root0.solution.asInstanceOf[Complex]
-      val complex1 = root1.solution.asInstanceOf[Complex]
 
       // Sum should equal -p
       withClue(s"$description: sum of conjugates should equal ${-p}") {

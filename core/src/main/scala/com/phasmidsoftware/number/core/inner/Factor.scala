@@ -11,6 +11,7 @@ import com.phasmidsoftware.number.core.inner.Value.{fromDouble, scaleDouble, val
 import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.{CoreException, Field, Fuzziness, Number, Real}
 
+import scala.annotation.unused
 import scala.util.*
 
 /**
@@ -73,7 +74,7 @@ sealed trait Factor {
     * @param f the factor to be checked for compatibility with raising to a power.
     * @return true if the factors can be powered; false otherwise.
     */
-  def canRaise(f: Factor, exponent: Field): Boolean = f match {
+  def canRaise(f: Factor, @unused exponent: Field): Boolean = f match {
     case PureNumber =>
       true
     case Radian =>

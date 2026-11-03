@@ -7,8 +7,11 @@ package com.phasmidsoftware.number.core.parse
 import com.phasmidsoftware.number.core.parse.{SignificantSpaceParserException, SignificantSpaceParsers}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+import scala.annotation.nowarn
 import scala.util.{Failure, Success}
 
+// These tests test the deprecated SignificantSpaceParsers.
+@nowarn("cat=deprecation")
 class SignificantSpaceParsersSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "SignificantSpaceParsers"

@@ -4,7 +4,6 @@ import tastyquery.Contexts.*
 import tastyquery.Names.*
 import tastyquery.Symbols.*
 import tastyquery.Types.*
-import tastyquery.Modifiers
 import tastyquery.jdk.ClasspathLoaders
 
 import java.nio.file.{Files, Path, Paths}

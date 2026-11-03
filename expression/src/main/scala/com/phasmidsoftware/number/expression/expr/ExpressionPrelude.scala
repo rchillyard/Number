@@ -7,6 +7,8 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.core.inner.Rational
 
+import scala.annotation.nowarn
+
 // The magic: make integer literals become Expressions
 object ExpressionPrelude:
   // Pre-defined constants
@@ -22,6 +24,8 @@ object ExpressionPrelude:
 
   given Conversion[Double, Expression] = d => Literal(Real(d))
 
+  // The interpolators are in the parse module, which expression can't use, so this keeps the deprecated apply.
+  @nowarn("cat=deprecation")
   given Conversion[String, Expression] = s => Expression(s)
 
   // Make pi, e, etc. available

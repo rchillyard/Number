@@ -27,6 +27,8 @@ import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
+import scala.annotation.nowarn
+
 class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter with FuzzyEquality with ExpressionMatcherPatterns {
 
   type OldExpression = com.phasmidsoftware.number.expression.expr.Expression
@@ -251,7 +253,6 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   // CONSIDER Issue #150 (?) [This is not really a feature of "Number"]
   it should "evaluate sqrt 36" in {
-    val x: Expression = Expression(36).sqrt
     //        x.materialize shouldEqual ±(6)
   }
   // TODO Issue #140
@@ -545,7 +546,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     // NOTE than when you explicitly specify "math," you don't need to add a type annotation of Expression
     val expression = Expression("√(4)")
     expression shouldBe BiFunction(ValueExpression(4), RationalNumber(Rational.half), Power)
-  }
+  }: @nowarn("cat=deprecation")
 
   behavior of "Expression worksheet"
   it should "work" in {
@@ -596,7 +597,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
       case x =>
         fail(s"expected CompositeExpression, got $x")
     }
-  }
+  }: @nowarn("cat=deprecation")
   it should "simplifyExpand 3" in {
     val e: CompositeExpression = ((Expression(3) :+ 5) * (7 - 2)).asInstanceOf[CompositeExpression]
     val m = e.simplifyLazy(e)

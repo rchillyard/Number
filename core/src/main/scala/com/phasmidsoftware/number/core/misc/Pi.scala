@@ -30,7 +30,7 @@ object Pi {
 
 }
 
-object PiMain extends App {
+object PiMain {
   def doMain(): Unit = {
     import scala.concurrent.duration.DurationInt
     import scala.language.postfixOps
@@ -49,5 +49,5 @@ object PiMain extends App {
 
   }
 
-  doMain()
+  def main(args: Array[String]): Unit = doMain()
 }

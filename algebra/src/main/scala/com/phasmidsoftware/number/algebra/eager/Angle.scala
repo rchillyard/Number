@@ -16,6 +16,7 @@ import com.phasmidsoftware.number.algebra.util.FP.recover
 import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational, Value}
 import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Fuzziness}
 
+import scala.annotation.unused
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 
@@ -323,7 +324,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * @return a `Try[Angle]` containing a failure with an `AlgebraException` indicating
     *         that the multiply operation is not supported
     */
-  def multiply(n: Number): Try[Angle] = Failure(AlgebraException("Angle.multiply: not supported"))
+  def multiply(@unused n: Number): Try[Angle] = Failure(AlgebraException("Angle.multiply: not supported"))
 
   /**
     * Subtracts the specified `Angle` from the current `Angle` instance.
@@ -333,7 +334,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * @param other the `Angle` to be subtracted from the current instance
     * @return a `Try[Angle]` containing a failure with an exception indicating that the operation is not supported
     */
-  def subtract(other: Angle): Try[Angle] = Failure(AlgebraException("Angle.subtract: not supported"))
+  def subtract(@unused other: Angle): Try[Angle] = Failure(AlgebraException("Angle.subtract: not supported"))
 
   /**
     * Divides the current `Angle` by the specified `Angle`.
@@ -345,7 +346,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * @return a `Try[Number]` containing a failure with an `AlgebraException`
     *         indicating that the division operation is not supported
     */
-  def divide(other: Angle): Try[Number] = Failure(AlgebraException("Angle.divide: not supported"))
+  def divide(@unused other: Angle): Try[Number] = Failure(AlgebraException("Angle.divide: not supported"))
 
   /**
     * Attempts to divide the current `Angle` by the specified `Number`.
@@ -355,7 +356,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * @param n the `Number` by which the current `Angle` is to be divided
     * @return a `Try[Angle]`, which will always be a `Failure` containing an `AlgebraException`
     */
-  def divide(n: Number): Try[Angle] = Failure(AlgebraException("Angle.divide: not supported"))
+  def divide(@unused n: Number): Try[Angle] = Failure(AlgebraException("Angle.divide: not supported"))
 
   /**
     * Scales the current scalar instance by the specified rational factor.

@@ -244,9 +244,9 @@ object Valuable {
       Some(numerical.Real(FuzzyNumber(Value.fromDouble(Some(x)), PureNumber, fo)))
     case q: Q =>
       Some(rationalToField(q.toRational, PureNumber))
-    case a@Angle(radians, _) =>
+    case Angle(radians, _) =>
       Some(numerical.Real(numberToField(radians).x.make(inner.Radian)))
-    case l@NaturalExponential(x) =>
+    case NaturalExponential(x) =>
       Some(numerical.Real(numberToField(x).x.make(inner.NatLog)))
     case i@InversePower(2, x) if x.signum == -1 =>
       i.asComplex.map(_.complex)

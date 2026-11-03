@@ -19,8 +19,6 @@ class EqualityComprehensiveSpec extends AnyFlatSpec with Matchers {
 
   // Scala 3 extension method for inf {
 
-  import cats.syntax.eq.catsSyntaxEq as _
-
   // Add explicit extension method
   implicit class CatsEqOps[A: Eq](a: A) {
     def ===(b: A): Boolean = Eq[A].eqv(a, b)

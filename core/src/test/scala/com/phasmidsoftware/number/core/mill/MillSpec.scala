@@ -6,7 +6,6 @@ package com.phasmidsoftware.number.core.mill
 
 import com.phasmidsoftware.number.core.mill.{Add, CoreMill, CoreMillItem, Empty, Expr, MillException, Stack, TerminalExpression}
 import com.phasmidsoftware.number.core.numerical.{FuzzyEquality, Number}
-import com.phasmidsoftware.number.core.parse.MillParser
 import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -96,8 +95,6 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
 //  }
 
   behavior of "parse and evaluate"
-  private val p = MillParser
-
 //  it should "parse and evaluate: 2 37 + 2 *" in {
 //    val value: Try[CoreMill] = p.parseMill("42 37 + 2 *")
 //    value should matchPattern { case Success(_) => }

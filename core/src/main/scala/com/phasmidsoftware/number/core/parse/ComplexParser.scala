@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number.core.parse
 
 import com.phasmidsoftware.number.core.numerical.{Complex, CoreException}
+import scala.annotation.nowarn
 import scala.util.Try
 
 /**
@@ -29,5 +30,7 @@ class ComplexParser extends BaseNumberParser {
 object ComplexParser {
 
 
+  // core can't use the replacement, which is in the expression module, so it keeps the deprecated parser.
+  @nowarn("cat=deprecation")
   def parse(w: String): Try[Complex] = new ComplexParser().doParse(w)
 }

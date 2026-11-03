@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core.misc
 
-object XXX extends App {
+object XXX {
 
   /**
     * Periodic Cicadas: https://en.wikipedia.org/wiki/Periodical_cicadas
@@ -29,7 +29,7 @@ object XXX extends App {
 
   val emergences = LazyList.from(2021).filter(coemergence).take(n) // TODO
 
-  println(emergences.mkString(","))
+  def main(args: Array[String]): Unit = println(emergences.mkString(","))
 
   type X = (Int, Double)
 

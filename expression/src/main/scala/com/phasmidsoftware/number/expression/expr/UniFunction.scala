@@ -97,7 +97,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
             Some(r)
           case q: Structure =>
             q.convert(Real.zero)
-          case q =>
+          case _ =>
             None
 
         }

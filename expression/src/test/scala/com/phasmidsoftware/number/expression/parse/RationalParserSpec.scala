@@ -165,8 +165,7 @@ class RationalParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
 
   it should "round-trip through rendering" in {
     // If your renderer produces angle bracket notation for 1/3
-    val original = Rational(1, 3)
-    val rendered = original.toRationalString // Should this produce "0.<3>"?
+    // Should original.toRationalString (where original = Rational(1, 3)) produce "0.<3>"?
     // Note: This test depends on your rendering implementation
     // If rendering produces "0.333..." instead, adjust accordingly
   }

@@ -548,7 +548,6 @@ class LinearSolutionSpec extends AnyFlatSpec with Matchers {
 
   it should "add rational to base when base is pure number" in {
     val base = RationalNumber(Rational(3, 2))
-    val offset = RationalNumber.zero
     val solution = LinearSolution(base)
     val addend = Rational(1, 2)
 

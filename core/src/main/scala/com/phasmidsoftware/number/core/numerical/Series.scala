@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.numerical.HasValue.HasValueDouble$
+import com.phasmidsoftware.number.core.numerical.HasValue.DoubleHasValue
 
 import scala.Option.when
 import scala.util.Try

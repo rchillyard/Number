@@ -14,6 +14,7 @@ import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number.core.numerical.{ExactNumber, Fuzziness, FuzzyNumber}
 import com.phasmidsoftware.number.core.{inner, numerical}
 
+import scala.annotation.unused
 import scala.reflect.ClassTag
 import scala.util.{Failure, Try}
 
@@ -263,7 +264,7 @@ object Scalar {
     case s => s.render // Fallback to render method
   }
 
-  private def tryConvertAndCompareScalar[B <: Scalar, Z](f: (Scalar, B) => Try[Z])(s: Scalar, e: B): Try[Z] =
+  private def tryConvertAndCompareScalar[B <: Scalar, Z](@unused f: (Scalar, B) => Try[Z])(s: Scalar, e: B): Try[Z] =
     FP.fail(s"Scalar: unsupported cross-type operation: ${s.getClass.getSimpleName} op ${e.getClass.getSimpleName}")
 
   /**

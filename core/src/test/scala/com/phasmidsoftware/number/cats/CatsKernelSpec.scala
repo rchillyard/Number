@@ -142,7 +142,6 @@ class CatsKernelSpec extends AnyFlatSpec with Matchers {
     val f1b: Field = Real(Number(1))
     val f2: Field = ComplexCartesian(Number.one, Number.zero)
     val f3: Field = ComplexPolar(Number.one, Number.zeroR, 1)
-    val f4: Field = ComplexCartesian(Number.one, Number.one)
 
     // Eq
     Eq[Field].eqv(f1, f1b) shouldBe true

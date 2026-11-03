@@ -7,10 +7,11 @@ package com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.inner.{MonadicOperation, Percent}
 import com.phasmidsoftware.number.core.misc.Variance.{convolution, rootSumSquares}
 import com.phasmidsoftware.number.core.numerical.Fuzziness.{oneSigma, toDecimalPower, zipStrings}
-import com.phasmidsoftware.number.core.numerical.HasValue.HasValueDouble$
+import com.phasmidsoftware.number.core.numerical.HasValue.DoubleHasValue
 import com.phasmidsoftware.number.core.numerical.Number.NumberIsFractional
 import org.apache.commons.math3.special.Erf.{erf, erfInv}
 
+import scala.annotation.{nowarn, unused}
 import scala.math.Numeric.DoubleIsFractional
 import scala.util.Try
 import scala.util.matching.Regex
@@ -634,6 +635,8 @@ object Fuzziness {
     * @tparam T the underlying type of the Fuzziness.
     * @return an Option of Fuzziness[T].
     */
+  // The HasValue bound stays, so that the signature doesn't change.
+  @nowarn("msg=unused implicit parameter")
   def combine[T: HasValue](t1: T, t2: T, relative: Boolean, independent: Boolean)(fuzz: (Option[Fuzziness[T]], Option[Fuzziness[T]])): Option[Fuzziness[T]] = {
     val f1o = doNormalize(fuzz._1, t1, relative)
     val f2o = doNormalize(fuzz._2, t2, relative)
@@ -751,7 +754,7 @@ object Fuzziness {
     * @return An optional `Fuzziness[T]` resulting from the combination of `f1o` and `f2o`, with the specific operation
     *         depending on their respective shapes.
     */
-  private def composeFuzz[T: HasValue](independent: Boolean, f1o: Option[Fuzziness[T]], f2o: Option[Fuzziness[T]]) =
+  private def composeFuzz[T](independent: Boolean, f1o: Option[Fuzziness[T]], f2o: Option[Fuzziness[T]]) =
     (f1o, f2o) match {
       case (Some(f1), Some(f2)) if f1.shape == Box && f2.shape == Box =>
         // Box ⊗ Box → Trapezoid (or Box if one is negligible): handled directly by *.
@@ -828,7 +831,7 @@ object Fuzziness {
     * @tparam T the underlying type of the Fuzziness.
     * @return the optional Fuzziness value which is equivalent (or identical) to fuzz, according to the value of relative.
     */
-  private def doNormalize[T: HasValue](fuzz: Option[Fuzziness[T]], t: T, relative: Boolean): Option[Fuzziness[T]] =
+  private def doNormalize[T](fuzz: Option[Fuzziness[T]], t: T, relative: Boolean): Option[Fuzziness[T]] =
     fuzz.flatMap(f => doNormalize(t, relative, f))
 
   /**
@@ -894,7 +897,7 @@ object Fuzziness {
     * @param fuzz the (optional) fuzziness of input to the monadic operation.
     * @return the optional fuzziness for the result of the monadic operation.
     */
-  def monadicFuzziness(op: MonadicOperation, t: Double, x: Double, fuzz: Option[Fuzziness[Double]]): Option[Fuzziness[Double]] = {
+  def monadicFuzziness(op: MonadicOperation, t: Double, @unused x: Double, fuzz: Option[Fuzziness[Double]]): Option[Fuzziness[Double]] = {
     val relativized: Option[Fuzziness[Double]] = fuzz flatMap (_.normalize(t, relative = true))
     val functionFuzz: Option[Fuzziness[Double]] = sanitize(relativized map (_.transform(op.relativeFuzz)(t)))
     val opFuzz = sanitize(createFuzz(op.fuzz))
@@ -1457,6 +1460,6 @@ object HasValue {
     * As an implicit object, it allows for automatic resolution of the `HasValue`
     * type class for `Double` values in relevant contexts.
     */
-  implicit object HasValueDouble$ extends HasValueDouble
+  implicit object DoubleHasValue extends HasValueDouble
 
 }

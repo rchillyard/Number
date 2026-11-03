@@ -511,21 +511,21 @@ object Number {
     def plus(x: Number, y: Number): Number = (x, y) match {
       case (a: Real, b: Real) =>
         realIsRing.plus(a, b)
-      case (a, b: Real) =>
+      case (_, _: Real) =>
         plus(y, x)
       case (a: Real, b) =>
         FP.recover(b.convert(Real.zero).map(bAsReal => realIsRing.plus(a, bAsReal)))
             (throw AlgebraException("Number.plus: logic error: cannot convert " + b + " to a Real"))
       case (a: RationalNumber, b: RationalNumber) =>
         rationalNumberIsField.plus(a, b)
-      case (a, b: RationalNumber) =>
+      case (_, _: RationalNumber) =>
         plus(y, x)
       case (a: RationalNumber, b) =>
         FP.recover(b.convert(RationalNumber.zero).map(bAsRational => rationalNumberIsField.plus(a, bAsRational)))
             (throw AlgebraException("Number.plus: logic error: cannot convert " + b + " to a Real"))
       case (a: WholeNumber, b: WholeNumber) =>
         WholeNumberIsCommutativeRing.plus(a, b)
-      case (a, b: WholeNumber) =>
+      case (_, _: WholeNumber) =>
         plus(y, x)
       case _ =>
         throw AlgebraException("Number.plus: logic error: cannot add " + x + " and " + y)
@@ -569,19 +569,19 @@ object Number {
     def times(x: Number, y: Number): Number = (x, y) match {
       case (a: Real, b: Real) =>
         realIsRing.times(a, b)
-      case (a, b: Real) =>
+      case (_, _: Real) =>
         times(y, x)
       case (a: Real, b) =>
         FP.recover(b.convert(Real.zero).map(_ * a))(AlgebraException("Number.plus: logic error: cannot convert " + b + " to a Real"))
       case (a: RationalNumber, b: RationalNumber) =>
         a * b
-      case (a, b: RationalNumber) =>
+      case (_, _: RationalNumber) =>
         times(y, x)
       case (a: RationalNumber, b) =>
         FP.recover(b.convert(RationalNumber.zero).map(a * _))(AlgebraException("Number.plus: logic error: cannot convert " + b + " to a RationalNumber"))
       case (a: WholeNumber, b: WholeNumber) =>
         a * b
-      case (a, b: WholeNumber) =>
+      case (_, _: WholeNumber) =>
         times(y, x)
       case _ =>
         throw AlgebraException("Number.times: logic error: cannot multiply " + x + " and " + y)

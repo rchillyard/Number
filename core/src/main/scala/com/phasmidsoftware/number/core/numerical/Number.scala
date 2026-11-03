@@ -13,7 +13,7 @@ import com.phasmidsoftware.number.core.numerical.Number.{inverse, negate}
 import com.phasmidsoftware.number.core.parse.NumberParser
 import com.phasmidsoftware.number.core.parse.RationalParser.parseComponents
 
-import scala.annotation.tailrec
+import scala.annotation.{nowarn, tailrec}
 import scala.language.{implicitConversions, postfixOps}
 import scala.util.*
 
@@ -1301,6 +1301,8 @@ object Number {
     */
   lazy val Infinity: Number = Number(Double.PositiveInfinity)
 
+  // core can't use the replacement, which is in the expression module, so it keeps the deprecated parser.
+  @nowarn("cat=deprecation")
   private val numberParser = NumberParser
 
   /**

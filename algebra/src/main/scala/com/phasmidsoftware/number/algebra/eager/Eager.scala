@@ -19,7 +19,7 @@ import com.phasmidsoftware.number.core.parse.NumberParser
 import com.phasmidsoftware.number.{algebra, core}
 
 import scala.Option.when
-import scala.annotation.tailrec
+import scala.annotation.{nowarn, tailrec}
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
 
@@ -465,6 +465,8 @@ object Eager {
     * @return a `Valuable` representation of the parsed `Number`.
     * @note Throws CoreExceptionWithCause if parsing the string fails.
     */
+  // algebra can't use the replacement, which is in the expression module, so it keeps the deprecated parser.
+  @nowarn("cat=deprecation")
   def apply(str: String): Eager =
     NumberParser.parseNumber(str) match {
       case Success(number) =>
@@ -519,7 +521,7 @@ object Eager {
     * @param x the input value of type `Number` to be transformed into an imaginary representation.
     *          It is expected to be a valid numerical value.
     * @return an `Eager` instance representing the imaginary conversion of the input number.
-    * @throws AlgebraException if the conversion fails or the resulting value cannot be represented as an imaginary number.
+    * @throws com.phasmidsoftware.number.algebra.util.AlgebraException if the conversion fails or the resulting value cannot be represented as an imaginary number.
     */
   def imaginary(x: Scalar): InversePower =
     tryImaginary(x).getOrElse(throw AlgebraException(s"Eager.imaginary: Cannot convert $x to an imaginary number"))

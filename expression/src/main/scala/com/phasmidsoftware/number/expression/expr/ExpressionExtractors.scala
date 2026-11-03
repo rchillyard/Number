@@ -184,7 +184,7 @@ object NthRoot {
     case Root(QuadraticEquation(Rational.zero, r), branch) =>
       Some((-r, 2, branch))
     case IsEager(v) => v match {
-      case QuadraticSolution(eager.IsZero(base), InversePower(n, radicand), coeff, imag) =>
+      case QuadraticSolution(eager.IsZero(_), InversePower(n, radicand), coeff, _) =>
         Some((radicand, n, (1 - coeff) / 2))
       // Add other root types if they exist
       case _ => None

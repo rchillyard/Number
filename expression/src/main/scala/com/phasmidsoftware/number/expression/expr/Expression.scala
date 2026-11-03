@@ -22,7 +22,7 @@ import com.phasmidsoftware.number.expression.mill
 import com.phasmidsoftware.number.expression.mill.{DyadicExpression, MonadicExpression, TerminalExpression}
 import com.phasmidsoftware.number.{core, expression}
 
-import scala.annotation.tailrec
+import scala.annotation.{nowarn, tailrec}
 import scala.language.implicitConversions
 
 /**
@@ -473,7 +473,7 @@ object Expression {
     def sqrt: Expression = x match {
       case z: AtomicExpression =>
         z.evaluateAsIs flatMap (_.asCoreNumber) match {
-          case Some(q) =>
+          case Some(_) =>
             // XXX this was the old code: Literal(q.sqrt)
             x ∧ Eager.half
           case _ =>
@@ -583,6 +583,8 @@ object Expression {
     * @param w the input string to be converted into a `Valuable`.
     * @return a `Valuable` instance parsed from the provided string.
     */
+  // The interpolators are in the parse module, which expression can't use, so this keeps the deprecated apply.
+  @nowarn("cat=deprecation")
   implicit def fromString(w: String): Expression = apply(w)
 
   /**

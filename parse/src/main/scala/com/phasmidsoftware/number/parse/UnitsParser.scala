@@ -70,7 +70,7 @@ trait UnitsParser extends RegexParsers {
       case u ~ Some(-1) => u.invert
       case u ~ Some(-2) => u.squared.invert
       case u ~ Some(-3) => u.cubed.invert
-      case u ~ Some(exp) => throw UnitsParserException(s"Unsupported exponent: $exp")
+      case _ ~ Some(exp) => throw UnitsParserException(s"Unsupported exponent: $exp")
     }
 
   /**

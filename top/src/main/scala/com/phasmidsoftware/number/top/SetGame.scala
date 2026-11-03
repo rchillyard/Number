@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number.top
 
+import scala.annotation.unused
 import scala.util.Random
 
 /**
@@ -61,7 +62,7 @@ class SetGame(random: Random = new Random) {
 }
 
 @main
-def main(args: String *): Unit = {
+def main(@unused args: String *): Unit = {
   val game = new SetGame
   val allCards = game.fullDeck
   println(s"There are ${allCards.size} card in all: ${allCards.mkString(", ")}")

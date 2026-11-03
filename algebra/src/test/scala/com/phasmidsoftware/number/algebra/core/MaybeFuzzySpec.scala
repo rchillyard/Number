@@ -182,7 +182,6 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
   }
 
   it should "handle very small relative fuzziness" in {
-    val r = Real(1000.0, Some(RelativeFuzz(0.0001, Gaussian)))
     //    r.asPercentage shouldBe "1.0000(1)E+03"
   }
 

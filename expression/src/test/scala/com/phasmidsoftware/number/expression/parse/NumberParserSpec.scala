@@ -31,7 +31,6 @@ class NumberParserSpec extends flatspec.AnyFlatSpec with should.Matchers {
   it should "parse 10.352%" in {
     val r: p.ParseResult[Number] = p.parseAll(p.number, "10.352%")
     r should matchPattern { case p.Success(_, _) => }
-    val x: Number = r.get
     //    x shouldBe FuzzyNumber(Value.fromRational(Rational(10352, 1000)), Percent, Some(AbsoluteFuzz(0.0005, Box)))
     r.get.render shouldBe "10.352%"
   }

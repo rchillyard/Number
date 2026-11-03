@@ -460,12 +460,12 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     val z: Field = factor match {
       case PureNumber =>
         Real(this)
-      case r@NthRoot(2) if maybeIntValue.isDefined =>
+      case NthRoot(2) if maybeIntValue.isDefined =>
         val ro1 = maybeIntValue.filter(_ > 0).flatMap(Rational.squareRoots.get).map(Real(_))
         val ro2 = maybeIntValue.filter(_ > 0).map(_ => Real(this))
         val ro3 = maybeIntValue.filter(_ < 0).filter(x => math.abs(x) <= Rational.maxSquare).map(_ => Real(this))
         ro1 orElse ro2 orElse ro3 getOrElse normalizeRoot(this)
-      case r@NthRoot(_) =>
+      case NthRoot(_) =>
         normalizeRoot(this)
       case Radian =>
         Real(this) // Number.modulate(this) NOTE: we do modulation at other times
@@ -509,7 +509,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     // XXX Rational cases
     case Left(Right(Rational(x, Rational.bigOne))) =>
       make(x)
-    case Left(Right(r)) =>
+    case Left(Right(_)) =>
       this
     case Left(Left(Some(x))) if x.isNaN =>
       Number.NaN

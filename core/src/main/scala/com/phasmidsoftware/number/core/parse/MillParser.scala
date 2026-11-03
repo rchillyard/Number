@@ -7,6 +7,7 @@ package com.phasmidsoftware.number.core.parse
 import com.phasmidsoftware.number.core.mill.{CoreMill, CoreMillItem, Expr, TerminalExpression}
 import com.phasmidsoftware.number.core.numerical.*
 
+import scala.annotation.nowarn
 import scala.util.Try
 
 /**
@@ -137,5 +138,7 @@ abstract class BaseMillParser extends BaseNumberParser {
 
 }
 
+// core can't use the replacement, which is in the expression module, so it keeps the deprecated parser.
+@nowarn("cat=deprecation")
 object MillParser extends BaseMillParser
 

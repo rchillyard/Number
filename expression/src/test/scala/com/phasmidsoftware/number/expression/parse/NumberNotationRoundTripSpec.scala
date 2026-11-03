@@ -7,6 +7,8 @@ import com.phasmidsoftware.number.core.numerical.Number.NumberIsFractional.mkNum
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
+import scala.annotation.unused
+
 /**
   * Test suite for verifying round-trip behavior of number notation parsing and rendering.
   * These tests ensure that the notation rules defined in NUMBER_NOTATION.md are correctly implemented.
@@ -25,7 +27,7 @@ class NumberNotationRoundTripSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "round-trip fuzzy numbers with various decimal places" in {
-    val casesForLater = Seq("0.1*", "100.0*", "0.001*")
+    @unused val casesForLater = Seq("0.1*", "100.0*", "0.001*")
     val cases = Seq("2.5*", "3.14159*")
     cases.foreach { original =>
       val parsed = numerical.Number.parse(original).get

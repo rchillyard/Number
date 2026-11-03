@@ -8,8 +8,11 @@ import com.phasmidsoftware.number.core.parse.NumberParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
+import scala.annotation.nowarn
 import scala.util.Try
 
+// These tests use the deprecated NumberParser: core's tests can't use the replacement, which is in the expression module.
+@nowarn("cat=deprecation")
 class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
 
   private val p = NumberParser

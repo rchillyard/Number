@@ -5,7 +5,6 @@
 package com.phasmidsoftware.number.algebra.util
 
 import com.phasmidsoftware.number.core.inner.{Rational, RationalException}
-import org.slf4j.LoggerFactory
 
 import java.net.URL
 import scala.Option.when

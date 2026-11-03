@@ -89,7 +89,7 @@ sealed trait Algebraic extends Solution with Unitary with Scalable[Algebraic] {
         x.maybeFactor(context)
       case (x, y) if x.isZero =>
         y.maybeFactor(context)
-      case (x, y) =>
+      case _ =>
         Some(Composite)
     }
 
@@ -434,9 +434,9 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
     */
   override def add(solution: Eager): Try[Algebraic] = (this, solution) match {
     // NOTE special case where we add two different branches of the same pair of solutions (Not sure we really need this special case).
-    case (x@QuadraticSolution(bx: eager.Number, ox, cx, ix), y@QuadraticSolution(by: eager.Number, oy, cy, iy)) if ox === oy && ix == iy =>
+    case (QuadraticSolution(bx: eager.Number, ox, cx, ix), QuadraticSolution(by: eager.Number, oy, cy, iy)) if ox === oy && ix == iy =>
       Success(QuadraticSolution((bx + by).asMonotone, Eager.zero.asMonotone, cx + cy, ix)(None))
-    case (x@QuadraticSolution(bx: eager.Number, ox: Scalar, nx, ix), y@QuadraticSolution(by: eager.Number, oy: Scalar, ny, iy)) if ix == iy =>
+    case (QuadraticSolution(bx: eager.Number, ox: Scalar, nx, ix), QuadraticSolution(by: eager.Number, oy: Scalar, ny, iy)) if ix == iy =>
       val basePart: Eager = bx + by
       val qx = ox.scale(nx)
       val qy = oy.scale(ny)
@@ -446,11 +446,11 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
         case _ =>
           Failure(AlgebraException(s"QuadraticSolution.add($solution)"))
       }
-    case (x@QuadraticSolution(bx: eager.Number, ox: InversePower, nx, ix), y@QuadraticSolution(by: eager.Number, oy: InversePower, ny, iy)) if ox == oy && ix == iy =>
+    case (QuadraticSolution(bx: eager.Number, ox: InversePower, nx, ix), QuadraticSolution(by: eager.Number, oy: InversePower, ny, iy)) if ox == oy && ix == iy =>
       val basePart: Eager = bx + by
       val offsetPart: Eager = ox.*(nx + ny)
       Success(QuadraticSolution(basePart.asMonotone, offsetPart.asMonotone, 0, ix)(None))
-    case (x@QuadraticSolution(bx: eager.Number, ox: Scalable[eager.Number] @unchecked, nx, ix), y: eager.Number) =>
+    case (QuadraticSolution(bx: eager.Number, ox: Scalable[eager.Number] @unchecked, nx, ix), y: eager.Number) =>
       Success(QuadraticSolution((bx + y).asMonotone, ox, nx, ix)(None))
     // TODO add more cases (see commented code below)
       // Issue #147
@@ -467,7 +467,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
 
   def *(other: QuadraticSolution): Eager = (this, other) match {
     // XXX Special case where both ox terms are SquareRoots
-    case (x@QuadraticSolution(bx: eager.Number, ox@InversePower(2, px), nx, false), y@QuadraticSolution(by: eager.Number, oy@InversePower(2, py), ny, false)) if px == py =>
+    case (QuadraticSolution(bx: eager.Number, InversePower(2, px), nx, false), QuadraticSolution(by: eager.Number, InversePower(2, py), ny, false)) if px == py =>
       val rx = RationalNumber(nx)
       val ry = RationalNumber(ny)
       val bb = bx * ry + by * rx
@@ -477,7 +477,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
       }
       val pr = px * rx * ry
       QuadraticSolution(bx * by + pr, o, bb.signum, false).normalize
-    case (x@QuadraticSolution(bx: eager.Number, ox: eager.Number, nx, false), y@QuadraticSolution(by: eager.Number, oy: eager.Number, ny, false)) =>
+    case (QuadraticSolution(bx: eager.Number, ox: eager.Number, nx, false), QuadraticSolution(by: eager.Number, oy: eager.Number, ny, false)) =>
       val rx = RationalNumber(nx)
       val ry = RationalNumber(ny)
       val t1: eager.Number = bx * by
@@ -505,7 +505,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
     */
   def *(other: Algebraic): Algebraic = multiply(other) match {
     case Some(result: Algebraic) => result
-    case None => throw AlgebraException(s"QuadraticSolution: $this*$other is not an Algebraic")
+    case _ => throw AlgebraException(s"QuadraticSolution: $this*$other is not an Algebraic")
   }
 
   /**
@@ -522,7 +522,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
   def *(r: Rational): Algebraic = (base, offset) match {
     case (b: Scalar, o: Scalar) =>
       QuadraticSolution(b.scale(r), o.scale(r), coefficient, imaginary)
-    case (b: Scalar, o@InversePower(2, x)) =>
+    case (b: Scalar, InversePower(2, x)) =>
       val number = RationalNumber(r)
       val br: Int = if (number.signum < 0) 1 - coefficient else coefficient
       val offsetValue: Structure = if (number.isZero) WholeNumber.zero else InversePower(2, x * number * number)
@@ -684,7 +684,7 @@ object QuadraticSolution {
     case QuadraticSolution(base, offset, _, false) if offset.isZero =>
       base.toLatex
 
-    case q@QuadraticSolution(base, offset, coefficient, false) if base.isZero =>
+    case QuadraticSolution(base, offset, coefficient, false) if base.isZero =>
       if (coefficient == 1) {
         offset.toLatex
       } else if (coefficient == -1) {
@@ -856,7 +856,7 @@ case class LinearSolution(value: Structure)(val maybeName: Option[String] = None
     *         and the given solution, or None if the operation is not valid
     */
   override def add(addend: Eager): Try[Algebraic] = (value, addend) match {
-    case (v: CanAdd[eager.Number, eager.Number] @unchecked, y@LinearSolution(x: eager.Number)) =>
+    case (v: CanAdd[eager.Number, eager.Number] @unchecked, LinearSolution(x: eager.Number)) =>
       Success(LinearSolution(v + x))
     case (v: CanAdd[eager.Number, eager.Number], y: eager.Number) =>
       Success(LinearSolution(v + y))
@@ -883,20 +883,13 @@ case class LinearSolution(value: Structure)(val maybeName: Option[String] = None
     * @return a new `Algebraic` resulting from the multiplication
     */
   def *(other: Algebraic): Algebraic = other match {
-    case RationalNumber(r, _) =>
-      scale(r) match {
-        case a: Algebraic => a
-        case _ => throw AlgebraException(s"Algebraic: *($other) not supported")
-      }
     case q: QuadraticSolution =>
       q * this
     case LinearSolution(x) =>
       value.multiply(x) match {
         case Success(s) => LinearSolution(s)
-        case Failure(e) => throw AlgebraException(s"Algebraic: *($other) not successful")
+        case Failure(_) => throw AlgebraException(s"Algebraic: *($other) not successful")
       }
-    case _ =>
-      throw AlgebraException(s"Algebraic: *($other) not supported")
   }
 
   /**
