@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.parse
 
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
+import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Representation}
 import com.phasmidsoftware.number.core.numerical.*
 import com.phasmidsoftware.number.core.numerical.WithFuzziness.{Asterisk, Ellipsis}
 
@@ -22,7 +22,7 @@ abstract class BaseNumberParser extends BaseRationalParser {
   /**
     * Parse the string w as a Number.
     * The string consists of two optional parts:
-    * the numerator and the factor.
+    * the numerator and the representation.
     * Either of these can be missing but not both.
     *
     * @param w the String to parse.
@@ -82,16 +82,16 @@ abstract class BaseNumberParser extends BaseRationalParser {
 
   /**
     * This method defines a parser that attempts to parse an optional numerical value.
-    * The parser evaluates two optional components: a general number and a factor.
+    * The parser evaluates two optional components: a general number and a representation.
     * It returns an optional `Number`, based on the combination of these parsed components.
     * The parsing process is labeled as "maybeNumber".
     *
     * @return a `Parser` that yields an `Option[Number]`.
-    *         The result is `Some(Number)` if either a general number or a factor is parsed,
+    *         The result is `Some(Number)` if either a general number or a representation is parsed,
     *         or `None` if neither component is present.
     */
   def maybeNumber: Parser[Option[Number]] =
-    (opt(generalNumber) ~ opt(factor)) :| "maybeNumber" ^^ {
+    (opt(generalNumber) ~ opt(representation)) :| "maybeNumber" ^^ {
       case no ~ fo => optionalNumber(no, fo)
     }
 
@@ -153,7 +153,7 @@ abstract class BaseNumberParser extends BaseRationalParser {
   //  Any number with a longer fractional part is assumed to be fuzzy.
   private val DecimalPlacesExact = 14
 
-  private def optionalNumber(ro: Option[ValuableNumber], fo: Option[Factor]): Option[Number] =
+  private def optionalNumber(ro: Option[ValuableNumber], fo: Option[Representation]): Option[Number] =
     if (ro.isDefined || fo.isDefined)
       for (
         r <- ro.orElse(Some(WholeNumber.one));
@@ -178,18 +178,24 @@ abstract class BaseNumberParser extends BaseRationalParser {
   private def calculateFuzz(exponent: Int, decimalPlaces: Int): Option[Fuzziness[Double]] =
     Some(AbsoluteFuzz[Double](Rational(5).applyExponent(exponent - decimalPlaces - 1).toDouble, Box))
 
-  import Factor.*
+  import Representation.*
 
   /**
-    * Parses a factor from the input. A factor can represent specific mathematical constants,
+    * Parses a representation from the input. A representation can represent specific mathematical constants,
     * symbols, or degrees. The parser attempts to match various predefined symbols such as
     * a percentage sign, degree symbol, multiple representations of π, or Euler's number.
     * If none of these are matched, the parser will fail with a defined error message.
     *
-    * @return a `Parser` that produces a `Factor` instance.
-    *         The result encapsulates the matched symbol or numerical value of the factor.
+    * @return a `Parser` that produces a `Representation` instance.
+    *         The result encapsulates the matched symbol or numerical value of the representation.
     */
-  def factor: Parser[Factor] = (sPercent | sDegree | sPi | sPiAlt0 | sPiAlt1 | sPiAlt2 | sE | failure("factor")) :| "factor" ^^ { w => Factor(w) }
+  def representation: Parser[Representation] = (sPercent | sDegree | sPi | sPiAlt0 | sPiAlt1 | sPiAlt2 | sE | failure("representation")) :| "representation" ^^ { w => Representation(w) }
+
+  /**
+    * Deprecated: use `representation` instead (renamed in version 1.11.0).
+    */
+  @deprecated("Use representation", since = "1.11.0")
+  def factor: Parser[Representation] = representation
 }
 
 /**
@@ -202,7 +208,7 @@ abstract class BaseNumberParser extends BaseRationalParser {
   * representations, including:
   * - Simple numbers or rational numbers.
   * - Numbers with fuzziness or uncertainty.
-  * - Factors representing constants, symbols, or mathematical concepts.
+  * - Representations representing constants, symbols, or mathematical concepts.
   *
   * The parsing logic accounts for optional components such as fractional parts
   * and exponents, and encapsulates results within domain-specific types, such

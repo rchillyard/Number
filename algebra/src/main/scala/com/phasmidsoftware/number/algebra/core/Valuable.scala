@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.algebra.core
 import com.phasmidsoftware.flog.Loggable
 import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, Nat, NaturalExponential, Number, RationalNumber, Real, Structure, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.AlgebraException
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
+import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Representation, Value}
 import com.phasmidsoftware.number.core.numerical.{ExactNumber, Field, FuzzyNumber}
 import com.phasmidsoftware.number.core.{inner, numerical}
 import com.phasmidsoftware.number.{algebra, core}
@@ -74,13 +74,19 @@ trait Valuable extends Renderable with Numeric with Zeroable with Unitary with E
   }
 
   /**
-    * Attempts to retrieve a factor based on the provided context.
-    * This method evaluates whether there is an applicable factor within the given context.
+    * Attempts to retrieve a representation based on the provided context.
+    * This method evaluates whether there is an applicable representation within the given context.
     *
-    * @param context the context in which the factor is evaluated.
-    * @return an optional `Factor` if one qualifies under the provided context; otherwise, `None`.
+    * @param context the context in which the representation is evaluated.
+    * @return an optional `Representation` if one qualifies under the provided context; otherwise, `None`.
     */
-  def maybeFactor(context: Context): Option[Factor]
+  def maybeRepresentation(context: Context): Option[Representation]
+
+  /**
+    * Deprecated: use `maybeRepresentation` instead (renamed in version 1.11.0).
+    */
+  @deprecated("Use maybeRepresentation", since = "1.11.0")
+  def maybeFactor(context: Context): Option[Representation] = maybeRepresentation(context)
 
   /**
     * Casts this `Valuable` instance into a `Structure` type if it already is a `Structure`.
@@ -308,22 +314,22 @@ object Valuable {
   }
 
   /**
-    * Converts a `Rational` value into a `Field` representation, taking into account a specific scaling factor.
+    * Converts a `Rational` value into a `Field` representation, taking into account a specific `Representation`.
     *
     * @param rational the `Rational` number to be converted into a `Field`.
-    * @param factor   the scaling `Factor` to be applied to the conversion.
-    * @return a `Real` representation of the `Rational` number scaled by the given `Factor`.
+    * @param representation   the scaling `Representation` to be applied to the conversion.
+    * @return a `Real` representation of the `Rational` number scaled by the given `Representation`.
     */
-  private def rationalToField(rational: Rational, factor: Factor) = numerical.Real(ExactNumber(Value.fromRational(rational), factor))
+  private def rationalToField(rational: Rational, representation: Representation) = numerical.Real(ExactNumber(Value.fromRational(rational), representation))
 
   /**
     * Converts an integer value into a `Field` representation, encapsulated as a `Real`,
-    * based on the provided multiplication factor.
+    * based on the provided `Representation`.
     *
     * @param x      the integer value to be converted into a `Field`.
-    * @param factor the factor to be applied in the `Real` representation.
+    * @param representation the representation to be applied in the `Real` representation.
     * @return a `Real` representing the converted integer value.
     */
-  private def intToField(x: Int, factor: Factor) = numerical.Real(ExactNumber(Value.fromInt(x), factor))
+  private def intToField(x: Int, representation: Representation) = numerical.Real(ExactNumber(Value.fromInt(x), representation))
 
 }

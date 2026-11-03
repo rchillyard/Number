@@ -72,7 +72,7 @@ trait Structure extends Eager with WithFuzziness with Negatable[Structure] {
     *
     * The method determines whether the current `Structure` object can be represented as a `java.lang.Number`
     * by leveraging the `asNumber` method and further evaluating certain conditions:
-    * - If the `Structure` object is an `ExactNumber` and its factor is `PureNumber`, the result
+    * - If the `Structure` object is an `ExactNumber` and its representation is `PureNumber`, the result
     *   is converted using `Value.asJavaNumber`.
     * - If the `Structure` object is a `Real` with a `wiggle` value below a specified tolerance,
     *   the result is also converted using `Value.asJavaNumber`.

@@ -159,7 +159,7 @@ object ShuntingYardParser extends BaseMillParser {
     * to be treated as operators.
     */
   def unsignedMaybeNumber: Parser[Option[Number]] =
-    (opt(unsignedGeneralNumber) ~ opt(factor)) :| "unsignedMaybeNumber" ^^ {
+    (opt(unsignedGeneralNumber) ~ opt(representation)) :| "unsignedMaybeNumber" ^^ {
       case no ~ fo => optionalNumber(no, fo)
     }
 

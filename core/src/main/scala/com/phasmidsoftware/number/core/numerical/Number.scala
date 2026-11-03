@@ -23,7 +23,7 @@ import scala.util.*
   *
   * Every number has three properties:
   * * nominalValue: Value
-  * * factor: Factor
+  * * representation: Representation
   * * fuzz: (from extending Fuzz[Double]).
   */
 trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
@@ -36,19 +36,25 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def nominalValue: Value
 
   /**
-    * The factor of this Number.
-    * Ordinary numbers are of PureNumber factor, angles have factor Radian, and natural logs have factor NatLog.
+    * The representation of this Number.
+    * Ordinary numbers are of PureNumber representation, angles have representation Radian, and natural logs have representation NatLog.
     *
-    * @return the factor.
+    * @return the representation.
     */
-  def factor: Factor
+  def representation: Representation
 
   /**
-    * Retrieves an optional Factor instance.
-    *
-    * @return `Some(factor)`.
+    * Deprecated: use `representation` instead (renamed in version 1.11.0).
     */
-  def maybeFactor: Option[Factor] = Some(factor)
+  @deprecated("Use representation", since = "1.11.0")
+  def factor: Representation = representation
+
+  /**
+    * Retrieves an optional Representation instance.
+    *
+    * @return `Some(representation)`.
+    */
+  def maybeRepresentation: Option[Representation] = Some(representation)
 
   /**
     * Method to determine if this is a valid Number.
@@ -60,7 +66,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Method to determine if this is an imaginary Number,
-    * that's to say a number with negative value and SquareRoot as its factor.
+    * that's to say a number with negative value and SquareRoot as its representation.
     *
     * @return true if imaginary.
     */
@@ -93,13 +99,13 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Converts the current number instance into a pure number representation.
-    * The conversion is based on the factor and fuzz values associated with the number.
+    * The conversion is based on the representation and fuzz values associated with the number.
     * NOTE that even if `this Number` is exact, the result may not be.
     *
     * @return A new instance of Number in pure number representation, performing the necessary conversion
     *         and scaling if required.
     */
-  lazy val toPureNumber: Number = (factor, fuzz) match {
+  lazy val toPureNumber: Number = (representation, fuzz) match {
     case (PureNumber, _) =>
       this
     case (f, z) =>
@@ -120,7 +126,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   lazy val toNominalDouble: Option[Double] = maybeNominalDouble
 
   /**
-    * An optional Double that corresponds to the value of this Number (but ignoring the factor).
+    * An optional Double that corresponds to the value of this Number (but ignoring the representation).
     */
   def maybeNominalDouble: Option[Double]
 
@@ -243,7 +249,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   /**
     * Perform an exact scalar multiplication of this `Number` by the scale factor `r`.
     *
-    * NOTE that numbers with `Logarithmic` factors cannot be scaled exactly in this way.
+    * NOTE that numbers with `Logarithmic` representations cannot be scaled exactly in this way.
     *
     * @param r a Rational.
     * @return a new Number which is this Number scaled by z.
@@ -293,7 +299,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * Handles special cases such as multiplication with zero, one, or specific constants.
     *
     * NOTE this code seems almost identical to the times method in GeneralNumber
-    * CONSIDER combining them and using the Factor facilities more.
+    * CONSIDER combining them and using the Representation facilities more.
     *
     * @param x the Field instance to be multiplied with the current instance
     * @return the result of the multiplication as a Field
@@ -364,7 +370,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Calculates the square of a number by multiplying the number by itself.
-    * CONSIDER different implementations according to the factor.
+    * CONSIDER different implementations according to the representation.
     *
     * @return the result of squaring this number
     */
@@ -387,8 +393,8 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Yields the inverse of this Number.
-    * This Number is first normalized so that its factor is PureNumber, since we cannot directly invert Numbers with other
-    * factors.
+    * This Number is first normalized so that its representation is PureNumber, since we cannot directly invert Numbers with other
+    * representations.
     *
     * CONSIDER allowing logarithmic numbers to be inverted simply by changing the sign of the value.
     */
@@ -397,8 +403,8 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Yields the inverse of this Number.
-    * This Number is first normalized so that its factor is PureNumber, since we cannot directly invert Numbers with other
-    * factors.
+    * This Number is first normalized so that its representation is PureNumber, since we cannot directly invert Numbers with other
+    * representations.
     *
     * CONSIDER allowing logarithmic numbers to be inverted simply by changing the sign of the value.
     */
@@ -413,7 +419,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Method to determine the sine of this Number.
-    * The result will be a Number with PureNumber factor.
+    * The result will be a Number with PureNumber representation.
     *
     * @return the sine of this.
     */
@@ -421,7 +427,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Method to determine the cosine of this Number.
-    * The result will be a Number with PureNumber factor.
+    * The result will be a Number with PureNumber representation.
     *
     * @return the cosine.
     */
@@ -429,13 +435,13 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Method to determine the tangent of this Number.
-    * The result will be a Number with PureNumber factor.
+    * The result will be a Number with PureNumber representation.
     * NOTE that not all cases have been tested.
     *
     * @return the tangent
     */
   lazy val tan: Number =
-    (nominalValue, factor) match { // CONSIDER modulating first.
+    (nominalValue, representation) match { // CONSIDER modulating first.
       case (Left(Right(r)), Radian) =>
         r match {
           case Rational(Rational.bigOne, Rational.bigThree) =>
@@ -471,7 +477,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Method to determine the natural log of this Number.
-    * The result will be a Number with `PureNumber` factor.
+    * The result will be a Number with `PureNumber` representation.
     * CONSIDER renaming this as "ln" but keep in mind that the Java library calls the function "log."
     *
     * @return the natural log of this.
@@ -480,7 +486,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Method to raise e to the power of this number.
-    * The result will be a Number with NatLog factor.
+    * The result will be a Number with NatLog representation.
     *
     * @return the e to the power of this.
     */
@@ -488,7 +494,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Method to determine the sine of this Number.
-    * The result will be a Number with PureNumber factor.
+    * The result will be a Number with PureNumber representation.
     *
     * @return the sine of this.
     */
@@ -496,7 +502,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Method to determine the cosine of this Number.
-    * The result will be a Number with PureNumber factor.
+    * The result will be a Number with PureNumber representation.
     *
     * @return the cosine.
     */
@@ -536,15 +542,15 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     ComplexPolar(this)
 
   /**
-    * Method to create a new version of this, but with factor f.
+    * Method to create a new version of this, but with representation f.
     * NOTE: the result will have the same absolute magnitude as this.
-    * In other words,  in the case where f is not factor, the numerical value of the result's value will be different
+    * In other words,  in the case where f differs from representation, the numerical value of the result's value will be different
     * from this value.
     *
-    * @param f the new factor for the result.
-    * @return a Number based on this and factor.
+    * @param f the new representation for the result.
+    * @return a Number based on this and representation.
     */
-  def scale(f: Factor): Number
+  def scale(f: Representation): Number
 
   /**
     * Perform a fuzzy comparison where we only require p confidence to know that this and other are effectively the same.
@@ -593,20 +599,20 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * NOTE: this and other must have been aligned by type so that they have the same structure.
     *
     * @param other the other operand, a Number.
-    * @param f     the factor to apply to the result.
+    * @param f     the representation to apply to the result.
     * @param op    the appropriate DyadicOperation.
     * @return a new Number which is result of applying the appropriate function to the operands this and other.
     */
-  def composeDyadic(other: Number, f: Factor)(op: DyadicOperation): Option[Number]
+  def composeDyadic(other: Number, f: Representation)(op: DyadicOperation): Option[Number]
 
   /**
     * Evaluate a monadic operator on this.
     *
-    * @param f  the factor to apply to the result.
+    * @param f  the representation to apply to the result.
     * @param op the appropriate MonadicOperation.
     * @return a new Number which is result of applying the appropriate function to the operand this.
     */
-  def transformMonadic(f: Factor)(op: MonadicOperation): Option[Number]
+  def transformMonadic(f: Representation)(op: MonadicOperation): Option[Number]
 
   /**
     * Evaluate a query operator on this.
@@ -618,23 +624,23 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
-    * Both the value and the factor will be changed.
+    * Both the value and the representation will be changed.
     *
     * @param v the value.
-    * @param f the factor.
+    * @param f the representation.
     * @return either a Number.
     */
-  def make(v: Value, f: Factor): Number
+  def make(v: Value, f: Representation): Number
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
-    * Only the factor will change.
+    * Only the representation will change.
     * This method does not need to be followed by a call to specialize.
     *
-    * @param f the factor.
+    * @param f the representation.
     * @return either a Number.
     */
-  def make(f: Factor): Number
+  def make(f: Representation): Number
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -652,10 +658,10 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * This method should be followed by a call to specialize.
     *
     * @param v the value.
-    * @param f Factor.
+    * @param f Representation.
     * @return either a Number.
     */
-  def make(v: Int, f: Factor): Number
+  def make(v: Int, f: Representation): Number
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -669,14 +675,14 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
-    * Only the value and the factor will change.
+    * Only the value and the representation will change.
     * This method should be followed by a call to specialize.
     *
     * @param r a Rational.
-    * @param f Factor.
+    * @param f Representation.
     * @return either a Number.
     */
-  def make(r: Rational, f: Factor): Number
+  def make(r: Rational, f: Representation): Number
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -690,29 +696,29 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
-    * Only the value and factor will change.
+    * Only the value and representation will change.
     * This method should be followed by a call to specialize.
     *
     * @param v the value (a Double).
-    * @param f Factor.
+    * @param f Representation.
     * @return either a Number.
     */
-  def make(v: Double, f: Factor): Number
+  def make(v: Double, f: Representation): Number
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
-    * Only the value and factor will change.
+    * Only the value and representation will change.
     * This method should be followed by a call to specialize.
     *
     * @param v  the value (a Double).
-    * @param f  Factor.
+    * @param f  Representation.
     * @param fo optional fuzz.
     * @return either a Number.
     */
-  def make(v: Double, f: Factor, fo: Option[Fuzziness[Double]]): Number
+  def make(v: Double, f: Representation, fo: Option[Fuzziness[Double]]): Number
 
   /**
-    * Make a copy of this Number, with the same value and factor but with a different value of fuzziness.
+    * Make a copy of this Number, with the same value and representation but with a different value of fuzziness.
     *
     * @param fo the (optional) fuzziness.
     * @return a Number.
@@ -732,7 +738,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   def specialize: Number
 
   /**
-    * Method to ensure that the value is within some factor-specific range.
+    * Method to ensure that the value is within some representation-specific range.
     * In particular, Radian=based numbers are modulated to the range 0..2
     *
     * @return this or an equivalent Number.
@@ -985,10 +991,10 @@ object Number {
     * NOTE: this unapply method does not match on the fuzz of a Number.
     *
     * @param arg a Number to be unapplied.
-    * @return optional Value and Factor.
+    * @return optional Value and Representation.
     */
-  def unapply(arg: Number): Option[(Value, Factor)] =
-    Some(arg.nominalValue, arg.factor)
+  def unapply(arg: Number): Option[(Value, Representation)] =
+    Some(arg.nominalValue, arg.representation)
 
   def createFromDouble(x: Double): Number =
     createFromDouble(x, PureNumber)
@@ -999,39 +1005,39 @@ object Number {
     * NOTE not all double values should be given fuzz.
     *
     * @param x      a Double.
-    * @param factor a Factor.
-    * @return a Number formed from x and factor using standard double precision fuzziness.
+    * @param representation a Representation.
+    * @return a Number formed from x and representation using standard double precision fuzziness.
     */
-  def createFromDouble(x: Double, factor: Factor): Number =
-    apply(x, factor, Some(Fuzziness.doublePrecision))
+  def createFromDouble(x: Double, representation: Representation): Number =
+    apply(x, representation, Some(Fuzziness.doublePrecision))
 
   /**
     * Method to construct a Number from a Double.
     *
     * @param x      the Double value.
-    * @param factor the appropriate factor
+    * @param representation the appropriate representation
     * @return a Number based on x.
     */
-  def apply(x: Double, factor: Factor, fuzz: Option[Fuzziness[Double]]): Number =
+  def apply(x: Double, representation: Representation, fuzz: Option[Fuzziness[Double]]): Number =
     x match {
       case Double.NaN =>
-        Number(None, factor, fuzz)
+        Number(None, representation, fuzz)
       case _ =>
-        Number(Some(x), factor, fuzz)
+        Number(Some(x), representation, fuzz)
     }
 
   /**
     * Method to construct a Number from an optional Double.
     *
     * @param xo     an optional Double.
-    * @param factor the appropriate factor
+    * @param representation the appropriate representation
     * @return a Number based on xo.
     */
-  def apply(xo: Option[Double], factor: Factor, fuzz: Option[Fuzziness[Double]]): Number =
-    create(fromDouble(xo), factor, fuzz)
+  def apply(xo: Option[Double], representation: Representation, fuzz: Option[Fuzziness[Double]]): Number =
+    create(fromDouble(xo), representation, fuzz)
 
   /**
-    * Method to construct a new Number from value, factor and fuzz, according to whether there is any fuzziness.
+    * Method to construct a new Number from value, representation and fuzz, according to whether there is any fuzziness.
     *
     * @param value      the value of the Number, expressed as a nested Either type.
     * @param actualFuzz the fuzziness of this Number.
@@ -1041,7 +1047,7 @@ object Number {
     create(value, PureNumber, Some(actualFuzz))
 
   /**
-    * Method to construct a new Number from value, factor and fuzz, according to whether there is any fuzziness.
+    * Method to construct a new Number from value, representation and fuzz, according to whether there is any fuzziness.
     *
     * @param value the value of the Number, expressed as a nested Either type.
     * @return a Number.
@@ -1050,14 +1056,14 @@ object Number {
     create(value, PureNumber)
 
   /**
-    * Method to construct a new Number from value, factor and fuzz, according to whether there is any fuzziness.
+    * Method to construct a new Number from value, representation and fuzz, according to whether there is any fuzziness.
     *
     * @param value  the value of the Number, expressed as a nested Either type.
-    * @param factor the scale factor of the Number: valid scales are: PureNumber, Radian, and NatLog.
+    * @param representation the representation of the Number: valid representations are: PureNumber, Radian, and NatLog.
     * @return a Number.
     */
-  def create(value: Value, factor: Factor): Number =
-    create(value, factor, None)
+  def create(value: Value, representation: Representation): Number =
+    create(value, representation, None)
 
   /**
     * Method to construct a Number from a String.
@@ -1066,20 +1072,20 @@ object Number {
     * @param x the String representation of the value.
     * @return a Number based on x.
     */
-  def apply(x: String, factor: Factor): Number =
+  def apply(x: String, representation: Representation): Number =
     parse(x) match {
       // CONSIDER we should perhaps process n (e.g. to modulate a Radian value)
       case Success(n) =>
-        n.make(factor)
+        n.make(representation)
       case Failure(e) =>
-        throw CoreExceptionWithCause(s"apply(String, Factor): unable to parse $x", e)
+        throw CoreExceptionWithCause(s"apply(String, Representation): unable to parse $x", e)
     }
 
   /**
     * Method to construct a `Number` from a `String`.
     * This is by far the best way of creating the number that you really want.
     *
-    * CONSIDER why does this not invoke `apply(String,Factor)` in turn?
+    * CONSIDER why does this not invoke `apply(String,Representation)` in turn?
     *
     * @param x the `String` representation of the value.
     * @return a Number based on `x`.
@@ -1094,51 +1100,51 @@ object Number {
     }
 
   /**
-    * Method to construct a unit Number with explicit factor.
+    * Method to construct a unit Number with explicit representation.
     *
-    * @param factor the appropriate factor
-    * @return a unit Number with the given factor.
+    * @param representation the appropriate representation
+    * @return a unit Number with the given representation.
     */
-  def apply(factor: Factor): Number =
-    Number(1, factor)
+  def apply(representation: Representation): Number =
+    Number(1, representation)
 
   /**
     * Method to construct a Number from an Int.
     *
     * @param x      the Int value.
-    * @param factor the appropriate factor
+    * @param representation the appropriate representation
     * @return a Number based on x.
     */
-  def apply(x: Int, factor: Factor): Number =
-    Number(x, factor, None)
+  def apply(x: Int, representation: Representation): Number =
+    Number(x, representation, None)
 
   /**
     * Method to construct a Number from an Int.
     *
     * @param x      the Int value.
-    * @param factor the appropriate factor
+    * @param representation the appropriate representation
     * @return a Number based on x.
     */
-  def apply(x: Int, factor: Factor, fuzz: Option[Fuzziness[Double]]): Number =
-    create(fromInt(x), factor, fuzz)
+  def apply(x: Int, representation: Representation, fuzz: Option[Fuzziness[Double]]): Number =
+    create(fromInt(x), representation, fuzz)
 
   /**
-    * Method to construct a new Number from value, factor and fuzz, according to whether there is any fuzziness.
+    * Method to construct a new Number from value, representation and fuzz, according to whether there is any fuzziness.
     *
     * CONSIDER modulate the result so that, in the case of a multiple of Radian, we restrict the range to 0 to 2pi immediately.
     * However, note that this will change the behavior such that it is no longer possible to have the constant 2pi.
     *
     * @param value  the value of the Number, expressed as a nested Either type.
-    * @param factor the scale factor of the Number: valid scales are: PureNumber, Radian, and NatLog.
+    * @param representation the representation of the Number: valid representations are: PureNumber, Radian, and NatLog.
     * @param fuzz   the fuzziness of this Number, wrapped in Option.
     * @return a Number.
     */
-  def create(value: Value, factor: Factor, fuzz: Option[Fuzziness[Double]]): Number =
+  def create(value: Value, representation: Representation, fuzz: Option[Fuzziness[Double]]): Number =
     (fuzz match {
       case None =>
-        ExactNumber(value, factor)
+        ExactNumber(value, representation)
       case _ =>
-        FuzzyNumber(value, factor, fuzz)
+        FuzzyNumber(value, representation, fuzz)
     }).specialize
 
   /**
@@ -1163,21 +1169,21 @@ object Number {
     * Method to construct a Number from a BigInt.
     *
     * @param x      the BigInt value.
-    * @param factor the appropriate factor
+    * @param representation the appropriate representation
     * @return a Number based on x.
     */
-  def apply(x: BigInt, factor: Factor): Number =
-    Number(x, factor, None)
+  def apply(x: BigInt, representation: Representation): Number =
+    Number(x, representation, None)
 
   /**
     * Method to construct a Number from a BigInt.
     *
     * @param x      the BigInt value.
-    * @param factor the appropriate factor
+    * @param representation the appropriate representation
     * @return a Number based on x.
     */
-  def apply(x: BigInt, factor: Factor, fuzz: Option[Fuzziness[Double]]): Number =
-    apply(Rational(x), factor, fuzz)
+  def apply(x: BigInt, representation: Representation, fuzz: Option[Fuzziness[Double]]): Number =
+    apply(Rational(x), representation, fuzz)
 
   /**
     * Method to construct a Number from a Rational.
@@ -1192,20 +1198,20 @@ object Number {
     * Method to construct a Number from a Rational.
     *
     * @param x      the BigInt value.
-    * @param factor the appropriate factor
+    * @param representation the appropriate representation
     * @return a Number based on x.
     */
-  def apply(x: Rational, factor: Factor): Number =
-    Number(x, factor, None)
+  def apply(x: Rational, representation: Representation): Number =
+    Number(x, representation, None)
 
   /**
-    * Applies the given factor to the specified long x and returns a Number result.
+    * Applies the given representation to the specified long x and returns a Number result.
     *
     * @param x      the input value as a Long to be processed
-    * @param factor the Factor to be applied to the input value
-    * @return a Number instance derived from the input value and factor
+    * @param representation the Representation to be applied to the input value
+    * @return a Number instance derived from the input value and representation
     */
-  def apply(x: Long, factor: Factor): Number = Number(BigInt(x), factor)
+  def apply(x: Long, representation: Representation): Number = Number(BigInt(x), representation)
 
   /**
     * Constructs a `Number` instance from the given long value.
@@ -1228,32 +1234,32 @@ object Number {
     * Method to construct a Number from a BigDecimal.
     *
     * @param x      the BigDecimal value.
-    * @param factor the appropriate factor
+    * @param representation the appropriate representation
     * @return a Number based on x.
     */
-  def apply(x: BigDecimal, factor: Factor): Number =
-    Number(x, factor, None)
+  def apply(x: BigDecimal, representation: Representation): Number =
+    Number(x, representation, None)
 
   /**
     * Method to construct a Number from a BigDecimal.
     *
     * @param x      the BigDecimal value.
-    * @param factor the appropriate factor
+    * @param representation the appropriate representation
     * @return a Number based on x.
     */
-  def apply(x: BigDecimal, factor: Factor, fuzz: Option[Fuzziness[Double]]): Number =
-    Number(Rational(x), factor, fuzz)
+  def apply(x: BigDecimal, representation: Representation, fuzz: Option[Fuzziness[Double]]): Number =
+    Number(Rational(x), representation, fuzz)
 
   /**
     * Method to construct a Number from a Rational.
     * NOTE: this method is invoked indirectly by parse(String).
     *
     * @param x      the BigInt value.
-    * @param factor the appropriate factor
+    * @param representation the appropriate representation
     * @return a Number based on x.
     */
-  def apply(x: Rational, factor: Factor, fuzz: Option[Fuzziness[Double]]): Number =
-    create(fromRational(x), factor, fuzz)
+  def apply(x: Rational, representation: Representation, fuzz: Option[Fuzziness[Double]]): Number =
+    create(fromRational(x), representation, fuzz)
 
   /**
     * Method to construct a Number from an optional Double.
@@ -1268,11 +1274,11 @@ object Number {
     * Method to construct a Number from an optional Double.
     *
     * @param xo     an optional Double.
-    * @param factor the appropriate factor
+    * @param representation the appropriate representation
     * @return a Number based on xo.
     */
-  def apply(xo: Option[Double], factor: Factor): Number =
-    Number(xo, factor, None)
+  def apply(xo: Option[Double], representation: Representation): Number =
+    Number(xo, representation, None)
 
   /**
     * Method to construct a Number from a Double.
@@ -1308,7 +1314,7 @@ object Number {
   /**
     * Method to parse a String and yield a Try[Number].
     *
-    * NOTE: this method indirectly invokes apply(Rational, Factor, Option of Fuzz[Double] )
+    * NOTE: this method indirectly invokes apply(Rational, Representation, Option of Fuzz[Double] )
     *
     * @param w the String to be parsed.
     * @return a Number.
@@ -1334,9 +1340,9 @@ object Number {
     def compare(x: Number, y: Number): Int = {
       if (x == Number.NaN && y == Number.NaN) 0
       else if (x == Number.NaN || y == Number.NaN) throw CoreException("cannot compare NaN with non-NaN")
-      else if (x.factor == NatLog && y.factor == NatLog)
+      else if (x.representation == NatLog && y.representation == NatLog)
         compare(x.make(PureNumber), y.make(PureNumber))
-      else if (x.factor == Euler && y.factor == Euler)
+      else if (x.representation == Euler && y.representation == Euler)
         compare(x.make(Radian), y.make(Radian))
       else {
         // CONSIDER invoking the compare method in GeneralNumber.
@@ -1351,11 +1357,11 @@ object Number {
     * Method to construct a Number from a Double.
     *
     * @param x      the Double value.
-    * @param factor the appropriate factor
+    * @param representation the appropriate representation
     * @return a Number based on x.
     */
-  def apply(x: Double, factor: Factor): Number =
-    Number(x, factor, None)
+  def apply(x: Double, representation: Representation): Number =
+    Number(x, representation, None)
 
   /**
     * CONSIDER inlining this method or making it private.
@@ -1377,59 +1383,59 @@ object Number {
     prepare(no).specialize
 
   /**
-    * Method to deal with a Scale factor change.
+    * Method to deal with a change of representation.
     *
     * TODO: this will work for FuzzyNumber but only if the fuzz is relative, and even then perhaps not for NatLog conversions.
     *
     * @param n      the Number to be scaled.
-    * @param factor the factor to which it should be converted.
-    * @return the resulting Number (equivalent in value, but with a potentially different scale factor).
+    * @param representation the representation to which it should be converted.
+    * @return the resulting Number (equivalent in value, but with a potentially different representation).
     */
-  def scale(n: Number, factor: Factor): Number =
-    (n.factor, factor) match {
+  def scale(n: Number, representation: Representation): Number =
+    (n.representation, representation) match {
       case (a, b) if a == b =>
         n
       case (NatLog, PureNumber) =>
-        prepare(n.transformMonadic(factor)(MonadicOperationExp))
+        prepare(n.transformMonadic(representation)(MonadicOperationExp))
       case (PureNumber, NatLog) =>
-        prepare(n.transformMonadic(factor)(MonadicOperationLog))
+        prepare(n.transformMonadic(representation)(MonadicOperationLog))
       case (NthRoot(_), PureNumber) if Value.signum(n.nominalValue) < 0 =>
         // CONSIDER we should handle i, the imaginary number here
         Number.NaN
       case (SquareRoot, PureNumber) =>
-        prepare(n.transformMonadic(factor)(MonadicOperationSqrt)) // CONSIDER use of convert
+        prepare(n.transformMonadic(representation)(MonadicOperationSqrt)) // CONSIDER use of convert
       case (InversePower(r), PureNumber) =>
-        prepare(n.composeDyadic(r.invert, factor)(DyadicOperationPower)) // CHECK that this handles fuzz correctly
+        prepare(n.composeDyadic(r.invert, representation)(DyadicOperationPower)) // CHECK that this handles fuzz correctly
       case (NatLog, Scalar(_)) | (Scalar(_), NatLog) | (Logarithmic(_), NthRoot(_)) =>
-        scale(scale(n, PureNumber), factor)
+        scale(scale(n, PureNumber), representation)
       case (PureNumber, Logarithmic(_)) =>
-        scale(scale(n, NatLog), factor)
+        scale(scale(n, NatLog), representation)
       case (PureNumber, NthRoot(f)) =>
-        convertScalarToRoot(n, factor, f)
+        convertScalarToRoot(n, representation, f)
       case (NthRoot(f), NatLog) =>
-        convertRootToNatLog(n, factor, f)
+        convertRootToNatLog(n, representation, f)
       case (Scalar(_), Scalar(_)) =>
-        prepare(n.factor.convert(n.nominalValue, factor) map (v => n.make(v, factor)))
+        prepare(n.representation.convert(n.nominalValue, representation) map (v => n.make(v, representation)))
       case (Logarithmic(_), Logarithmic(_)) =>
-        prepare(n.factor.convert(n.nominalValue, factor) map (v => n.make(v, factor)))
+        prepare(n.representation.convert(n.nominalValue, representation) map (v => n.make(v, representation)))
       case (pr@InversePower(p), qr@InversePower(q)) =>
         pr.raise(n.nominalValue, Value.fromRational(q / p), PureNumber) match {
           case Some((v, _, _)) =>
             n.make(v, qr)
           case _ =>
-            prepare(n.factor.convert(n.nominalValue, factor) map (v => n.make(v, factor)))
+            prepare(n.representation.convert(n.nominalValue, representation) map (v => n.make(v, representation)))
         }
       case (Euler, _) | (_, Euler) =>
-        throw CoreException(s"Number.scale: scaling between ${n.factor} and $factor factors is not supported")
+        throw CoreException(s"Number.scale: scaling between ${n.representation} and $representation representations is not supported")
 //        n // CONSIDER will this cause problems? Should we throw an Exception instead?
       case (Logarithmic(_), Scalar(_)) =>
-        scale(scale(n, NatLog), factor)
+        scale(scale(n, NatLog), representation)
       case (InversePower(_), Logarithmic(_)) =>
-        scale(scale(n, NatLog), factor)
+        scale(scale(n, NatLog), representation)
       case (InversePower(_), Scalar(_)) =>
-        scale(n, factor)
+        scale(n, representation)
       case _ =>
-        throw CoreException(s"Number.scale: scaling between ${n.factor} and $factor factors is not supported")
+        throw CoreException(s"Number.scale: scaling between ${n.representation} and $representation representations is not supported")
     }
 
   // CONSIDER some of the following should probably be moved to GeneralNumber
@@ -1437,7 +1443,7 @@ object Number {
   /**
     * Method to change the sign of this Number.
     * The meaning of "change the sign" is in terms of pure numbers (PureNumber, Radian).
-    * For any other factor, we convert <code>x</code> into PureNumber form (which will most likely introduce fuzziness).
+    * For any other representation, we convert <code>x</code> into PureNumber form (which will most likely introduce fuzziness).
     * Imaginary numbers cannot be negated--they must first be converted to Complex form and then negated.
     *
     * @param x a Number to be negated.
@@ -1445,7 +1451,7 @@ object Number {
     */
   @tailrec
   def negate(x: Number): Number =
-    x.factor match {
+    x.representation match {
       case p@Scalar(_) =>
         prepare(x.transformMonadic(p)(MonadicOperationNegate))
       case NthRoot(_) if Value.signum(x.nominalValue) < 0 =>
@@ -1455,12 +1461,12 @@ object Number {
     }
 
   /**
-    * Computes the inverse of the given number based on its factor type.
+    * Computes the inverse of the given number based on its representation type.
     *
     * @param x the number to be inverted
-    * @return the inverted number, processed according to its factor type
+    * @return the inverted number, processed according to its representation type
     */
-  def inverse(x: Number): Number = x.factor match {
+  def inverse(x: Number): Number = x.representation match {
     case PureNumber =>
       prepare(x.transformMonadic(PureNumber)(MonadicOperationInvert))
     case f@NthRoot(_) =>
@@ -1508,7 +1514,7 @@ object Number {
         if (z.signum >= 0) {
           val y = x.scale(Radian)
           val q = y.doMultiply(12)
-          if (q.factor == Radian) {
+          if (q.representation == Radian) {
             lazy val oneOverRoot2 = Number(Rational.half, SquareRoot)
             lazy val rootThreeQuarters = Number(Rational(3, 4), SquareRoot)
             lazy val rootSix = Number(6, SquareRoot)
@@ -1548,16 +1554,16 @@ object Number {
 
   /**
     * Yield the natural log of x.
-    * If the factor is NatLog, then we force the factor to be PureNumber and simplify.
-    * Otherwise, if the factor is PureNumber, we first convert it to a NatLog number, then call log recursively.
+    * If the representation is NatLog, then we force the representation to be PureNumber and simplify.
+    * Otherwise, if the representation is PureNumber, we first convert it to a NatLog number, then call log recursively.
     * Otherwise, we convert to a PureNumber number and call log recursively.
     *
-    * CONSIDER using x.factor.log(x.nominalValue)
+    * CONSIDER using x.representation.log(x.nominalValue)
     *
     * @param x a Number.
     * @return the natural log of x.
     */
-  def log(x: Number): Field = x.factor match {
+  def log(x: Number): Field = x.representation match {
     case NatLog =>
       Real(x.make(PureNumber).simplify)
     case Euler =>
@@ -1574,14 +1580,14 @@ object Number {
 
   /**
     * Yield the exponential of x i.e., e to the power of x.
-    * If the factor is `PureNumber`, then we force the factor to be `NatLog` and simplify.
+    * If the representation is `PureNumber`, then we force the representation to be `NatLog` and simplify.
     * Otherwise, we convert to a `PureNumber` number and call `exp` recursively.
     *
-    * @param x a (real) Number whose factor is NatLog.
+    * @param x a (real) Number whose representation is NatLog.
     * @return the value of e raised to the power of x.
     */
   @tailrec
-  def exp(x: Number): Number = x.factor match {
+  def exp(x: Number): Number = x.representation match {
     case PureNumber =>
       x.make(NatLog).simplify
     case _ =>
@@ -1603,7 +1609,7 @@ object Number {
     * @param x the Number whose square root we need.
     * @return the square root of x.
     */
-  def sqrt(x: Number): Number = x.factor match {
+  def sqrt(x: Number): Number = x.representation match {
     case PureNumber =>
       x.make(SquareRoot).simplify
     case _ =>
@@ -1611,16 +1617,16 @@ object Number {
   }
 
   /**
-    * This method returns a Number equivalent to x but with the value in an explicit factor-dependent range.
+    * This method returns a Number equivalent to x but with the value in an explicit representation-dependent range.
     * Only Radian is currently fixed within a range (-1 -> 1).
     *
     * @param x the Number to operate on.
     * @return either x or a number equivalent to x with value in defined range.
     */
-  def modulate(x: Number): Number = x.factor match {
+  def modulate(x: Number): Number = x.representation match {
     case Radian | Euler => // CONSIDER why Euler?
       // CONSIDER using f.modulate(...)
-      prepare(x.transformMonadic(x.factor)(MonadicOperationModulate(-1, 1, inclusive = true, x.factor == Radian)))
+      prepare(x.transformMonadic(x.representation)(MonadicOperationModulate(-1, 1, inclusive = true, x.representation == Radian)))
     case _ =>
       x
   }
@@ -1644,11 +1650,11 @@ object Number {
 
   /**
     * Calculates the arctangent (atan) of the given number with a specified sign.
-    * This method performs recursive computation based on the factor type of the input number.
+    * This method performs recursive computation based on the representation type of the input number.
     *
     * @param number The input number for which to calculate the arctangent.
     * @param sign   The sign modifier that affects the outcome of the arctangent calculation.
-    * @return A `Number` representing the computed arctangent in radians. If the input number's factor is not supported or valid, the method may throw an exception.
+    * @return A `Number` representing the computed arctangent in radians. If the input number's representation is not supported or valid, the method may throw an exception.
     */
   @tailrec
   private def doAtan(x: Number, y: Number): Number = {
@@ -1656,7 +1662,7 @@ object Number {
     val xSign = x.signum
     val ySign = y.signum
 
-    ratio.factor match {
+    ratio.representation match {
       case PureNumber =>
         prepareWithSpecialize(ratio.transformMonadic(Radian)(MonadicOperationAtan(xSign, ySign))).modulate
 
@@ -1683,7 +1689,7 @@ object Number {
         }
 
       case _ =>
-        throw CoreException(s"atan: factor not matched: ${ratio.factor}")
+        throw CoreException(s"atan: representation not matched: ${ratio.representation}")
     }
   }
 
@@ -1820,26 +1826,26 @@ object Number {
   }
 
   /**
-    * Converts a scalar number to a root factor representation by applying a power function
-    * and associating it with a given factor.
+    * Converts a scalar number to a root representation by applying a power function
+    * and associating it with a given representation.
     *
     * @param n      the scalar number to be converted
-    * @param factor the factor to associate with the result
+    * @param representation the representation to associate with the result
     * @param f      the exponent to be applied during conversion
     */
-  private def convertScalarToRoot(n: Number, factor: Factor, f: Double) =
-    n.doPower(ExactNumber(Value.fromDouble(Some(f)), PureNumber)).make(factor)
+  private def convertScalarToRoot(n: Number, representation: Representation, f: Double) =
+    n.doPower(ExactNumber(Value.fromDouble(Some(f)), PureNumber)).make(representation)
 
   /**
     * Converts the root representation of a number into its natural logarithm, scaled by a given factor.
     *
     * @param n      the number to be converted, containing a possible double value
-    * @param factor a factor used during the conversion process
+    * @param representation a representation used during the conversion process
     * @param f      a scaling factor for adjusting the natural logarithm
     */
-  private def convertRootToNatLog(n: Number, factor: Factor, f: Double) = {
+  private def convertRootToNatLog(n: Number, representation: Representation, f: Double) = {
     val yo = for (x <- n.maybeNominalDouble; z = math.log(x)) yield z / f
-    n.make(Value.fromDouble(yo), factor).specialize
+    n.make(Value.fromDouble(yo), representation).specialize
   }
 }
 

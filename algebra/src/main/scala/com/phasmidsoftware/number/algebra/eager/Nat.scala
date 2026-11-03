@@ -9,7 +9,7 @@ import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.Nat.natIsSemiring
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
+import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Representation}
 
 import scala.annotation.tailrec
 import scala.util.{Success, Try}
@@ -53,19 +53,19 @@ sealed trait Nat extends Eager with N {
   lazy val normalize: Nat = this
 
   /**
-    * Attempts to obtain a `Factor` representation in a specific `Context`.
+    * Attempts to obtain a `Representation` representation in a specific `Context`.
     *
-    * A `Factor` could represent entities like `PureNumber`, `Radian`, etc., that
+    * A `Representation` could represent entities like `PureNumber`, `Radian`, etc., that
     * provide numerical or dimensional meaning to a value. This method evaluates
     * the current instance within the given `Context` to determine if a valid
-    * factor can be generated.
+    * representation can be generated.
     *
-    * @param context the evaluation context in which to determine the factor. The `Context`
+    * @param context the evaluation context in which to determine the representation. The `Context`
     *                specifies the criteria under which the factorization is valid.
-    * @return an `Option[Factor]` containing the factor if it can be determined,
-    *         or `None` if no suitable factor exists within the provided `Context`.
+    * @return an `Option[Representation]` containing the representation if it can be determined,
+    *         or `None` if no suitable representation exists within the provided `Context`.
     */
-  def maybeFactor(context: Context): Option[Factor] = Some(PureNumber)
+  def maybeRepresentation(context: Context): Option[Representation] = Some(PureNumber)
 
   /**
     * Adds the specified natural number to this natural number.

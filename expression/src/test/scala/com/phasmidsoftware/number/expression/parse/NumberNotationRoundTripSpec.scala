@@ -140,7 +140,7 @@ class NumberNotationRoundTripSpec extends AnyFlatSpec with Matchers {
     }
   }
 
-  it should "round-trip numbers with factors" in {
+  it should "round-trip numbers with representations" in {
     val original = "2𝛑"
     val parsed = numerical.Number.parse(original).get
     parsed.render shouldBe original

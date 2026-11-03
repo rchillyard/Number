@@ -139,7 +139,7 @@ object Value {
   }
 
   /**
-    * An optional Rational that corresponds to the value of this Number (but ignoring the factor).
+    * An optional Rational that corresponds to the value of this Number (but ignoring the representation).
     * A Double value is not converted to a Rational since, if it could be done exactly, it already would have been.
     * CONSIDER using query
     */
@@ -165,7 +165,7 @@ object Value {
     maybeRational(value) map (r => fromRational(r * x)) getOrElse fromDouble(maybeDouble(value) map (d => x.toDouble * d))
 
   /**
-    * An optional Int that corresponds to the value of this Number (but ignoring the factor).
+    * An optional Int that corresponds to the value of this Number (but ignoring the representation).
     *
     * CONSIDER using query
     */
@@ -289,8 +289,8 @@ object Value {
     * Method to scale the given Double according to the provided scaling factors.
     *
     * @param x       the Double to be scaled.
-    * @param fThis   the value of the factor that x is associated with.
-    * @param fResult the value of the factor that the result will be associated with.
+    * @param fThis   the value of the representation that x is associated with.
+    * @param fResult the value of the representation that the result will be associated with.
     * @return a Double which will be paired with fResult.
     */
   def scaleDouble(x: Double, fThis: Double, fResult: Double): Double =

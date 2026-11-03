@@ -498,13 +498,13 @@ class RootSpec extends AnyFlatSpec with Matchers {
     newRoot.branch shouldBe 0
   }
 
-  behavior of "Root.maybeFactor"
+  behavior of "Root.maybeRepresentation"
 
-  it should "determine factor for linear solutions" in {
+  it should "determine representation for linear solutions" in {
     val root = Root.half
-    val factor = root.maybeFactor(AnyContext)
+    val representation = root.maybeRepresentation(AnyContext)
 
-    factor shouldBe defined
+    representation shouldBe defined
   }
 
   behavior of "Root.approximation"

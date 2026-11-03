@@ -351,20 +351,20 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   behavior of "isExact"
   // TODO Issue #140
   // Note: Atomic constant exactness is tested in AtomicExpressionSpec
-  it should "be true for any sum of exact Numbers of the same factor (not e)" in {
+  it should "be true for any sum of exact Numbers of the same representation (not e)" in {
     (One :+ Eager.two).isExact shouldBe true
     (Pi :+ Eager.pi).isExact shouldBe true
   }
-  it should "be false for any product of exact Numbers and a NaturalExponential factor (except for one)" in {
+  it should "be false for any product of exact Numbers and a NaturalExponential representation (except for one)" in {
     (Expression(2) * Eager.e).materialize.isExact shouldBe false
     (Expression(1) * Eager.e).materialize.isExact shouldBe true
     (Expression(2) * Eager.one).materialize.isExact shouldBe true
   }
-  it should "be true for product of one exact Numbers and a NaturalExponential factor" in {
+  it should "be true for product of one exact Numbers and a NaturalExponential representation" in {
     val expression = Expression(1) * Eager.e
     expression.isExact shouldBe true
   }
-  it should "be true for product of zero exact Numbers and a NaturalExponential factor" in {
+  it should "be true for product of zero exact Numbers and a NaturalExponential representation" in {
     (Expression(0) * Eager.e).isExact shouldBe true
   }
 

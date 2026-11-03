@@ -37,7 +37,7 @@ Number is organized into multiple modules:
 * **`dimensions`** - Typesafe dimensional quantities and units
 * **`parse`** - Parsing facilities for (lazy) expressions and (eager) algebraic structures
 * **`expression`** - Lazy expression evaluation (being migrated to algebra)
-* **`core`** - Legacy numeric types (Number, Field, Rational, Complex, Factor, Fuzz, ****etc.)
+* **`core`** - Legacy numeric types (Number, Field, Rational, Complex, Representation, Fuzz, ****etc.)
 * **`top`** - Top level example code
 
 #### Current Version
@@ -182,9 +182,9 @@ See [docs/DIAGRAMS.md](docs/DIAGRAMS.md) for all project diagrams.
 
 ### Core Types
 
-Some types from the legacy code (`core` module) but are still used, in particular, `Rational`, `Factor`, `Fuzziness`, and `Complex`.
+Some types from the legacy code (`core` module) but are still used, in particular, `Rational`, `Representation`, `Fuzziness`, and `Complex`.
 The `Number` class in the legacy code (not to be confused with the class of the same name in the `algebra` module) represents a number by
-specifying its value (as a `Value`), its factor (as a `Factor`), and optional fuzziness (as a `Fuzziness`).
+specifying its value (as a `Value`), its representation (as a `Representation`), and optional fuzziness (as a `Fuzziness`).
 For much more detail on these types, see below.
 
 #### Number (algebra module)
@@ -414,8 +414,8 @@ In general, the form of a number to be parsed from a String is:
 
 ```ebnf
 // Grammar for parsing Number strings
-number ::= value? factor?
-factor ::= "Pi" | "pi" | "PI" | π | ε | √ | ³√
+number ::= value? representation?
+representation ::= "Pi" | "pi" | "PI" | π | ε | √ | ³√
 value ::= sign? nominalValue fuzz* exponent*
 nominalValue ::= integerPart ( "." fractionalPart )? | rational
 rational ::= digits "/" digits
@@ -428,9 +428,9 @@ fuzz ::= one or two digits
 
 Note that the __e__ and __pi__ symbols are, respectively,
 (in Unicode): \uD835\uDF00 and \uD835\uDED1 (&#xD835;&#xDF00; and &#xD835;&#xDED1;)  
-A number must have at least one of either the value or the factor components.
-If no explicit factor is specified, then the number will be a _PureNumber_ (an ordinary number).
-If you want to get exact trigonometric values, then it's important to specify the factor as $\pi$ (or e).
+A number must have at least one of either the value or the representation components.
+If no explicit representation is specified, then the number will be a _PureNumber_ (an ordinary number).
+If you want to get exact trigonometric values, then it's important to specify the representation as $\pi$ (or e).
 
 ### Number creation
 Parsing, described above, is really the most precise way of specifying numerical values.
@@ -513,7 +513,7 @@ The spec file shows an example where _X_ represents a color.
 In the vast majority of cases, the _X_ of _Fuzzy_ will be _Double_.
 
 ### Comparison
-Comparison between _Numbers_ is based on their values, providing that they belong to the same domain (see _Factor_, below).
+Comparison between _Numbers_ is based on their values, providing that they belong to the same domain (see _Representation_, below).
 If they are from different domains, one number will be converted to the domain of the other.
 If, after any conversion is taken into account, the two values compare equal, then the _Numbers_ are equal.
 For _ExactNumber_, comparison ends there.
@@ -580,7 +580,7 @@ There are two subtypes of _Number_: _ExactNumber_ and _FuzzyNumber_.
 Each of these types extends an abstract type called _GeneralNumber_ (although this relationship is expected to change at some future point).
 _GeneralNumber_ has three members:
 * value (type _Value_): the numerical value of the number;
-* factor (type _Factor_): the domain of the value (scalar, radian, log, root, etc.);
+* representation (type _Representation_): the domain of the value (scalar, radian, log, root, etc.);
 * (optional) fuzz (type _Fuzz\[Double]_): the fuzziness of the number (always _None_ for an _ExactNumber_).
 
 ### Value
@@ -658,7 +658,7 @@ It has an equation attribute (of type _Equation_) and a branch attribute (where 
 In order to realize an _Algebraic_ as an actual numerical value (or _String_), you must solve it and thus create s
 _Solution_.
 A _Solution_ typically has two parts: the base value (a _PureNumber_) and the offset (which depends on the branch).
-The offset will typically have a different factor such as _SquareRoot_.
+The offset will typically have a different representation such as _SquareRoot_.
 An example of an _Algebraic_ is _phi_, the Golden Ratio.
 An _Algebraic_ is considered an exact value, although rendering it in decimal form may result in an approximation.
 
@@ -673,16 +673,16 @@ The hierarchy of _Algebraic_ is (currently) as follows:
     * _Algebraic_Linear_ (case class representing a Rational number defined as the root (solution) of a monic linear equation)
     * _Algebraic_Quadratic_ (case class representing a quantity defined as the root (solution) of a monic quadratic equation)
 
-### Factor
-Factor represents the domain in which a numerical quantity exists.
+### Representation
+Representation (called Factor before version 1.11.0) represents the domain in which a numerical quantity exists.
 We are most familiar with the pure-number domain, including all the counting numbers,
 the decimal numbers, and the so-called "real" numbers.
 
 Slightly less familiar are numbers like $2\pi$ (we call the domain of such numbers "radians"), $\log_e 2$, $e∧2$, and $√2$.
 All these numbers can be represented exactly by judicious use of the following classes.
 
-The hierarchy of _Factor_ is as follows:
-* _Factor_ (trait: the domain of factors)
+The hierarchy of _Representation_ is as follows:
+* _Representation_ (trait: the domain of representations)
     * _Scalar_ (trait: the domain of ordinary numbers)
         * _PureNumber_ (object: the domain of pure numbers)
         * _Radian_ (object: the domain of radians)
@@ -711,9 +711,9 @@ For example, if you want to check that the sine of $\frac{\pi}{2}$ is equal to 1
 val target = (Number.pi/2).sin
 target shouldBe Number.one
 ```
-Similarly, if you use the _atan_ method on a _Scalar_ number, the result will be a number (possibly exact) whose factor is __Radian__.
+Similarly, if you use the _atan_ method on a _Scalar_ number, the result will be a number (possibly exact) whose representation is __Radian__.
 
-The 𝜀 factor works quite differently.
+The 𝜀 representation works quite differently.
 It is not a simple matter of scaling.
 A _Number_ of the form _Number(x, NatLog)_ actually evaluates to $e∧x$ rather than $e x$.
 
@@ -736,7 +736,7 @@ _NumberLike_ is a trait that defines behavior which is of the most general numbe
 The specific methods defined are:
 
 ```scala
-def isExact(maybeFactor: Option[Factor]): Boolean // determines if this object is exact in the domain of the (optional) factor
+def isExact(maybeRepresentation: Option[Representation]): Boolean // determines if this object is exact in the domain of the (optional) representation
 def isExact: Boolean = isExact(None)
 def asNumber: Option[Number]
 def render: String
@@ -849,10 +849,10 @@ we will need to evaluate the number in the _RestrictedContext(PureNumber)_ conte
 Often, this will require an approximation (i.e., the generation of a _FuzzyNumber_).
 
 The _hierarchy_ of Context is as follows:
-* _Context_ (trait: closely related to Factor: it is used to determine which domains are acceptable in a particular context)
-    * _RestrictedContext_ (case class accepts only a specific _Factor_)
-    * _AnyContext_ (object: accepts any _Factor_)
-    * _ImpossibleContext_ (object: accepts no _Factor_)
+* _Context_ (trait: closely related to Representation: it is used to determine which domains are acceptable in a particular context)
+    * _RestrictedContext_ (case class accepts only a specific _Representation_)
+    * _AnyContext_ (object: accepts any _Representation_)
+    * _ImpossibleContext_ (object: accepts no _Representation_)
 
 ### Transcendental Numbers
 Transcendental numbers are declared as subtypes of _Transcendental_, although $\pi$ and e are, additionally, declared as _Number_, _Real_, and _Expression_.
@@ -1027,7 +1027,7 @@ The hierarchy of _Expression_ (i.e., lazy) types is as follows (as of version V 
 
 ### Other Types
 Other types (for reference):
-* _Factor_ (see above)
+* _Representation_ (see above)
 * _Context_ (see above)
 * _Multivalued_
     * _Equation_ (trait defining an equation to be used in an _Algebraic_ quantity)
@@ -1133,7 +1133,7 @@ The empty expression ∅ evaluates to the identity for either additive or multip
 
 The core module provides the original implementation of fuzzy, lazy numbers with the following features:
 * Exact arithmetic using Value types (Int, Rational, or Double)
-* Factor-based domains for different numeric types
+* Representation-based domains for different numeric types
 * Expression-based lazy evaluation
 * Comprehensive fuzzy number support with error tracking
 
@@ -1182,7 +1182,7 @@ _Rational_ is simply a case class with _BigInt_ elements for the numerator and d
 It is, of course, perfectly possible to use the _Rational_ classes directly,
 without using the _Number_ (or _Expression_) classes.
 
-There are four domains of values, each identified by a domain or factor (see _Factors_ below).
+There are four domains of values, each identified by a domain or representation (see _Representation_ below).
 These allow the exact representation of roots, logarithmic numbers, radians, and pure numbers.
 
 #### Operators

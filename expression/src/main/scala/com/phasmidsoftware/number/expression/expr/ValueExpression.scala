@@ -9,7 +9,7 @@ import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, Nat, NaturalExponential, Number, RationalNumber, Real, Scalar, WholeNumber}
 import com.phasmidsoftware.number.algebra.util.LatexRenderer
-import com.phasmidsoftware.number.core.inner.{Factor, Rational}
+import com.phasmidsoftware.number.core.inner.{Rational, Representation}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Field
 import com.phasmidsoftware.number.expression.expr.Expression.em
@@ -31,12 +31,12 @@ import scala.language.implicitConversions
   */
 sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[String] = None) extends AtomicExpression {
   /**
-    * Method to determine what `Factor`, if there is such, this `Structure` object is based on.
+    * Method to determine what `Representation`, if there is such, this `Structure` object is based on.
     *
-    * @return an optional `Factor`.
+    * @return an optional `Representation`.
     */
-  def maybeFactor(context: Context): Option[Factor] =
-    value.maybeFactor(context)
+  def maybeRepresentation(context: Context): Option[Representation] =
+    value.maybeRepresentation(context)
 
   /**
     * Determines if the current number is equal to zero.
@@ -64,7 +64,7 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     * Method to determine if this Structure object is exact.
     * For instance, `Number.pi` is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
-    * @return true if this Structure object is exact in the context of No factor, else false.
+    * @return true if this Structure object is exact in the context of No representation, else false.
     */
   def isExact: Boolean = value.isExact
 
@@ -93,8 +93,8 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     * Evaluates the current Valuable expression within the given context and determines
     * if the Valuable qualifies based on the context's rules.
     *
-    * NOTE: we now have Valuable values that may not have a unique factor (Algebraics).
-    * That's why we need to check first if value has a unique factor.
+    * NOTE: we now have Valuable values that may not have a unique representation (Algebraics).
+    * That's why we need to check first if value has a unique representation.
     *
     * If the Valuable meets the qualifications specified by the context, the method
     * returns an `Option` containing the Valuable. Otherwise, it returns `None`.
@@ -112,10 +112,10 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
           Some(nat)
         case normalizable: CanNormalize[?] =>
           // CONSIDER putting the conditional in the pattern
-          Option.when(normalizable.maybeFactor(context).isDefined && context.valuableQualifies(normalizable))(normalizable.normalize)
+          Option.when(normalizable.maybeRepresentation(context).isDefined && context.valuableQualifies(normalizable))(normalizable.normalize)
         case eager: Eager =>
           // CONSIDER putting the conditional in the pattern
-          Option.when(eager.maybeFactor(context).isDefined && context.valuableQualifies(eager))(value)
+          Option.when(eager.maybeRepresentation(context).isDefined && context.valuableQualifies(eager))(value)
       }
 
   /**
@@ -713,9 +713,9 @@ case object I extends NamedConstant(Eager.i, "i") {
   import com.phasmidsoftware.number.algebra.eager.WholeNumber.convIntWholeNumber
 
   /**
-    * Evaluates this `Expression` in the context of `AnyContext` without simplification or factor-based conversion.
+    * Evaluates this `Expression` in the context of `AnyContext` without simplification or representation-based conversion.
     * This allows obtaining a direct evaluation of the `Expression` as a `Field`, if possible.
-    * NOTE: no simplification or factor-based conversion occurs here.
+    * NOTE: no simplification or representation-based conversion occurs here.
     *
     * @return an `Option[Field]` containing the evaluated `Field` if evaluation is successful, or `None` otherwise.
     */

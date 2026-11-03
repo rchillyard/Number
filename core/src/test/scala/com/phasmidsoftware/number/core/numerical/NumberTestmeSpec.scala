@@ -178,14 +178,14 @@ class NumberTestmeSpec extends AnyFlatSpec with Matchers {
         // (3+4i)^3 should give magnitude = 5^3 = 125
         r.maybeNominalDouble.get should be(125.0 +- 0.001)
         theta.maybeNominalDouble.get should be(0.8855 +- 0.01)
-        theta.factor shouldBe Radian
+        theta.representation shouldBe Radian
       case _ => fail(s"Expected ComplexPolar result for power 3")
     }
   }
 
-  behavior of "Number.compare with NatLog factors (TESTME at line 1271)"
+  behavior of "Number.compare with NatLog representations (TESTME at line 1271)"
 
-  it should "compare two Numbers with NatLog factor" in {
+  it should "compare two Numbers with NatLog representation" in {
     val x = Number(2, NatLog) // e^2
     val y = Number(3, NatLog) // e^3
     val result = Number.doCompare(x, y)
@@ -193,7 +193,7 @@ class NumberTestmeSpec extends AnyFlatSpec with Matchers {
     result should be < 0 // e^2 < e^3
   }
 
-  it should "compare equal Numbers with NatLog factor" in {
+  it should "compare equal Numbers with NatLog representation" in {
     val x = Number(5, NatLog)
     val y = Number(5, NatLog)
     val result = Number.doCompare(x, y)
@@ -230,17 +230,17 @@ class NumberTestmeSpec extends AnyFlatSpec with Matchers {
     math.signum(resultViaConversion) shouldBe math.signum(resultDirect)
   }
 
-  behavior of "Number.compare with Euler factors (TESTME at line 1273)"
+  behavior of "Number.compare with Euler representations (TESTME at line 1273)"
 
-  it should "compare two Numbers with Euler factor" in {
+  it should "compare two Numbers with Euler representation" in {
     val x = Number(1, Euler) // represents an angle/phase
     val y = Number(2, Euler)
     val result = Number.doCompare(x, y)
 
-    result should be < 0 // 1 < 2 in Euler factor
+    result should be < 0 // 1 < 2 in Euler representation
   }
 
-  it should "compare equal Numbers with Euler factor" in {
+  it should "compare equal Numbers with Euler representation" in {
     val x = Number(0.5, Euler)
     val y = Number(0.5, Euler)
     val result = Number.doCompare(x, y)
@@ -268,7 +268,7 @@ class NumberTestmeSpec extends AnyFlatSpec with Matchers {
     resultViaConversion should be < 0
   }
 
-  it should "handle boundary cases for Euler factor comparison" in {
+  it should "handle boundary cases for Euler representation comparison" in {
     val x = Number(0, Euler)
     val y = Number(1, Euler)
     val result = Number.doCompare(x, y)

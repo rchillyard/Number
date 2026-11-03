@@ -543,7 +543,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     * Method to determine if this `NumberLike` object is exact.
     * For instance, `Number.pi` is exact, although if you converted it into a `PureNumber`, it would no longer be exact.
     *
-    * @return true if this `NumberLike` object is exact in a factor-less context, else false.
+    * @return true if this `NumberLike` object is exact in a representation-less context, else false.
     */
   lazy val isExact: Boolean =
     x.isExact && y.isExact
@@ -662,7 +662,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
     val arg = argument
     mag.ln match {
       case Real(lnMag) =>
-        // argument is in Radian factor (units of π), convert to pure number (actual radians)
+        // argument is in Radian representation (units of π), convert to pure number (actual radians)
         // Use scale to convert: Scalar.convert uses scaleDouble which multiplies by π
         val argPure = arg.scale(PureNumber)
         ComplexCartesian(lnMag, argPure)
@@ -750,7 +750,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
   /**
     * Method to scale this Cartesian Complex number by a factor.
     *
-    * TODO implement for more imaginary factors.
+    * TODO implement for more imaginary representations.
     *
     * @param x the factor (a Number).
     * @return this scaled by x.
@@ -866,12 +866,12 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     * Method to determine if this `NumberLike` object is exact.
     * For instance, `Number.pi` is exact, although if you converted it into a `PureNumber`, it would no longer be exact.
     *
-    * @return true if this `NumberLike` object is exact in a factor-less context, else false.
+    * @return true if this `NumberLike` object is exact in a representation-less context, else false.
     */
   lazy val isExact: Boolean =
     r.isExact && theta.isExact
 
-  require(theta.factor == Radian, "polar theta is not in radians")
+  require(theta.representation == Radian, "polar theta is not in radians")
 
   //  require(!r.isZero, "polar radius is zero")
   if (r.isZero)
@@ -1103,7 +1103,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     * @return true if the angle theta is a multiple of pi.
     */
   def isReal: Boolean =
-    theta.factor == Radian && Value.maybeInt(theta.nominalValue).isDefined
+    theta.representation == Radian && Value.maybeInt(theta.nominalValue).isDefined
 
   /**
     * Determine the "sign" of this field.

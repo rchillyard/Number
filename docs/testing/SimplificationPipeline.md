@@ -66,7 +66,7 @@ Each CompositeExpression type implements `structuralMatcher` differently:
 - Combining like terms in sums and products
 - Power law transformations
 - Distributive properties
-- Special handling for angles with Radian factors
+- Special handling for angles with Radian representations
 - Catch-all: converts to Aggregate for term collection
 
 **Aggregate patterns:**

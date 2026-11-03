@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
+import com.phasmidsoftware.number.core.inner.{Rational, Representation, Value}
 import com.phasmidsoftware.number.core.misc.FP.recover
 import com.phasmidsoftware.number.core.numerical.Number.{NumberIsFractional, NumberIsOrdering}
 import com.phasmidsoftware.number.core.numerical.Real.createFromRealField
@@ -34,16 +34,16 @@ case class Real(x: Number) extends Field {
     * Method to determine if this NumberLike object is exact.
     * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
-    * @return true if this NumberLike object is exact in the context of No factor, else false.
+    * @return true if this NumberLike object is exact in the context of No representation, else false.
     */
   lazy val isExact: Boolean = x.isExact
 
   /**
-    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+    * Method to determine what `Representation`, if there is such, this `NumberLike` object is based on.
     *
-    * @return an optional `Factor`.
+    * @return an optional `Representation`.
     */
-  lazy val maybeFactor: Option[Factor] = x.maybeFactor
+  lazy val maybeRepresentation: Option[Representation] = x.maybeRepresentation
 
   /**
     * Method to determine if this Real has infinite magnitude.
@@ -202,15 +202,15 @@ case class Real(x: Number) extends Field {
 
   /**
     * Yields the inverse of this Real.
-    * This Number is first normalized so that its factor is PureNumber, since we cannot directly invert Numbers with other
-    * factors.
+    * This Number is first normalized so that its representation is PureNumber, since we cannot directly invert Numbers with other
+    * representations.
     */
   lazy val invert: Field =
     createFromRealField(x.invert)
 
   /**
     * Method to determine the sine of this Real.
-    * The result will be a Real with PureNumber factor.
+    * The result will be a Real with PureNumber representation.
     *
     * @return the sine of this.
     */
@@ -219,7 +219,7 @@ case class Real(x: Number) extends Field {
 
   /**
     * Method to determine the cosine of this Real.
-    * The result will be a Real with PureNumber factor.
+    * The result will be a Real with PureNumber representation.
     *
     * @return the cosine.
     */
@@ -228,7 +228,7 @@ case class Real(x: Number) extends Field {
 
   /**
     * Method to determine the tangent of this Real.
-    * The result will be a Real with PureNumber factor.
+    * The result will be a Real with PureNumber representation.
     *
     * @return the tangent
     */
@@ -250,7 +250,7 @@ case class Real(x: Number) extends Field {
 
   /**
     * Method to determine the natural log of this Real.
-    * The result will be a Real with PureNumber factor.
+    * The result will be a Real with PureNumber representation.
     *
     * @return the natural log of this.
     */
@@ -259,7 +259,7 @@ case class Real(x: Number) extends Field {
 
   /**
     * Method to raise e to the power of this Real.
-    * The result will be a Real with NatLog factor.
+    * The result will be a Real with NatLog representation.
     *
     * @return the e to the power of this.
     */
@@ -497,7 +497,7 @@ object Real {
   /**
     * Method to parse a String and yield a Try[Number].
     *
-    * NOTE: this method indirectly invokes apply(Rational, Factor, Option of Fuzz[Double] )
+    * NOTE: this method indirectly invokes apply(Rational, Representation, Option of Fuzz[Double] )
     *
     * @param w the String to be parsed.
     * @return a Number.

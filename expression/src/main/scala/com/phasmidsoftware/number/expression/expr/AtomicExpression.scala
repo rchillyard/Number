@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.{Complex, Eager, Real}
-import com.phasmidsoftware.number.core.inner.Factor
+import com.phasmidsoftware.number.core.inner.Representation
 import com.phasmidsoftware.number.expression.expr.Expression.em
 
 import scala.language.implicitConversions
@@ -92,7 +92,7 @@ object AtomicExpression {
 
 /**
   * The `Noop` object is an atomic expression that represents a no-operation placeholder in an expression tree.
-  * It cannot be evaluated, simplified, or associated with any specific factor. It is a concrete implementation
+  * It cannot be evaluated, simplified, or associated with any specific representation. It is a concrete implementation
   * of the `AtomicExpression` trait.
   */
 case class Noop(w: String) extends AtomicExpression {
@@ -133,11 +133,11 @@ case class Noop(w: String) extends AtomicExpression {
   def signum: Int = 0
 
   /**
-    * Method to determine what `Factor`, if there is such, this `Structure` object is based on.
+    * Method to determine what `Representation`, if there is such, this `Structure` object is based on.
     *
-    * @return an optional `Factor`.
+    * @return an optional `Representation`.
     */
-  def maybeFactor(context: Context): Option[Factor] = None
+  def maybeRepresentation(context: Context): Option[Representation] = None
 
   /**
     * Action to evaluate this `Expression` as a `Valuable`,

@@ -12,7 +12,7 @@ import com.phasmidsoftware.number.core.inner.*
   * Represents a trait for specifying in which evaluation-contexts a particular expression may be evaluated.
   *
   * The `Context` trait provides an abstraction for determining whether a particular
-  * factor or field qualifies within the scope of a specific context. It supports
+  * representation or field qualifies within the scope of a specific context. It supports
   * logical operations (`or`, `and`, `not`) to compose complex contexts from simpler ones.
   */
 trait Context extends CoreContext {
@@ -26,7 +26,7 @@ trait Context extends CoreContext {
     * the criteria defined by the `Context`. The qualification logic is based
     * on the specific type of `HasValue`. Natural numbers (`Nat`) automatically
     * qualify, whereas scalar values (`Scalar`) qualify only if their associated
-    * factor meets the required conditions.
+    * representation meets the required conditions.
     *
     * @param v the `HasValue` object to check for qualification
     * @return `true` if the `HasValue` qualifies; otherwise, throws a `AlgebraException` for unsupported types
@@ -37,30 +37,30 @@ trait Context extends CoreContext {
     case (AnyContext, _) =>
       true
     case _ =>
-      v.maybeFactor(this).exists(factorQualifies)
+      v.maybeRepresentation(this).exists(representationQualifies)
   }
 
   /**
     * Determines if a given optional `Scalar` is qualified within this context.
     *
-    * The method evaluates the provided optional `Scalar`'s associated factor,
-    * and checks if the factor satisfies the qualification criteria defined
-    * in this context. If the factor qualifies, the `Scalar` itself is returned
+    * The method evaluates the provided optional `Scalar`'s associated representation,
+    * and checks if the representation satisfies the qualification criteria defined
+    * in this context. If the representation qualifies, the `Scalar` itself is returned
     * wrapped in an `Option`. Otherwise, the result is `None`.
     *
     * @param so an optional `Scalar` to evaluate; if `None` is provided, the method directly returns `None`
     * @return an optional `Scalar` that qualifies, or `None` if either the input is `None`
-    *         or the factor does not meet the qualification criteria
+    *         or the representation does not meet the qualification criteria
     */
   def qualifyingEagerValue(so: Option[Eager]): Option[Eager] =
     for {
       s <- so
-      value <- s.maybeFactor(this) if factorQualifies(value)
+      value <- s.maybeRepresentation(this) if representationQualifies(value)
     } yield s
 
   /**
     * Combines this `Context` with another `Context` using a logical OR operation.
-    * The resulting `Context` qualifies a factor if it qualifies in either the current `Context`
+    * The resulting `Context` qualifies a representation if it qualifies in either the current `Context`
     * or the provided `Context`.
     *
     * @param that the other `Context` to combine with this `Context`.
@@ -68,54 +68,54 @@ trait Context extends CoreContext {
     */
   override def or(that: CoreContext): Context = new Context {
     /**
-      * Determines whether the given factor is acceptable in this `Context`.
+      * Determines whether the given representation is acceptable in this `Context`.
       *
-      * @param f the factor.
-      * @return true if the factor qualifies; false otherwise.
+      * @param f the representation.
+      * @return true if the representation qualifies; false otherwise.
       */
-    def factorQualifies(f: Factor): Boolean = self.factorQualifies(f) || that.factorQualifies(f)
+    def representationQualifies(f: Representation): Boolean = self.representationQualifies(f) || that.representationQualifies(f)
 
     override def toString: String = s"Context allowing ($self) or ($that)"
   }
 
   /**
-    * Produces a new context that requires both this context and the provided context to qualify a factor.
+    * Produces a new context that requires both this context and the provided context to qualify a representation.
     * The resulting context effectively applies a logical AND operation between this context and the given context.
     *
     * @param that the second context that will be combined with this context using a logical AND operation.
-    * @return a new `Context` that qualifies a factor only if it qualifies in both this context and the given context.
+    * @return a new `Context` that qualifies a representation only if it qualifies in both this context and the given context.
     */
   override def and(that: CoreContext): Context =
-    (f: Factor) => this.factorQualifies(f) && that.factorQualifies(f)
+    (f: Representation) => this.representationQualifies(f) && that.representationQualifies(f)
 
   /**
-    * Negates the qualification of a factor in the current context.
+    * Negates the qualification of a representation in the current context.
     *
-    * @return A new context that inverts the qualification logic for factors.
+    * @return A new context that inverts the qualification logic for representations.
     */
   override def not: Context =
-    (f: Factor) => !this.factorQualifies(f)
+    (f: Representation) => !this.representationQualifies(f)
 }
 
 /**
-  * A case class that represents a restricted evaluation context for a specific `Factor`.
+  * A case class that represents a restricted evaluation context for a specific `Representation`.
   *
   * The `RestrictedContext` is a specialized `Context` implementation that confines its
-  * qualifications to a single `Factor`. It determines whether a given factor matches
-  * the specific factor (`context`) it was instantiated with. This ensures that only
+  * qualifications to a single `Representation`. It determines whether a given representation matches
+  * the specific representation (`context`) it was instantiated with. This ensures that only
   * evaluations respecting this restricted context are allowed.
   *
-  * @constructor Creates a `RestrictedContext` with a predefined `Factor` to enforce context-based restrictions.
-  * @param factor the specific factor that defines the restrictive context. Only factors matching this will qualify.
+  * @constructor Creates a `RestrictedContext` with a predefined `Representation` to enforce context-based restrictions.
+  * @param representation the specific representation that defines the restrictive context. Only representations matching this will qualify.
   */
-case class RestrictedContext(factor: Factor) extends Context {
+case class RestrictedContext(representation: Representation) extends Context {
   /**
-    * Determines whether the given factor qualifies for this `Context`.
+    * Determines whether the given representation qualifies for this `Context`.
     *
-    * @param f the factor.
-    * @return true if the factor qualifies; false otherwise.
+    * @param f the representation.
+    * @return true if the representation qualifies; false otherwise.
     */
-  def factorQualifies(f: Factor): Boolean = (f, factor) match {
+  def representationQualifies(f: Representation): Boolean = (f, representation) match {
     case (a, b) if a == b =>
       true
     case (PureNumber, Composite) => // Special case to allow PureNumber to be evaluated in Composite context.
@@ -124,46 +124,52 @@ case class RestrictedContext(factor: Factor) extends Context {
       false
   }
 
-  override def toString: String = s"RestrictedContext($factor)"
+  override def toString: String = s"RestrictedContext($representation)"
+
+  /**
+    * Deprecated: use `representation` instead (renamed in version 1.11.0).
+    */
+  @deprecated("Use representation", since = "1.11.0")
+  def factor: Representation = representation
 }
 
 /**
-  * The `AnyContext` object represents a special `Context` that qualifies all factors without exception.
+  * The `AnyContext` object represents a special `Context` that qualifies all representations without exception.
   *
   * This context essentially overrides all filtering or conditional logic
-  * by always returning `true` for any given factor. It is useful as a
+  * by always returning `true` for any given representation. It is useful as a
   * catch-all context where no restrictions are applied.
   */
 case object AnyContext extends Context {
   /**
-    * Determines whether the given factor qualifies for this `AnyContext`.
+    * Determines whether the given representation qualifies for this `AnyContext`.
     *
-    * @param f the factor to be evaluated for qualification (itd).
+    * @param f the representation to be evaluated for qualification (itd).
     * @return true.
     */
-  def factorQualifies(f: Factor): Boolean = true
+  def representationQualifies(f: Representation): Boolean = true
 
   override def toString: String = "AnyContext"
 }
 
 /**
-  * A `Context` that rejects all `Factor` instances without exception.
+  * A `Context` that rejects all `Representation` instances without exception.
   *
   * `ImpossibleContext` is a specific instance of the `Context` trait
-  * that always returns `false` for any factor, indicating that no factor
+  * that always returns `false` for any representation, indicating that no representation
   * qualifies within this context.
   *
   * This context acts as the logical negation of all other possible contexts,
-  * prohibiting any factor from being considered qualifying.
+  * prohibiting any representation from being considered qualifying.
   */
 case object ImpossibleContext extends Context {
   /**
-    * Determines whether the given factor qualifies for this `ImpossibleContext`.
+    * Determines whether the given representation qualifies for this `ImpossibleContext`.
     *
-    * @param f the factor to be evaluated for qualification (itd).
+    * @param f the representation to be evaluated for qualification (itd).
     * @return false.
     */
-  def factorQualifies(f: Factor): Boolean = false
+  def representationQualifies(f: Representation): Boolean = false
 
   override def toString: String = "ImpossibleContext"
 }
@@ -171,7 +177,7 @@ case object ImpossibleContext extends Context {
 /**
   * Companion object for the `Context` class.
   *
-  * Provides predefined contexts for evaluating and qualifying factors or fields
+  * Provides predefined contexts for evaluating and qualifying representations or fields
   * under specific mathematical or functional conditions. This includes contexts
   * for scalars, logarithms, and roots, along with utility functions for determining qualification.
   */
@@ -181,7 +187,7 @@ object Context {
     * or angular units represented in x (`Radian`).
     *
     * This combined context allows for operations or evaluations that are valid
-    * for both pure numerical values and values with radian factors.
+    * for both pure numerical values and values with radian representations.
     *
     * Defined by combining `RestrictedContext(PureNumber)` and `RestrictedContext(Radian)`
     * using the `or` method, which permits qualification within either of these contexts.
@@ -200,7 +206,7 @@ object Context {
     */
   val AnyLog: Context = RestrictedContext(inner.NatLog) `or` RestrictedContext(inner.Log2) `or` RestrictedContext(Log10) `or` RestrictedContext(Euler)
   /**
-    * A `Context` that qualifies factors as either square roots (`SquareRoot`) or cube roots (`CubeRoot`).
+    * A `Context` that qualifies representations as either square roots (`SquareRoot`) or cube roots (`CubeRoot`).
     * Combines the qualification conditions of `SquareRoot` and `CubeRoot` contexts using logical OR.
     */
   val AnyRoot: Context = RestrictedContext(SquareRoot) `or` RestrictedContext(CubeRoot)

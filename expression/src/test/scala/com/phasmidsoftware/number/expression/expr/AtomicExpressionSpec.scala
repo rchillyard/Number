@@ -60,9 +60,9 @@ class AtomicExpressionSpec extends AnyFlatSpec with should.Matchers with TableDr
     noop.signum shouldBe 0
   }
 
-  it should "return None for maybeFactor" in {
+  it should "return None for maybeRepresentation" in {
     val noop = Noop("test")
-    noop.maybeFactor(pureNumberContext) shouldBe None
+    noop.maybeRepresentation(pureNumberContext) shouldBe None
   }
 
   it should "throw exception when evaluated" in {

@@ -285,9 +285,9 @@ case object MonadicOperationLog extends MonadicOperation {
   * The number is a factor of pi, i.e. it is in radians.
   *
   * NOTE that this evaluator for sine is not as useful as the evaluator in the Number class.
-  * That's because this type of operation does not change the factor.
+  * That's because this type of operation does not change the representation.
   *
-  * CONSIDER allow Monadic operations to change factor.
+  * CONSIDER allow Monadic operations to change representation.
   *
   * See https://en.wikipedia.org/wiki/List_of_trigonometric_identities
   */

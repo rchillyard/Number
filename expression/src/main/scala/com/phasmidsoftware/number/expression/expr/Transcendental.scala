@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.expression.expr
 
 import com.phasmidsoftware.number.algebra.core.Context
 import com.phasmidsoftware.number.algebra.eager.{Eager, Real}
-import com.phasmidsoftware.number.core.inner.Factor
+import com.phasmidsoftware.number.core.inner.Representation
 import com.phasmidsoftware.number.expression.expr.Expression.em
 import com.phasmidsoftware.number.expression.expr.UniFunction
 
@@ -123,12 +123,12 @@ sealed abstract class AbstractTranscendental(val name: String, val expression: E
     new AbstractTranscendental(s"${f.name}($name)", UniFunction(expression, f).simplify) {}
 
   /**
-    * Method to determine what `Factor`, if there is such, this `Structure` object is based on.
+    * Method to determine what `Representation`, if there is such, this `Structure` object is based on.
     * Unlike context, a `None` result is not permissive.
     *
-    * @return an optional `Factor`.
+    * @return an optional `Representation`.
     */
-  def maybeFactor(context: Context): Option[Factor] = expression.maybeFactor(context)
+  def maybeRepresentation(context: Context): Option[Representation] = expression.maybeRepresentation(context)
 
   /**
     * Method to render this Structure in a presentable manner.
@@ -139,7 +139,7 @@ sealed abstract class AbstractTranscendental(val name: String, val expression: E
 
   /**
     * Action to evaluate this `Expression` as a `Valuable`, if possible.
-    * NOTE: no simplification or factor-based conversion occurs here.
+    * NOTE: no simplification or representation-based conversion occurs here.
     *
     * @return an optional `Valuable`.
     */

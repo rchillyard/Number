@@ -15,17 +15,17 @@ import scala.annotation.tailrec
 import scala.util.*
 
 /**
-  * This class is designed to model a Numerical value of various possible different types and of various possible factors.
+  * This class is designed to model a Numerical value of various possible different types and of various possible representations.
   * The types are: Int, BigInt, Rational, Double.
-  * The factors are: Scalar, Logarithmic, and NthRoot (with various subtypes).
+  * The representations are: Scalar, Logarithmic, and NthRoot (with various subtypes).
   *
   * TODO continue refactoring to merge similar methods, particularly in GeneralNumber and FuzzyNumber.
   *
   * @param nominalValue the nominalValue of the Number, expressed as a nested Either type.
-  * @param factor       the scale factor of the Number: valid scales are: PureNumber, Radian, and NatLog.
+  * @param representation       the representation of the Number: valid representations are: PureNumber, Radian, and NatLog.
   * @param fuzz         the (optional) fuzziness of this Number.
   */
-abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fuzz: Option[Fuzziness[Double]]) extends Number with Fuzz[Double] {
+abstract class GeneralNumber(val nominalValue: Value, val representation: Representation, val fuzz: Option[Fuzziness[Double]]) extends Number with Fuzz[Double] {
 
   self =>
 
@@ -164,11 +164,11 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
 
   /**
     * Method to determine if this is an imaginary Number,
-    * that's to say a number with negative nominalValue and SquareRoot as its factor.
+    * that's to say a number with negative nominalValue and SquareRoot as its representation.
     *
     * @return true if imaginary.
     */
-  lazy val isImaginary: Boolean = factor match {
+  lazy val isImaginary: Boolean = representation match {
     case SquareRoot if Value.signum(nominalValue) < 0 =>
       true
     case _ =>
@@ -187,7 +187,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * @param n another Number.
     * @return this quotient of this and n, i.e. this/n.
     */
-  def doDivide(n: Number): Number = n.factor match {
+  def doDivide(n: Number): Number = n.representation match {
     case Radian =>
       doMultiply(Number.inverse(n.scale(PureNumber)))
     case _ =>
@@ -203,7 +203,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
 
   /**
     * Method to determine the sine of this Number.
-    * The result will be a Number with PureNumber factor.
+    * The result will be a Number with PureNumber representation.
     *
     * @return the sine of this.
     */
@@ -212,7 +212,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
 
   /**
     * Method to determine the cosine of this Number.
-    * The result will be a Number with PureNumber factor.
+    * The result will be a Number with PureNumber representation.
     *
     * @return the cosine.
     */
@@ -246,7 +246,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
 
   /**
     * Method to determine the natural log of this Number.
-    * The result will be a Number with PureNumber factor.
+    * The result will be a Number with PureNumber representation.
     *
     * @return the natural log of this.
     */
@@ -255,7 +255,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
 
   /**
     * Method to raise NatLog to the power of this number.
-    * The result will be a Number with NatLog factor.
+    * The result will be a Number with NatLog representation.
     *
     * @return the e to the power of this.
     */
@@ -280,16 +280,16 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     negateConditional(signum < 0)
 
   /**
-    * Method to create a new version of this, but with factor f.
+    * Method to create a new version of this, but with representation f.
     * NOTE: the result will have the same absolute magnitude as this.
-    * In other words,  in the case where f is not factor, the numerical value of the result's value will be different
+    * In other words,  in the case where f differs from representation, the numerical value of the result's value will be different
     * from this value.
     *
-    * @param f the new factor for the result.
-    * @return a Number based on this and factor.
+    * @param f the new representation for the result.
+    * @return a Number based on this and representation.
     */
-  def scale(f: Factor): Number =
-    if (f == factor)
+  def scale(f: Representation): Number =
+    if (f == representation)
       this
     else
       Number.scale(this, f).specialize
@@ -324,11 +324,11 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * NOTE: this and other must have been aligned by type so that they have the same structure.
     *
     * @param other the other operand, a Number.
-    * @param f     the factor to apply to the result.
+    * @param f     the representation to apply to the result.
     * @param op    the appropriate DyadicOperation.
     * @return a new Number which is result of applying the appropriate function to the operands this and other.
     */
-  def composeDyadic(other: Number, f: Factor)(op: DyadicOperation): Option[Number] =
+  def composeDyadic(other: Number, f: Representation)(op: DyadicOperation): Option[Number] =
     doComposeDyadic(other, f)(op.functions)
 
   /**
@@ -337,11 +337,11 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * CONSIDER the exact cases don't change the fuzziness at all.
     * But, if there is already fuzziness, then the monadic function should change it.
     *
-    * @param f  the factor to apply to the result.
+    * @param f  the representation to apply to the result.
     * @param op the appropriate MonadicOperation.
     * @return a new Number which is result of applying the appropriate function to the operand this.
     */
-  def transformMonadic(f: Factor)(op: MonadicOperation): Option[Number] =
+  def transformMonadic(f: Representation)(op: MonadicOperation): Option[Number] =
     Operations.doTransformValueMonadic(nominalValue)(op.functions) flatMap {
       case v@Right(_) =>
         Some(make(v, f))
@@ -366,13 +366,13 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
-    * Only the factor will change.
+    * Only the representation will change.
     * This method does not need to be followed by a call to specialize.
     *
-    * @param f the factor.
+    * @param f the representation.
     * @return a Number.
     */
-  def make(f: Factor): Number =
+  def make(f: Representation): Number =
     make(nominalValue, f)
 
   /**
@@ -384,7 +384,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * @return a Number.
     */
   def make(v: Value): Number =
-    make(v, factor)
+    make(v, representation)
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
@@ -392,10 +392,10 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * This method should be followed by a call to specialize.
     *
     * @param v the nominalValue.
-    * @param f Factor.
+    * @param f Representation.
     * @return a Number.
     */
-  def make(v: Int, f: Factor): Number =
+  def make(v: Int, f: Representation): Number =
     make(Value.fromInt(v), f)
 
   /**
@@ -407,20 +407,20 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * @return a Number.
     */
   def make(v: Int): Number =
-    make(v, factor)
+    make(v, representation)
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
-    * Only the value and the factor will change.
+    * Only the value and the representation will change.
     * This method should be followed by a call to specialize.
     *
     * NOTE that this method is primarily used by doComposeDyadic
     *
     * @param r a Rational.
-    * @param f Factor.
+    * @param f Representation.
     * @return a Number.
     */
-  def make(r: Rational, f: Factor): Number =
+  def make(r: Rational, f: Representation): Number =
     make(Value.fromRational(r), f)
 
   /**
@@ -432,32 +432,32 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * @return a Number.
     */
   def make(r: Rational): Number =
-    make(r, factor)
+    make(r, representation)
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
-    * Only the value and factor will change.
+    * Only the value and representation will change.
     * This method should be followed by a call to specialize.
     *
     * TESTME
     *
     * @param x the value (a Double).
-    * @param f Factor.
+    * @param f Representation.
     * @return a Number.
     */
-  def make(x: Double, f: Factor): Number =
+  def make(x: Double, f: Representation): Number =
     make(Value.fromDouble(Some(x)), f)
 
   /**
     * Method to "normalize" a number, that's to say make it a PureNumber and also to force
     * any fuzziness to be absolute.
     *
-    * @return a new Number with factor of PureNumber but with the same magnitude as this.
+    * @return a new Number with representation of PureNumber but with the same magnitude as this.
     */
   lazy val normalize: Field = {
     def maybeIntValue: Option[Int] = Value.maybeInt(nominalValue)
 
-    val z: Field = factor match {
+    val z: Field = representation match {
       case PureNumber =>
         Real(this)
       case NthRoot(2) if maybeIntValue.isDefined =>
@@ -485,7 +485,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
   }
 
   /**
-    * Method to ensure that the value is within some factor-specific range.
+    * Method to ensure that the value is within some representation-specific range.
     * In particular, Radian=based numbers are modulated to the range 0..2
     *
     * @return this or an equivalent Number.
@@ -536,12 +536,12 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
           case Some(0) | Some(1) | Some(2) =>
             make(r)
           case Some(n) =>
-            FuzzyNumber(d, factor, None).addFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -(n + 1)), Box))
+            FuzzyNumber(d, representation, None).addFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -(n + 1)), Box))
           case _ =>
-            FuzzyNumber(d, factor, None).addFuzz(Fuzziness.doublePrecision)
+            FuzzyNumber(d, representation, None).addFuzz(Fuzziness.doublePrecision)
         }
       case Failure(_) =>
-        FuzzyNumber(d, factor, None).addFuzz(Fuzziness.doublePrecision)
+        FuzzyNumber(d, representation, None).addFuzz(Fuzziness.doublePrecision)
     }
 
   /**
@@ -554,18 +554,24 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     FuzzyNumber.addFuzz(this, f)
 
   /**
-    * Method to align the factors of this and x such that the resulting Numbers (in the tuple) each have the same factor.
+    * Method to align the representations of this and x such that the resulting Numbers (in the tuple) each have the same representation.
     *
     * @param x the Number to be aligned with this.
-    * @return a tuple of two Numbers with the same factor.
+    * @return a tuple of two Numbers with the same representation.
     */
   //protected
-  def alignFactors(x: Number): (Number, Number) = factor match {
+  def alignRepresentations(x: Number): (Number, Number) = representation match {
     case PureNumber =>
-      (this, x.scale(factor))
+      (this, x.scale(representation))
     case _ =>
-      (scale(x.factor), x)
+      (scale(x.representation), x)
   }
+
+  /**
+    * Deprecated: use `alignRepresentations` instead (renamed in version 1.11.0).
+    */
+  @deprecated("Use alignRepresentations", since = "1.11.0")
+  def alignFactors(x: Number): (Number, Number) = alignRepresentations(x)
 
   /**
     * Method to align the types of this and x such that the resulting Numbers (in the tuple) each have the same structure.
@@ -591,7 +597,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
               x.alignTypes(this)
             // XXX otherwise: return this and x re-cast as a Double
             case _ =>
-              (this, Number.prepare(x.maybeNominalDouble.map(y => make(y, x.factor, x.fuzz).specialize)))
+              (this, Number.prepare(x.maybeNominalDouble.map(y => make(y, x.representation, x.fuzz).specialize)))
           }
         // XXX this nominalValue is a Rational:
         case Left(Right(_)) =>
@@ -613,20 +619,20 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
               x.alignTypes(this)
             // XXX otherwise: return this and x re-cast as an Int
             case _ =>
-              (this, x.make(x.maybeInt.getOrElse(0), x.factor).specialize)
+              (this, x.make(x.maybeInt.getOrElse(0), x.representation).specialize)
           }
       }
   }
 
   /**
-    * An optional Rational that corresponds to the nominalValue of this Number (but ignoring the factor).
+    * An optional Rational that corresponds to the nominalValue of this Number (but ignoring the representation).
     * A Double nominalValue is not converted to a Rational since, if it could be done exactly, it already would have been.
     * CONSIDER using query
     */
   def maybeNominalRational: Option[Rational] = Value.maybeRational(nominalValue)
 
   /**
-    * An optional Double that corresponds to the nominalValue of this Number (but ignoring the factor).
+    * An optional Double that corresponds to the nominalValue of this Number (but ignoring the representation).
     * If
     *
     * @return Some(x) if nominalValue can be converted properly to a Double, otherwise None.
@@ -651,17 +657,17 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     case that: GeneralNumber =>
       (that `canEqual` this) &&
           nominalValue == that.nominalValue &&
-          factor == that.factor &&
+          representation == that.representation &&
           fuzz == that.fuzz
     case _ =>
       false
   }
 
   /**
-    * @return the hash code based on nominalValue, factor, fuzz.
+    * @return the hash code based on nominalValue, representation, fuzz.
     */
   override def hashCode(): Int = {
-    val state = Seq(nominalValue, factor, fuzz)
+    val state = Seq(nominalValue, representation, fuzz)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
 
@@ -670,11 +676,11 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     * NOTE: this and other must have been aligned by type so that they have the same structure.
     *
     * @param other     the other operand, a Number.
-    * @param f         the factor to apply to the result.
+    * @param f         the representation to apply to the result.
     * @param functions the tuple of four conversion functions.
     * @return a new Number which is result of applying the appropriate function to the operands this and other.
     */
-  private def doComposeDyadic(other: Number, f: Factor)(functions: DyadicFunctions): Option[Number] = {
+  private def doComposeDyadic(other: Number, f: Representation)(functions: DyadicFunctions): Option[Number] = {
     val vo: Option[Value] = Operations.doComposeValueDyadic(nominalValue, other.nominalValue)(functions)
     for (v <- vo) yield make(v, f) // CONSIDER what about extra fuzz?
   }
@@ -688,7 +694,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
     (Number.log(this) `divide` Number.log(b)).asNumber.getOrElse(Number.NaN)
 
   /**
-    * An optional Int that corresponds to the nominalValue of this Number (but ignoring the factor).
+    * An optional Int that corresponds to the nominalValue of this Number (but ignoring the representation).
     */
   private lazy val maybeInt: Option[Int] = Value.maybeInt(nominalValue)
 
@@ -701,7 +707,7 @@ abstract class GeneralNumber(val nominalValue: Value, val factor: Factor, val fu
 /**
   * The GeneralNumber object provides utility methods for performing various operations on
   * numbers with particular emphasis on exact, fuzzy, and generalized numeric types.
-  * It aims to handle operations in a flexible way based on the types and factors
+  * It aims to handle operations in a flexible way based on the types and representations
   * associated with numbers.
   */
 object GeneralNumber {
@@ -745,7 +751,7 @@ object GeneralNumber {
   /**
     * Performs the addition operation between two numbers, combining them
     * into a single resultant number as per the mathematical rules defined
-    * by their specific types and factors.
+    * by their specific types and representations.
     *
     * @param x the first number to be added
     * @param y the second number to be added
@@ -757,8 +763,8 @@ object GeneralNumber {
     case z: GeneralNumber =>
       if (y == ExactNumber(Right(0), PureNumber)) x
       else {
-        val (a, b) = z.alignFactors(y)
-        a.factor match {
+        val (a, b) = z.alignRepresentations(y)
+        a.representation match {
           case Logarithmic(_) =>
             plusAligned(a.scale(PureNumber), b.scale(PureNumber))
           case NthRoot(_) =>
@@ -792,11 +798,11 @@ object GeneralNumber {
           n `doMultiply` x
         case z: GeneralNumber =>
           val (p, q) = a.alignTypes(z)
-          (p.factor, q.factor) match {
+          (p.representation, q.representation) match {
             case (Scalar(_), PureNumber) =>
-              doTimes(p, q, p.factor)
+              doTimes(p, q, p.representation)
             case (PureNumber, Scalar(_)) =>
-              doTimes(p, q, q.factor)
+              doTimes(p, q, q.representation)
             case (f: Logarithmic, g: Logarithmic) if f == g =>
               prepareWithSpecialize(p.composeDyadic(q, f)(DyadicOperationPlus))
             case (f: Logarithmic, PureNumber) if q.signum > 0 =>
@@ -804,7 +810,7 @@ object GeneralNumber {
             case (_: Logarithmic, PureNumber) =>
               times(p.scale(PureNumber), q)
             case (NthRoot(m), NthRoot(n)) if m == 2 && n == 2 =>
-              doTimes(p, q, p.factor)
+              doTimes(p, q, p.representation)
             case (NthRoot(_), NthRoot(_)) if p == q =>
               p.make(PureNumber)
             // NOTE see RQRSpec for discussion of this code.
@@ -851,15 +857,15 @@ object GeneralNumber {
 
   /**
     * Computes the product of two `Number` instances, taking into account scaling and multiplication 
-    * factors provided as the parameters `f1` and `f2`. It applies the specified factors to map the 
+    * representations provided as the parameters `f1` and `f2`. It applies the specified representations to map the 
     * multiplication process and returns a new `Number` instance that encapsulates the result.
     *
-    * @param f1 the first factor to be applied to the multiplication operation
+    * @param f1 the first representation to be applied to the multiplication operation
     * @param p  the first operand, represented as a `Number` instance
     * @param q  the second operand, represented as a `Number` instance
-    * @param f2 the second factor to be applied to the multiplication operation
+    * @param f2 the second representation to be applied to the multiplication operation
     */
-  private def product4(f1: Factor, p: Number, q: Number, f2: Factor) =
+  private def product4(f1: Representation, p: Number, q: Number, f2: Representation) =
     f1.multiply(p.nominalValue, q.nominalValue, f2) match {
       case Some((v, f, _)) =>
         p.make(v, f)
@@ -879,8 +885,8 @@ object GeneralNumber {
     if (r.isZero) Number.one
     else if (r.isUnity || x == Number.one) x
     else {
-      x.factor.raise(x.nominalValue, Value.fromRational(r), PureNumber) map protoNumberFunction(x) getOrElse {
-        x.factor match {
+      x.representation.raise(x.nominalValue, Value.fromRational(r), PureNumber) map protoNumberFunction(x) getOrElse {
+        x.representation match {
           case Logarithmic(_) =>
             doTransformValueMonadic(x.nominalValue)(MonadicOperationScale(r).functions) match {
               case Some(v) =>
@@ -951,21 +957,21 @@ object GeneralNumber {
   }
 
   /**
-    * Performs the multiplication operation between two numbers using a given factor.
+    * Performs the multiplication operation between two numbers using a given representation.
     *
     * @param p      the first number to be multiplied
     * @param q      the second number to be multiplied
-    * @param factor an instance of Factor representing specific configuration or scaling rules for the operation
+    * @param representation an instance of Representation representing specific configuration or scaling rules for the operation
     * @return the result of multiplying the two numbers, represented as a Number
     */
-  def doTimes(p: Number, q: Number, factor: Factor): Number = {
+  def doTimes(p: Number, q: Number, representation: Representation): Number = {
 
-    p.factor.multiply(p.nominalValue, q.nominalValue, q.factor).map(protoNumberFunction(p)) getOrElse
-        prepareWithSpecialize(p.composeDyadic(q, factor)(DyadicOperationTimes))
+    p.representation.multiply(p.nominalValue, q.nominalValue, q.representation).map(protoNumberFunction(p)) getOrElse
+        prepareWithSpecialize(p.composeDyadic(q, representation)(DyadicOperationTimes))
   }
 
   /**
-    * Aligns two numbers in terms of their types and factors, and performs addition on them.
+    * Aligns two numbers in terms of their types and representations, and performs addition on them.
     * If one of the numbers is a FuzzyNumber, a specialized addition is delegated to it.
     * Otherwise, their types are aligned for consistent mathematical operations.
     *
@@ -982,7 +988,7 @@ object GeneralNumber {
           n `doAdd` x
         case _ =>
           val (p, q) = a.alignTypes(b)
-          prepareWithSpecialize(p.composeDyadic(q, p.factor)(DyadicOperationPlus))
+          prepareWithSpecialize(p.composeDyadic(q, p.representation)(DyadicOperationPlus))
       }
     case _ =>
       throw CoreException(s"plusAligned: logic error: cannot add $x and $y")

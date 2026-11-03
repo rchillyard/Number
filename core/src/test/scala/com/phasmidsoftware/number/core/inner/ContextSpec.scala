@@ -13,20 +13,20 @@ class ContextSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Context"
   it should "or" in {
-    val factor = NatLog
-    val natLogContext = RestrictedContext(factor)
-    natLogContext.factorQualifies(factor) shouldBe true
-    ImpossibleContext.factorQualifies(factor) shouldBe false
+    val representation = NatLog
+    val natLogContext = RestrictedContext(representation)
+    natLogContext.representationQualifies(representation) shouldBe true
+    ImpossibleContext.representationQualifies(representation) shouldBe false
     val contextOr = natLogContext `or` ImpossibleContext
-    contextOr.factorQualifies(factor) shouldBe true
+    contextOr.representationQualifies(representation) shouldBe true
   }
   it should "and" in {
-    val factor = NatLog
-    val natLogContext = RestrictedContext(factor)
-    natLogContext.factorQualifies(factor) shouldBe true
-    ImpossibleContext.factorQualifies(factor) shouldBe false
+    val representation = NatLog
+    val natLogContext = RestrictedContext(representation)
+    natLogContext.representationQualifies(representation) shouldBe true
+    ImpossibleContext.representationQualifies(representation) shouldBe false
     val contextOr = natLogContext `and` ImpossibleContext
-    contextOr.factorQualifies(factor) shouldBe false
+    contextOr.representationQualifies(representation) shouldBe false
   }
   it should "qualifyingField" in {
     RestrictedContext(NatLog).qualifyingField(Some(Constants.e)) shouldBe Some(Constants.e)
@@ -36,14 +36,14 @@ class ContextSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "not" in {
     val notLogContext = RestrictedContext(NatLog).not
-    notLogContext.factorQualifies(NatLog) shouldBe false
-    notLogContext.factorQualifies(PureNumber) shouldBe true
+    notLogContext.representationQualifies(NatLog) shouldBe false
+    notLogContext.representationQualifies(PureNumber) shouldBe true
   }
   it should "AnyRoot" in {
-    AnyRoot.factorQualifies(NatLog) shouldBe false
-    AnyRoot.factorQualifies(SquareRoot) shouldBe true
-    AnyRoot.factorQualifies(SquareRoot) shouldBe true
-    AnyRoot.factorQualifies(PureNumber) shouldBe false
+    AnyRoot.representationQualifies(NatLog) shouldBe false
+    AnyRoot.representationQualifies(SquareRoot) shouldBe true
+    AnyRoot.representationQualifies(SquareRoot) shouldBe true
+    AnyRoot.representationQualifies(PureNumber) shouldBe false
   }
   it should "AnyLog" in {
 

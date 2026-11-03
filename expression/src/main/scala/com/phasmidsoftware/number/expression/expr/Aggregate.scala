@@ -8,7 +8,7 @@ import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.algebra.util.FP
-import com.phasmidsoftware.number.core.inner.Factor
+import com.phasmidsoftware.number.core.inner.Representation
 import com.phasmidsoftware.number.core.misc.Bumperator
 import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, em}
 import com.phasmidsoftware.number.expression.expr.ExpressionMatchers.componentsSimplifier
@@ -142,14 +142,14 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
   }
 
   /**
-    * Attempts to retrieve a factor based on the provided context.
-    * This method evaluates whether there is an applicable factor within the given context.
+    * Attempts to retrieve a representation based on the provided context.
+    * This method evaluates whether there is an applicable representation within the given context.
     *
-    * @param context the context in which the factor is evaluated.
-    * @return an optional `Factor` if one qualifies under the provided context; otherwise, `None`.
+    * @param context the context in which the representation is evaluated.
+    * @return an optional `Representation` if one qualifies under the provided context; otherwise, `None`.
     */
-  def maybeFactor(context: Context): Option[Factor] =
-    evaluate(context) flatMap (v => v.maybeFactor(context))
+  def maybeRepresentation(context: Context): Option[Representation] =
+    evaluate(context) flatMap (v => v.maybeRepresentation(context))
 
   /**
     * Evaluates the given context to produce an optional field, leveraging the aggregate function

@@ -235,11 +235,11 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     power(that)
 
   /**
-    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+    * Method to determine what `Representation`, if there is such, this `NumberLike` object is based on.
     *
-    * @return an optional `Factor`.
+    * @return an optional `Representation`.
     */
-  lazy val maybeFactor: Option[Factor] =
+  lazy val maybeRepresentation: Option[Representation] =
     Some(PureNumber)
 
   /**
@@ -262,7 +262,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * Method to determine if this NumberLike object is exact.
     * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
-    * @return true if this NumberLike object is exact in the context of No factor, else false.
+    * @return true if this NumberLike object is exact in the context of No representation, else false.
     */
   lazy val isExact: Boolean =
     !(isInfinite || isNaN)

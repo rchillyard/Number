@@ -10,7 +10,7 @@ import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
-import com.phasmidsoftware.number.core.inner.{Factor, Rational}
+import com.phasmidsoftware.number.core.inner.{Rational, Representation}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.*
 import com.phasmidsoftware.number.{algebra, core}
@@ -65,14 +65,20 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
   def rotate: Complex = Complex(complex.rotate)
 
   /**
-    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+    * Method to determine what `Representation`, if there is such, this `NumberLike` object is based on.
     *
     * TODO it's more complicated than this!
-    * CONSIDER having a Complex sub-type of Factor.
+    * CONSIDER having a Complex sub-type of Representation.
     *
-    * @return an optional `Factor`.
+    * @return an optional `Representation`.
     */
-  def maybeFactor: Option[Factor] = complex.maybeFactor
+  def maybeRepresentation: Option[Representation] = complex.maybeRepresentation
+
+  /**
+    * Deprecated: use `maybeRepresentation` instead (renamed in version 1.11.0).
+    */
+  @deprecated("Use maybeRepresentation", since = "1.11.0")
+  def maybeFactor: Option[Representation] = maybeRepresentation
 
   /**
     * Method to add this Complex to another Complex.
@@ -179,15 +185,15 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
   def isExact: Boolean = complex.isExact
 
   /**
-    * Optionally retrieves a factor associated with this `Valuable` if one exists (this is a Scalar).
+    * Optionally retrieves a representation associated with this `Valuable` if one exists (this is a Scalar).
     *
-    * Factors are components or divisors related to the numerical value represented 
-    * by this `Valuable`. If no such factor exists or is applicable, the result will 
+    * A `Representation` says how the nominal value is to be interpreted (for example, `PureNumber` or `Radian`).
+    * If no such representation exists or is applicable, the result will 
     * be `None`.
     *
-    * @return an `Option` containing the `Factor` if available, otherwise `None`.
+    * @return an `Option` containing the `Representation` if available, otherwise `None`.
     */
-  def maybeFactor(context: Context): Option[Factor] = complex.maybeFactor
+  def maybeRepresentation(context: Context): Option[Representation] = complex.maybeRepresentation
 
   /**
     * If this `Solution` can be represented as a `Structure`, return it wrapped in `Some`, otherwise return `None`.
@@ -255,7 +261,7 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
   def approximation(force: Boolean): Option[eager.Real] =
     FP.whenever(complex.isReal) {
       val modulus: Number = complex.modulus
-      Scalar.createScalar(modulus.nominalValue, modulus.factor, modulus.fuzz).approximation(force)
+      Scalar.createScalar(modulus.nominalValue, modulus.representation, modulus.fuzz).approximation(force)
     }
 }
 

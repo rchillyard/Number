@@ -67,7 +67,7 @@ Number is organized into multiple modules, each with a specific purpose:
 
 ```
 Number (root)
-├── core        - Legacy numeric types (Rational, Factor, Fuzz, etc.)
+├── core        - Legacy numeric types (Rational, Representation, Fuzz, etc.)
 ├── algebra     - Modern algebraic structures based on Cats typeclasses
 ├── expression  - Lazy expression evaluation
 ├── parse       - Parsing facilities for expressions and algebraic structures
@@ -90,7 +90,7 @@ The `dimensions` module depends on `algebra` and `core`.
 
 3. **Symbolic computation**: Mathematical constants like π, e, √2 are kept symbolic until materialization is requested
 
-4. **Factor systems**: Different numeric domains (roots, logarithms, angles) are represented through factors
+4. **Representation systems**: Different numeric domains (roots, logarithms, angles) are represented through representations
 
 ## Coding Conventions
 
@@ -253,13 +253,13 @@ If expressions aren't simplifying as expected:
    println(normalized.render)
    ```
 
-### Debugging Factor Systems
+### Debugging Representation Systems
 
-When working with factors (roots, logarithms, etc.):
+When working with representations (roots, logarithms, etc.):
 
 ```scala
 val num = Number(2, Root(2)) // √2
-println(num.factor) // See the factor
+println(num.representation) // See the representation
 println(num.value) // See the underlying value
 ```
 

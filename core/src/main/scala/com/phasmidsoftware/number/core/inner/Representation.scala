@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.inner
 
-import com.phasmidsoftware.number.core.inner.Factor.{composeDyadic, sPercent}
+import com.phasmidsoftware.number.core.inner.Representation.{composeDyadic, sPercent}
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Rational.{cubeRoots, squareRoots, toIntOption}
 import com.phasmidsoftware.number.core.inner.Value.{fromDouble, scaleDouble, valueToString}
@@ -15,20 +15,23 @@ import scala.annotation.unused
 import scala.util.*
 
 /**
-  * Represents a factor type used for evaluations, conversions, and rendering in a specific context.
+  * A Representation says how the nominal value of a number is to be interpreted:
+  * as a plain number, a multiple of π, a logarithm, a root, and so on.
+  * It is used for evaluations, conversions, and rendering in a specific context.
   *
-  * CONSIDER defining an imaginary (or Complex) subclass of Factor.
-  * CONSIDER renaming this trait as Domain.
+  * NOTE this trait was called Factor before version 1.11.0 (Factor is now a deprecated alias).
   *
-  * This trait serves as a foundation for different kinds of factors and provides functionality such as:
-  * - Determining whether the factor is additive.
-  * - Checking if the factor meets certain conditions within a specific context.
-  * - Performing conversions of values between compatible factors.
-  * - Rendering values in the context of the factor.
+  * CONSIDER defining an imaginary (or Complex) subclass of Representation.
+  *
+  * This trait serves as a foundation for different kinds of representations and provides functionality such as:
+  * - Determining whether the representation is additive.
+  * - Checking if the representation meets certain conditions within a specific context.
+  * - Performing conversions of values between compatible representations.
+  * - Rendering values in the context of the representation.
   */
-sealed trait Factor {
+sealed trait Representation {
   /**
-    * A value which can be used to convert a value associated with this Factor to a different Factor.
+    * A value which can be used to convert a value associated with this Representation to a different Representation.
     * CONSIDER redefining this as a Number (which could be exact or fuzzy).
     */
   val value: Double
@@ -41,26 +44,26 @@ sealed trait Factor {
   def isExact: Boolean
 
   /**
-    * Determines whether the current factor can be augmented by the given factor.
+    * Determines whether the current representation can be augmented by the given representation.
     * CONSIDER do we need this method now that we have add(x, y, this)?
     *
-    * @param f the factor to be checked for compatibility with addition.
-    * @return true if the factors can be added; false otherwise.
+    * @param f the representation to be checked for compatibility with addition.
+    * @return true if the representations can be added; false otherwise.
     */
-  def canAdd(f: Factor): Boolean =
+  def canAdd(f: Representation): Boolean =
     f == this
 
   /**
-    * Determines whether the current factor can be multiplied by the given factor.
+    * Determines whether the current representation can be multiplied by the given representation.
     * CONSIDER do we need this method now that we have multiply(x, y, this)?
     *
-    * @param f the factor to be checked for compatibility with multiplication.
-    * @return true if the factors can be multiplied; false otherwise.
+    * @param f the representation to be checked for compatibility with multiplication.
+    * @return true if the representations can be multiplied; false otherwise.
     */
-  def canMultiply(f: Factor): Boolean
+  def canMultiply(f: Representation): Boolean
 
   /**
-    * Modulates the given value according to the context or rules defined by this factor.
+    * Modulates the given value according to the context or rules defined by this representation.
     *
     * @param v the value to be modulated
     * @return the modulated value
@@ -68,13 +71,13 @@ sealed trait Factor {
   def modulate(v: Value): Value
 
   /**
-    * Determines whether `this` factor can be raised by the given factor `f`.
+    * Determines whether `this` representation can be raised by the given representation `f`.
     * CONSIDER do we need this method now that we have raise(x, y, this)?
     *
-    * @param f the factor to be checked for compatibility with raising to a power.
-    * @return true if the factors can be powered; false otherwise.
+    * @param f the representation to be checked for compatibility with raising to a power.
+    * @return true if the representations can be powered; false otherwise.
     */
-  def canRaise(f: Factor, @unused exponent: Field): Boolean = f match {
+  def canRaise(f: Representation, @unused exponent: Field): Boolean = f match {
     case PureNumber =>
       true
     case Radian =>
@@ -86,43 +89,43 @@ sealed trait Factor {
   }
 
   /**
-    * Determines if the current factor operates additively.
+    * Determines if the current representation operates additively.
     *
     * CONSIDER rewriting in terms of canAdd
     *
-    * @return true if the factor is additive; false otherwise.
+    * @return true if the representation is additive; false otherwise.
     */
   def isAdditive: Boolean
 
   /**
-    * Determines if the current factor satisfies certain conditions within the given context.
+    * Determines if the current representation satisfies certain conditions within the given context.
     *
-    * @param context the context in which the factor is evaluated.
-    * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
+    * @param context the context in which the representation is evaluated.
+    * @return a Boolean indicating whether the representation satisfies the specified conditions in the given context.
     */
   def isA(context: CoreContext): Boolean
 
   /**
-    * Convert a value x from this factor to f if possible, using the simplest possible mechanism.
-    * If the factors are incompatible, then None will be returned.
+    * Convert a value x from this representation to f if possible, using the simplest possible mechanism.
+    * If the representations are incompatible, then None will be returned.
     *
     * NOTE: only Scalar<->Scalar, NthRoot<->NthRoot or Logarithmic<->Logarithmic conversions can be effected.
     *
     * @param v the value to be converted.
-    * @param f the factor of the result.
-    * @return an optional Value which, given factor f, represents the same quantity as v given this.
+    * @param f the representation of the result.
+    * @return an optional Value which, given representation f, represents the same quantity as v given this.
     */
-  def convert(v: Value, f: Factor): Option[Value]
+  def convert(v: Value, f: Representation): Option[Value]
 
   /**
-    * Determines whether given `value` with this `Factor` can be rendered exactly.
+    * Determines whether given `value` with this `Representation` can be rendered exactly.
     *
-    * @return true if this `Factor` can be rendered exactly; false otherwise.
+    * @return true if this `Representation` can be rendered exactly; false otherwise.
     */
   def canShow(value: Value): Boolean
 
   /**
-    * Method to render a Value in the context of this Factor.
+    * Method to render a Value in the context of this Representation.
     *
     * @param x the Value.
     * @return a String.
@@ -131,7 +134,7 @@ sealed trait Factor {
     render(valueToString(x, skipOne = false))
 
   /**
-    * Method to render a Value (which has already been converted to a String) in the context of this Factor.
+    * Method to render a Value (which has already been converted to a String) in the context of this Representation.
     *
     * @param v a String representing the Value.
     * @return a String.
@@ -142,7 +145,7 @@ sealed trait Factor {
   // or possibly with an additional member in the result defining any additional fuzz.
 
   /**
-    * Computes the negation of the given value `x` within the context of this factor.
+    * Computes the negation of the given value `x` within the context of this representation.
     *
     * @param x the value to negate
     * @return an optional `ProtoNumber` representing the negated value, or `None` if the operation is not valid
@@ -159,37 +162,37 @@ sealed trait Factor {
   def invert(x: Value): Option[ProtoNumber]
 
   /**
-    * Attempts to add two values together (each based on `this Factor`) and computes an appropriate factor for the result.
+    * Attempts to add two values together (each based on `this Representation`) and computes an appropriate representation for the result.
     *
     * @param x        the first value
     * @param y        the addend
-    * @param f        the factor associated with y
-    * @param negative true if the y value has negative sense (this is relevant for some factors such as SquareRoot).
-    * @return an optional tuple containing the resultant value and its factor
+    * @param f        the representation associated with y
+    * @param negative true if the y value has negative sense (this is relevant for some representations such as SquareRoot).
+    * @return an optional tuple containing the resultant value and its representation
     */
-  def add(x: Value, y: Value, f: Factor, negative: Boolean = false): Option[ProtoNumber]
+  def add(x: Value, y: Value, f: Representation, negative: Boolean = false): Option[ProtoNumber]
 
   /**
-    * Multiplies two values together and computes an appropriate factor for the result.
+    * Multiplies two values together and computes an appropriate representation for the result.
     *
     * @param x the first value
     * @param y the multiplicand
-    * @param f the factor associated with y
-    * @return an optional tuple containing the resultant value and its factor
+    * @param f the representation associated with y
+    * @return an optional tuple containing the resultant value and its representation
     */
-  def multiply(x: Value, y: Value, f: Factor): Option[ProtoNumber]
+  def multiply(x: Value, y: Value, f: Representation): Option[ProtoNumber]
 
   /**
-    * Raises x to the power of y and compute an appropriate factor for the result.
+    * Raises x to the power of y and compute an appropriate representation for the result.
     * NOTE: for now, we only allow raising to a power of a PureNumber.
-    * TODO: enable powers of Radian factor.
+    * TODO: enable powers of Radian representation.
     *
     * @param x the first value
     * @param y the power
-    * @param f the factor associated with y
-    * @return an optional tuple containing the resultant value and its factor
+    * @param f the representation associated with y
+    * @return an optional tuple containing the resultant value and its representation
     */
-  def raise(x: Value, y: Value, f: Factor): Option[ProtoNumber] =
+  def raise(x: Value, y: Value, f: Representation): Option[ProtoNumber] =
     (this, f) match {
       case (_, PureNumber) =>
         clean(doRaiseByPureNumber(x, y))
@@ -239,23 +242,23 @@ sealed trait Factor {
 }
 
 /**
-  * Trait to define a Factor which is a scalar (something that can be scaled by a pure number).
+  * Trait to define a Representation which is a scalar (something that can be scaled by a pure number).
   */
-sealed trait Scalar extends Factor {
+sealed trait Scalar extends Representation {
   /**
-    * Determines whether given `value` with this `Factor` can be rendered exactly.
+    * Determines whether given `value` with this `Representation` can be rendered exactly.
     *
     * @return true (value is ignored).
     */
   def canShow(value: Value): Boolean = true
 
   /**
-    * Determines whether the current factor can be multiplied by the given factor.
+    * Determines whether the current representation can be multiplied by the given representation.
     *
-    * @param f the factor to be checked for compatibility with multiplication.
-    * @return true if the factors can be multiplied; false otherwise.
+    * @param f the representation to be checked for compatibility with multiplication.
+    * @return true if the representations can be multiplied; false otherwise.
     */
-  def canMultiply(f: Factor): Boolean = f match {
+  def canMultiply(f: Representation): Boolean = f match {
     case _: Scalar =>
       true
     case _ =>
@@ -263,30 +266,30 @@ sealed trait Scalar extends Factor {
   }
 
   /**
-    * Determines if the current factor operates additively.
+    * Determines if the current representation operates additively.
     *
-    * @return true if the factor is additive; false otherwise.
+    * @return true if the representation is additive; false otherwise.
     */
   lazy val isAdditive: Boolean = true
 
   /**
-    * Determines if the current factor satisfies certain conditions within the given context.
+    * Determines if the current representation satisfies certain conditions within the given context.
     *
-    * @param context the context in which the factor is evaluated.
-    * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
+    * @param context the context in which the representation is evaluated.
+    * @return a Boolean indicating whether the representation satisfies the specified conditions in the given context.
     */
   def isA(context: CoreContext): Boolean =
-    context.factorQualifies(this)
+    context.representationQualifies(this)
 
   /**
-    * Convert a value x from this factor to f if possible, using simple scaling.
+    * Convert a value x from this representation to f if possible, using simple scaling.
     * Result is defined only if f is a Scalar.
     *
     * @param v the value to be converted.
-    * @param f the factor of the result.
-    * @return a Try of Value which, given factor f, represents the same quantity as x given this.
+    * @param f the representation of the result.
+    * @return a Try of Value which, given representation f, represents the same quantity as x given this.
     */
-  def convert(v: Value, f: Factor): Option[Value] = f match {
+  def convert(v: Value, f: Representation): Option[Value] = f match {
     case Scalar(z) =>
       Some(fromDouble(Value.maybeDouble(v) map (x => scaleDouble(x, this.value, z))))
     case _ =>
@@ -304,22 +307,22 @@ sealed trait Scalar extends Factor {
     for {v <- Operations.doTransformValueMonadic(x)(MonadicOperationNegate.functions)} yield (v, this, None)
 
   /**
-    * Adds two values together, applying the specified factor, to compute a resultant value and factor.
+    * Adds two values together, applying the specified representation, to compute a resultant value and representation.
     *
     * TODO handle the negative cases properly
     *
     * @param x        the first value to be added
     * @param y        the second value (addend) to be added
-    * @param f        the factor associated with the operation
+    * @param f        the representation associated with the operation
     * @param negative NOTE ignored.
-    * @return an optional tuple containing the resultant value, its factor, and optional fuzziness,
-    *         or None if the operation cannot be performed under the given factor
+    * @return an optional tuple containing the resultant value, its representation, and optional fuzziness,
+    *         or None if the operation cannot be performed under the given representation
     */
-  def add(x: Value, y: Value, f: Factor, negative: Boolean): Option[ProtoNumber] =
+  def add(x: Value, y: Value, f: Representation, negative: Boolean): Option[ProtoNumber] =
     (this, f) match {
       case (_: PureNumber.type, _: PureNumber.type) =>
         for {
-          v <- Factor.composeDyadic(x, y)(DyadicOperationPlus)
+          v <- Representation.composeDyadic(x, y)(DyadicOperationPlus)
         } yield (v, this, None)
       case (a: PureNumber.type, b: Scalar) if b.isExact =>
         b.convert(y, a) flatMap (v => a.add(x, v, PureNumber, negative))
@@ -341,12 +344,12 @@ object Scalar {
 }
 
 /**
-  * Trait to define a `Factor` which indicates that the true value of a Number with this `Factor`
+  * Trait to define a `Representation` which indicates that the true value of a Number with this `Representation`
   * is the base raised to the power of the (nominal) `Value`.
   */
-sealed trait Logarithmic extends Factor {
+sealed trait Logarithmic extends Representation {
   /**
-    * This is a `String` representation of the base of the logarithm used for this `Factor`.
+    * This is a `String` representation of the base of the logarithm used for this `Representation`.
     */
   val base: String
 
@@ -359,48 +362,48 @@ sealed trait Logarithmic extends Factor {
   def modulate(v: Value): Value = v
 
   /**
-    * Determines whether given `value` with this `Factor` can be rendered exactly.
+    * Determines whether given `value` with this `Representation` can be rendered exactly.
     *
-    * @return true if this `Factor` can be rendered exactly; false otherwise.
+    * @return true if this `Representation` can be rendered exactly; false otherwise.
     */
   def canShow(value: Value): Boolean =
     asPower(value).isDefined
 
   /**
-    * Determines whether the current factor can be multiplied by the given factor.
+    * Determines whether the current representation can be multiplied by the given representation.
     *
     * TODO implement me properly
     *
-    * @param f the factor to be checked for compatibility with multiplication.
-    * @return true if the factors can be multiplied; false otherwise.
+    * @param f the representation to be checked for compatibility with multiplication.
+    * @return true if the representations can be multiplied; false otherwise.
     */
-  def canMultiply(f: Factor): Boolean = false
+  def canMultiply(f: Representation): Boolean = false
 
   /**
-    * Determines if the current factor operates additively.
+    * Determines if the current representation operates additively.
     *
     * @return false.
     */
   lazy val isAdditive: Boolean = false
 
   /**
-    * Determines if the current factor satisfies certain conditions within the given context.
+    * Determines if the current representation satisfies certain conditions within the given context.
     *
-    * @param context the context in which the factor is evaluated.
-    * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
+    * @param context the context in which the representation is evaluated.
+    * @return a Boolean indicating whether the representation satisfies the specified conditions in the given context.
     */
   def isA(context: CoreContext): Boolean =
-    context.factorQualifies(this)
+    context.representationQualifies(this)
 
   /**
-    * Convert a value x from this factor to f if possible, using simple scaling.
+    * Convert a value x from this representation to f if possible, using simple scaling.
     * Result is defined only if f is Logarithmic.
     *
     * @param v the value to be converted.
-    * @param f the factor of the result.
-    * @return a Try of Value which, given factor f, represents the same quantity as x given this.
+    * @param f the representation of the result.
+    * @return a Try of Value which, given representation f, represents the same quantity as x given this.
     */
-  def convert(v: Value, f: Factor): Option[Value] = f match {
+  def convert(v: Value, f: Representation): Option[Value] = f match {
     case l@Logarithmic(_) =>
       Some(fromDouble(Value.maybeDouble(v) map (x => scaleDouble(x, this.value, l.value))))
     case _ =>
@@ -456,7 +459,7 @@ sealed trait Logarithmic extends Factor {
   def render(v: String): String = base + "∧" + v
 
   /**
-    * Inverts the given value by raising it to the power of -1, using a pure number factor.
+    * Inverts the given value by raising it to the power of -1, using a pure number representation.
     *
     * @param x the value to be inverted
     * @return an optional result of type `ProtoNumber`, representing the inverted value if the operation is valid, or `None` otherwise
@@ -473,28 +476,28 @@ sealed trait Logarithmic extends Factor {
   def negate(x: Value): Option[ProtoNumber] = None
 
   /**
-    * Adds two values together and computes an appropriate factor for the result.
+    * Adds two values together and computes an appropriate representation for the result.
     *
     * @param x        the first value
     * @param y        the addend
-    * @param f        the factor associated with y
+    * @param f        the representation associated with y
     * @param negative NOTE ignored.
-    * @return an optional tuple containing the resultant value and its factor
+    * @return an optional tuple containing the resultant value and its representation
     */
-  def add(x: Value, y: Value, f: Factor, negative: Boolean): Option[ProtoNumber] = None
+  def add(x: Value, y: Value, f: Representation, negative: Boolean): Option[ProtoNumber] = None
 
   /**
-    * Multiplies two values together and computes an appropriate factor for the result.
+    * Multiplies two values together and computes an appropriate representation for the result.
     * TODO implement for Log10
     *
     * @param x the first value
     * @param y the multiplicand
-    * @param f the factor associated with y
-    * @return an optional tuple containing the resultant value and its factor
+    * @param f the representation associated with y
+    * @return an optional tuple containing the resultant value and its representation
     */
-  def multiply(x: Value, y: Value, f: Factor): Option[ProtoNumber] = this match {
+  def multiply(x: Value, y: Value, f: Representation): Option[ProtoNumber] = this match {
     case `f` =>
-      clean(for {v <- Factor.composeDyadic(x, y)(DyadicOperationPlus)} yield (v, this, None))
+      clean(for {v <- Representation.composeDyadic(x, y)(DyadicOperationPlus)} yield (v, this, None))
     case Logarithmic("2") =>
       clean(for {
         a <- Value.maybeRational(x)
@@ -506,14 +509,14 @@ sealed trait Logarithmic extends Factor {
   }
 
   /**
-    * Converts a given Rational number to an optional logarithmic representation based on the provided base and factor.
+    * Converts a given Rational number to an optional logarithmic representation based on the provided base and representation.
     *
     * @param b    the input rational number to be converted.
     * @param base the base of the logarithm, such as "2".
-    * @param f    the factor indicating whether the conversion is logarithmic or a pure number.
+    * @param f    the representation indicating whether the conversion is logarithmic or a pure number.
     * @return an Option containing the converted rational value if successful, or None otherwise.
     */
-  private def convertRationalToMaybeLog(b: Rational, base: String, f: Factor): Option[Rational] = f match {
+  private def convertRationalToMaybeLog(b: Rational, base: String, f: Representation): Option[Rational] = f match {
     case Logarithmic(`base`) =>
       Some(b)
     case PureNumber =>
@@ -541,7 +544,7 @@ sealed trait Logarithmic extends Factor {
     *         representing the computed value if the operation is valid, or `None` otherwise
     */
   def doRaiseByPureNumber(x: Value, y: Value): Option[ProtoNumber] =
-    for {v <- Factor.composeDyadic(x, y)(DyadicOperationTimes)} yield (v, this, None)
+    for {v <- Representation.composeDyadic(x, y)(DyadicOperationTimes)} yield (v, this, None)
 }
 
 /**
@@ -575,17 +578,17 @@ object Logarithmic {
 }
 
 /**
-  * A sealed trait extending the `Factor` trait, representing a mathematical root-based factorization.
+  * A sealed trait extending the `Representation` trait, representing a root (such as a square root or cube root).
   *
-  * This trait provides mechanisms to convert values associated with one root-based factor
+  * This trait provides mechanisms to convert values associated with one root-based representation
   * to another, when such conversions are mathematically possible.
   */
-sealed trait InversePower extends Factor {
+sealed trait InversePower extends Representation {
 
   /**
-    * Retrieves the root degree represented by this factor.
+    * Retrieves the root degree represented by this representation.
     *
-    * The root degree indicates the mathematical nth root applicable to this factor.
+    * The root degree indicates the mathematical nth root applicable to this representation.
     * For instance, a root degree of 2 represents a square root, a root degree of 3
     * represents a cube root, and so on.
     *
@@ -594,7 +597,7 @@ sealed trait InversePower extends Factor {
   def inversePower: Rational
 
   /**
-    * A value which can be used to convert a value associated with this Factor to a different Factor.
+    * A value which can be used to convert a value associated with this Representation to a different Representation.
     */
   val value: Double = inversePower.toDouble
 
@@ -614,7 +617,7 @@ sealed trait InversePower extends Factor {
   def asRoot(value: Value): Option[String]
 
   /**
-    * Modulates the given value according to the context or rules defined by this factor.
+    * Modulates the given value according to the context or rules defined by this representation.
     *
     * @param v the value to be modulated
     * @return the modulated value
@@ -622,9 +625,9 @@ sealed trait InversePower extends Factor {
   def modulate(v: Value): Value = v
 
   /**
-    * Determines whether given `value` with this `Factor` can be rendered exactly.
+    * Determines whether given `value` with this `Representation` can be rendered exactly.
     *
-    * @return true if this `Factor` can be rendered exactly; false otherwise.
+    * @return true if this `Representation` can be rendered exactly; false otherwise.
     */
   def canShow(value: Value): Boolean =
     asRoot(value).isDefined
@@ -645,7 +648,7 @@ sealed trait InversePower extends Factor {
   def render(x: String): String = toString
 
   /**
-    * Method to render a Value in the context of this Factor.
+    * Method to render a Value in the context of this Representation.
     *
     * @param x the Value.
     * @return a String.
@@ -678,7 +681,7 @@ sealed trait InversePower extends Factor {
       } yield Rational(k, l)
     q match {
       case Some(x) =>
-        val factor =
+        val representation =
           (r, divisor) match {
             case (Rational.four, 2) => SquareRoot
             case (Rational.nine, 3) => CubeRoot
@@ -687,7 +690,7 @@ sealed trait InversePower extends Factor {
             case (_, 1) => AnyRoot(r) // NOTE: actually, this is impossible
             case _ => throw CoreException("simplifyRoot: unimplemented case: $r, $divisor")
           }
-        clean(Some((Value.fromRational(x), factor, p._3)))
+        clean(Some((Value.fromRational(x), representation, p._3)))
       case None =>
         (r, divisor) match {
           case (Rational.two, 2) => Some((v, SquareRoot, p._3))
@@ -698,7 +701,7 @@ sealed trait InversePower extends Factor {
   }
 
   /**
-    * Inverts the given value by raising it to the power of -1, using a pure number factor.
+    * Inverts the given value by raising it to the power of -1, using a pure number representation.
     *
     * @param x the value to be inverted
     * @return an optional result of type `ProtoNumber`,
@@ -709,34 +712,34 @@ sealed trait InversePower extends Factor {
 
   /**
     * Negates the given value and computes an appropriate output tuple.
-    * The computation may include a value, its associated factor, and an optional fuzziness.
+    * The computation may include a value, its associated representation, and an optional fuzziness.
     *
     * @param x the value to be negated
-    * @return an optional tuple containing the negated value, its factor,
+    * @return an optional tuple containing the negated value, its representation,
     *         and an optional fuzziness; `None` if the operation is not applicable
     */
   def negate(x: Value): Option[ProtoNumber] = None
 
   /**
-    * Adds two values together and computes an appropriate factor for the result.
+    * Adds two values together and computes an appropriate representation for the result.
     *
     * @param x        the first value
     * @param y        the addend
-    * @param f        the factor associated with y
+    * @param f        the representation associated with y
     * @param negative NOTE ignored.
-    * @return an optional tuple containing the resultant value and its factor
+    * @return an optional tuple containing the resultant value and its representation
     */
-  def add(x: Value, y: Value, f: Factor, negative: Boolean): Option[ProtoNumber] = None
+  def add(x: Value, y: Value, f: Representation, negative: Boolean): Option[ProtoNumber] = None
 
   /**
-    * Multiplies two values together and computes an appropriate factor for the result.
+    * Multiplies two values together and computes an appropriate representation for the result.
     *
     * @param x the first value
     * @param y the multiplicand
-    * @param f the factor associated with y
-    * @return an optional tuple containing the resultant value and its factor
+    * @param f the representation associated with y
+    * @return an optional tuple containing the resultant value and its representation
     */
-  def multiply(x: Value, y: Value, f: Factor): Option[ProtoNumber] =
+  def multiply(x: Value, y: Value, f: Representation): Option[ProtoNumber] =
     (this, f) match {
       case (NthRoot(r), PureNumber) =>
         clean(for {
@@ -760,14 +763,14 @@ sealed trait InversePower extends Factor {
     *
     * This method computes the product of the rational representations of `x` and `y`, each raised
     * to their specified root degrees (`r` and `s` respectively). The result is wrapped with an associated
-    * factor and optional additional information if the operation is valid. The method ensures that the
+    * representation and optional additional information if the operation is valid. The method ensures that the
     * input values are positive and can be represented rationally.
     *
     * @param x the first value to be multiplied
     * @param r the root degree of the first value
     * @param y the second value to be multiplied
     * @param s the root degree of the second value
-    * @return an optional tuple containing the resultant value, its associated factor, and optional metadata;
+    * @return an optional tuple containing the resultant value, its associated representation, and optional metadata;
     *         `None` if the values are not positive or cannot be represented rationally
     */
   def multiplyRootValues(x: Value, r: Int, y: Value, s: Int): Option[ProtoNumber] =
@@ -799,7 +802,7 @@ sealed trait InversePower extends Factor {
         i <- z.maybeInt
       } yield (x, AnyRoot(Rational(i)), None)
     case _ =>
-      throw CoreException(s"doRaiseByPureNumber: unexpected factor: $this")
+      throw CoreException(s"doRaiseByPureNumber: unexpected representation: $this")
   }
 
   /**
@@ -823,20 +826,20 @@ sealed trait InversePower extends Factor {
     } yield s) map ("i" + _)
 
   /**
-    * Determines if the current factor operates additively.
+    * Determines if the current representation operates additively.
     *
     * @return false.
     */
   def isAdditive: Boolean = false
 
   /**
-    * Determines if the current factor satisfies certain conditions within the given context.
+    * Determines if the current representation satisfies certain conditions within the given context.
     *
-    * @param context the context in which the factor is evaluated.
-    * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
+    * @param context the context in which the representation is evaluated.
+    * @return a Boolean indicating whether the representation satisfies the specified conditions in the given context.
     */
   def isA(context: CoreContext): Boolean =
-    context.factorQualifies(this)
+    context.representationQualifies(this)
 }
 
 /**
@@ -858,7 +861,7 @@ object InversePower {
 /**
   * Represents an abstract base class for mathematical root operations by extending `InversePower`.
   *
-  * A number with value `x` and factor `InversePower(n)` represents the `nth` root of `x` where `n` is a `Rational`.
+  * A number with value `x` and representation `InversePower(n)` represents the `nth` root of `x` where `n` is a `Rational`.
   * For example, `ExactNumber(5, SquareRoot)` is the square root of 5, where `SquareRoot` is an alias for `NthRoot(2)`.
   *
   * The `NthRoot` class encapsulates the concept of a mathematical `nth` root and provides
@@ -872,9 +875,9 @@ object InversePower {
 abstract class NthRoot(val n: Int) extends InversePower {
 
   /**
-    * Retrieves the root degree represented by this factor in the form of a Rational.
+    * Retrieves the root degree represented by this representation in the form of a Rational.
     *
-    * The root degree indicates the mathematical `nth` root applicable to this factor.
+    * The root degree indicates the mathematical `nth` root applicable to this representation.
     * For instance, a root degree of 2 represents a square root, a root degree of 3
     * represents a cube root, and so on.
     *
@@ -883,15 +886,15 @@ abstract class NthRoot(val n: Int) extends InversePower {
   def inversePower: Rational = Rational(n)
 
   /**
-    * Converts a given Value `v` from one Factor `this` to another Factor `f`, if possible.
-    * Specifically handles cases where the target factor `f` is of type NthRoot.
+    * Converts a given Value `v` from one Representation `this` to another Representation `f`, if possible.
+    * Specifically handles cases where the target representation `f` is of type NthRoot.
     *
     * @param v the value to be converted.
-    * @param f the target factor for the conversion.
-    * @return an optional Value which represents the same quantity as `v` under the factor `f`, or `None` if the
+    * @param f the target representation for the conversion.
+    * @return an optional Value which represents the same quantity as `v` under the representation `f`, or `None` if the
     *         conversion is not possible.
     */
-  def convert(v: Value, f: Factor): Option[Value] = f match {
+  def convert(v: Value, f: Representation): Option[Value] = f match {
     case NthRoot(z) =>
       val po = this.raise(v, Value.fromRational(Rational(z, n)), PureNumber)
       (po map {
@@ -907,12 +910,12 @@ abstract class NthRoot(val n: Int) extends InversePower {
   }
 
   /**
-    * Determines whether the current factor can be raised by the given factor.
+    * Determines whether the current representation can be raised by the given representation.
     *
-    * @param f the factor to be checked for compatibility with raising to a power.
-    * @return true if the factors can be powered; false otherwise.
+    * @param f the representation to be checked for compatibility with raising to a power.
+    * @return true if the representations can be powered; false otherwise.
     */
-  override def canRaise(f: Factor, exponent: Field): Boolean = f match {
+  override def canRaise(f: Representation, exponent: Field): Boolean = f match {
     case PureNumber =>
       exponent match {
         case Real(z: Number) if z.isInteger =>
@@ -925,14 +928,14 @@ abstract class NthRoot(val n: Int) extends InversePower {
   }
 
   /**
-    * Determines whether the current factor can be multiplied by the given factor.
+    * Determines whether the current representation can be multiplied by the given representation.
     *
     * TODO check the logic here
     *
-    * @param f the factor to be checked for compatibility with multiplication.
-    * @return true if the factors can be multiplied; false otherwise.
+    * @param f the representation to be checked for compatibility with multiplication.
+    * @return true if the representations can be multiplied; false otherwise.
     */
-  def canMultiply(f: Factor): Boolean = f match {
+  def canMultiply(f: Representation): Boolean = f match {
     case x: NthRoot =>
       x.n == this.n
     case _ =>
@@ -959,7 +962,7 @@ object NthRoot {
 
 /**
   * A case object representing the pure number 1.
-  * `PureNumber` extends the `Scalar` trait and behaves as a unit scalar factor.
+  * `PureNumber` extends the `Scalar` trait and behaves as a unit scalar representation.
   *
   * CONSIDER expanding to include a DecimalNumber as well as a PureNumber (which logically should be represented in binary).
   * Just because we can represent something exactly in binary doesn't mean we can represent it in decimal (and vice versa).
@@ -981,13 +984,13 @@ case object PureNumber extends Scalar {
   def isExact: Boolean = true
 
   /**
-    * Determines if the current factor satisfies certain conditions within the given context.
+    * Determines if the current representation satisfies certain conditions within the given context.
     *
-    * @param context the context in which the factor is evaluated.
-    * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
+    * @param context the context in which the representation is evaluated.
+    * @return a Boolean indicating whether the representation satisfies the specified conditions in the given context.
     */
   override def isA(context: CoreContext): Boolean =
-    context.factorQualifies(this)
+    context.representationQualifies(this)
 
   override def toString: String = ""
 
@@ -1018,16 +1021,16 @@ case object PureNumber extends Scalar {
     for {v <- Operations.doTransformValueMonadic(x)(MonadicOperationInvert.functions)} yield (v, this, None)
 
   /**
-    * Multiplies two values together and computes an appropriate factor for the result.
+    * Multiplies two values together and computes an appropriate representation for the result.
     *
     * @param x the first value
     * @param y the multiplicand
-    * @param f the factor associated with y
-    * @return an optional tuple containing the resultant value and its factor
+    * @param f the representation associated with y
+    * @return an optional tuple containing the resultant value and its representation
     */
-  def multiply(x: Value, y: Value, f: Factor): Option[ProtoNumber] =
+  def multiply(x: Value, y: Value, f: Representation): Option[ProtoNumber] =
     if (this == f)
-      clean(for {v <- Factor.composeDyadic(x, y)(DyadicOperationTimes)} yield (v, f, None))
+      clean(for {v <- Representation.composeDyadic(x, y)(DyadicOperationTimes)} yield (v, f, None))
     else
       f.multiply(y, x, this)
 
@@ -1049,18 +1052,18 @@ case object PureNumber extends Scalar {
         clean(Some((x, AnyRoot(r), None)))
       case _ =>
         for {
-          v <- Factor.composeDyadic(x, y)(DyadicOperationPower)
+          v <- Representation.composeDyadic(x, y)(DyadicOperationPower)
         } yield (v, this, None)
     }
 }
 
 /**
   * The `Percent` object represents the percentage scalar.
-  * It serves as a factor for scaling values, interpreting them as percentages.
+  * It serves as a representation for scaling values, interpreting them as percentages.
   */
 case object Percent extends Scalar {
   /**
-    * A value which can be used to convert a value associated with this Factor to a different Factor.
+    * A value which can be used to convert a value associated with this Representation to a different Representation.
     * CONSIDER redefining this as a Number (which could be exact or fuzzy).
     */
   val value: Double = 0.01
@@ -1073,7 +1076,7 @@ case object Percent extends Scalar {
   def isExact: Boolean = true
 
   /**
-    * Modulates the given value according to the context or rules defined by this factor.
+    * Modulates the given value according to the context or rules defined by this representation.
     *
     * @param v the value to be modulated
     * @return the modulated value
@@ -1081,7 +1084,7 @@ case object Percent extends Scalar {
   def modulate(v: Value): Value = v
 
   /**
-    * Method to render a Value (which has already been converted to a String) in the context of this Factor.
+    * Method to render a Value (which has already been converted to a String) in the context of this Representation.
     *
     * @param v a String representing the Value.
     * @return a String.
@@ -1095,18 +1098,18 @@ case object Percent extends Scalar {
     * @return an optional `ProtoNumber` representing the inverse of `x`,
     *         or `None` if the inverse cannot be computed
     */
-  def invert(x: Value): Option[(Value, Factor, Option[Fuzziness[Double]])] =
+  def invert(x: Value): Option[(Value, Representation, Option[Fuzziness[Double]])] =
     Value.maybeRational(x).map(r => (Value.fromRational(r.invert * 100), PureNumber, None))
 
   /**
-    * Multiplies two values together and computes an appropriate factor for the result.
+    * Multiplies two values together and computes an appropriate representation for the result.
     *
     * @param x the first value
     * @param y the multiplicand
-    * @param f the factor associated with y
-    * @return an optional tuple containing the resultant value and its factor
+    * @param f the representation associated with y
+    * @return an optional tuple containing the resultant value and its representation
     */
-  def multiply(x: Value, y: Value, f: Factor): Option[(Value, Factor, Option[Fuzziness[Double]])] =
+  def multiply(x: Value, y: Value, f: Representation): Option[(Value, Representation, Option[Fuzziness[Double]])] =
     // CONSIDER clean this up
     f match {
       case PureNumber =>
@@ -1133,7 +1136,7 @@ case object Percent extends Scalar {
     * @return an optional result of type `ProtoNumber`,
     *         representing the computed value if the operation is valid, or `None` otherwise
     */
-  def doRaiseByPureNumber(x: Value, y: Value): Option[(Value, Factor, Option[Fuzziness[Double]])] =
+  def doRaiseByPureNumber(x: Value, y: Value): Option[(Value, Representation, Option[Fuzziness[Double]])] =
     for {
       q <- Value.maybeRational(x)
       result <- doRaiseByPureNumber(Value.fromRational(q / 100), y)
@@ -1143,18 +1146,18 @@ case object Percent extends Scalar {
 }
 
 /**
-  * This factor is primarily used for rotation by an angle.
+  * This representation is primarily used for rotation by an angle.
   *
-  * A number x with factor Radian (theoretically) evaluates to e raised to the power ix.
+  * A number x with representation Radian (theoretically) evaluates to e raised to the power ix.
   * So, you could think of it as essentially a shorthand for writing both cosine and sine.
-  * NOTE however that, unlike, with the factor NatLog, we currently do not treat Radian values in quite this way in the code.
+  * NOTE however that, unlike, with the representation NatLog, we currently do not treat Radian values in quite this way in the code.
   *
-  * CONSIDER implementing the Radian factor conversions in a manner similar to that of NatLog.
+  * CONSIDER implementing the Radian representation conversions in a manner similar to that of NatLog.
   * This would entail conversion from a single number to a pair of Doubles when going from Radian to PureNumber.
   * We could do that using a Complex number but I'd rather do it as a 2-tuple of Doubles.
   * Perhaps the whole idea of our Complex implementation is misguided (although it does allow us to represent
   * complex numbers in Polar form since, in that case, the real part is a PureNumber number, and the imaginary part is coded in
-  * with factor Radian).
+  * with representation Radian).
   *
   * The range of these values is 0 thru 2, which represents the radian values of 0 thru 2pi.
   */
@@ -1187,20 +1190,20 @@ case object Radian extends Scalar {
     (for {v <- Operations.doTransformValueMonadic(value)(MonadicOperationModulate(-1, 1, inclusive = false, true).functions)} yield v) getOrElse value
 
   /**
-    * Determines whether `this` factor can be raised by the given factor `f`.
+    * Determines whether `this` representation can be raised by the given representation `f`.
     *
-    * @param f the factor to be checked for compatibility with raising to a power.
-    * @return true if the factors can be powered; false otherwise.
+    * @param f the representation to be checked for compatibility with raising to a power.
+    * @return true if the representations can be powered; false otherwise.
     */
-  override def canRaise(f: Factor, exponent: Field): Boolean =
+  override def canRaise(f: Representation, exponent: Field): Boolean =
     exponent.isZero || exponent.isUnity
 
   /**
-    * Returns the string representation of the `Radian` factor.
+    * Returns the string representation of the `Radian` representation.
     *
     * @return a string representation of the mathematical constant π.
     */
-  override def toString: String = Factor.sPi
+  override def toString: String = Representation.sPi
 
   /**
     * Renders a string by appending the mathematical symbol for pi (π).
@@ -1208,10 +1211,10 @@ case object Radian extends Scalar {
     * @param x the input string to which the mathematical symbol for pi will be appended
     * @return a new string consisting of the input string followed by the symbol for pi
     */
-  def render(x: String): String = x + Factor.sPi
+  def render(x: String): String = x + Representation.sPi
 
   /**
-    * Inverts the given value by raising it to the power of -1, using a pure number factor.
+    * Inverts the given value by raising it to the power of -1, using a pure number representation.
     *
     * @param x the value to be inverted
     * @return None.
@@ -1224,11 +1227,11 @@ case object Radian extends Scalar {
     *
     * @param x the first value
     * @param y the multiplicand
-    * @param f the factor associated with y
-    * @return an optional tuple containing the resultant value and its factor
+    * @param f the representation associated with y
+    * @return an optional tuple containing the resultant value and its representation
     */
-  def multiply(x: Value, y: Value, f: Factor): Option[ProtoNumber] =
-    clean(for {v <- Factor.composeDyadic(x, y)(DyadicOperationTimes); if f == PureNumber} yield (v, this, None))
+  def multiply(x: Value, y: Value, f: Representation): Option[ProtoNumber] =
+    clean(for {v <- Representation.composeDyadic(x, y)(DyadicOperationTimes); if f == PureNumber} yield (v, this, None))
 
   /**
     * Raises the value `x` to the power of the value `y`.
@@ -1242,7 +1245,7 @@ case object Radian extends Scalar {
 }
 
 /**
-  * Case object representing the Degree unit, which is a scalar factor for angle measurements.
+  * Case object representing the Degree unit, which is a scalar representation for angle measurements.
   * It provides functionality to convert, manipulate, and perform mathematical operations
   * associated with the degree unit.
   */
@@ -1270,20 +1273,20 @@ case object Degree extends Scalar {
     (for {v <- Operations.doTransformValueMonadic(value)(MonadicOperationModulate(-180, 180, inclusive = false, true).functions)} yield v) getOrElse value
 
   /**
-    * Determines whether `this` factor can be raised by the given factor `f`.
+    * Determines whether `this` representation can be raised by the given representation `f`.
     *
-    * @param f the factor to be checked for compatibility with raising to a power.
-    * @return true if the factors can be powered; false otherwise.
+    * @param f the representation to be checked for compatibility with raising to a power.
+    * @return true if the representations can be powered; false otherwise.
     */
-  override def canRaise(f: Factor, exponent: Field): Boolean =
+  override def canRaise(f: Representation, exponent: Field): Boolean =
     exponent.isZero || exponent.isUnity
 
   /**
-    * Returns the string representation of the `Radian` factor.
+    * Returns the string representation of the `Radian` representation.
     *
     * @return a string representation of the mathematical constant π.
     */
-  override def toString: String = Factor.sDegree
+  override def toString: String = Representation.sDegree
 
   /**
     * Renders a string by appending the mathematical symbol for pi (π).
@@ -1291,10 +1294,10 @@ case object Degree extends Scalar {
     * @param x the input string to which the mathematical symbol for pi will be appended
     * @return a new string consisting of the input string followed by the symbol for pi
     */
-  def render(x: String): String = x + Factor.sDegree
+  def render(x: String): String = x + Representation.sDegree
 
   /**
-    * Inverts the given value by raising it to the power of -1, using a pure number factor.
+    * Inverts the given value by raising it to the power of -1, using a pure number representation.
     *
     * @param x the value to be inverted
     * @return None.
@@ -1307,11 +1310,11 @@ case object Degree extends Scalar {
     *
     * @param x the first value
     * @param y the multiplicand
-    * @param f the factor associated with y
-    * @return an optional tuple containing the resultant value and its factor
+    * @param f the representation associated with y
+    * @return an optional tuple containing the resultant value and its representation
     */
-  def multiply(x: Value, y: Value, f: Factor): Option[ProtoNumber] =
-    clean(for {v <- Factor.composeDyadic(x, y)(DyadicOperationTimes); if f == PureNumber} yield (v, this, None))
+  def multiply(x: Value, y: Value, f: Representation): Option[ProtoNumber] =
+    clean(for {v <- Representation.composeDyadic(x, y)(DyadicOperationTimes); if f == PureNumber} yield (v, this, None))
 
   /**
     * Raises the value `x` to the power of the value `y`.
@@ -1325,25 +1328,25 @@ case object Degree extends Scalar {
 }
 
 /**
-  * This factor essentially provides log/exponent arithmetic.
+  * This representation essentially provides log/exponent arithmetic.
   *
-  * NOTE: A number in factor NatLog will evaluate as e raised to that power.
+  * NOTE: A number in representation NatLog will evaluate as e raised to that power.
   * So, the `value` is the natural log of the evaluation.
   *
   * Thus the range of such values is any positive number.
   */
 case object NatLog extends Logarithmic {
   /**
-    * Represents the base symbol used for the `NatLog` factor.
+    * Represents the base symbol used for the `NatLog` representation.
     *
     * The symbol is defined as the mathematical constant ℯ (e).
     * This constant is used to indicate the base of the natural logarithm
-    * and is sourced from the `Factor` object.
+    * and is sourced from the `Representation` object.
     */
-  val base: String = Factor.sE
+  val base: String = Representation.sE
 
   /**
-    * Represents the default value for the `NatLog` factor.
+    * Represents the default value for the `NatLog` representation.
     *
     * This value is used in conversions (it's the natural log of e, viz., 1.0).
     */
@@ -1356,13 +1359,13 @@ case object NatLog extends Logarithmic {
     */
   def isExact: Boolean = false
 
-  override def toString: String = Factor.sE
+  override def toString: String = Representation.sE
 }
 
 /**
-  * This factor allows the representation of quantities of the form `e power ix`.
+  * This representation allows the representation of quantities of the form `e power ix`.
   *
-  * NOTE: A number in factor Euler will evaluate as e raised to (`i` times that power).
+  * NOTE: A number in representation Euler will evaluate as e raised to (`i` times that power).
   * So, the `value` is the natural log of the evaluation.
   *
   * We call this Euler because it is used in Euler's formula [[https://en.wikipedia.org/wiki/Euler's_formula]].
@@ -1373,16 +1376,16 @@ case object NatLog extends Logarithmic {
   */
 case object Euler extends Logarithmic {
   /**
-    * Represents the base symbol used for the `NatLog` factor.
+    * Represents the base symbol used for the `NatLog` representation.
     *
     * The symbol is defined as the mathematical constant `ℯ` to the power `i`.
     * This constant is used to indicate the base of the imaginary natural logarithm
-    * and is sourced from the `Factor` object.
+    * and is sourced from the `Representation` object.
     */
-  val base: String = Factor.sEi
+  val base: String = Representation.sEi
 
   /**
-    * Represents the default value for the `Euler` factor. Should not be used.
+    * Represents the default value for the `Euler` representation. Should not be used.
     */
   val value: Double = 1.0
 
@@ -1393,7 +1396,7 @@ case object Euler extends Logarithmic {
     */
   def isExact: Boolean = true
 
-  override def toString: String = Factor.sEi
+  override def toString: String = Representation.sEi
 }
 
 /**
@@ -1420,7 +1423,7 @@ case object Log2 extends Logarithmic {
   val base: String = "2"
 
   /**
-    * Represents the default value for the `NatLog` factor.
+    * Represents the default value for the `NatLog` representation.
     *
     * This value is used in conversions (it's the natural log of 2, approximately 0.69).
     */
@@ -1484,7 +1487,7 @@ case object Log10 extends Logarithmic {
 }
 
 /**
-  * This object represents the square root factor.
+  * This object represents the square root representation.
   */
 case object SquareRoot extends NthRoot(2) {
 
@@ -1533,22 +1536,22 @@ case object SquareRoot extends NthRoot(2) {
     }
 
   /**
-    * Attempts to add two `Value` instances under the influence of a given `Factor`.
+    * Attempts to add two `Value` instances under the influence of a given `Representation`.
     *
-    * The method verifies whether the operation can be applied with the given factor
+    * The method verifies whether the operation can be applied with the given representation
     * (e.g., a square root) and performs rational arithmetic to compute the result.
     * The operation ensures that the values can be combined via integer arithmetic
     * after factoring out common divisors and applies root simplifications where necessary.
     *
     * @param x        the first value to be added
     * @param y        the second value to be added
-    * @param f        the factor defining the context for the addition (e.g., square root)
+    * @param f        the representation defining the context for the addition (e.g., square root)
     * @param negative true if the `y` value should be considered as being subtracted from the x value.
     *                 NOTE this is not the same thing as the `y` value being negative, which would imply an imaginary number.
-    * @return an optional `ProtoNumber` that contains the resultant `Value`, its factor,
+    * @return an optional `ProtoNumber` that contains the resultant `Value`, its representation,
     *         and optional metadata; `None` if the operation cannot be performed
     */
-  override def add(x: Value, y: Value, f: Factor, negative: Boolean = false): Option[ProtoNumber] =
+  override def add(x: Value, y: Value, f: Representation, negative: Boolean = false): Option[ProtoNumber] =
     whenever(this == f)(
       for {
         a <- Value.maybeRational(x)
@@ -1586,7 +1589,7 @@ case object SquareRoot extends NthRoot(2) {
 }
 
 /**
-  * This object represents the cube root factor.
+  * This object represents the cube root representation.
   */
 case object CubeRoot extends NthRoot(3) {
 
@@ -1633,30 +1636,30 @@ case object CubeRoot extends NthRoot(3) {
 }
 
 /**
-  * This object represents a general inverse power factor.
+  * This object represents a general inverse power representation.
   */
 case class AnyRoot(inversePower: Rational) extends InversePower {
   /**
-    * Determines whether the current factor can be multiplied by the given factor.
+    * Determines whether the current representation can be multiplied by the given representation.
     * CONSIDER do we need this method now that we have multiply(x, y, this)?
     *
-    * @param f the factor to be checked for compatibility with multiplication.
-    * @return true if the factors can be multiplied; false otherwise.
+    * @param f the representation to be checked for compatibility with multiplication.
+    * @return true if the representations can be multiplied; false otherwise.
     */
-  def canMultiply(f: Factor): Boolean =
+  def canMultiply(f: Representation): Boolean =
     false // TODO figure this out
 
   /**
-    * Convert a value x from this factor to f if possible, using the simplest possible mechanism.
-    * If the factors are incompatible, then None will be returned.
+    * Convert a value x from this representation to f if possible, using the simplest possible mechanism.
+    * If the representations are incompatible, then None will be returned.
     *
     * NOTE: only Scalar<->Scalar, NthRoot<->NthRoot or Logarithmic<->Logarithmic conversions can be effected.
     *
     * @param v the value to be converted.
-    * @param f the factor of the result.
-    * @return an optional Value which, given factor f, represents the same quantity as v given this.
+    * @param f the representation of the result.
+    * @return an optional Value which, given representation f, represents the same quantity as v given this.
     */
-  def convert(v: Value, f: Factor): Option[Value] =
+  def convert(v: Value, f: Representation): Option[Value] =
     None // TODO figure this out
 
   /**
@@ -1673,13 +1676,13 @@ case class AnyRoot(inversePower: Rational) extends InversePower {
         Some((x, PureNumber, None))
       case Some(r) =>
         val z: Option[Value] = composeDyadic(x, y)(DyadicOperationPower)
-        val factor = inversePower * r match {
+        val representation = inversePower * r match {
           case Rational.two => SquareRoot
           case Rational.three => CubeRoot
           case Rational.one => PureNumber
           case _ => AnyRoot(inversePower * r)
         }
-        clean(for {v <- z} yield (v, factor, None))
+        clean(for {v <- z} yield (v, representation, None))
       case _ =>
         None
     }
@@ -1696,12 +1699,12 @@ case class AnyRoot(inversePower: Rational) extends InversePower {
 }
 
 /**
-  * The `Composite` object represents a composite factor which cannot be reduced to a unique factor.
+  * The `Composite` object represents a composite representation which cannot be reduced to a unique representation.
   * It is used essentially as a placeholder for `Eager` values such as `Algebraic`s.
   */
-case object Composite extends Factor {
+case object Composite extends Representation {
   /**
-    * A value which can be used to convert a value associated with this Factor to a different Factor.
+    * A value which can be used to convert a value associated with this Representation to a different Representation.
     * CONSIDER redefining this as a Number (which could be exact or fuzzy).
     */
   val value: Double = 0
@@ -1714,16 +1717,16 @@ case object Composite extends Factor {
   def isExact: Boolean = false
 
   /**
-    * Determines whether the current factor can be multiplied by the given factor.
+    * Determines whether the current representation can be multiplied by the given representation.
     * CONSIDER do we need this method now that we have multiply(x, y, this)?
     *
-    * @param f the factor to be checked for compatibility with multiplication.
-    * @return true if the factors can be multiplied; false otherwise.
+    * @param f the representation to be checked for compatibility with multiplication.
+    * @return true if the representations can be multiplied; false otherwise.
     */
-  def canMultiply(f: Factor): Boolean = false
+  def canMultiply(f: Representation): Boolean = false
 
   /**
-    * Modulates the given value according to the context or rules defined by this factor.
+    * Modulates the given value according to the context or rules defined by this representation.
     *
     * @param v the value to be modulated
     * @return the modulated value
@@ -1731,43 +1734,43 @@ case object Composite extends Factor {
   def modulate(v: Value): Value = v
 
   /**
-    * Determines if the current factor operates additively.
+    * Determines if the current representation operates additively.
     *
     * CONSIDER rewriting in terms of canAdd
     *
-    * @return true if the factor is additive; false otherwise.
+    * @return true if the representation is additive; false otherwise.
     */
   def isAdditive: Boolean = false
 
   /**
-    * Determines if the current factor satisfies certain conditions within the given context.
+    * Determines if the current representation satisfies certain conditions within the given context.
     *
-    * @param context the context in which the factor is evaluated.
-    * @return a Boolean indicating whether the factor satisfies the specified conditions in the given context.
+    * @param context the context in which the representation is evaluated.
+    * @return a Boolean indicating whether the representation satisfies the specified conditions in the given context.
     */
   def isA(context: CoreContext): Boolean = false
 
   /**
-    * Convert a value x from this factor to f if possible, using the simplest possible mechanism.
-    * If the factors are incompatible, then None will be returned.
+    * Convert a value x from this representation to f if possible, using the simplest possible mechanism.
+    * If the representations are incompatible, then None will be returned.
     *
     * NOTE: only Scalar<->Scalar, NthRoot<->NthRoot or Logarithmic<->Logarithmic conversions can be effected.
     *
     * @param v the value to be converted.
-    * @param f the factor of the result.
-    * @return an optional Value which, given factor f, represents the same quantity as v given this.
+    * @param f the representation of the result.
+    * @return an optional Value which, given representation f, represents the same quantity as v given this.
     */
-  def convert(v: Value, f: Factor): Option[Value] = None
+  def convert(v: Value, f: Representation): Option[Value] = None
 
   /**
-    * Determines whether given `value` with this `Factor` can be rendered exactly.
+    * Determines whether given `value` with this `Representation` can be rendered exactly.
     *
-    * @return true if this `Factor` can be rendered exactly; false otherwise.
+    * @return true if this `Representation` can be rendered exactly; false otherwise.
     */
   def canShow(value: Value): Boolean = false
 
   /**
-    * Method to render a Value (which has already been converted to a String) in the context of this Factor.
+    * Method to render a Value (which has already been converted to a String) in the context of this Representation.
     *
     * @param v a String representing the Value.
     * @return a String.
@@ -1775,12 +1778,12 @@ case object Composite extends Factor {
   def render(v: String): String = s"Composite: $v"
 
   /**
-    * Computes the negation of the given value `x` within the context of this factor.
+    * Computes the negation of the given value `x` within the context of this representation.
     *
     * @param x the value to negate
     * @return an optional `ProtoNumber` representing the negated value, or `None` if the operation is not valid
     */
-  def negate(x: Value): Option[(Value, Factor, Option[Fuzziness[Double]])] = None
+  def negate(x: Value): Option[(Value, Representation, Option[Fuzziness[Double]])] = None
 
   /**
     * Computes the multiplicative inverse of the given value if it exists.
@@ -1789,28 +1792,28 @@ case object Composite extends Factor {
     * @return an optional `ProtoNumber` representing the inverse of `x`,
     *         or `None` if the inverse cannot be computed
     */
-  def invert(x: Value): Option[(Value, Factor, Option[Fuzziness[Double]])] = None
+  def invert(x: Value): Option[(Value, Representation, Option[Fuzziness[Double]])] = None
 
   /**
-    * Attempts to add two values together (each based on `this Factor`) and computes an appropriate factor for the result.
+    * Attempts to add two values together (each based on `this Representation`) and computes an appropriate representation for the result.
     *
     * @param x        the first value
     * @param y        the addend
-    * @param f        the factor associated with y
-    * @param negative true if the y value has negative sense (this is relevant for some factors such as SquareRoot).
-    * @return an optional tuple containing the resultant value and its factor
+    * @param f        the representation associated with y
+    * @param negative true if the y value has negative sense (this is relevant for some representations such as SquareRoot).
+    * @return an optional tuple containing the resultant value and its representation
     */
-  def add(x: Value, y: Value, f: Factor, negative: Boolean): Option[(Value, Factor, Option[Fuzziness[Double]])] = None
+  def add(x: Value, y: Value, f: Representation, negative: Boolean): Option[(Value, Representation, Option[Fuzziness[Double]])] = None
 
   /**
-    * Multiplies two values together and computes an appropriate factor for the result.
+    * Multiplies two values together and computes an appropriate representation for the result.
     *
     * @param x the first value
     * @param y the multiplicand
-    * @param f the factor associated with y
-    * @return an optional tuple containing the resultant value and its factor
+    * @param f the representation associated with y
+    * @return an optional tuple containing the resultant value and its representation
     */
-  def multiply(x: Value, y: Value, f: Factor): Option[(Value, Factor, Option[Fuzziness[Double]])] = None
+  def multiply(x: Value, y: Value, f: Representation): Option[(Value, Representation, Option[Fuzziness[Double]])] = None
 
   /**
     * Raises the value `x` to the power of the value `y`.
@@ -1820,28 +1823,28 @@ case object Composite extends Factor {
     * @return an optional result of type `ProtoNumber`,
     *         representing the computed value if the operation is valid, or `None` otherwise
     */
-  def doRaiseByPureNumber(x: Value, y: Value): Option[(Value, Factor, Option[Fuzziness[Double]])] = None
+  def doRaiseByPureNumber(x: Value, y: Value): Option[(Value, Representation, Option[Fuzziness[Double]])] = None
 }
 
 /**
-  * An object that provides a mechanism to map input strings to specific factors such as Radian, NatLog, or PureNumber.
-  * It acts as a factory for creating instances of the `Factor` sealed trait.
+  * An object that provides a mechanism to map input strings to specific representations such as Radian, NatLog, or PureNumber.
+  * It acts as a factory for creating instances of the `Representation` sealed trait.
   *
-  * The object includes predefined constants representing symbols or keywords associated with certain factors.
+  * The object includes predefined constants representing symbols or keywords associated with certain representations.
   * These constants include mathematical symbols like 'ℯ' and 'π', as well as their textual alternatives.
   *
-  * The `apply` method takes a string input and matches it to one of the predefined constants to return an appropriate `Factor` instance.
+  * The `apply` method takes a string input and matches it to one of the predefined constants to return an appropriate `Representation` instance.
   *
   * Matching logic:
-  * - Strings representing π (like "π", "pi", "Radian", "PI") will return the `Radian` factor.
-  * - The symbol 'ℯ' will return the `NatLog` factor.
-  * - All other strings default to the `PureNumber` factor.
+  * - Strings representing π (like "π", "pi", "Radian", "PI") will return the `Radian` representation.
+  * - The symbol 'ℯ' will return the `NatLog` representation.
+  * - All other strings default to the `PureNumber` representation.
   */
-object Factor {
+object Representation {
   /**
     * Represents the percent symbol (`%`) as a constant string.
     *
-    * This field is used within the `Factor` class to identify specific behavior
+    * This field is used within the `Representation` class to identify specific behavior
     * or matching criteria, potentially related to percentages or division operations.
     */
   lazy val sPercent: String = Percent.toString
@@ -1869,13 +1872,13 @@ object Factor {
   /**
     * Represents the symbol for π (pi) in Unicode format.
     * This constant can be used to identify and match the mathematical symbol π
-    * within the `Factor` class operations and logic.
+    * within the `Representation` class operations and logic.
     */
   val sPi = "\uD835\uDED1"
   
   /**
     * Alternate representation of the mathematical constant π as a string.
-    * Used as one of the predefined constants within the `Factor` class
+    * Used as one of the predefined constants within the `Representation` class
     * for identifying and handling π-related symbols.
     */
   val sPiAlt0 = "pi"
@@ -1883,24 +1886,24 @@ object Factor {
   /**
     * Represents an alternative designation for the mathematical constant π (pi) in radians.
     *
-    * This string serves as a predefined constant within the `Factor` class,
+    * This string serves as a predefined constant within the `Representation` class,
     * used for matching and identifying inputs associated with the radian unit
-    * when applying the `Factor` class's methods.
+    * when applying the `Representation` class's methods.
     */
   val sPiAlt1 = "Radian"
   
   /**
     * Represents an alternative string representation for the mathematical constant π (Pi).
-    * This value is one of several predefined symbols within the `Factor` class
+    * This value is one of several predefined symbols within the `Representation` class
     * that correspond to π-related constants.
     */
   val sPiAlt2 = "PI"
 
   /**
-    * Applies the given string to derive a corresponding `Factor` instance.
+    * Applies the given string to derive a corresponding `Representation` instance.
     *
     * The method matches the input string against predefined constants representing
-    * specific factors.
+    * specific representations.
     * Depending on the match, it returns an instance of either `Radian`, `NatLog`, or `PureNumber`.
     *
     * @param w the input string to match, which can represent a mathematical symbol or name.
@@ -1908,12 +1911,12 @@ object Factor {
     *           - Strings representing π (e.g., `sPi`, `sPiAlt0`, `sPiAlt1`, `sPiAlt2`)
     *           - String representing ℯ (`sE`)
     *           - Any other string is treated as a pure number.
-    * @return a `Factor` representing the input:
+    * @return a `Representation` representing the input:
     *         - `Radian` if the input matches a π-related symbol.
     *         - `NatLog` if the input matches the ℯ symbol.
     *         - `PureNumber` otherwise.
     */
-  def apply(w: String): Factor = w match {
+  def apply(w: String): Representation = w match {
     case `sPercent` =>
       Percent
     case `sDegree` =>
