@@ -65,6 +65,25 @@ jobs:
       - store_test_results:
           path: target/test-reports
 
+      # Coverage, reported but not enforced. It starts with clean, because the earlier steps' classes aren't instrumented.
+      - run:
+          name: Coverage
+          command: cat /dev/null | sbt clean coverage "testOnly * -- -l Slow" coverageAggregate
+
+      - store_artifacts:
+          path: target/scala-3.9.0/scoverage-report
+          destination: coverage
+
+      # Send coverage to Codacy. It needs the project's API token in CircleCI as CODACY_PROJECT_TOKEN; without it the step does nothing.
+      - run:
+          name: Upload coverage to Codacy
+          command: |
+            if [ -n "${CODACY_PROJECT_TOKEN:-}" ]; then
+              bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r target/scala-3.9.0/coverage-report/cobertura.xml || echo "The upload to Codacy failed (coverage isn't enforced, so the build carries on)"
+            else
+              echo "CODACY_PROJECT_TOKEN isn't set, so coverage isn't sent to Codacy"
+            fi
+
 workflows:
   build:
     jobs:
