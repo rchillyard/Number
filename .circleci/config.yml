@@ -74,17 +74,20 @@ jobs:
           path: target/scala-3.9.0/scoverage-report
           destination: coverage
 
-      # Send coverage to Codacy. It needs the project's API token in CircleCI as CODACY_PROJECT_TOKEN; without it the step does nothing.
+      # Send coverage to Codacy. The account API token, CODACY_API_TOKEN, comes from the "codacy" context in CircleCI; without it the step does nothing.
       - run:
           name: Upload coverage to Codacy
           command: |
-            if [ -n "${CODACY_PROJECT_TOKEN:-}" ]; then
+            if [ -n "${CODACY_API_TOKEN:-}" ]; then
+              export CODACY_ORGANIZATION_PROVIDER=gh CODACY_USERNAME=rchillyard CODACY_PROJECT_NAME=Number
               bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r target/scala-3.9.0/coverage-report/cobertura.xml || echo "The upload to Codacy failed (coverage isn't enforced, so the build carries on)"
             else
-              echo "CODACY_PROJECT_TOKEN isn't set, so coverage isn't sent to Codacy"
+              echo "CODACY_API_TOKEN isn't in the codacy context, so coverage isn't sent to Codacy"
             fi
 
 workflows:
   build:
     jobs:
-      - build
+      - build:
+          # The codacy context holds CODACY_API_TOKEN, for the coverage upload
+          context: codacy
