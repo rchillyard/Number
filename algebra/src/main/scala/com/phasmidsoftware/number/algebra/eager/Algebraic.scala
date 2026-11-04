@@ -14,7 +14,7 @@ import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRende
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Value.fromRational
-import com.phasmidsoftware.number.core.inner.{Composite, DyadicOperationPlus, Factor, PureNumber, Rational}
+import com.phasmidsoftware.number.core.inner.{Composite, DyadicOperationPlus, PureNumber, Rational, Representation}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.ExactNumber
 import org.slf4j.{Logger, LoggerFactory}
@@ -26,7 +26,7 @@ import scala.util.{Failure, Success, Try}
   * Trait to model the behavior of a solution to an equation.
   * All such solutions are exact.
   * Typically, however, such solutions cannot be represented exactly as pure numbers.
-  * The four parameters of a Algebraic are: base, offset, coefficient, and factor.
+  * The four parameters of a Algebraic are: base, offset, coefficient, and representation.
   * Solutions are subject to various operations such as addition, scaling, and number conversions.
   * Extends the `NumberLike` trait, inheriting behavior common to number-like entities.
   *
@@ -56,7 +56,7 @@ sealed trait Algebraic extends Solution with Unitary with Scalable[Algebraic] {
 
   /**
     * Determines whether the solution is a pure number.
-    * A pure number is defined as one without any associated factors or offsets.
+    * A pure number is defined as one without any associated representations or offsets.
     *
     * @return true if the solution is a pure number, false otherwise
     */
@@ -71,24 +71,24 @@ sealed trait Algebraic extends Solution with Unitary with Scalable[Algebraic] {
   def add(addend: Rational): Algebraic
 
   /**
-    * Determines the factor associated with this solution based on certain conditions.
+    * Determines the representation associated with this solution based on certain conditions.
     * If the solution is a pure number, it returns `Some(PureNumber)`.
-    * If the base value of the solution is zero, it returns `Some(factor)`.
+    * If the base value of the solution is zero, it returns `Some(representation)`.
     * Otherwise, it returns `None`.
     *
-    * CONSIDER invoke `normalize` and then apply `maybeFactor` to the result.
+    * CONSIDER invoke `normalize` and then apply `maybeRep` to the result.
     *
-    * @return an `Option` of type `Factor`, where `Some` may contain the factor
-    *         depending on the conditions, or `None` if no factor is applicable
+    * @return an `Option` of type `Representation`, where `Some` may contain the representation
+    *         depending on the conditions, or `None` if no representation is applicable
     */
-  def maybeFactor(context: Context): Option[Factor] =
+  def maybeRep(context: Context): Option[Representation] =
     (base, offset) match {
       case (x, y) if x.isZero && y.isZero =>
         Some(PureNumber)
       case (x, y) if y.isZero =>
-        x.maybeFactor(context)
+        x.maybeRep(context)
       case (x, y) if x.isZero =>
-        y.maybeFactor(context)
+        y.maybeRep(context)
       case _ =>
         Some(Composite)
     }
@@ -97,7 +97,7 @@ sealed trait Algebraic extends Solution with Unitary with Scalable[Algebraic] {
     * Method to determine if this NumberLike object is exact.
     * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
-    * @return true if this NumberLike object is exact in the context of No factor, else false.
+    * @return true if this NumberLike object is exact in the context of No representation, else false.
     */
   def isExact: Boolean = true
 
@@ -217,7 +217,7 @@ object Algebraic {
 }
 
 /**
-  * Represents a solution to a quadratic equation in the context of a specific Factor.
+  * Represents a solution to a quadratic equation in the context of a specific Representation.
   *
   * @constructor Creates a new instance of QuadraticSolution.
   * @param base   The base Value component of the solution.
@@ -227,9 +227,9 @@ object Algebraic {
   *               x&#94;2 + px + q = 0.
   *               It encapsulates components necessary for representing and interpreting the result
   *               in terms of its `base`, the `offset` typically arising from the quadratic formula's discriminant,
-  *               and any contextual modifications by a `factor`.
+  *               and any contextual modifications by a `representation`.
   *
-  *               Instances of this class are designed to interact with the `Factor` type in performing various
+  *               Instances of this class are designed to interact with the `Representation` type in performing various
   *               operations such as evaluating, converting, or rendering the solution accurately in diverse contexts.
   */
 case class QuadraticSolution(base: Structure, offset: Structure, coefficient: Int, imaginary: Boolean = false)(val maybeName: Option[String] = None) extends Algebraic {
@@ -332,7 +332,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
     * @return true if the offset of the solution is zero, otherwise false.
     */
   lazy val isPureNumber: Boolean =
-    coefficient == 0 || offset.isZero || offset.maybeFactor(RestrictedContext(PureNumber)).isDefined
+    coefficient == 0 || offset.isZero || offset.maybeRep(RestrictedContext(PureNumber)).isDefined
 
   /**
     * Determines if the current QuadraticSolution instance represents unity (1).
@@ -394,7 +394,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
     */
   def add(addend: Rational): Algebraic = {
     val zo: Option[Structure] = for {
-      case numerical.Real(n) <- Valuable.valuableToMaybeField(base) if n.factor == PureNumber
+      case numerical.Real(n) <- Valuable.valuableToMaybeField(base) if n.rep == PureNumber
       value <- doComposeValueDyadic(n.nominalValue, fromRational(addend))(DyadicOperationPlus.functions)
       field = numerical.Real(ExactNumber(value, PureNumber))
       case m: Structure <- Some(Eager(field))
@@ -424,7 +424,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
   /**
     * Adds the specified solution to the current solution and returns an optional new solution
     * that represents the result of the addition. The addition occurs only when
-    * the `offset`, `factor`, and `negative` properties of both solutions match the
+    * the `offset`, `representation`, and `negative` properties of both solutions match the
     * specified conditions.
     *
     * CONSIDER rewriting this method in the style of its cousins.
@@ -707,8 +707,8 @@ object QuadraticSolution {
 /**
   * Represents a linear solution characterized by a single `value`.
   * Implements the `Algebraic` trait where the `base` is equal to the `value`,
-  * the `offset` is `Value.zero`, and the `factor` is `PureNumber`.
-  * CONSIDER we should not have to deal with `offset, factor, negative` attributes here.
+  * the `offset` is `Value.zero`, and the `representation` is `PureNumber`.
+  * CONSIDER we should not have to deal with `offset, representation, negative` attributes here.
   *
   * @param value the base value of the solution
   */
@@ -766,7 +766,7 @@ case class LinearSolution(value: Structure)(val maybeName: Option[String] = None
 
   /**
     * Determines whether the solution is a pure number.
-    * A pure number is defined as one without any associated factors or offsets.
+    * A pure number is defined as one without any associated representations or offsets.
     *
     * @return true if the solution is a pure number, false otherwise
     */
@@ -774,7 +774,7 @@ case class LinearSolution(value: Structure)(val maybeName: Option[String] = None
 
   /**
     * Determines if the offset is negative.
-    * A negative value may not be expressible with just `Value` and `Factor`, for example, if `factor` is `SquareRoot`.
+    * A negative value may not be expressible with just `Value` and `Representation`, for example, if `representation` is `SquareRoot`.
     *
     * @return true if the offset is negative, false otherwise
     */

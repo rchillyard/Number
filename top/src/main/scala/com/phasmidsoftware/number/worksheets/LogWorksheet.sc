@@ -1,5 +1,5 @@
 /**
-  * This worksheet illustrates the use of core Log-factor numbers..
+  * This worksheet illustrates the use of core Log-representation numbers..
   */
 
 import com.phasmidsoftware.number.core.inner.{Euler, NatLog}

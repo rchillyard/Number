@@ -8,7 +8,7 @@ import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.algebra.util.FP
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
+import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Representation}
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation.squareRootEquation
 import com.phasmidsoftware.number.expression.algebraic.{Equation, LinearEquation, QuadraticEquation}
 import com.phasmidsoftware.number.expression.expr.Expression.{em, matchSimpler}
@@ -204,39 +204,39 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int, @unused maybeName
     * of the solution is accessed, and its value is converted to a real number and subsequently mapped to a
     * `Double`. If the predicate is false */
   lazy val maybeDouble: Option[Double] =
-    FP.whenever(solution.isExact && solution.maybeFactor(RestrictedContext(PureNumber)).isDefined)(solution.maybeDouble)
+    FP.whenever(solution.isExact && solution.maybeRep(RestrictedContext(PureNumber)).isDefined)(solution.maybeDouble)
 
   /**
-    * Method to determine what `Factor`, if there is such, this `Structure` object is based on.
+    * Method to determine what `Representation`, if there is such, this `Structure` object is based on.
     *
-    * @return an optional `Factor`.
+    * @return an optional `Representation`.
     */
-  def maybeFactor(context: Context): Option[Factor] = solution match {
+  def maybeRep(context: Context): Option[Representation] = solution match {
     case QuadraticSolution(base, offset, _, false) if offset.isZero =>
-      base.maybeFactor(context)
+      base.maybeRep(context)
     case QuadraticSolution(base, offset, _, false) if base.isZero =>
-      offset.maybeFactor(context)
+      offset.maybeRep(context)
     case QuadraticSolution(base, offset, _, false) =>
       for {
-        baseFactor <- base.maybeFactor(context)
-        combinedFactor <- offset.maybeFactor(RestrictedContext(baseFactor))
-      } yield combinedFactor
+        baseRepresentation <- base.maybeRep(context)
+        combinedRepresentation <- offset.maybeRep(RestrictedContext(baseRepresentation))
+      } yield combinedRepresentation
     case LinearSolution(value) =>
-      value.maybeFactor(context)
+      value.maybeRep(context)
     case _ =>
       None // TODO implement complex solutions
   }
 
   /**
-    * Evaluates this `Expression` in the context of `AnyContext` without simplification or factor-based conversion.
+    * Evaluates this `Expression` in the context of `AnyContext` without simplification or representation-based conversion.
     * This allows obtaining a direct evaluation of the `Expression` as a `Field`, if possible.
-    * NOTE: no simplification or factor-based conversion occurs here.
+    * NOTE: no simplification or representation-based conversion occurs here.
     *
     * @return an `Option[Eager]` containing the evaluated value if evaluation is successful, or `None` otherwise.
     */
   override lazy val evaluateAsIs: Option[Eager] =
     evaluate(AnyContext)
-  //    maybeFactor(AnyContext) flatMap (f => evaluate(RestrictedContext(f)))
+  //    maybeRep(AnyContext) flatMap (f => evaluate(RestrictedContext(f)))
 
   /**
     * Attempts to simplify an atomic expression, for example,
@@ -282,14 +282,14 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int, @unused maybeName
 
   /**
     * Action to evaluate this `Expression` as a `Valuable`, if possible.
-    * NOTE: no simplification or factor-based conversion occurs here.
+    * NOTE: no simplification or representation-based conversion occurs here.
     *
-    * Evaluation only occurs if the solution is exact and it has a factor that qualifies in the given context.
+    * Evaluation only occurs if the solution is exact and it has a representation that qualifies in the given context.
     *
     * @return an optional `Valuable`.
     */
   def evaluate(context: Context): Option[Eager] =
-    Option.when[Eager](solution.isExact && solution.maybeFactor(context).isDefined)(solution)
+    Option.when[Eager](solution.isExact && solution.maybeRep(context).isDefined)(solution)
 
   /**
     * Provides an approximation of this number, if applicable.

@@ -183,7 +183,7 @@ case class Complex(
 ```
 
 **Why the wrapper pattern?**
-- **Module dependencies**: `algebra` depends on `core` (for Rational, Factor, Context, etc.)
+- **Module dependencies**: `algebra` depends on `core` (for Rational, Representation, Context, etc.)
 - **Circular dependencies forbidden**: Can't have `core` also depend on `algebra`
 - **Core owns fundamentals**: `Complex` is a fundamental numerical type, belongs in core
 - **Minimal overhead**: JVM inlining makes delegation virtually free
@@ -1204,7 +1204,7 @@ case class ComplexPolar(radius: Number, angle: Angle) extends Complex
 The Number library has a clear module dependency hierarchy:
 
 ```
-core (fundamental types: Rational, Factor, Context, Value, Number, Complex)
+core (fundamental types: Rational, Representation, Context, Value, Number, Complex)
   ↑
 algebra (algebraic structures: Solution, Algebraic, extending core types)
   ↑
@@ -1254,7 +1254,7 @@ Performance characteristics:
 
 ```
 core → algebra (for Complex)
-algebra → core (for Rational, Factor, etc.)
+algebra → core (for Rational, Representation, etc.)
 ❌ Circular dependency - won't compile!
 ```
 
@@ -1262,7 +1262,7 @@ algebra → core (for Rational, Factor, etc.)
 **Problem**: Adds architectural complexity for minimal gain.
 
 ```
-common (Rational, Factor, Complex, ...)
+common (Rational, Representation, Complex, ...)
   ↑
   ├── core
   └── algebra

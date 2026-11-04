@@ -8,7 +8,7 @@ import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.core.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, WholeNumber}
-import com.phasmidsoftware.number.core.inner.{Factor, Radian}
+import com.phasmidsoftware.number.core.inner.{Radian, Representation}
 import com.phasmidsoftware.number.core.numerical.ComplexPolar
 import com.phasmidsoftware.number.expression.expr.Expression.em
 import com.phasmidsoftware.number.expression.expr.ExpressionMatchers.componentsSimplifier
@@ -44,8 +44,8 @@ import com.phasmidsoftware.number.expression.expr.ExpressionMatchers.componentsS
   */
 case class Euler(r: Expression, θ: Expression) extends CompositeExpression {
 
-  def maybeFactor(context: Context): Option[Factor] =
-    evaluate(context) flatMap (v => v.maybeFactor(context))
+  def maybeRep(context: Context): Option[Representation] =
+    evaluate(context) flatMap (v => v.maybeRep(context))
 
   lazy val isExact: Boolean = r.isExact && θ.isExact
 
@@ -65,7 +65,7 @@ case class Euler(r: Expression, θ: Expression) extends CompositeExpression {
     * Materialises this Euler expression to an algebra.Complex wrapping a ComplexPolar.
     *
     * Evaluates r and theta independently, then ensures theta carries the Radian
-    * factor required by ComplexPolar's constructor. Returns None if either
+    * representation required by ComplexPolar's constructor. Returns None if either
     * sub-expression cannot be evaluated.
     */
   def evaluate(context: Context): Option[Eager] =
@@ -188,12 +188,12 @@ case class Euler(r: Expression, θ: Expression) extends CompositeExpression {
   // ---------------------------------------------------------------------------
 
   /**
-    * Ensures the given core.numerical.Number carries the Radian factor
+    * Ensures the given core.numerical.Number carries the Radian representation
     * required by ComplexPolar. If already in Radian, returned unchanged;
     * otherwise scaled.
     */
   private def ensureRadian(n: com.phasmidsoftware.number.core.numerical.Number): com.phasmidsoftware.number.core.numerical.Number =
-    if (n.factor == Radian) n else n.scale(Radian)
+    if (n.rep == Radian) n else n.scale(Radian)
 }
 
 /**

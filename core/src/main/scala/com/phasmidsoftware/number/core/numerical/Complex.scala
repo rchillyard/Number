@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian}
+import com.phasmidsoftware.number.core.inner.{PureNumber, Radian, Representation}
 import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.Complex.convertToCartesian
 import com.phasmidsoftware.number.core.parse.ComplexParser
@@ -51,14 +51,14 @@ trait Complex extends Multivariate {
   def rotate: Complex
 
   /**
-    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+    * Method to determine what `Representation`, if there is such, this `NumberLike` object is based on.
     *
     * TODO it's more complicated than this!
-    * CONSIDER having a Complex sub-type of Factor.
+    * CONSIDER having a Complex sub-type of Representation.
     *
-    * @return an optional `Factor`.
+    * @return an optional `Representation`.
     */
-  def maybeFactor: Option[Factor] = Some(PureNumber)
+  def maybeRep: Option[Representation] = Some(PureNumber)
 
   /**
     * Method to add this Complex to another Complex.
@@ -114,7 +114,7 @@ object Complex {
 //      case "-" => i.makeNegative
 //      case _ => i
 //    }
-    i.factor match {
+    i.rep match {
       case Radian => ComplexPolar(real, imag)
       case _ => ComplexCartesian(real, imag)
     }

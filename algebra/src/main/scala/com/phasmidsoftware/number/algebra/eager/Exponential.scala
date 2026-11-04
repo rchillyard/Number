@@ -13,7 +13,7 @@ import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.Exponential.ExponentialIsCommutativeMonoid
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
 import com.phasmidsoftware.number.core.inner
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
+import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Representation}
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -210,7 +210,7 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
     * Method to determine if this Structure object is exact.
     * For instance, `Number.pi` is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
-    * @return true if this Structure object is exact in the context of No factor, else false.
+    * @return true if this Structure object is exact in the context of No representation, else false.
     */
   def isExact: Boolean = number.isExact
 
@@ -372,12 +372,12 @@ case class NaturalExponential(exponent: Number)(val maybeName: Option[String] = 
   }
 
   /**
-    * Computes the potential factor associated with this instance.
+    * Computes the potential representation associated with this instance.
     *
-    * @return an `Option` containing a `Factor` if available, otherwise `None`
+    * @return an `Option` containing a `Representation` if available, otherwise `None`
     */
-  def maybeFactor(context: Context): Option[Factor] =
-    Option.when(context.factorQualifies(inner.NatLog))(inner.NatLog)
+  def maybeRep(context: Context): Option[Representation] =
+    Option.when(context.repQualifies(inner.NatLog))(inner.NatLog)
 }
 
 /**
@@ -461,11 +461,11 @@ case class BinaryExponential(exponent: Number)(val maybeName: Option[String] = N
   }
 
   /**
-    * Computes the potential factor associated with this instance.
+    * Computes the potential representation associated with this instance.
     *
-    * @return an `Option` containing a `Factor` if available, otherwise `None`
+    * @return an `Option` containing a `Representation` if available, otherwise `None`
     */
-  def maybeFactor(context: Context): Option[Factor] =
+  def maybeRep(context: Context): Option[Representation] =
     Some(PureNumber)
 }
 

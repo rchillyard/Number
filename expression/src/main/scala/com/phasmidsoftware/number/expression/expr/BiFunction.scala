@@ -9,7 +9,7 @@ import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
 import com.phasmidsoftware.number.algebra.eager.{Angle, Complex, Eager, InversePower, IsInfinite, IsInteger, QuadraticSolution, RationalNumber, Structure, WholeNumber}
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian, Rational}
+import com.phasmidsoftware.number.core.inner.{PureNumber, Radian, Rational, Representation}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{ComplexPolar, Number}
 import com.phasmidsoftware.number.expression.algebraic
@@ -124,7 +124,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       em.Match(a * Two)
     case BiFunction(BiFunction(w, x, Power), BiFunction(y, z, Power), Product) if w == y =>
       em.Match(w ∧ (x + z))
-    case BiFunction(a, IsEager(b), Sum) if a.materialize.add(b).toOption.exists(_.isZero) && a.maybeFactor(AnyContext).contains(Radian) =>
+    case BiFunction(a, IsEager(b), Sum) if a.materialize.add(b).toOption.exists(_.isZero) && a.maybeRep(AnyContext).contains(Radian) =>
       em.Match(Literal(Angle.zero))
     case BiFunction(BiFunction(x, k1, Product), BiFunction(y, k2, Product), Sum) if k1 == k2 =>
       em.Match(BiFunction(k1, BiFunction(x, y, Sum), Product))
@@ -550,14 +550,14 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   */
 abstract class BinaryFunction(a: Expression, b: Expression, f: ExpressionBiFunction) extends Multiple {
   /**
-    * Attempts to retrieve a factor based on the provided context.
-    * This method evaluates whether there is an applicable factor within the given context.
+    * Attempts to retrieve a representation based on the provided context.
+    * This method evaluates whether there is an applicable representation within the given context.
     *
-    * @param context the context in which the factor is evaluated.
-    * @return an optional `Factor` if one qualifies under the provided context; otherwise, `None`.
+    * @param context the context in which the representation is evaluated.
+    * @return an optional `Representation` if one qualifies under the provided context; otherwise, `None`.
     */
-  def maybeFactor(context: Context): Option[Factor] =
-    evaluate(context) flatMap (v => v.maybeFactor(context))
+  def maybeRep(context: Context): Option[Representation] =
+    evaluate(context) flatMap (v => v.maybeRep(context))
 
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.

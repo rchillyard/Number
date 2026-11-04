@@ -275,18 +275,18 @@ class FuzzyNumberSpec2 extends AnyFlatSpec with Matchers {
     simplified shouldBe an[ExactNumber]
   }
 
-  it should "scale NthRoot factor to PureNumber for fuzzy numbers" in {
+  it should "scale NthRoot representation to PureNumber for fuzzy numbers" in {
     val fn = FuzzyNumber(Value.fromDouble(Some(2.0)), SquareRoot, Some(RelativeFuzz[Double](0.01, Gaussian)))
     val simplified = fn.simplify
 
-    simplified.factor shouldBe PureNumber
+    simplified.rep shouldBe PureNumber
   }
 
-  it should "preserve non-root factors" in {
+  it should "preserve non-root representations" in {
     val fn = FuzzyNumber(Value.fromDouble(Some(2.0)), Radian, Some(RelativeFuzz[Double](0.01, Gaussian)))
     val simplified = fn.simplify
 
-    simplified.factor shouldBe Radian
+    simplified.rep shouldBe Radian
   }
 
   behavior of "FuzzyNumber.toString"
@@ -320,21 +320,21 @@ class FuzzyNumberSpec2 extends AnyFlatSpec with Matchers {
     str should include(Asterisk)
   }
 
-  behavior of "FuzzyNumber with different factors"
+  behavior of "FuzzyNumber with different representations"
 
-  it should "handle Radian factor" in {
+  it should "handle Radian representation" in {
     val fn = FuzzyNumber(Value.fromDouble(Some(1.5)), Radian, Some(RelativeFuzz[Double](0.01, Gaussian)))
-    fn.factor shouldBe Radian
+    fn.rep shouldBe Radian
   }
 
-  it should "handle NatLog factor" in {
+  it should "handle NatLog representation" in {
     val fn = FuzzyNumber(Value.fromDouble(Some(2.0)), NatLog, Some(RelativeFuzz[Double](0.01, Gaussian)))
-    fn.factor shouldBe NatLog
+    fn.rep shouldBe NatLog
   }
 
-  it should "handle SquareRoot factor" in {
+  it should "handle SquareRoot representation" in {
     val fn = FuzzyNumber(Value.fromDouble(Some(2.0)), SquareRoot, Some(RelativeFuzz[Double](0.01, Gaussian)))
-    fn.factor shouldBe SquareRoot
+    fn.rep shouldBe SquareRoot
   }
 
   behavior of "FuzzyNumber edge cases"

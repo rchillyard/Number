@@ -240,7 +240,7 @@ case class InversePower private(n: Int, number: Number)(val maybeName: Option[St
     *         and `None` is returned if the comparison cannot be made
     */
   def compareExact(that: Structure): Option[Int] = that match {
-    case InversePower(m, x) if m == n => // TODO - there are other situations where the result should be Some(0) (see Factor class).
+    case InversePower(m, x) if m == n => // TODO - there are other situations where the result should be Some(0) (see Representation class).
       Some(number.compare(x))
     case _ =>
       None
@@ -376,7 +376,7 @@ case class InversePower private(n: Int, number: Number)(val maybeName: Option[St
     * Method to determine if this Structure object is exact.
     * For instance, `Number.pi` is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
-    * @return true if this Structure object is exact in the context of No factor, else false.
+    * @return true if this Structure object is exact in the context of No representation, else false.
     */
   def isExact: Boolean = number.isExact // TODO there are some situations where a Root is actually exact.
 
@@ -412,14 +412,14 @@ case class InversePower private(n: Int, number: Number)(val maybeName: Option[St
   }
 
   /**
-    * Computes the potential factor associated with this instance.
+    * Computes the potential representation associated with this instance.
     *
-    * @return an `Option` containing a `Factor` if available, otherwise `None`
+    * @return an `Option` containing a `Representation` if available, otherwise `None`
     */
-  def maybeFactor(context: Context): Option[Factor] = n match {
-    case 1 if context.factorQualifies(PureNumber) => Some(PureNumber)
-    case 2 if context.factorQualifies(SquareRoot) => Some(SquareRoot)
-    case 3 if context.factorQualifies(CubeRoot) => Some(CubeRoot)
+  def maybeRep(context: Context): Option[Representation] = n match {
+    case 1 if context.repQualifies(PureNumber) => Some(PureNumber)
+    case 2 if context.repQualifies(SquareRoot) => Some(SquareRoot)
+    case 3 if context.repQualifies(CubeRoot) => Some(CubeRoot)
     case _ => None
   }
 

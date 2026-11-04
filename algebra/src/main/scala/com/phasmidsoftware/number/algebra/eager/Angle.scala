@@ -13,7 +13,7 @@ import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.Angle.{angleIsCommutativeGroup, r180}
 import com.phasmidsoftware.number.algebra.util.AlgebraException
 import com.phasmidsoftware.number.algebra.util.FP.recover
-import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational, Value}
+import com.phasmidsoftware.number.core.inner.{Radian, Rational, Representation, Value}
 import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Fuzziness}
 
 import scala.annotation.unused
@@ -164,7 +164,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * Method to determine if this Structure object is exact.
     * For instance, `Number.pi` is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
-    * @return true if this Structure object is exact in the context of No factor, else false.
+    * @return true if this Structure object is exact in the context of No representation, else false.
     */
   lazy val isExact: Boolean = number.isExact
 
@@ -724,15 +724,15 @@ object Angle {
 trait Radians extends Scalar with Functional {
 
   /**
-    * Retrieves an optional factor associated with the specified context.
-    * The factor may represent a transformation or scaling associated with a computation
+    * Retrieves an optional representation associated with the specified context.
+    * The representation may represent a transformation or scaling associated with a computation
     * in a particular evaluation context.
     *
-    * @param context the evaluation context within which the factor is to be determined.
-    * @return an `Option` containing the factor if it exists; `None` otherwise.
+    * @param context the evaluation context within which the representation is to be determined.
+    * @return an `Option` containing the representation if it exists; `None` otherwise.
     */
-  def maybeFactor(context: Context): Option[Factor] =
-    Option.when(context.factorQualifies(Radian))(Radian)
+  def maybeRep(context: Context): Option[Representation] =
+    Option.when(context.repQualifies(Radian))(Radian)
 
   /**
     * Represents the scalar value for converting radians to a pure number, using Pi as the scaling factor.

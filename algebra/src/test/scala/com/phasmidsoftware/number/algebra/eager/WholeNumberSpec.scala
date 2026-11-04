@@ -85,7 +85,7 @@ class WholeNumberSpec extends AnyFlatSpec with Matchers {
   }
   it should "maybeDouble" in {
   }
-  it should "maybeFactor" in {
+  it should "maybeRep" in {
   }
   it should "minusOne" in {
   }

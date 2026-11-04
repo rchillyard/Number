@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.inner.{Factor, Rational, Value}
+import com.phasmidsoftware.number.core.inner.{Rational, Representation, Value}
 import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.Number.one
 
@@ -228,14 +228,14 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
 object Field {
 
   /**
-    * Creates a `Field` instance based on the provided `Value` and `Factor`.
+    * Creates a `Field` instance based on the provided `Value` and `Representation`.
     *
     * @param value  the `Value` to be used in the creation of the `Field`.
-    * @param factor the `Factor` to be used in the creation of the `Field`.
-    * @return a `Field` instance constructed from the given `Value` and `Factor`.
+    * @param rep    the `Representation` to be used in the creation of the `Field`.
+    * @return a `Field` instance constructed from the given `Value` and `Representation`.
     */
-  def apply(value: Value, factor: Factor): Field =
-    Real(one.make(value, factor))
+  def apply(value: Value, rep: Representation): Field =
+    Real(one.make(value, rep))
 
   /**
     * Attempt to force the given field to be a Number.

@@ -19,7 +19,7 @@ import org.typelevel.discipline.scalatest.FunSuiteDiscipline
   *
   * Generator strategy:
   * - Rational: reasonably distributed finite rationals with positive denominators to avoid degenerate cases.
-  * - ExactNumber: wraps a generated Rational into `Value` with the `PureNumber` factor.
+  * - ExactNumber: wraps a generated Rational into `Value` with the `PureNumber` representation.
   * - Number: mix of exact values, fuzzy values (Box/Gaussian shapes with width in [0, 1.0]), and a small portion of NaN.
   * This ensures we exercise both Eq and PartialOrder semantics across typical and edge scenarios.
   *
@@ -47,7 +47,7 @@ class CatsKernelLawSpec
   implicit val cogenRational: Cogen[Rational] =
     Cogen[(BigInt, BigInt)].contramap(r => (r.n, r.d))
 
-  // Arbitrary[ExactNumber]: lift a Rational into an exact Value with PureNumber factor.
+  // Arbitrary[ExactNumber]: lift a Rational into an exact Value with PureNumber representation.
   implicit val arbitraryExactNumber: Arbitrary[ExactNumber] = Arbitrary {
     for {
       value <- arbitraryRational.arbitrary
@@ -61,8 +61,8 @@ class CatsKernelLawSpec
       val asInt = Value.maybeInt(nominal)
       val asRational = Value.maybeRational(nominal).map(r => (r.n, r.d))
       val asDouble = Value.maybeDouble(nominal)
-      val factorId = e.factor.toString
-      (asInt, asRational, asDouble, factorId)
+      val representationId = e.rep.toString
+      (asInt, asRational, asDouble, representationId)
     }
 
   // Arbitrary[Number]: mix of exact, fuzzy (Box/Gaussian), and NaN values.
@@ -73,7 +73,7 @@ class CatsKernelLawSpec
       base <- arbitraryExactNumber.arbitrary
       fuzzWidth <- Gen.chooseNum(0.0, 1.0)
       fuzzType <- Gen.oneOf(Box, Gaussian)
-    } yield FuzzyNumber(base.nominalValue, base.factor, Some(AbsoluteFuzz[Double](fuzzWidth, fuzzType)))
+    } yield FuzzyNumber(base.nominalValue, base.rep, Some(AbsoluteFuzz[Double](fuzzWidth, fuzzType)))
 
     val genNaN = Gen.const(Number.NaN)
 
@@ -90,7 +90,7 @@ class CatsKernelLawSpec
     Cogen[(Option[Double], Option[(BigInt, BigInt)], String, Option[(Double, String, Boolean)])].contramap { n =>
       val nominalDouble = n.toNominalDouble
       val nominalRational = n.toNominalRational.map(r => (r.n, r.d))
-      val factorId = n.factor.toString
+      val representationId = n.rep.toString
       val fuzzInfo = n match {
         case g: GeneralNumber =>
           g.fuzz.map { f =>
@@ -102,7 +102,7 @@ class CatsKernelLawSpec
           }
         case _ => None
       }
-      (nominalDouble, nominalRational, factorId, fuzzInfo)
+      (nominalDouble, nominalRational, representationId, fuzzInfo)
     }
 
   // Arbitrary[Real] and Cogen[Real]: delegate to underlying Number generators
@@ -134,11 +134,11 @@ class CatsKernelLawSpec
 
   implicit val cogenField: Cogen[Field] = Cogen[(Int, Option[Double], Option[(BigInt, BigInt)], String, Option[(Double, String, Boolean)], Option[Double], Option[(BigInt, BigInt)], Int)].contramap {
     case Real(n) =>
-      (0, n.toNominalDouble, n.toNominalRational.map(r => (r.n, r.d)), n.factor.toString, None, None, None, 0)
+      (0, n.toNominalDouble, n.toNominalRational.map(r => (r.n, r.d)), n.rep.toString, None, None, None, 0)
     case ComplexCartesian(x, y) =>
-      (1, x.toNominalDouble, x.toNominalRational.map(r => (r.n, r.d)), x.factor.toString, None, y.toNominalDouble, y.toNominalRational.map(r => (r.n, r.d)), 0)
+      (1, x.toNominalDouble, x.toNominalRational.map(r => (r.n, r.d)), x.rep.toString, None, y.toNominalDouble, y.toNominalRational.map(r => (r.n, r.d)), 0)
     case ComplexPolar(r, t, n) =>
-      (2, r.toNominalDouble, r.toNominalRational.map(r0 => (r0.n, r0.d)), r.factor.toString, None, t.toNominalDouble, t.toNominalRational.map(t0 => (t0.n, t0.d)), n)
+      (2, r.toNominalDouble, r.toNominalRational.map(r0 => (r0.n, r0.d)), r.rep.toString, None, t.toNominalDouble, t.toNominalRational.map(t0 => (t0.n, t0.d)), n)
   }
 
   // Arbitrary/Cogen[Complex]: restrict theta to valid radians for polar
@@ -160,9 +160,9 @@ class CatsKernelLawSpec
 
   implicit val cogenComplex: Cogen[Complex] = Cogen[(Int, Option[Double], Option[(BigInt, BigInt)], String, Option[Double], Option[(BigInt, BigInt)], Int)].contramap {
     case ComplexCartesian(x, y) =>
-      (1, x.toNominalDouble, x.toNominalRational.map(r => (r.n, r.d)), x.factor.toString, y.toNominalDouble, y.toNominalRational.map(r => (r.n, r.d)), 0)
+      (1, x.toNominalDouble, x.toNominalRational.map(r => (r.n, r.d)), x.rep.toString, y.toNominalDouble, y.toNominalRational.map(r => (r.n, r.d)), 0)
     case ComplexPolar(r, t, n) =>
-      (2, r.toNominalDouble, r.toNominalRational.map(r0 => (r0.n, r0.d)), r.factor.toString, t.toNominalDouble, t.toNominalRational.map(t0 => (t0.n, t0.d)), n)
+      (2, r.toNominalDouble, r.toNominalRational.map(r0 => (r0.n, r0.d)), r.rep.toString, t.toNominalDouble, t.toNominalRational.map(t0 => (t0.n, t0.d)), n)
   }
 
   // Arbitrary/Cogen[Fuzziness[Double]]: cover Abs/Rel × Box/Gaussian with stable magnitude bits

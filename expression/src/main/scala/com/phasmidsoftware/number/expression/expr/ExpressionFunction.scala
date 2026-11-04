@@ -281,16 +281,16 @@ sealed abstract class ExpressionBiFunction(
 
   /**
     * Defines the `Context` appropriate for evaluating the right-hand parameter of this function
-    * based on the provided `Factor`.
+    * based on the provided `Representation`.
     *
     * CONSIDER eliminating context as a parameter, or maybe changing it to the overall context
     * as used by leftContext.
     *
-    * @param factor  the `Factor` used to determine the specific right-hand `Context`.
+    * @param rep the `Representation` used to determine the specific right-hand `Context`.
     * @param context the initial `Context` typically derived from the evaluation of the left-hand parameter.
     * @return the updated right-hand `Context` for use in further evaluations.
     */
-  def rightContext(factor: Factor)(context: Context): Context
+  def rightContext(rep: Representation)(context: Context): Context
 
   /**
     * Applies the function exactly to the given input of type `P`, returning an
@@ -333,7 +333,7 @@ sealed abstract class ExpressionBiFunction(
     val cLeft = leftContext(context)
     val eo = for {
       x <- a.evaluate(cLeft)
-      cRight <- x.maybeFactor(cLeft).map(q => rightContext(q)(context)) // XXX Don't split this up.
+      cRight <- x.maybeRep(cLeft).map(q => rightContext(q)(context)) // XXX Don't split this up.
       y <- b.evaluate(cRight)
       z <- applyExact((x, y))
     } yield z
@@ -423,7 +423,7 @@ case object Atan extends ExpressionBiFunction("atan", ExpressionFunction.lift2(R
     * @param context the input evaluation `Context` that specifies the right-hand context for the operation.
     * @return the same `Context` object passed as input, representing the right-hand evaluation context.
     */
-  def rightContext(factor: Factor)(context: Context): Context =
+  def rightContext(rep: Representation)(context: Context): Context =
     RestrictedContext(PureNumber) `or` AnyRoot
 
   /**
@@ -495,7 +495,7 @@ case object Log extends ExpressionBiFunction("log", lift2(Real.log), false, None
     * @param context the input evaluation `Context` that specifies the right-hand context for the operation.
     * @return the same `Context` object passed as input, representing the right-hand evaluation context.
     */
-  def rightContext(factor: Factor)(context: Context): Context =
+  def rightContext(rep: Representation)(context: Context): Context =
     RestrictedContext(PureNumber)
 
   /**
@@ -618,7 +618,7 @@ case object Exp extends ExpressionMonoFunction("exp", lift1(x => x.exp), Parity.
   *
   * This object represents the mathematical negation operation ("-") applied to a numeric input.
   * It uses the `negate` method, which evaluates the negation of a given Number while handling specific cases
-  * like imaginary numbers and converting non-pure factors to PureNumber form as necessary.
+  * like imaginary numbers and converting non-pure representations to PureNumber form as necessary.
   *
   * The function is exact and operates lazily.
   */
@@ -634,7 +634,7 @@ case object Negate extends ExpressionMonoFunction("-", lift1(x => -x), Parity.Od
   /**
     * Applies an exact mathematical operation to negate certain types of exact numeric Valuables.
     * This method specifically handles cases where the input is a `Real` containing an `ExactNumber`
-    * with either a `PureNumber` or `Radian` factor.
+    * with either a `PureNumber` or `Radian` representation.
     *
     * @param x the input Valuable to which the exact operation is applied.
     *          Only Valuables matching predefined patterns are processed; others return `None`.
@@ -663,7 +663,7 @@ case object Negate extends ExpressionMonoFunction("-", lift1(x => -x), Parity.Od
 case object Reciprocal extends ExpressionMonoFunction("rec", lift1(x => x.invert), Parity.Odd) {
   /**
     * Attempts to compute the reciprocal (exact inverse) of the given `Valuable`.
-    * For specific cases of `Real` representations, such as `ExactNumber` with pure, logarithmic, or root factors,
+    * For specific cases of `Real` representations, such as `ExactNumber` with pure, logarithmic, or root representations,
     * the method determines the inverse or applies negation as appropriate.
     * Complex or unsupported `Valuable` cases are ignored, and `None` is returned.
     *
@@ -720,15 +720,15 @@ case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExac
     * @param context the `Context` typically based on the value of the left-hand parameter.
     * @return the right-hand `Context` of the binary function.
     */
-  def rightContext(factor: Factor)(context: Context): Context =
-    RestrictedContext(factor)
+  def rightContext(rep: Representation)(context: Context): Context =
+    RestrictedContext(rep)
 
   /**
     * Applies a binary operation to the provided `Valuable` elements `a` and `b`, with stricter evaluation rules,
     * and returns an optional result.
     * The evaluation succeeds only if the operation satisfies specific conditions
     * (e.g., exact representations or mathematical constraints).
-    * In this case, the evaluation succeeds only if the factors of each parameter are compatible.
+    * In this case, the evaluation succeeds only if the representations of each parameter are compatible.
     * Otherwise, the result is `None`. TODO CHECK
     *
     * @param a the first operand, an exact `Valuable` instance.
@@ -790,13 +790,13 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x `multipl
     * The method evaluates the provided context and returns a new `Context` that is derived
     * based on the specific rules for different types of contexts.
     *
-    * CONSIDER reworking this method to take a Factor (from the left-hand parameter) and a Context (the overall context).
+    * CONSIDER reworking this method to take a Representation (from the left-hand parameter) and a Context (the overall context).
     * Otherwise, I don't think it's going to work properly.
     *
     * @param context the initial `Context` to be evaluated and transformed.
     * @return the resulting `Context` after applying the transformation logic.
     */
-  def rightContext(factor: Factor)(context: Context): Context = context match {
+  def rightContext(rep: Representation)(context: Context): Context = context match {
     case AnyScalar | AnyContext =>
       context `or` RestrictedContext(PureNumber)
     case AnyLog =>
@@ -905,7 +905,7 @@ case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)
     * @return the updated `Context` after applying the evaluation logic. Returns `None` if the input
     *         context matches `Some(PureNumber)`, otherwise returns `Some(PureNumber)`.
     */
-  def rightContext(factor: Factor)(context: Context): Context =
+  def rightContext(rep: Representation)(context: Context): Context =
     AnyScalar // ignore both parameters
 
   /**
@@ -931,7 +931,7 @@ case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)
       Some(eager.InversePower(n, x))
     case (x: CanPower[eager.Structure] @unchecked, y: Q) if x.isExact && y.isExact =>
       for {
-        f <- y.maybeFactor(AnyContext) if f == PureNumber
+        f <- y.maybeRep(AnyContext) if f == PureNumber
         result <- x.pow(RationalNumber(y.toRational))
       } yield result
     case (x: eager.Number, RationalNumber(y, _)) if y.invert.isWhole =>
@@ -956,7 +956,7 @@ abstract class SineCos(sine: Boolean, parity: Parity) extends ExpressionMonoFunc
     * Regardless of the value of `context`, the required `Context` for the parameter is `Radian`.
     *
     * @param context ignored.
-    * @return a new `RestrictedContext` instance configured with the `Radian` factor.
+    * @return a new `RestrictedContext` instance configured with the `Radian` representation.
     */
   def paramContext(context: Context): Context =
     RestrictedContext(Radian)
@@ -1030,7 +1030,7 @@ abstract class Hyperbolic(sinh: Boolean, parity: Parity) extends ExpressionMonoF
     * Regardless of the value of `context`, the required `Context` for the parameter is `Radian`.
     *
     * @param context ignored.
-    * @return a new `RestrictedContext` instance configured with the `Radian` factor.
+    * @return a new `RestrictedContext` instance configured with the `Radian` representation.
     */
   def paramContext(context: Context): Context =
     RestrictedContext(Radian)

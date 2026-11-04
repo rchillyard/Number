@@ -74,9 +74,9 @@
 //    phi.evaluateAsIs.get should ===(Real(sPhi))
 ////    phi.evaluateAsIs shouldBe None
 //  }
-//  it should "maybeFactor" in {
-//    phi.maybeFactor shouldBe None
-//    Root.zero.maybeFactor shouldBe Some(PureNumber)
+//  it should "maybeRep" in {
+//    phi.maybeRep shouldBe None
+//    Root.zero.maybeRep shouldBe Some(PureNumber)
 //  }
 //  it should "isExact" in {
 //    phi.isExact shouldBe true

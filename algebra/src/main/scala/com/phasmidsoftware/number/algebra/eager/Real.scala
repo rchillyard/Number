@@ -13,7 +13,7 @@ import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.Real.realIsRing
 import com.phasmidsoftware.number.algebra.util.FP.recover
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
+import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Representation, Value}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Constants.sGamma
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, FuzzyNumber}
@@ -526,8 +526,8 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     *
     * @return A FuzzyNumber representation of the current value.
     */
-  def toFuzzyNumber(factor: Factor): FuzzyNumber =
-    new FuzzyNumber(Value.fromDouble(Some(value)), factor, fuzz)
+  def toFuzzyNumber(rep: Representation): FuzzyNumber =
+    new FuzzyNumber(Value.fromDouble(Some(value)), rep, fuzz)
 }
 
 /**

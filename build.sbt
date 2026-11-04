@@ -29,6 +29,7 @@ Global / concurrentRestrictions += Tags.limitAll(1)
 // ============================================================================
 
 // The compiler options that all the Phasmid libraries share.
+// -Werror: warnings fail the build.
 ThisBuild / scalacOptions ++= Seq(
   "-encoding", "UTF-8",
   "-deprecation",
@@ -36,7 +37,8 @@ ThisBuild / scalacOptions ++= Seq(
   "-unchecked",
   "-Wunused:all",
   "-Wvalue-discard",
-  "-Wnonunit-statement"
+  "-Wnonunit-statement",
+  "-Werror"
 )
 // Tests may use a value as a statement (for example, in a matcher), so each project's tests skip -Wnonunit-statement.
 lazy val testScalacOptions = Test / scalacOptions ~= (_.filterNot(_ == "-Wnonunit-statement"))

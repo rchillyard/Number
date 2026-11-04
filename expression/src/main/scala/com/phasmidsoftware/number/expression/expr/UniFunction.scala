@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.*
-import com.phasmidsoftware.number.core.inner.Factor
+import com.phasmidsoftware.number.core.inner.Representation
 import com.phasmidsoftware.number.expression.expr.Expression.em.MonadicDuple
 import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, em}
 import com.phasmidsoftware.number.expression.expr.ExpressionMatchers.componentsSimplifier
@@ -24,13 +24,13 @@ import scala.language.implicitConversions
   */
 case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends CompositeExpression {
   /**
-    * Method to determine what `Factor`, if there is such, this `Structure` object is based on.
+    * Method to determine what `Representation`, if there is such, this `Structure` object is based on.
     * TODO implement this in CompositeExpression (then can remove all the overrides).
     *
-    * @return an optional `Factor`.
+    * @return an optional `Representation`.
     */
-  def maybeFactor(context: Context): Option[Factor] =
-    evaluate(context) flatMap (v => v.maybeFactor(context))
+  def maybeRep(context: Context): Option[Representation] =
+    evaluate(context) flatMap (v => v.maybeRep(context))
 
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.

@@ -51,13 +51,13 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val target = Number.pi
     target should matchPattern { case ExactNumber(_, _) => }
     target.nominalValue should matchPattern { case Right(_) => }
-    target.factor shouldBe Radian
+    target.rep shouldBe Radian
   }
   it should "yield ExactNumber(1, Euler)" in {
     val target = ExactNumber(1, Euler)
     target should matchPattern { case ExactNumber(_, _) => }
     target.nominalValue should matchPattern { case Right(_) => }
-    target.factor shouldBe Euler
+    target.rep shouldBe Euler
     target.simplify shouldBe Number(-1)
     val logValue = Number.log(target)
     logValue.render shouldBe "-1"
@@ -68,7 +68,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val target = ExactNumber(Value.fromRational(Rational.half), Euler)
     target should matchPattern { case ExactNumber(_, _) => }
     target.nominalValue should matchPattern { case Left(Right(Rational.half)) => }
-    target.factor shouldBe Euler
+    target.rep shouldBe Euler
     target.simplify shouldBe Number.i
     target.simplify.render shouldBe "i"
     val logValue = Number.log(target)
@@ -79,7 +79,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val target = Number.create(Right(1), Radian, Some(standardFuzz))
     target should matchPattern { case FuzzyNumber(_, _, _) => }
     target.nominalValue should matchPattern { case Right(_) => }
-    target.factor shouldBe Radian
+    target.rep shouldBe Radian
   }
 
   behavior of "nominalValue"
@@ -200,7 +200,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val eSquared: Field = (Constants.e `multiply` Constants.e).normalize
     eSquared match {
       case Real(x) =>
-        x.factor shouldBe NatLog
+        x.rep shouldBe NatLog
         x.nominalValue shouldBe Value.fromInt(2)
       case _ =>
         fail("multiply e and e")
@@ -210,7 +210,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val ePi: Field = (Constants.e `multiply` Constants.pi).normalize
     ePi match {
       case Real(x) =>
-        x.factor shouldBe PureNumber
+        x.rep shouldBe PureNumber
         x.toNominalDouble.get should be(8.539734222673568 +- 1e-10)
       case _ =>
         fail("multiply e and e")
@@ -220,8 +220,8 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val ePi: Field = (Constants.pi `multiply` Constants.e).normalize
     ePi match {
       case Real(x) =>
-        // CONSIDER should the factor by Radian, with a nominal value of 2.718?
-        x.factor shouldBe PureNumber
+        // CONSIDER should the representation by Radian, with a nominal value of 2.718?
+        x.rep shouldBe PureNumber
         x.toNominalDouble.get should be(8.539734222673568 +- 1e-10)
       case _ =>
         fail("multiply e and e")
@@ -274,7 +274,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     xy.get shouldBe Number.create(Left(Right(bigBigInt)))
   }
   it should "work for Radian" in {
-    val xy: Try[Number] = Number.parse("1" + Factor.sPi)
+    val xy: Try[Number] = Number.parse("1" + Representation.sPi)
     xy.get shouldBe Number(Radian)
   }
   it should "work for pi" in {
@@ -282,7 +282,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     xy.get shouldBe Number(Radian)
   }
   it should "work for e" in {
-    val xy: Try[Number] = Number.parse("1" + Factor.sE)
+    val xy: Try[Number] = Number.parse("1" + Representation.sE)
     xy.get shouldBe Number(1, NatLog)
   }
   it should "fail with x" in {
@@ -319,7 +319,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val target = Number("\uD835\uDED1")
     target.isExact shouldBe true
     target.nominalValue shouldBe Right(1)
-    target.factor shouldBe Radian
+    target.rep shouldBe Radian
   }
   it should "work for 1" in {
     val target = Number.one
@@ -601,26 +601,26 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     result.toString shouldBe "3"
   }
 
-  behavior of "alignFactors"
+  behavior of "alignRepresentations"
   it should "work for PureNumber, PureNumber" in {
     val target = Number.one
-    target.asInstanceOf[GeneralNumber].alignFactors(Number(2)) shouldBe(Number.one, Number(2))
+    target.asInstanceOf[GeneralNumber].alignRepresentations(Number(2)) shouldBe(Number.one, Number(2))
   }
   it should "work for PureNumber, Radian" in {
     val target = Number.one
-    val (p, q) = target.asInstanceOf[GeneralNumber].alignFactors(Number(2, Radian))
+    val (p, q) = target.asInstanceOf[GeneralNumber].alignRepresentations(Number(2, Radian))
     p shouldBe Number.one
     q shouldEqual Number(2 * Math.PI)
   }
   it should "work for Radian, PureNumber" in {
     val target = Number(2, Radian)
-    val (f, x) = target.asInstanceOf[GeneralNumber].alignFactors(Number.one)
+    val (f, x) = target.asInstanceOf[GeneralNumber].alignRepresentations(Number.one)
     f shouldEqual Number(2 * Math.PI)
     x shouldBe Number.one
   }
   it should "work for Radian, Radian" in {
     val target = Number(1, Radian)
-    target.asInstanceOf[GeneralNumber].alignFactors(Number(2, Radian)) shouldBe(Number(1, Radian), Number(2, Radian))
+    target.asInstanceOf[GeneralNumber].alignRepresentations(Number(2, Radian)) shouldBe(Number(1, Radian), Number(2, Radian))
   }
 
   behavior of "alignTypes"

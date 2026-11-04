@@ -127,7 +127,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     val z = c1_2 `power` -1
     z shouldBe ComplexCartesian(Number(r"1/5"), Number(r"-2/5"))
   }
-  // TODO fix me. This arose when working with Factor.raise
+  // TODO fix me. This arose when working with Representation.raise
   it should "c1_2∧1/2" in {
     //    val z: Field = convertToPolar(c1_2)
     val result: Complex = c1_2 `power` half

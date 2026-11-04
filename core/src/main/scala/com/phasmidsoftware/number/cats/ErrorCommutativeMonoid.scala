@@ -5,7 +5,7 @@ import com.phasmidsoftware.number.core.misc.Variance.rootSumSquares
 
 /**
   * Lightweight wrappers representing common error metrics so that we can endow them with
-  * Cats algebra instances without dragging Number/Fuzziness context (factor, nominal value, etc.).
+  * Cats algebra instances without dragging Number/Fuzziness context (representation, nominal value, etc.).
   *
   * Each wrapper models the magnitude of an uncertainty under the assumption of independent errors.
   * They serve as the core building blocks for folding or parallel aggregation of fuzzy quantities.

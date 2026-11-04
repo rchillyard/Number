@@ -767,29 +767,29 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result shouldBe em.Match(Pi)
   }
 
-  behavior of "factorsMatch"
+  behavior of "representationsMatch"
   it should "match expression Sum" in {
-    em.factorsMatch(Sum, One, MinusOne) shouldBe true
-    em.factorsMatch(Sum, MinusOne, One) shouldBe true
-    em.factorsMatch(Sum, One, Pi) shouldBe false
-    em.factorsMatch(Sum, Pi, One) shouldBe false
-    em.factorsMatch(Sum, One, Literal(root2)) shouldBe false
-    em.factorsMatch(Sum, Literal(root2), One) shouldBe false
-    //    em.factorsMatch(Sum, Literal(root2), Literal(root2) * MinusOne) shouldBe false // TODO fix this
-    //    em.factorsMatch(Sum, Literal(root2) * MinusOne, Literal(root2)) shouldBe false // TODO fix this
+    em.representationsMatch(Sum, One, MinusOne) shouldBe true
+    em.representationsMatch(Sum, MinusOne, One) shouldBe true
+    em.representationsMatch(Sum, One, Pi) shouldBe false
+    em.representationsMatch(Sum, Pi, One) shouldBe false
+    em.representationsMatch(Sum, One, Literal(root2)) shouldBe false
+    em.representationsMatch(Sum, Literal(root2), One) shouldBe false
+    //    em.representationsMatch(Sum, Literal(root2), Literal(root2) * MinusOne) shouldBe false // TODO fix this
+    //    em.representationsMatch(Sum, Literal(root2) * MinusOne, Literal(root2)) shouldBe false // TODO fix this
   }
   it should "match expression Product" in {
-    em.factorsMatch(Product, Pi, MinusOne) shouldBe true
-    em.factorsMatch(Product, MinusOne, Pi) shouldBe true
-    em.factorsMatch(Product, Literal(root2), MinusOne) shouldBe false
-    em.factorsMatch(Product, MinusOne, Literal(root2)) shouldBe false
-    em.factorsMatch(Product, Literal(root3), Literal(root2)) shouldBe true
+    em.representationsMatch(Product, Pi, MinusOne) shouldBe true
+    em.representationsMatch(Product, MinusOne, Pi) shouldBe true
+    em.representationsMatch(Product, Literal(root2), MinusOne) shouldBe false
+    em.representationsMatch(Product, MinusOne, Literal(root2)) shouldBe false
+    em.representationsMatch(Product, Literal(root3), Literal(root2)) shouldBe true
   }
   it should "match expression Power" in {
-    em.factorsMatch(Power, Pi, MinusOne) shouldBe false
-    em.factorsMatch(Power, MinusOne, Pi) shouldBe true
-    em.factorsMatch(Power, Literal(root2), MinusOne) shouldBe false
-    em.factorsMatch(Power, MinusOne, Literal(root2)) shouldBe false
+    em.representationsMatch(Power, Pi, MinusOne) shouldBe false
+    em.representationsMatch(Power, MinusOne, Pi) shouldBe true
+    em.representationsMatch(Power, Literal(root2), MinusOne) shouldBe false
+    em.representationsMatch(Power, MinusOne, Literal(root2)) shouldBe false
   }
 
   behavior of "simplify aggregate, etc."

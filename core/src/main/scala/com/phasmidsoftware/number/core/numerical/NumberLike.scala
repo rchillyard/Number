@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Value}
+import com.phasmidsoftware.number.core.inner.{PureNumber, Representation, Value}
 
 /**
   * Trait to define the behavior of things that are number-like.
@@ -14,18 +14,24 @@ import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Value}
 trait NumberLike {
 
   /**
-    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+    * Method to determine what `Representation`, if there is such, this `NumberLike` object is based on.
     * Unlike context, a `None` result is not permissive.
     *
-    * @return an optional `Factor`.
+    * @return an optional `Representation`.
     */
-  def maybeFactor: Option[Factor]
+  def maybeRep: Option[Representation]
+
+  /**
+    * Deprecated: use `maybeRep` instead (renamed in version 1.11.0).
+    */
+  @deprecated("Use maybeRep", since = "1.11.0")
+  def maybeFactor: Option[Representation] = maybeRep
 
   /**
     * Method to determine if this NumberLike object is exact.
     * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
-    * @return true if this NumberLike object is exact in the context of No factor, else false.
+    * @return true if this NumberLike object is exact in the context of No representation, else false.
     */
   def isExact: Boolean
 
@@ -49,7 +55,7 @@ trait NumberLike {
     *
     * The method determines whether the current `NumberLike` object can be represented as a `java.lang.Number`
     * by leveraging the `asNumber` method and further evaluating certain conditions:
-    * - If the `NumberLike` object is an `ExactNumber` and its factor is `PureNumber`, the result
+    * - If the `NumberLike` object is an `ExactNumber` and its representation is `PureNumber`, the result
     * is converted using `Value.asJavaNumber`.
     * - If the `NumberLike` object is a `FuzzyNumber` with a `wiggle` value below a specified tolerance,
     * the result is also converted using `Value.asJavaNumber`.

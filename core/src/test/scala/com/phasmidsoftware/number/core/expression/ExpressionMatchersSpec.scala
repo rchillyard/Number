@@ -520,30 +520,30 @@
 //    result shouldBe em.Match(ConstPi)
 //  }
 //
-//  behavior of "factorsMatch"
+//  behavior of "representationsMatch"
 //  it should "match expression Sum" in {
-//    em.factorsMatch(Sum, One, MinusOne) shouldBe true
-//    em.factorsMatch(Sum, MinusOne, One) shouldBe true
-//    em.factorsMatch(Sum, One, ConstPi) shouldBe false
-//    em.factorsMatch(Sum, ConstPi, One) shouldBe false
-//    em.factorsMatch(Sum, One, Literal(root2)) shouldBe false
-//    em.factorsMatch(Sum, Literal(root2), One) shouldBe false
-////    em.factorsMatch(Sum, Literal(root2), Literal(root2) * MinusOne) shouldBe false // TODO fix this
-////    em.factorsMatch(Sum, Literal(root2) * MinusOne, Literal(root2)) shouldBe false // TODO fix this
+//    em.representationsMatch(Sum, One, MinusOne) shouldBe true
+//    em.representationsMatch(Sum, MinusOne, One) shouldBe true
+//    em.representationsMatch(Sum, One, ConstPi) shouldBe false
+//    em.representationsMatch(Sum, ConstPi, One) shouldBe false
+//    em.representationsMatch(Sum, One, Literal(root2)) shouldBe false
+//    em.representationsMatch(Sum, Literal(root2), One) shouldBe false
+////    em.representationsMatch(Sum, Literal(root2), Literal(root2) * MinusOne) shouldBe false // TODO fix this
+////    em.representationsMatch(Sum, Literal(root2) * MinusOne, Literal(root2)) shouldBe false // TODO fix this
 //  }
 //  it should "match expression Product" in {
-//    em.factorsMatch(Product, ConstPi, MinusOne) shouldBe true
-//    em.factorsMatch(Product, MinusOne, ConstPi) shouldBe true
-//    em.factorsMatch(Product, Literal(root3), Literal(root2)) shouldBe true
-//    em.factorsMatch(Product, Literal(root2), MinusOne) shouldBe false
-//    em.factorsMatch(Product, MinusOne, Literal(root2)) shouldBe false
+//    em.representationsMatch(Product, ConstPi, MinusOne) shouldBe true
+//    em.representationsMatch(Product, MinusOne, ConstPi) shouldBe true
+//    em.representationsMatch(Product, Literal(root3), Literal(root2)) shouldBe true
+//    em.representationsMatch(Product, Literal(root2), MinusOne) shouldBe false
+//    em.representationsMatch(Product, MinusOne, Literal(root2)) shouldBe false
 //  }
 //  it should "match expression Power" in {
-////        em.factorsMatch(Power, ConstPi, MinusOne) shouldBe true
-//    em.factorsMatch(Power, MinusOne, ConstPi) shouldBe true
-//    em.factorsMatch(Power, Literal(root3), Two) shouldBe true
-//    em.factorsMatch(Power, Literal(root2), MinusOne) shouldBe false
-//    em.factorsMatch(Power, MinusOne, Literal(root2)) shouldBe false
+////        em.representationsMatch(Power, ConstPi, MinusOne) shouldBe true
+//    em.representationsMatch(Power, MinusOne, ConstPi) shouldBe true
+//    em.representationsMatch(Power, Literal(root3), Two) shouldBe true
+//    em.representationsMatch(Power, Literal(root2), MinusOne) shouldBe false
+//    em.representationsMatch(Power, MinusOne, Literal(root2)) shouldBe false
 //  }
 //
 //  behavior of "simplify aggregate, etc."

@@ -13,7 +13,7 @@ import com.phasmidsoftware.number.algebra.eager.RationalNumber.rationalNumberIsF
 import com.phasmidsoftware.number.algebra.eager.Real.realIsRing
 import com.phasmidsoftware.number.algebra.eager.WholeNumber.WholeNumberIsCommutativeRing
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
+import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Representation}
 
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -153,20 +153,20 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
   def divide(other: Number): Try[Number] = Try(this / other)
 
   /**
-    * Attempts to obtain a `Factor` representation in a specific `Context`.
+    * Attempts to obtain a `Representation` representation in a specific `Context`.
     *
-    * A `Factor` could represent entities like `PureNumber`, `Radian`, etc., that
+    * A `Representation` could represent entities like `PureNumber`, `Radian`, etc., that
     * provide numerical or dimensional meaning to a value. This method evaluates
     * the current instance within the given `Context` to determine if a valid
-    * factor can be generated.
+    * representation can be generated.
     *
-    * @param context the evaluation context in which to determine the factor. The `Context`
+    * @param context the evaluation context in which to determine the representation. The `Context`
     *                specifies the criteria under which the factorization is valid.
-    * @return an `Option[Factor]` containing the factor if it can be determined,
-    *         or `None` if no suitable factor exists within the provided `Context`.
+    * @return an `Option[Representation]` containing the representation if it can be determined,
+    *         or `None` if no suitable representation exists within the provided `Context`.
     */
-  def maybeFactor(context: Context): Option[Factor] =
-    Option.when(context.factorQualifies(PureNumber))(PureNumber)
+  def maybeRep(context: Context): Option[Representation] =
+    Option.when(context.repQualifies(PureNumber))(PureNumber)
 
   /**
     * Compares this `Number` instance with a `Scalar` instance.

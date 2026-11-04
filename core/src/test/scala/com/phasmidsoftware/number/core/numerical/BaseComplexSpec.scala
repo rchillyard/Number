@@ -192,7 +192,7 @@ class BaseComplexSpec extends AnyFlatSpec with Matchers {
     val result = x.atan(y)
     result match {
       case Real(angle) =>
-        angle.factor shouldBe Radian
+        angle.rep shouldBe Radian
         angle.toNominalDouble.get should be(0.25 +- 1e-10)
     }
   }
@@ -245,7 +245,7 @@ class BaseComplexSpec extends AnyFlatSpec with Matchers {
     result match {
       case Real(x) =>
         x.toNominalDouble.get should be(1.0 +- 1e-10)
-        x.factor should be(NatLog)
+        x.rep should be(NatLog)
     }
   }
 
@@ -426,7 +426,7 @@ class BaseComplexSpec extends AnyFlatSpec with Matchers {
       case ComplexPolar(r, theta, _) =>
         r.toNominalDouble.get should be(6.0 +- 1e-10)
         theta.toNominalDouble.get should be((0.5 + 1.0 / 3.0) +- 1e-10)
-        theta.factor should be(Radian)
+        theta.rep should be(Radian)
     }
   }
 
@@ -438,7 +438,7 @@ class BaseComplexSpec extends AnyFlatSpec with Matchers {
       case ComplexPolar(r, theta, _) =>
         r.toNominalDouble.get should be(4.0 +- 1e-10)
         theta.toNominalDouble.get should be(1.0 +- 1e-10)
-        theta.factor should be(Radian)
+        theta.rep should be(Radian)
     }
   }
 

@@ -42,7 +42,7 @@ trait Expression extends Lazy with Approximate {
 
   /**
     * Action to evaluate this `Expression` as a `Field`, if possible.
-    * NOTE: no simplification or factor-based conversion occurs here.
+    * NOTE: no simplification or representation-based conversion occurs here.
     *
     * @return an optional `Field`.
     */
@@ -100,9 +100,9 @@ trait Expression extends Lazy with Approximate {
   def unit(x: Eager): Lazy = Literal(x)
 
   /**
-    * Evaluates this `Expression` in the context of `AnyContext` without simplification or factor-based conversion.
+    * Evaluates this `Expression` in the context of `AnyContext` without simplification or representation-based conversion.
     * This allows obtaining a direct evaluation of the `Expression` as a `Eager`, if possible.
-    * NOTE: no simplification or factor-based conversion occurs here.
+    * NOTE: no simplification or representation-based conversion occurs here.
     *
     * @return either a `Some[Eager]` containing the value if evaluation is successful, or `None` otherwise.
     */

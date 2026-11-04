@@ -22,7 +22,7 @@ class NumberLikeSpec extends AnyFlatSpec with should.Matchers {
   it should "asNumber" in {
 
   }
-  it should "maybeFactor" in {
+  it should "maybeRep" in {
 
   }
   it should "isExact" in {

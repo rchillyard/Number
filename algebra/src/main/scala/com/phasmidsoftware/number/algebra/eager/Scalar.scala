@@ -10,7 +10,7 @@ import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
 import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
-import com.phasmidsoftware.number.core.inner.{Factor, Rational}
+import com.phasmidsoftware.number.core.inner.{Rational, Representation}
 import com.phasmidsoftware.number.core.numerical.{ExactNumber, Fuzziness, FuzzyNumber}
 import com.phasmidsoftware.number.core.{inner, numerical}
 
@@ -195,7 +195,7 @@ trait Scalar extends Structure {
 
 /**
   * The `Scalar` object is a utility for creating and representing scalar values
-  * with dimensional factors, exact or approximate numerical precision,
+  * with dimensional representations, exact or approximate numerical precision,
   * and optional fuzziness (uncertainty or imprecision).
   */
 object Scalar {
@@ -208,15 +208,15 @@ object Scalar {
     *
     * @param x the `core.Number` to be converted into a `Scalar`.
     *          It can be an `ExactNumber` or a `FuzzyNumber`, each with specific
-    *          properties such as value, factor, and optional fuzziness.
+    *          properties such as value, representation, and optional fuzziness.
     * @return the resulting `Scalar` based on the input number's properties, which
-    *         encapsulates its exact value, factor, and optional fuzziness.
+    *         encapsulates its exact value, representation, and optional fuzziness.
     */
   def apply(x: numerical.Number): Structure = x match {
-    case ExactNumber(value, factor) =>
-      createScalar(value, factor, None)
-    case FuzzyNumber(value, factor, fuzz) =>
-      createScalar(value, factor, fuzz)
+    case ExactNumber(value, representation) =>
+      createScalar(value, representation, None)
+    case FuzzyNumber(value, representation, fuzz) =>
+      createScalar(value, representation, fuzz)
   }
 
   val zero: Scalar = createScalar(Right(0), inner.PureNumber, None).asInstanceOf[Scalar]
@@ -271,21 +271,21 @@ object Scalar {
     * Creates a `Scalar` instance based on the given input parameters.
     * The method evaluates the input value and optional fuzziness to determine
     * the appropriate numerical representation (e.g., `WholeNumber`, `Real`, `RationalNumber`)
-    * and associates it with the provided factor (e.g., `PureNumber`, `Radian`).
+    * and associates it with the provided representation (e.g., `PureNumber`, `Radian`).
     *
     * CONSIDER this should return a Scalar. Alternatively, it shoul be moved to Structure and renamed to createStructure.
     *
     * @param value  the numerical value, which can either be a right value for exact numbers
     *               (e.g., integers, floating-point values) or a left value for rational
     *               or other representations.
-    * @param factor the dimensional factor associated with the scalar, such as
-    *               `PureNumber`, `Radian`, or other domain-specific factors.
+    * @param representation the dimensional representation associated with the scalar, such as
+    *               `PureNumber`, `Radian`, or other domain-specific representations.
     * @param fuzz   an optional fuzziness component representing the uncertainty
     *               or imprecision in the numerical value.
-    * @return the resulting `Scalar` based on the input values, factor, and optional fuzziness.
-    *         @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if called with unsupported factors.
+    * @return the resulting `Scalar` based on the input values, representation, and optional fuzziness.
+    *         @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if called with unsupported representations.
     */
-  def createScalar(value: inner.Value, factor: inner.Factor, fuzz: Option[Fuzziness[Double]]): Structure = {
+  def createScalar(value: inner.Value, representation: inner.Representation, fuzz: Option[Fuzziness[Double]]): Structure = {
     val number: Number = (value, fuzz) match {
       case (Right(x), None) =>
         WholeNumber(x)
@@ -300,7 +300,7 @@ object Scalar {
       case (Left(Left(None)), _) =>
         Real(Double.NaN, fuzz)
     }
-    factor match {
+    representation match {
       case inner.PureNumber =>
         number
       case inner.Radian =>
@@ -312,11 +312,11 @@ object Scalar {
           case Some(n) =>
             InversePower(n, number)
           case _ =>
-            throw AlgebraException(s"Scalar.createScalar: unsupported inverse power $factor")
+            throw AlgebraException(s"Scalar.createScalar: unsupported inverse power $representation")
         }
       case _ =>
-        // TODO implement other factors (%, and degrees)
-        throw AlgebraException(s"Scalar.createScalar: unsupported factor $factor")
+        // TODO implement other representations (%, and degrees)
+        throw AlgebraException(s"Scalar.createScalar: unsupported representation $representation")
     }
   }
 }
@@ -395,14 +395,14 @@ case object NoScalar extends Scalar with Exact {
   def signum: Int = throw AlgebraException(s"NoScalar.signum: unsupported operation")
 
   /**
-    * Attempts to yield a factor for the instance, if available.
+    * Attempts to yield a representation for the instance, if available.
     *
-    * A `Factor` is a representation of the underlying numerical domain, for example, `PureNumber`, `Radian`, etc.
+    * A `Representation` is a representation of the underlying numerical domain, for example, `PureNumber`, `Radian`, etc.
     *
-    * @return an `Option[Factor]` containing the factor representation of this object,
+    * @return an `Option[Representation]` containing the representation of this object,
     *         or `None` if factorization is not applicable or unavailable.
     */
-  def maybeFactor(context: Context): Option[Factor] = None
+  def maybeRep(context: Context): Option[Representation] = None
 
   /**
     * Converts the given `Structure` object to an optional instance of the same type.

@@ -118,10 +118,10 @@ class NumberShowSpec extends AnyFlatSpec with Matchers {
   }
 
   // ---------------------------------------------------------------------------
-  // ExactNumber.show — non-PureNumber factors fall back to render
+  // ExactNumber.show — non-PureNumber representations fall back to render
   // ---------------------------------------------------------------------------
 
-  behavior of "ExactNumber.show (non-PureNumber factors)"
+  behavior of "ExactNumber.show (non-PureNumber representations)"
 
   it should "fall back to render for pi" in {
     Number.pi.show shouldBe Number.pi.render

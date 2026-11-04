@@ -39,7 +39,7 @@ class ExactNumberSpec extends AnyFlatSpec with should.Matchers {
   it should "doPower" in {
 
   }
-  it should "factor" in {
+  it should "representation" in {
 
   }
   it should "render" in {

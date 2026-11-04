@@ -102,7 +102,7 @@ class CatsKernelSpec extends AnyFlatSpec with Matchers {
     Eq[Number].eqv(a, c) shouldBe true
   }
 
-  it should "Eq[Number] structural: different factor not equal" in {
+  it should "Eq[Number] structural: different representation not equal" in {
     val x: Number = FuzzyNumber(Value.fromDouble(Some(1.0)), PureNumber, None)
     val y: Number = FuzzyNumber(Value.fromDouble(Some(1.0)), Radian, None)
     Eq[Number].eqv(x, y) shouldBe false

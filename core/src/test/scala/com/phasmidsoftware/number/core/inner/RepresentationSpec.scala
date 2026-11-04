@@ -4,15 +4,17 @@
 
 package com.phasmidsoftware.number.core.inner
 
-import com.phasmidsoftware.number.core.inner.Factor.{sE, sEi}
+import com.phasmidsoftware.number.core.inner.Representation.{sE, sEi}
 import com.phasmidsoftware.number.core.inner.Value.{fromInt, fromRational}
 import com.phasmidsoftware.number.core.numerical.{GeneralNumber, Number}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
-class FactorSpec extends AnyFlatSpec with should.Matchers {
+import scala.annotation.nowarn
 
-  behavior of "Factor"
+class RepresentationSpec extends AnyFlatSpec with should.Matchers {
+
+  behavior of "Representation"
   it should "add pure numbers" in {
     PureNumber.add(fromInt(1), fromInt(2), PureNumber) shouldBe Some((fromInt(3), PureNumber, None))
     PureNumber.add(fromInt(1), fromInt(2), Radian) shouldBe None
@@ -116,5 +118,37 @@ class FactorSpec extends AnyFlatSpec with should.Matchers {
   it should "sE and sEi" in {
     sE shouldBe "\uD835\uDF00"
     sEi shouldBe "\uD835\uDF00ⁱ"
+  }
+
+  behavior of "deprecated Factor aliases"
+
+  // These tests deliberately use the names that were deprecated when Factor was renamed to Representation.
+  @nowarn("cat=deprecation")
+  def oldFactorOf(x: Number): Factor = x.factor
+
+  @nowarn("cat=deprecation")
+  def asOldFactor(rep: Representation): Factor = rep
+
+  @nowarn("cat=deprecation")
+  def oldFactorApply(w: String): Factor = Factor(w)
+
+  it should "keep the Factor type alias" in {
+    asOldFactor(Radian) shouldBe Radian
+    oldFactorOf(Number.pi) shouldBe Radian
+  }
+  it should "keep the Factor companion alias" in {
+    oldFactorApply("pi") shouldBe Radian
+    oldFactorApply("x") shouldBe PureNumber
+  }
+  it should "keep the deprecated forwarders" in {
+    @nowarn("cat=deprecation")
+    def maybeRep(x: Number) = x.maybeFactor
+    @nowarn("cat=deprecation")
+    def repQualifies(c: CoreContext, rep: Representation) = c.factorQualifies(rep)
+
+    Number.pi.rep shouldBe Radian
+    maybeRep(Number.pi) shouldBe Some(Radian)
+    repQualifies(RestrictedContext(Radian), Radian) shouldBe true
+    repQualifies(RestrictedContext(Radian), PureNumber) shouldBe false
   }
 }

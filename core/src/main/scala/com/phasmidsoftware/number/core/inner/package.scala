@@ -20,13 +20,13 @@ package object inner {
   /**
     * Represents an intermediate numerical form, consisting of:
     * - A `Value`, representing the numerical component.
-    * - A `Factor`, providing the contextual framework for interpretation (e.g., units, dimensions, basis of representation).
+    * - A `Representation`, providing the contextual framework for interpretation (e.g., units, dimensions, basis of representation).
     * - An optional `Fuzziness[Double]`, describing any associated uncertainty or imprecision.
     *
     * This type is used throughout various computations and transformations to encapsulate numeric quantities,
-    * their interpretive factors, and any associated tolerance or fuzziness.
+    * their interpretive representations, and any associated tolerance or fuzziness.
     */
-  type ProtoNumber = (Value, Factor, Option[Fuzziness[Double]])
+  type ProtoNumber = (Value, Representation, Option[Fuzziness[Double]])
 
   /**
     * Type alias for the dyadic functions, a tuple of three functions, corresponding to the functions for Int, Rational and Double representations.

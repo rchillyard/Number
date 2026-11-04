@@ -91,13 +91,13 @@ trait CatsKernelInstances {
     *
     * WARNING: Avoid providing inputs that "look like zero but are not exactly zero".
     * Examples: 0.00(...), 0.00[...], 0* — these are fuzzy renderings whose nominal values may be non-zero.
-    * This Eq[Number] deems two numbers equal only if their numeric values are equal within a tolerance AND their factors match.
+    * This Eq[Number] deems two numbers equal only if their numeric values are equal within a tolerance AND their representations match.
     * Near-zero-but-non-zero inputs can therefore compare unequal to exact zero and may violate users’ expectations in equality/ordering checks.
     *
     * Guidance for callers:
     * - When zero is intended, pass an exact zero (e.g., ExactNumber(Rational(0,1)) or Number.zeroR), not a fuzzy/near-zero value.
     * - Upstream, normalize or filter values with |x| <= 1e-10 to exact zero if semantic zero is desired.
-    * - Avoid comparing numbers across different factors unless you first normalize them into the same factor.
+    * - Avoid comparing numbers across different representations unless you first normalize them into the same representation.
     */
 
   // A strict Eq for Number: structural or zero-difference equality, excluding NaN

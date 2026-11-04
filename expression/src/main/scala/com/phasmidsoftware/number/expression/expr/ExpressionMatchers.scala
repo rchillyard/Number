@@ -140,18 +140,18 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
   def ExpressionMatcher[R](f: Expression => MatchResult[R]): ExpressionMatcher[R] = (e: Expression) => f(e)
 
   /**
-    * Determines whether the factors of the given expressions match
+    * Determines whether the representations of the given expressions match
     * according to the specified binary function.
-    * NOTE there's another factorsMatch method in Expression
+    * NOTE there's another representationsMatch method in Expression
     * NOTE this method appears to be used only by ExpressionMatchersSpec
     *
     * @param f The binary function that determines the operation type (e.g., Sum, Product, Power).
     * @param x The first expression to compare.
     * @param y The second expression to compare.
-    * @return True if the factors match according to the binary function, false otherwise.
+    * @return True if the representations match according to the binary function, false otherwise.
     */
-  def factorsMatch(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean =
-    (for fx <- x.maybeFactor(AnyContext); fy <- y.maybeFactor(AnyContext) yield f match {
+  def representationsMatch(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean =
+    (for fx <- x.maybeRep(AnyContext); fy <- y.maybeRep(AnyContext) yield f match {
       case Sum =>
         fx.canAdd(fy)
       case Product =>
@@ -166,6 +166,12 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
       case _ =>
         false
     }).contains(true)
+
+  /**
+    * Deprecated: use `representationsMatch` instead (renamed in version 1.11.0).
+    */
+  @deprecated("Use representationsMatch", since = "1.11.0")
+  def factorsMatch(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean = representationsMatch(f, x, y)
 
   /**
     * Matcher which matches on Expressions that directly represents a specific given Field.
@@ -321,7 +327,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     *         indicating this and the input term.
     */
   def complementaryTermsEliminatorBiFunction(complementaryPredicate: (ExpressionBiFunction, Expression, Expression) => Boolean): Matcher[BiFunction, Expression] = Matcher[BiFunction, Expression]("ExpressionMatchers:complementaryTermsEliminatorBiFunction") {
-    case BiFunction(a, b, f) if complementaryPredicate(f, a, b) && a.maybeFactor(AnyContext).contains(Radian) =>
+    case BiFunction(a, b, f) if complementaryPredicate(f, a, b) && a.maybeRep(AnyContext).contains(Radian) =>
       Match(Literal(Angle.zero))
     case BiFunction(BiFunction(a1, a2, f), b, g) if f == g && complementaryPredicate(f, a2, b) =>
       Match(a1)
@@ -443,8 +449,8 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * @return a Match based on angular zero if appropriate, otherwise a Match on Zero.
     */
   private def matchAdditiveIdentity(x: Expression) = {
-    val maybeFactor = x.maybeFactor(AnyContext)
-    if (maybeFactor.contains(Radian))
+    val maybeRep = x.maybeRep(AnyContext)
+    if (maybeRep.contains(Radian))
       Match(Literal(Angle.zero))
     else
       Match(Zero)

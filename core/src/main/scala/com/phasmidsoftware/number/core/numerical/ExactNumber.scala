@@ -13,17 +13,17 @@ import java.util.Objects
   * This class is designed to model an exact Numeral.
   * See GeneralNumber for more details on the actual representation.
   *
-  * TODO implement scientific notation by having factors such os 10∧3, 10∧6, etc. (alternatively, add a separate parameter)
+  * TODO implement scientific notation by having representations such os 10∧3, 10∧6, etc. (alternatively, add a separate parameter)
   *
   * @param nominalValue the nominalValue of the Number, expressed as a nested Either type.
-  * @param factor       the scale factor of the Number: valid scales are: PureNumber, Radian, and NatLog.
+  * @param rep          the representation of the Number: valid representations are: PureNumber, Radian, and NatLog.
   */
-case class ExactNumber(override val nominalValue: Value, override val factor: Factor) extends GeneralNumber(nominalValue, factor, None) {
+case class ExactNumber(override val nominalValue: Value, override val rep: Representation) extends GeneralNumber(nominalValue, rep, None) {
   /**
     * Method to determine if this NumberLike object is exact.
     * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
-    * @return true if this NumberLike object is exact in the context of No factor, else false.
+    * @return true if this NumberLike object is exact in the context of No representation, else false.
     */
   lazy val isExact: Boolean = true
 
@@ -39,7 +39,7 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     case n: FuzzyNumber =>
       n.isSame(this, confidence)
     case n@ExactNumber(v, f) =>
-      Value.isEqual(nominalValue, v) && factor == f || doSubtract(n).isZero
+      Value.isEqual(nominalValue, v) && rep == f || doSubtract(n).isZero
     case c: Complex =>
       c.isSame(Real(this), confidence)
   }
@@ -62,12 +62,12 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
 
   /**
     * Generates a hash code for this `ExactNumber` object.
-    * The hash code is computed based on the `nominalValue` and `factor` fields
+    * The hash code is computed based on the `nominalValue` and `representation` fields
     * and is therefore consistent with `equals`.
     *
     * @return an integer hash code value for this object.
     */
-  override def hashCode(): Int = Objects.hash(nominalValue, factor)
+  override def hashCode(): Int = Objects.hash(nominalValue, rep)
 
   /**
     * @return true if this Number is equal to zero.
@@ -79,7 +79,7 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     *
     * @return either this Number or a simplified Number.
     */
-  lazy val simplify: Number = (factor, nominalValue) match {
+  lazy val simplify: Number = (rep, nominalValue) match {
     case (Logarithmic(_), Right(0)) =>
       Number.one
     case (Logarithmic(_), Left(Right(Rational.negInfinity))) =>
@@ -155,16 +155,16 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
-    * Both the value and the factor will be changed.
+    * Both the value and the representation will be changed.
     *
     * CONSIDER should be invoke simplify from other make methods?
     *
     * @param v the value.
-    * @param f the factor.
+    * @param rep the representation.
     * @return an ExactNumber.
     */
-  def make(v: Value, f: Factor): Number =
-    ExactNumber(v, f)
+  def make(v: Value, rep: Representation): Number =
+    ExactNumber(v, rep)
 
   /**
     * We cannot add fuzziness to an Exact number, so we return the equivalent FuzzyNumber.
@@ -173,23 +173,23 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     * @return a Number.
     */
   def make(fo: Option[Fuzziness[Double]]): Number =
-    FuzzyNumber(nominalValue, factor, fo)
+    FuzzyNumber(nominalValue, rep, fo)
 
   /**
     * Make a copy of this Number, given the same degree of fuzziness as the original.
-    * Only the nominalValue and factor will change.
+    * Only the nominalValue and representation will change.
     * This method should be followed by a call to specialize.
     *
     * @param v  the nominalValue (a Double).
-    * @param f  Factor.
+    * @param rep Representation.
     * @param fo optional fuzz.
     * @return either a Number.
     */
-  def make(v: Double, f: Factor, fo: Option[Fuzziness[Double]]): Number = fo match {
+  def make(v: Double, rep: Representation, fo: Option[Fuzziness[Double]]): Number = fo match {
     case None =>
-      ExactNumber(Value.fromDouble(Some(v)), f)
+      ExactNumber(Value.fromDouble(Some(v)), rep)
     case Some(_) =>
-      FuzzyNumber(Value.fromDouble(Some(v)), f, fo)
+      FuzzyNumber(Value.fromDouble(Some(v)), rep, fo)
   }
 
   /**
@@ -244,7 +244,7 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     *
     * @return the String representation of this ExactNumber.
     */
-  lazy val render: String = factor match {
+  lazy val render: String = rep match {
     case SquareRoot =>
       val sb = new StringBuilder()
       sb.append(SquareRoot.render(nominalValue))
@@ -260,7 +260,7 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
     *
     * @return a String
     */
-  override lazy val show: String = factor match {
+  override lazy val show: String = rep match {
     case PureNumber =>
       Value.maybeRational(nominalValue) match {
         case Some(VulgarFraction(s)) => s
@@ -271,7 +271,7 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
   }
 
   /**
-    * Render this ExactNumber in String form, including the factor.
+    * Render this ExactNumber in String form, including the representation.
     *
     * @return a String
     */
@@ -282,18 +282,18 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
       "-" + Radian.toString
     case _ =>
       val sb = new StringBuilder()
-      factor match {
+      rep match {
         case Euler =>
           sb.append(s"e∧i${Value.valueToString(nominalValue, skipOne = true)}𝛑")
         case Logarithmic(_) =>
-          sb.append(factor.render(nominalValue))
+          sb.append(rep.render(nominalValue))
         case Scalar(_) =>
           sb.append(Value.valueToString(nominalValue, skipOne = false))
-          sb.append(factor.toString)
+          sb.append(rep.toString)
         case InversePower(_) =>
-          sb.append(factor.render(nominalValue))
+          sb.append(rep.render(nominalValue))
         case _ =>
-          throw CoreException(s"factor is not matched: $factor")
+          throw CoreException(s"representation is not matched: $rep")
       }
       sb.toString
   }
@@ -303,27 +303,27 @@ case class ExactNumber(override val nominalValue: Value, override val factor: Fa
   * Companion object for the `ExactNumber` class.
   *
   * Provides factory methods for creating instances of `ExactNumber`. These methods allow
-  * creation with a given `Factor` or default to the `PureNumber` factor. This object encapsulates
+  * creation with a given `Representation` or default to the `PureNumber` representation. This object encapsulates
   * logic to initialize `ExactNumber` instances with consistent internal representations and initializes
   * the required values.
   */
 object ExactNumber {
 
   /**
-    * Creates a new instance of `ExactNumber` from a given integer value and a specified factor.
+    * Creates a new instance of `ExactNumber` from a given integer value and a specified representation.
     *
     * @param x      the integer value to be encapsulated by the `ExactNumber`.
-    * @param factor the factor associated with the `ExactNumber` instance.
-    * @return a new `ExactNumber` instance with the specified value and factor.
+    * @param rep    the representation associated with the `ExactNumber` instance.
+    * @return a new `ExactNumber` instance with the specified value and representation.
     */
-  def apply(x: Int, factor: Factor): ExactNumber =
-    new ExactNumber(Value.fromInt(x), factor)
+  def apply(x: Int, rep: Representation): ExactNumber =
+    new ExactNumber(Value.fromInt(x), rep)
 
   /**
-    * Creates an instance of `ExactNumber` with the value `x` and a default factor of `PureNumber`.
+    * Creates an instance of `ExactNumber` with the value `x` and a default representation of `PureNumber`.
     *
     * @param x an integer representing the value of the `ExactNumber`.
-    * @return an instance of `ExactNumber` with the specified value and the `PureNumber` factor.
+    * @return an instance of `ExactNumber` with the specified value and the `PureNumber` representation.
     */
   def apply(x: Int): ExactNumber =
     apply(x, PureNumber)
