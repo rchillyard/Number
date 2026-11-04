@@ -2,7 +2,7 @@
 
 ThisBuild / organization := "com.phasmidsoftware"
 
-ThisBuild / version := "1.10.6"
+ThisBuild / version := "1.11.0"
 
 val scalaVersionNumber = "3.9.0" // the current LTS
 val catsVersion = "2.13.0"
