@@ -29,8 +29,8 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     *
     * @return an optional `Representation`.
     */
-  def maybeRepresentation(context: Context): Option[Representation] =
-    evaluate(context) flatMap (v => v.maybeRepresentation(context))
+  def maybeRep(context: Context): Option[Representation] =
+    evaluate(context) flatMap (v => v.maybeRep(context))
 
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.

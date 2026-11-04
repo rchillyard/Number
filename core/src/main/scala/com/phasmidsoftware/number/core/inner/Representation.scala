@@ -4,9 +4,9 @@
 
 package com.phasmidsoftware.number.core.inner
 
-import com.phasmidsoftware.number.core.inner.Representation.{composeDyadic, sPercent}
 import com.phasmidsoftware.number.core.inner.Operations.doComposeValueDyadic
 import com.phasmidsoftware.number.core.inner.Rational.{cubeRoots, squareRoots, toIntOption}
+import com.phasmidsoftware.number.core.inner.Representation.{composeDyadic, sPercent}
 import com.phasmidsoftware.number.core.inner.Value.{fromDouble, scaleDouble, valueToString}
 import com.phasmidsoftware.number.core.misc.FP.*
 import com.phasmidsoftware.number.core.numerical.{CoreException, Field, Fuzziness, Number, Real}
@@ -47,20 +47,20 @@ sealed trait Representation {
     * Determines whether the current representation can be augmented by the given representation.
     * CONSIDER do we need this method now that we have add(x, y, this)?
     *
-    * @param f the representation to be checked for compatibility with addition.
+    * @param rep the representation to be checked for compatibility with addition.
     * @return true if the representations can be added; false otherwise.
     */
-  def canAdd(f: Representation): Boolean =
-    f == this
+  def canAdd(rep: Representation): Boolean =
+    rep == this
 
   /**
     * Determines whether the current representation can be multiplied by the given representation.
     * CONSIDER do we need this method now that we have multiply(x, y, this)?
     *
-    * @param f the representation to be checked for compatibility with multiplication.
+    * @param rep the representation to be checked for compatibility with multiplication.
     * @return true if the representations can be multiplied; false otherwise.
     */
-  def canMultiply(f: Representation): Boolean
+  def canMultiply(rep: Representation): Boolean
 
   /**
     * Modulates the given value according to the context or rules defined by this representation.
@@ -71,13 +71,13 @@ sealed trait Representation {
   def modulate(v: Value): Value
 
   /**
-    * Determines whether `this` representation can be raised by the given representation `f`.
+    * Determines whether `this` representation can be raised by the given representation `rep`.
     * CONSIDER do we need this method now that we have raise(x, y, this)?
     *
-    * @param f the representation to be checked for compatibility with raising to a power.
+    * @param rep the representation to be checked for compatibility with raising to a power.
     * @return true if the representations can be powered; false otherwise.
     */
-  def canRaise(f: Representation, @unused exponent: Field): Boolean = f match {
+  def canRaise(rep: Representation, @unused exponent: Field): Boolean = rep match {
     case PureNumber =>
       true
     case Radian =>
@@ -106,16 +106,16 @@ sealed trait Representation {
   def isA(context: CoreContext): Boolean
 
   /**
-    * Convert a value x from this representation to f if possible, using the simplest possible mechanism.
+    * Convert a value x from this representation to rep if possible, using the simplest possible mechanism.
     * If the representations are incompatible, then None will be returned.
     *
     * NOTE: only Scalar<->Scalar, NthRoot<->NthRoot or Logarithmic<->Logarithmic conversions can be effected.
     *
     * @param v the value to be converted.
-    * @param f the representation of the result.
-    * @return an optional Value which, given representation f, represents the same quantity as v given this.
+    * @param rep the representation of the result.
+    * @return an optional Value which, given representation rep, represents the same quantity as v given this.
     */
-  def convert(v: Value, f: Representation): Option[Value]
+  def convert(v: Value, rep: Representation): Option[Value]
 
   /**
     * Determines whether given `value` with this `Representation` can be rendered exactly.
@@ -166,21 +166,21 @@ sealed trait Representation {
     *
     * @param x        the first value
     * @param y        the addend
-    * @param f        the representation associated with y
+    * @param rep      the representation associated with y
     * @param negative true if the y value has negative sense (this is relevant for some representations such as SquareRoot).
     * @return an optional tuple containing the resultant value and its representation
     */
-  def add(x: Value, y: Value, f: Representation, negative: Boolean = false): Option[ProtoNumber]
+  def add(x: Value, y: Value, rep: Representation, negative: Boolean = false): Option[ProtoNumber]
 
   /**
     * Multiplies two values together and computes an appropriate representation for the result.
     *
     * @param x the first value
     * @param y the multiplicand
-    * @param f the representation associated with y
+    * @param rep the representation associated with y
     * @return an optional tuple containing the resultant value and its representation
     */
-  def multiply(x: Value, y: Value, f: Representation): Option[ProtoNumber]
+  def multiply(x: Value, y: Value, rep: Representation): Option[ProtoNumber]
 
   /**
     * Raises x to the power of y and compute an appropriate representation for the result.
@@ -189,11 +189,11 @@ sealed trait Representation {
     *
     * @param x the first value
     * @param y the power
-    * @param f the representation associated with y
+    * @param rep the representation associated with y
     * @return an optional tuple containing the resultant value and its representation
     */
-  def raise(x: Value, y: Value, f: Representation): Option[ProtoNumber] =
-    (this, f) match {
+  def raise(x: Value, y: Value, rep: Representation): Option[ProtoNumber] =
+    (this, rep) match {
       case (_, PureNumber) =>
         clean(doRaiseByPureNumber(x, y))
       case (_, Log2) =>
@@ -202,7 +202,7 @@ sealed trait Representation {
           q <- clean(doRaiseByPureNumber(x, z))
         } yield q
       case (PureNumber, _) =>
-        f.raise(y, x, this)
+        rep.raise(y, x, this)
       case _ =>
         None
     }
@@ -255,10 +255,10 @@ sealed trait Scalar extends Representation {
   /**
     * Determines whether the current representation can be multiplied by the given representation.
     *
-    * @param f the representation to be checked for compatibility with multiplication.
+    * @param rep the representation to be checked for compatibility with multiplication.
     * @return true if the representations can be multiplied; false otherwise.
     */
-  def canMultiply(f: Representation): Boolean = f match {
+  def canMultiply(rep: Representation): Boolean = rep match {
     case _: Scalar =>
       true
     case _ =>
@@ -279,17 +279,17 @@ sealed trait Scalar extends Representation {
     * @return a Boolean indicating whether the representation satisfies the specified conditions in the given context.
     */
   def isA(context: CoreContext): Boolean =
-    context.representationQualifies(this)
+    context.repQualifies(this)
 
   /**
-    * Convert a value x from this representation to f if possible, using simple scaling.
-    * Result is defined only if f is a Scalar.
+    * Convert a value x from this representation to rep if possible, using simple scaling.
+    * Result is defined only if rep is a Scalar.
     *
     * @param v the value to be converted.
-    * @param f the representation of the result.
-    * @return a Try of Value which, given representation f, represents the same quantity as x given this.
+    * @param rep the representation of the result.
+    * @return a Try of Value which, given representation rep, represents the same quantity as x given this.
     */
-  def convert(v: Value, f: Representation): Option[Value] = f match {
+  def convert(v: Value, rep: Representation): Option[Value] = rep match {
     case Scalar(z) =>
       Some(fromDouble(Value.maybeDouble(v) map (x => scaleDouble(x, this.value, z))))
     case _ =>
@@ -313,13 +313,13 @@ sealed trait Scalar extends Representation {
     *
     * @param x        the first value to be added
     * @param y        the second value (addend) to be added
-    * @param f        the representation associated with the operation
+    * @param rep      the representation associated with the operation
     * @param negative NOTE ignored.
     * @return an optional tuple containing the resultant value, its representation, and optional fuzziness,
     *         or None if the operation cannot be performed under the given representation
     */
-  def add(x: Value, y: Value, f: Representation, negative: Boolean): Option[ProtoNumber] =
-    (this, f) match {
+  def add(x: Value, y: Value, rep: Representation, negative: Boolean): Option[ProtoNumber] =
+    (this, rep) match {
       case (_: PureNumber.type, _: PureNumber.type) =>
         for {
           v <- Representation.composeDyadic(x, y)(DyadicOperationPlus)
@@ -374,10 +374,10 @@ sealed trait Logarithmic extends Representation {
     *
     * TODO implement me properly
     *
-    * @param f the representation to be checked for compatibility with multiplication.
+    * @param rep the representation to be checked for compatibility with multiplication.
     * @return true if the representations can be multiplied; false otherwise.
     */
-  def canMultiply(f: Representation): Boolean = false
+  def canMultiply(rep: Representation): Boolean = false
 
   /**
     * Determines if the current representation operates additively.
@@ -393,17 +393,17 @@ sealed trait Logarithmic extends Representation {
     * @return a Boolean indicating whether the representation satisfies the specified conditions in the given context.
     */
   def isA(context: CoreContext): Boolean =
-    context.representationQualifies(this)
+    context.repQualifies(this)
 
   /**
-    * Convert a value x from this representation to f if possible, using simple scaling.
-    * Result is defined only if f is Logarithmic.
+    * Convert a value x from this representation to rep if possible, using simple scaling.
+    * Result is defined only if rep is Logarithmic.
     *
     * @param v the value to be converted.
-    * @param f the representation of the result.
-    * @return a Try of Value which, given representation f, represents the same quantity as x given this.
+    * @param rep the representation of the result.
+    * @return a Try of Value which, given representation rep, represents the same quantity as x given this.
     */
-  def convert(v: Value, f: Representation): Option[Value] = f match {
+  def convert(v: Value, rep: Representation): Option[Value] = rep match {
     case l@Logarithmic(_) =>
       Some(fromDouble(Value.maybeDouble(v) map (x => scaleDouble(x, this.value, l.value))))
     case _ =>
@@ -480,11 +480,11 @@ sealed trait Logarithmic extends Representation {
     *
     * @param x        the first value
     * @param y        the addend
-    * @param f        the representation associated with y
+    * @param rep      the representation associated with y
     * @param negative NOTE ignored.
     * @return an optional tuple containing the resultant value and its representation
     */
-  def add(x: Value, y: Value, f: Representation, negative: Boolean): Option[ProtoNumber] = None
+  def add(x: Value, y: Value, rep: Representation, negative: Boolean): Option[ProtoNumber] = None
 
   /**
     * Multiplies two values together and computes an appropriate representation for the result.
@@ -492,17 +492,17 @@ sealed trait Logarithmic extends Representation {
     *
     * @param x the first value
     * @param y the multiplicand
-    * @param f the representation associated with y
+    * @param rep the representation associated with y
     * @return an optional tuple containing the resultant value and its representation
     */
-  def multiply(x: Value, y: Value, f: Representation): Option[ProtoNumber] = this match {
-    case `f` =>
+  def multiply(x: Value, y: Value, rep: Representation): Option[ProtoNumber] = this match {
+    case `rep` =>
       clean(for {v <- Representation.composeDyadic(x, y)(DyadicOperationPlus)} yield (v, this, None))
     case Logarithmic("2") =>
       clean(for {
         a <- Value.maybeRational(x)
         b <- Value.maybeRational(y)
-        log <- convertRationalToMaybeLog(b, "2", f)
+        log <- convertRationalToMaybeLog(b, "2", rep)
       } yield (Value.fromRational(a + log), this, None))
     case _ =>
       None
@@ -725,22 +725,22 @@ sealed trait InversePower extends Representation {
     *
     * @param x        the first value
     * @param y        the addend
-    * @param f        the representation associated with y
+    * @param rep      the representation associated with y
     * @param negative NOTE ignored.
     * @return an optional tuple containing the resultant value and its representation
     */
-  def add(x: Value, y: Value, f: Representation, negative: Boolean): Option[ProtoNumber] = None
+  def add(x: Value, y: Value, rep: Representation, negative: Boolean): Option[ProtoNumber] = None
 
   /**
     * Multiplies two values together and computes an appropriate representation for the result.
     *
     * @param x the first value
     * @param y the multiplicand
-    * @param f the representation associated with y
+    * @param rep the representation associated with y
     * @return an optional tuple containing the resultant value and its representation
     */
-  def multiply(x: Value, y: Value, f: Representation): Option[ProtoNumber] =
-    (this, f) match {
+  def multiply(x: Value, y: Value, rep: Representation): Option[ProtoNumber] =
+    (this, rep) match {
       case (NthRoot(r), PureNumber) =>
         clean(for {
           a <- Value.maybeRational(x)
@@ -839,7 +839,7 @@ sealed trait InversePower extends Representation {
     * @return a Boolean indicating whether the representation satisfies the specified conditions in the given context.
     */
   def isA(context: CoreContext): Boolean =
-    context.representationQualifies(this)
+    context.repQualifies(this)
 }
 
 /**
@@ -886,15 +886,15 @@ abstract class NthRoot(val n: Int) extends InversePower {
   def inversePower: Rational = Rational(n)
 
   /**
-    * Converts a given Value `v` from one Representation `this` to another Representation `f`, if possible.
-    * Specifically handles cases where the target representation `f` is of type NthRoot.
+    * Converts a given Value `v` from one Representation `this` to another Representation `rep`, if possible.
+    * Specifically handles cases where the target representation `rep` is of type NthRoot.
     *
     * @param v the value to be converted.
-    * @param f the target representation for the conversion.
-    * @return an optional Value which represents the same quantity as `v` under the representation `f`, or `None` if the
+    * @param rep the target representation for the conversion.
+    * @return an optional Value which represents the same quantity as `v` under the representation `rep`, or `None` if the
     *         conversion is not possible.
     */
-  def convert(v: Value, f: Representation): Option[Value] = f match {
+  def convert(v: Value, rep: Representation): Option[Value] = rep match {
     case NthRoot(z) =>
       val po = this.raise(v, Value.fromRational(Rational(z, n)), PureNumber)
       (po map {
@@ -912,10 +912,10 @@ abstract class NthRoot(val n: Int) extends InversePower {
   /**
     * Determines whether the current representation can be raised by the given representation.
     *
-    * @param f the representation to be checked for compatibility with raising to a power.
+    * @param rep the representation to be checked for compatibility with raising to a power.
     * @return true if the representations can be powered; false otherwise.
     */
-  override def canRaise(f: Representation, exponent: Field): Boolean = f match {
+  override def canRaise(rep: Representation, exponent: Field): Boolean = rep match {
     case PureNumber =>
       exponent match {
         case Real(z: Number) if z.isInteger =>
@@ -924,7 +924,7 @@ abstract class NthRoot(val n: Int) extends InversePower {
           exponent.isZero || exponent.isUnity
       }
     case _ =>
-      super.canRaise(f, exponent)
+      super.canRaise(rep, exponent)
   }
 
   /**
@@ -932,10 +932,10 @@ abstract class NthRoot(val n: Int) extends InversePower {
     *
     * TODO check the logic here
     *
-    * @param f the representation to be checked for compatibility with multiplication.
+    * @param rep the representation to be checked for compatibility with multiplication.
     * @return true if the representations can be multiplied; false otherwise.
     */
-  def canMultiply(f: Representation): Boolean = f match {
+  def canMultiply(rep: Representation): Boolean = rep match {
     case x: NthRoot =>
       x.n == this.n
     case _ =>
@@ -990,7 +990,7 @@ case object PureNumber extends Scalar {
     * @return a Boolean indicating whether the representation satisfies the specified conditions in the given context.
     */
   override def isA(context: CoreContext): Boolean =
-    context.representationQualifies(this)
+    context.repQualifies(this)
 
   override def toString: String = ""
 
@@ -1025,14 +1025,14 @@ case object PureNumber extends Scalar {
     *
     * @param x the first value
     * @param y the multiplicand
-    * @param f the representation associated with y
+    * @param rep the representation associated with y
     * @return an optional tuple containing the resultant value and its representation
     */
-  def multiply(x: Value, y: Value, f: Representation): Option[ProtoNumber] =
-    if (this == f)
-      clean(for {v <- Representation.composeDyadic(x, y)(DyadicOperationTimes)} yield (v, f, None))
+  def multiply(x: Value, y: Value, rep: Representation): Option[ProtoNumber] =
+    if (this == rep)
+      clean(for {v <- Representation.composeDyadic(x, y)(DyadicOperationTimes)} yield (v, rep, None))
     else
-      f.multiply(y, x, this)
+      rep.multiply(y, x, this)
 
   /**
     * Raises the value `x` to the power of the value `y`.
@@ -1106,12 +1106,12 @@ case object Percent extends Scalar {
     *
     * @param x the first value
     * @param y the multiplicand
-    * @param f the representation associated with y
+    * @param rep the representation associated with y
     * @return an optional tuple containing the resultant value and its representation
     */
-  def multiply(x: Value, y: Value, f: Representation): Option[(Value, Representation, Option[Fuzziness[Double]])] =
+  def multiply(x: Value, y: Value, rep: Representation): Option[(Value, Representation, Option[Fuzziness[Double]])] =
     // CONSIDER clean this up
-    f match {
+    rep match {
       case PureNumber =>
         clean(for {
           a <- Value.maybeRational(x)
@@ -1190,12 +1190,12 @@ case object Radian extends Scalar {
     (for {v <- Operations.doTransformValueMonadic(value)(MonadicOperationModulate(-1, 1, inclusive = false, true).functions)} yield v) getOrElse value
 
   /**
-    * Determines whether `this` representation can be raised by the given representation `f`.
+    * Determines whether `this` representation can be raised by the given representation `rep`.
     *
-    * @param f the representation to be checked for compatibility with raising to a power.
+    * @param rep the representation to be checked for compatibility with raising to a power.
     * @return true if the representations can be powered; false otherwise.
     */
-  override def canRaise(f: Representation, exponent: Field): Boolean =
+  override def canRaise(rep: Representation, exponent: Field): Boolean =
     exponent.isZero || exponent.isUnity
 
   /**
@@ -1223,15 +1223,15 @@ case object Radian extends Scalar {
     None
 
   /**
-    * Multiplies x with y provided that f is a PureNumber.
+    * Multiplies x with y provided that rep is a PureNumber.
     *
     * @param x the first value
     * @param y the multiplicand
-    * @param f the representation associated with y
+    * @param rep the representation associated with y
     * @return an optional tuple containing the resultant value and its representation
     */
-  def multiply(x: Value, y: Value, f: Representation): Option[ProtoNumber] =
-    clean(for {v <- Representation.composeDyadic(x, y)(DyadicOperationTimes); if f == PureNumber} yield (v, this, None))
+  def multiply(x: Value, y: Value, rep: Representation): Option[ProtoNumber] =
+    clean(for {v <- Representation.composeDyadic(x, y)(DyadicOperationTimes); if rep == PureNumber} yield (v, this, None))
 
   /**
     * Raises the value `x` to the power of the value `y`.
@@ -1273,12 +1273,12 @@ case object Degree extends Scalar {
     (for {v <- Operations.doTransformValueMonadic(value)(MonadicOperationModulate(-180, 180, inclusive = false, true).functions)} yield v) getOrElse value
 
   /**
-    * Determines whether `this` representation can be raised by the given representation `f`.
+    * Determines whether `this` representation can be raised by the given representation `rep`.
     *
-    * @param f the representation to be checked for compatibility with raising to a power.
+    * @param rep the representation to be checked for compatibility with raising to a power.
     * @return true if the representations can be powered; false otherwise.
     */
-  override def canRaise(f: Representation, exponent: Field): Boolean =
+  override def canRaise(rep: Representation, exponent: Field): Boolean =
     exponent.isZero || exponent.isUnity
 
   /**
@@ -1306,15 +1306,15 @@ case object Degree extends Scalar {
     None
 
   /**
-    * Multiplies x with y provided that f is a PureNumber.
+    * Multiplies x with y provided that rep is a PureNumber.
     *
     * @param x the first value
     * @param y the multiplicand
-    * @param f the representation associated with y
+    * @param rep the representation associated with y
     * @return an optional tuple containing the resultant value and its representation
     */
-  def multiply(x: Value, y: Value, f: Representation): Option[ProtoNumber] =
-    clean(for {v <- Representation.composeDyadic(x, y)(DyadicOperationTimes); if f == PureNumber} yield (v, this, None))
+  def multiply(x: Value, y: Value, rep: Representation): Option[ProtoNumber] =
+    clean(for {v <- Representation.composeDyadic(x, y)(DyadicOperationTimes); if rep == PureNumber} yield (v, this, None))
 
   /**
     * Raises the value `x` to the power of the value `y`.
@@ -1545,14 +1545,14 @@ case object SquareRoot extends NthRoot(2) {
     *
     * @param x        the first value to be added
     * @param y        the second value to be added
-    * @param f        the representation defining the context for the addition (e.g., square root)
+    * @param rep      the representation defining the context for the addition (e.g., square root)
     * @param negative true if the `y` value should be considered as being subtracted from the x value.
     *                 NOTE this is not the same thing as the `y` value being negative, which would imply an imaginary number.
     * @return an optional `ProtoNumber` that contains the resultant `Value`, its representation,
     *         and optional metadata; `None` if the operation cannot be performed
     */
-  override def add(x: Value, y: Value, f: Representation, negative: Boolean = false): Option[ProtoNumber] =
-    whenever(this == f)(
+  override def add(x: Value, y: Value, rep: Representation, negative: Boolean = false): Option[ProtoNumber] =
+    whenever(this == rep)(
       for {
         a <- Value.maybeRational(x)
         b <- Value.maybeRational(y)
@@ -1563,7 +1563,7 @@ case object SquareRoot extends NthRoot(2) {
         z = p / g + (if (negative) -q else q) / g
         if h.isValidInt
         r <- Rational.squareRoots.get(h.toInt) // NOTE this is the only code that depends on this being SquareRoot
-      } yield (Value.fromRational(z * g / r), f, None))
+      } yield (Value.fromRational(z * g / r), rep, None))
 
   /**
     * Provides an implicit conversion from an `Int` to an imaginary number representation.
@@ -1643,23 +1643,23 @@ case class AnyRoot(inversePower: Rational) extends InversePower {
     * Determines whether the current representation can be multiplied by the given representation.
     * CONSIDER do we need this method now that we have multiply(x, y, this)?
     *
-    * @param f the representation to be checked for compatibility with multiplication.
+    * @param rep the representation to be checked for compatibility with multiplication.
     * @return true if the representations can be multiplied; false otherwise.
     */
-  def canMultiply(f: Representation): Boolean =
+  def canMultiply(rep: Representation): Boolean =
     false // TODO figure this out
 
   /**
-    * Convert a value x from this representation to f if possible, using the simplest possible mechanism.
+    * Convert a value x from this representation to rep if possible, using the simplest possible mechanism.
     * If the representations are incompatible, then None will be returned.
     *
     * NOTE: only Scalar<->Scalar, NthRoot<->NthRoot or Logarithmic<->Logarithmic conversions can be effected.
     *
     * @param v the value to be converted.
-    * @param f the representation of the result.
-    * @return an optional Value which, given representation f, represents the same quantity as v given this.
+    * @param rep the representation of the result.
+    * @return an optional Value which, given representation rep, represents the same quantity as v given this.
     */
-  def convert(v: Value, f: Representation): Option[Value] =
+  def convert(v: Value, rep: Representation): Option[Value] =
     None // TODO figure this out
 
   /**
@@ -1720,10 +1720,10 @@ case object Composite extends Representation {
     * Determines whether the current representation can be multiplied by the given representation.
     * CONSIDER do we need this method now that we have multiply(x, y, this)?
     *
-    * @param f the representation to be checked for compatibility with multiplication.
+    * @param rep the representation to be checked for compatibility with multiplication.
     * @return true if the representations can be multiplied; false otherwise.
     */
-  def canMultiply(f: Representation): Boolean = false
+  def canMultiply(rep: Representation): Boolean = false
 
   /**
     * Modulates the given value according to the context or rules defined by this representation.
@@ -1751,16 +1751,16 @@ case object Composite extends Representation {
   def isA(context: CoreContext): Boolean = false
 
   /**
-    * Convert a value x from this representation to f if possible, using the simplest possible mechanism.
+    * Convert a value x from this representation to rep if possible, using the simplest possible mechanism.
     * If the representations are incompatible, then None will be returned.
     *
     * NOTE: only Scalar<->Scalar, NthRoot<->NthRoot or Logarithmic<->Logarithmic conversions can be effected.
     *
     * @param v the value to be converted.
-    * @param f the representation of the result.
-    * @return an optional Value which, given representation f, represents the same quantity as v given this.
+    * @param rep the representation of the result.
+    * @return an optional Value which, given representation rep, represents the same quantity as v given this.
     */
-  def convert(v: Value, f: Representation): Option[Value] = None
+  def convert(v: Value, rep: Representation): Option[Value] = None
 
   /**
     * Determines whether given `value` with this `Representation` can be rendered exactly.
@@ -1799,21 +1799,21 @@ case object Composite extends Representation {
     *
     * @param x        the first value
     * @param y        the addend
-    * @param f        the representation associated with y
+    * @param rep      the representation associated with y
     * @param negative true if the y value has negative sense (this is relevant for some representations such as SquareRoot).
     * @return an optional tuple containing the resultant value and its representation
     */
-  def add(x: Value, y: Value, f: Representation, negative: Boolean): Option[(Value, Representation, Option[Fuzziness[Double]])] = None
+  def add(x: Value, y: Value, rep: Representation, negative: Boolean): Option[(Value, Representation, Option[Fuzziness[Double]])] = None
 
   /**
     * Multiplies two values together and computes an appropriate representation for the result.
     *
     * @param x the first value
     * @param y the multiplicand
-    * @param f the representation associated with y
+    * @param rep the representation associated with y
     * @return an optional tuple containing the resultant value and its representation
     */
-  def multiply(x: Value, y: Value, f: Representation): Option[(Value, Representation, Option[Fuzziness[Double]])] = None
+  def multiply(x: Value, y: Value, rep: Representation): Option[(Value, Representation, Option[Fuzziness[Double]])] = None
 
   /**
     * Raises the value `x` to the power of the value `y`.

@@ -37,7 +37,7 @@ trait Context extends CoreContext {
     case (AnyContext, _) =>
       true
     case _ =>
-      v.maybeRepresentation(this).exists(representationQualifies)
+      v.maybeRep(this).exists(repQualifies)
   }
 
   /**
@@ -55,7 +55,7 @@ trait Context extends CoreContext {
   def qualifyingEagerValue(so: Option[Eager]): Option[Eager] =
     for {
       s <- so
-      value <- s.maybeRepresentation(this) if representationQualifies(value)
+      value <- s.maybeRep(this) if repQualifies(value)
     } yield s
 
   /**
@@ -70,10 +70,10 @@ trait Context extends CoreContext {
     /**
       * Determines whether the given representation is acceptable in this `Context`.
       *
-      * @param f the representation.
+      * @param rep the representation.
       * @return true if the representation qualifies; false otherwise.
       */
-    def representationQualifies(f: Representation): Boolean = self.representationQualifies(f) || that.representationQualifies(f)
+    def repQualifies(rep: Representation): Boolean = self.repQualifies(rep) || that.repQualifies(rep)
 
     override def toString: String = s"Context allowing ($self) or ($that)"
   }
@@ -86,7 +86,7 @@ trait Context extends CoreContext {
     * @return a new `Context` that qualifies a representation only if it qualifies in both this context and the given context.
     */
   override def and(that: CoreContext): Context =
-    (f: Representation) => this.representationQualifies(f) && that.representationQualifies(f)
+    (rep: Representation) => this.repQualifies(rep) && that.repQualifies(rep)
 
   /**
     * Negates the qualification of a representation in the current context.
@@ -94,7 +94,7 @@ trait Context extends CoreContext {
     * @return A new context that inverts the qualification logic for representations.
     */
   override def not: Context =
-    (f: Representation) => !this.representationQualifies(f)
+    (rep: Representation) => !this.repQualifies(rep)
 }
 
 /**
@@ -112,10 +112,10 @@ case class RestrictedContext(representation: Representation) extends Context {
   /**
     * Determines whether the given representation qualifies for this `Context`.
     *
-    * @param f the representation.
+    * @param rep the representation.
     * @return true if the representation qualifies; false otherwise.
     */
-  def representationQualifies(f: Representation): Boolean = (f, representation) match {
+  def repQualifies(rep: Representation): Boolean = (rep, representation) match {
     case (a, b) if a == b =>
       true
     case (PureNumber, Composite) => // Special case to allow PureNumber to be evaluated in Composite context.
@@ -144,10 +144,10 @@ case object AnyContext extends Context {
   /**
     * Determines whether the given representation qualifies for this `AnyContext`.
     *
-    * @param f the representation to be evaluated for qualification (itd).
+    * @param rep the representation to be evaluated for qualification (itd).
     * @return true.
     */
-  def representationQualifies(f: Representation): Boolean = true
+  def repQualifies(rep: Representation): Boolean = true
 
   override def toString: String = "AnyContext"
 }
@@ -166,10 +166,10 @@ case object ImpossibleContext extends Context {
   /**
     * Determines whether the given representation qualifies for this `ImpossibleContext`.
     *
-    * @param f the representation to be evaluated for qualification (itd).
+    * @param rep the representation to be evaluated for qualification (itd).
     * @return false.
     */
-  def representationQualifies(f: Representation): Boolean = false
+  def repQualifies(rep: Representation): Boolean = false
 
   override def toString: String = "ImpossibleContext"
 }

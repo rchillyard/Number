@@ -204,25 +204,25 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int, @unused maybeName
     * of the solution is accessed, and its value is converted to a real number and subsequently mapped to a
     * `Double`. If the predicate is false */
   lazy val maybeDouble: Option[Double] =
-    FP.whenever(solution.isExact && solution.maybeRepresentation(RestrictedContext(PureNumber)).isDefined)(solution.maybeDouble)
+    FP.whenever(solution.isExact && solution.maybeRep(RestrictedContext(PureNumber)).isDefined)(solution.maybeDouble)
 
   /**
     * Method to determine what `Representation`, if there is such, this `Structure` object is based on.
     *
     * @return an optional `Representation`.
     */
-  def maybeRepresentation(context: Context): Option[Representation] = solution match {
+  def maybeRep(context: Context): Option[Representation] = solution match {
     case QuadraticSolution(base, offset, _, false) if offset.isZero =>
-      base.maybeRepresentation(context)
+      base.maybeRep(context)
     case QuadraticSolution(base, offset, _, false) if base.isZero =>
-      offset.maybeRepresentation(context)
+      offset.maybeRep(context)
     case QuadraticSolution(base, offset, _, false) =>
       for {
-        baseRepresentation <- base.maybeRepresentation(context)
-        combinedRepresentation <- offset.maybeRepresentation(RestrictedContext(baseRepresentation))
+        baseRepresentation <- base.maybeRep(context)
+        combinedRepresentation <- offset.maybeRep(RestrictedContext(baseRepresentation))
       } yield combinedRepresentation
     case LinearSolution(value) =>
-      value.maybeRepresentation(context)
+      value.maybeRep(context)
     case _ =>
       None // TODO implement complex solutions
   }
@@ -236,7 +236,7 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int, @unused maybeName
     */
   override lazy val evaluateAsIs: Option[Eager] =
     evaluate(AnyContext)
-  //    maybeRepresentation(AnyContext) flatMap (f => evaluate(RestrictedContext(f)))
+  //    maybeRep(AnyContext) flatMap (f => evaluate(RestrictedContext(f)))
 
   /**
     * Attempts to simplify an atomic expression, for example,
@@ -289,7 +289,7 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int, @unused maybeName
     * @return an optional `Valuable`.
     */
   def evaluate(context: Context): Option[Eager] =
-    Option.when[Eager](solution.isExact && solution.maybeRepresentation(context).isDefined)(solution)
+    Option.when[Eager](solution.isExact && solution.maybeRep(context).isDefined)(solution)
 
   /**
     * Provides an approximation of this number, if applicable.

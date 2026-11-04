@@ -18,16 +18,16 @@ trait CoreContext {
   /**
     * Determines whether the given representation is acceptable in this `Context`.
     *
-    * @param f the representation.
+    * @param rep the representation.
     * @return true if the representation qualifies; false otherwise.
     */
-  def representationQualifies(f: Representation): Boolean
+  def repQualifies(rep: Representation): Boolean
 
   /**
-    * Deprecated: use `representationQualifies` instead (renamed in version 1.11.0).
+    * Deprecated: use `repQualifies` instead (renamed in version 1.11.0).
     */
-  @deprecated("Use representationQualifies", since = "1.11.0")
-  def factorQualifies(f: Representation): Boolean = representationQualifies(f)
+  @deprecated("Use repQualifies", since = "1.11.0")
+  def factorQualifies(f: Representation): Boolean = repQualifies(f)
 
   /**
     * Checks if the given `Field` qualifies based on its associated representation, if any.
@@ -38,7 +38,7 @@ trait CoreContext {
     * @return true if the field's associated representation qualifies, or if no representation is associated; false otherwise.
     */
   def fieldQualifies(f: Field): Boolean =
-    f.maybeRepresentation.exists(representationQualifies)
+    f.maybeRep.exists(repQualifies)
 
   /**
     * Determines whether a given optional field qualifies based on its associated representation.
@@ -51,7 +51,7 @@ trait CoreContext {
     * @return an optional `Field` if it qualifies; otherwise, `None`.
     */
   def qualifyingField(fo: Option[Field]): Option[Field] =
-    for (f <- fo; value <- f.maybeRepresentation if representationQualifies(value)) yield f
+    for (f <- fo; value <- f.maybeRep if repQualifies(value)) yield f
 
   /**
     * Combines this `Context` with another `Context` using a logical OR operation.
@@ -62,7 +62,7 @@ trait CoreContext {
     * @return a new `Context` that represents the logical OR of the two contexts.
     */
   def or(that: CoreContext): CoreContext =
-    (f: Representation) => CoreContext.this.representationQualifies(f) || that.representationQualifies(f)
+    (rep: Representation) => CoreContext.this.repQualifies(rep) || that.repQualifies(rep)
 
   /**
     * Produces a new context that requires both this context and the provided context to qualify a representation.
@@ -72,7 +72,7 @@ trait CoreContext {
     * @return a new `Context` that qualifies a representation only if it qualifies in both this context and the given context.
     */
   def and(that: CoreContext): CoreContext =
-    (f: Representation) => CoreContext.this.representationQualifies(f) && that.representationQualifies(f)
+    (rep: Representation) => CoreContext.this.repQualifies(rep) && that.repQualifies(rep)
 
   /**
     * Negates the qualification of a representation in the current context.
@@ -80,7 +80,7 @@ trait CoreContext {
     * @return A new context that inverts the qualification logic for representations.
     */
   def not: CoreContext =
-    (f: Representation) => !CoreContext.this.representationQualifies(f)
+    (rep: Representation) => !CoreContext.this.repQualifies(rep)
 }
 
 /**
@@ -100,10 +100,10 @@ case class RestrictedContext(context: Representation) extends CoreContext {
     *
     * TODO this needs to be checked!
     *
-    * @param f the representation.
+    * @param rep the representation.
     * @return true if the representation qualifies; false otherwise.
     */
-  def representationQualifies(f: Representation): Boolean = (f, context) match {
+  def repQualifies(rep: Representation): Boolean = (rep, context) match {
     case (a, b) if a == b =>
       true
     case _ =>
@@ -124,10 +124,10 @@ case object AnyContext extends CoreContext {
   /**
     * Determines whether the given representation qualifies for this `AnyContext`.
     *
-    * @param f the representation to be evaluated for qualification (ignored).
+    * @param rep the representation to be evaluated for qualification (ignored).
     * @return true.
     */
-  def representationQualifies(f: Representation): Boolean = true
+  def repQualifies(rep: Representation): Boolean = true
 
   override lazy val toString: String = "AnyContext"
 
@@ -147,10 +147,10 @@ case object ImpossibleContext extends CoreContext {
   /**
     * Determines whether the given representation qualifies for this `ImpossibleContext`.
     *
-    * @param f the representation to be evaluated for qualification (ignored).
+    * @param rep the representation to be evaluated for qualification (ignored).
     * @return false.
     */
-  def representationQualifies(f: Representation): Boolean = false
+  def repQualifies(rep: Representation): Boolean = false
 
   override lazy val toString: String = "ImpossibleContext"
 

@@ -239,7 +239,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     *
     * @return an optional `Representation`.
     */
-  lazy val maybeRepresentation: Option[Representation] =
+  lazy val maybeRep: Option[Representation] =
     Some(PureNumber)
 
   /**

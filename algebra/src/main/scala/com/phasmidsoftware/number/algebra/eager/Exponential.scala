@@ -376,8 +376,8 @@ case class NaturalExponential(exponent: Number)(val maybeName: Option[String] = 
     *
     * @return an `Option` containing a `Representation` if available, otherwise `None`
     */
-  def maybeRepresentation(context: Context): Option[Representation] =
-    Option.when(context.representationQualifies(inner.NatLog))(inner.NatLog)
+  def maybeRep(context: Context): Option[Representation] =
+    Option.when(context.repQualifies(inner.NatLog))(inner.NatLog)
 }
 
 /**
@@ -465,7 +465,7 @@ case class BinaryExponential(exponent: Number)(val maybeName: Option[String] = N
     *
     * @return an `Option` containing a `Representation` if available, otherwise `None`
     */
-  def maybeRepresentation(context: Context): Option[Representation] =
+  def maybeRep(context: Context): Option[Representation] =
     Some(PureNumber)
 }
 

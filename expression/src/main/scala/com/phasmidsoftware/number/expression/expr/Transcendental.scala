@@ -128,7 +128,7 @@ sealed abstract class AbstractTranscendental(val name: String, val expression: E
     *
     * @return an optional `Representation`.
     */
-  def maybeRepresentation(context: Context): Option[Representation] = expression.maybeRepresentation(context)
+  def maybeRep(context: Context): Option[Representation] = expression.maybeRep(context)
 
   /**
     * Method to render this Structure in a presentable manner.

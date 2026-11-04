@@ -32,7 +32,7 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val target: Real = Constants.pi
     target should matchPattern { case Real(ExactNumber(_, _)) => }
     target.x.nominalValue should matchPattern { case Right(_) => }
-    target.x.representation shouldBe Radian
+    target.x.rep shouldBe Radian
   }
 
   behavior of "toString"

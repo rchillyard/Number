@@ -169,9 +169,9 @@ class ExponentialSpec extends AnyFlatSpec with should.Matchers {
     unit.number shouldBe WholeNumber(2)
   }
 
-  it should "calculate maybeRepresentation with NatLog representation context" in {
+  it should "calculate maybeRep with NatLog representation context" in {
     val exp = NaturalExponential(WholeNumber.one)
-    exp.maybeRepresentation(AnyContext) shouldBe Some(NatLog)
+    exp.maybeRep(AnyContext) shouldBe Some(NatLog)
   }
 
   it should "have scaleFunction that computes e^x" in {
@@ -335,9 +335,9 @@ class ExponentialSpec extends AnyFlatSpec with should.Matchers {
     exp.derivativeFunction(1.0) shouldBe (ln2 * 2.0) +- 1e-10
   }
 
-  it should "maybeRepresentation returns PureNumber" in {
+  it should "maybeRep returns PureNumber" in {
     val exp = BinaryExponential(WholeNumber.one)
-    exp.maybeRepresentation(AnyContext) shouldBe Some(PureNumber)
+    exp.maybeRep(AnyContext) shouldBe Some(PureNumber)
   }
 
   behavior of "Exponential companion object"

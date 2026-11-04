@@ -231,11 +231,11 @@ object Field {
     * Creates a `Field` instance based on the provided `Value` and `Representation`.
     *
     * @param value  the `Value` to be used in the creation of the `Field`.
-    * @param representation the `Representation` to be used in the creation of the `Field`.
+    * @param rep    the `Representation` to be used in the creation of the `Field`.
     * @return a `Field` instance constructed from the given `Value` and `Representation`.
     */
-  def apply(value: Value, representation: Representation): Field =
-    Real(one.make(value, representation))
+  def apply(value: Value, rep: Representation): Field =
+    Real(one.make(value, rep))
 
   /**
     * Attempt to force the given field to be a Number.

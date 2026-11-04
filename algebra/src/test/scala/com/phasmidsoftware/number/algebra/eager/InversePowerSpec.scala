@@ -96,9 +96,9 @@ class InversePowerSpec extends AnyFlatSpec with should.Matchers {
     cubeRoot(8).isExact shouldBe true
   }
 
-  it should "maybeRepresentation" in {
-    squareRoot(4).maybeRepresentation(AnyContext) shouldBe Some(SquareRoot)
-    squareRoot(2).maybeRepresentation(AnyContext) shouldBe Some(SquareRoot)
+  it should "maybeRep" in {
+    squareRoot(4).maybeRep(AnyContext) shouldBe Some(SquareRoot)
+    squareRoot(2).maybeRep(AnyContext) shouldBe Some(SquareRoot)
   }
 
 //  it should "doScale" in {

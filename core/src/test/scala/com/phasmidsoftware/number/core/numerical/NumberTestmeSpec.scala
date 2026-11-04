@@ -178,7 +178,7 @@ class NumberTestmeSpec extends AnyFlatSpec with Matchers {
         // (3+4i)^3 should give magnitude = 5^3 = 125
         r.maybeNominalDouble.get should be(125.0 +- 0.001)
         theta.maybeNominalDouble.get should be(0.8855 +- 0.01)
-        theta.representation shouldBe Radian
+        theta.rep shouldBe Radian
       case _ => fail(s"Expected ComplexPolar result for power 3")
     }
   }

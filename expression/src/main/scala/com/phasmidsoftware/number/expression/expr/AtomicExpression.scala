@@ -137,7 +137,7 @@ case class Noop(w: String) extends AtomicExpression {
     *
     * @return an optional `Representation`.
     */
-  def maybeRepresentation(context: Context): Option[Representation] = None
+  def maybeRep(context: Context): Option[Representation] = None
 
   /**
     * Action to evaluate this `Expression` as a `Valuable`,

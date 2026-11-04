@@ -871,7 +871,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
   lazy val isExact: Boolean =
     r.isExact && theta.isExact
 
-  require(theta.representation == Radian, "polar theta is not in radians")
+  require(theta.rep == Radian, "polar theta is not in radians")
 
   //  require(!r.isZero, "polar radius is zero")
   if (r.isZero)
@@ -1103,7 +1103,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     * @return true if the angle theta is a multiple of pi.
     */
   def isReal: Boolean =
-    theta.representation == Radian && Value.maybeInt(theta.nominalValue).isDefined
+    theta.rep == Radian && Value.maybeInt(theta.nominalValue).isDefined
 
   /**
     * Determine the "sign" of this field.

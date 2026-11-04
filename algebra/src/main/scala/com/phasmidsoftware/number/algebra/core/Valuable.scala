@@ -80,13 +80,13 @@ trait Valuable extends Renderable with Numeric with Zeroable with Unitary with E
     * @param context the context in which the representation is evaluated.
     * @return an optional `Representation` if one qualifies under the provided context; otherwise, `None`.
     */
-  def maybeRepresentation(context: Context): Option[Representation]
+  def maybeRep(context: Context): Option[Representation]
 
   /**
-    * Deprecated: use `maybeRepresentation` instead (renamed in version 1.11.0).
+    * Deprecated: use `maybeRep` instead (renamed in version 1.11.0).
     */
-  @deprecated("Use maybeRepresentation", since = "1.11.0")
-  def maybeFactor(context: Context): Option[Representation] = maybeRepresentation(context)
+  @deprecated("Use maybeRep", since = "1.11.0")
+  def maybeFactor(context: Context): Option[Representation] = maybeRep(context)
 
   /**
     * Casts this `Valuable` instance into a `Structure` type if it already is a `Structure`.
@@ -317,19 +317,19 @@ object Valuable {
     * Converts a `Rational` value into a `Field` representation, taking into account a specific `Representation`.
     *
     * @param rational the `Rational` number to be converted into a `Field`.
-    * @param representation   the scaling `Representation` to be applied to the conversion.
+    * @param rep      the scaling `Representation` to be applied to the conversion.
     * @return a `Real` representation of the `Rational` number scaled by the given `Representation`.
     */
-  private def rationalToField(rational: Rational, representation: Representation) = numerical.Real(ExactNumber(Value.fromRational(rational), representation))
+  private def rationalToField(rational: Rational, rep: Representation) = numerical.Real(ExactNumber(Value.fromRational(rational), rep))
 
   /**
     * Converts an integer value into a `Field` representation, encapsulated as a `Real`,
     * based on the provided `Representation`.
     *
     * @param x      the integer value to be converted into a `Field`.
-    * @param representation the representation to be applied in the `Real` representation.
+    * @param rep    the representation to be applied in the `Real` representation.
     * @return a `Real` representing the converted integer value.
     */
-  private def intToField(x: Int, representation: Representation) = numerical.Real(ExactNumber(Value.fromInt(x), representation))
+  private def intToField(x: Int, rep: Representation) = numerical.Real(ExactNumber(Value.fromInt(x), rep))
 
 }

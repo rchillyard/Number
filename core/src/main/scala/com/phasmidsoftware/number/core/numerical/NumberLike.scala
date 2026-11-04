@@ -19,13 +19,13 @@ trait NumberLike {
     *
     * @return an optional `Representation`.
     */
-  def maybeRepresentation: Option[Representation]
+  def maybeRep: Option[Representation]
 
   /**
-    * Deprecated: use `maybeRepresentation` instead (renamed in version 1.11.0).
+    * Deprecated: use `maybeRep` instead (renamed in version 1.11.0).
     */
-  @deprecated("Use maybeRepresentation", since = "1.11.0")
-  def maybeFactor: Option[Representation] = maybeRepresentation
+  @deprecated("Use maybeRep", since = "1.11.0")
+  def maybeFactor: Option[Representation] = maybeRep
 
   /**
     * Method to determine if this NumberLike object is exact.

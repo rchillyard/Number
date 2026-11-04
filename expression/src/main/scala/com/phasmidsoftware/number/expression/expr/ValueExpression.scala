@@ -35,8 +35,8 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
     *
     * @return an optional `Representation`.
     */
-  def maybeRepresentation(context: Context): Option[Representation] =
-    value.maybeRepresentation(context)
+  def maybeRep(context: Context): Option[Representation] =
+    value.maybeRep(context)
 
   /**
     * Determines if the current number is equal to zero.
@@ -112,10 +112,10 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
           Some(nat)
         case normalizable: CanNormalize[?] =>
           // CONSIDER putting the conditional in the pattern
-          Option.when(normalizable.maybeRepresentation(context).isDefined && context.valuableQualifies(normalizable))(normalizable.normalize)
+          Option.when(normalizable.maybeRep(context).isDefined && context.valuableQualifies(normalizable))(normalizable.normalize)
         case eager: Eager =>
           // CONSIDER putting the conditional in the pattern
-          Option.when(eager.maybeRepresentation(context).isDefined && context.valuableQualifies(eager))(value)
+          Option.when(eager.maybeRep(context).isDefined && context.valuableQualifies(eager))(value)
       }
 
   /**

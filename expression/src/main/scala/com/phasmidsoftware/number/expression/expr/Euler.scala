@@ -44,8 +44,8 @@ import com.phasmidsoftware.number.expression.expr.ExpressionMatchers.componentsS
   */
 case class Euler(r: Expression, θ: Expression) extends CompositeExpression {
 
-  def maybeRepresentation(context: Context): Option[Representation] =
-    evaluate(context) flatMap (v => v.maybeRepresentation(context))
+  def maybeRep(context: Context): Option[Representation] =
+    evaluate(context) flatMap (v => v.maybeRep(context))
 
   lazy val isExact: Boolean = r.isExact && θ.isExact
 
@@ -193,7 +193,7 @@ case class Euler(r: Expression, θ: Expression) extends CompositeExpression {
     * otherwise scaled.
     */
   private def ensureRadian(n: com.phasmidsoftware.number.core.numerical.Number): com.phasmidsoftware.number.core.numerical.Number =
-    if (n.representation == Radian) n else n.scale(Radian)
+    if (n.rep == Radian) n else n.scale(Radian)
 }
 
 /**

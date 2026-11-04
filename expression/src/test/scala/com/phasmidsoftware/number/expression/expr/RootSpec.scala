@@ -498,11 +498,11 @@ class RootSpec extends AnyFlatSpec with Matchers {
     newRoot.branch shouldBe 0
   }
 
-  behavior of "Root.maybeRepresentation"
+  behavior of "Root.maybeRep"
 
   it should "determine representation for linear solutions" in {
     val root = Root.half
-    val representation = root.maybeRepresentation(AnyContext)
+    val representation = root.maybeRep(AnyContext)
 
     representation shouldBe defined
   }

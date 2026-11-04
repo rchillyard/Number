@@ -165,8 +165,8 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
     * @return an `Option[Representation]` containing the representation if it can be determined,
     *         or `None` if no suitable representation exists within the provided `Context`.
     */
-  def maybeRepresentation(context: Context): Option[Representation] =
-    Option.when(context.representationQualifies(PureNumber))(PureNumber)
+  def maybeRep(context: Context): Option[Representation] =
+    Option.when(context.repQualifies(PureNumber))(PureNumber)
 
   /**
     * Compares this `Number` instance with a `Scalar` instance.

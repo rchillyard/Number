@@ -72,13 +72,13 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
     *
     * @return an optional `Representation`.
     */
-  def maybeRepresentation: Option[Representation] = complex.maybeRepresentation
+  def maybeRep: Option[Representation] = complex.maybeRep
 
   /**
-    * Deprecated: use `maybeRepresentation` instead (renamed in version 1.11.0).
+    * Deprecated: use `maybeRep` instead (renamed in version 1.11.0).
     */
-  @deprecated("Use maybeRepresentation", since = "1.11.0")
-  def maybeFactor: Option[Representation] = maybeRepresentation
+  @deprecated("Use maybeRep", since = "1.11.0")
+  def maybeFactor: Option[Representation] = maybeRep
 
   /**
     * Method to add this Complex to another Complex.
@@ -193,7 +193,7 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
     *
     * @return an `Option` containing the `Representation` if available, otherwise `None`.
     */
-  def maybeRepresentation(context: Context): Option[Representation] = complex.maybeRepresentation
+  def maybeRep(context: Context): Option[Representation] = complex.maybeRep
 
   /**
     * If this `Solution` can be represented as a `Structure`, return it wrapped in `Some`, otherwise return `None`.
@@ -261,7 +261,7 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
   def approximation(force: Boolean): Option[eager.Real] =
     FP.whenever(complex.isReal) {
       val modulus: Number = complex.modulus
-      Scalar.createScalar(modulus.nominalValue, modulus.representation, modulus.fuzz).approximation(force)
+      Scalar.createScalar(modulus.nominalValue, modulus.rep, modulus.fuzz).approximation(force)
     }
 }
 

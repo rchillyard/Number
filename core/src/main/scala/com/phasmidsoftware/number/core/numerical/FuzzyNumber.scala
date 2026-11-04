@@ -27,10 +27,10 @@ import scala.collection.mutable
   * CONSIDER implementing equals (but be careful!). Don't implement it in terms of compare(...)==0 or Same.
   *
   * @param nominalValue the (nominal) value of the Number, expressed as a nested Either type.
-  * @param representation       the representation of the Number: valid representations are: PureNumber, Radian, and NatLog.
+  * @param rep          the representation of the Number: valid representations are: PureNumber, Radian, and NatLog.
   * @param fuzz         the fuzziness of this Number.
   */
-case class FuzzyNumber(override val nominalValue: Value, override val representation: Representation, override val fuzz: Option[Fuzziness[Double]]) extends GeneralNumber(nominalValue, representation, fuzz) with Fuzz[Double] {
+case class FuzzyNumber(override val nominalValue: Value, override val rep: Representation, override val fuzz: Option[Fuzziness[Double]]) extends GeneralNumber(nominalValue, rep, fuzz) with Fuzz[Double] {
   /**
     * Method to determine if this NumberLike object is exact.
     * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
@@ -77,9 +77,9 @@ case class FuzzyNumber(override val nominalValue: Value, override val representa
     */
   lazy val simplify: Number = fuzz match {
     case None =>
-      ExactNumber(nominalValue, representation).simplify
+      ExactNumber(nominalValue, rep).simplify
     case _ =>
-      representation match {
+      rep match {
         case NthRoot(_) => scale(PureNumber)
         case _ => this
       }
@@ -177,7 +177,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val representa
     * NOTE: this and other must have been aligned by type so that they have the same structure.
     *
     * @param other        the other operand, a Number.
-    * @param f            the representation to apply to the result.
+    * @param rep          the representation to apply to the result.
     * @param op           the appropriate DyadicOperation.
     * @param independent  true if the fuzziness of the operands are independent.
     * @param coefficients an optional Tuple representing the coefficients to scale the fuzz values by.
@@ -185,10 +185,10 @@ case class FuzzyNumber(override val nominalValue: Value, override val representa
     *                     For addition or multiplication, they will be 1 and 1.
     * @return a new Number which is result of applying the appropriate function to the operands this and other.
     */
-  def composeDyadicFuzzy(other: Number, f: Representation)(op: DyadicOperation, independent: Boolean, coefficients: Option[(Double, Double)]): Option[Number] =
-    for (n <- composeDyadic(other, f)(op); t1 <- this.toNominalDouble; t2 <- other.toNominalDouble) yield {
+  def composeDyadicFuzzy(other: Number, rep: Representation)(op: DyadicOperation, independent: Boolean, coefficients: Option[(Double, Double)]): Option[Number] =
+    for (n <- composeDyadic(other, rep)(op); t1 <- this.toNominalDouble; t2 <- other.toNominalDouble) yield {
       val q = combine(t1, t2, !op.absolute, independent)(Fuzziness.applyCoefficients((fuzz, other.fuzz), coefficients))
-      FuzzyNumber(n.nominalValue, n.representation, q)
+      FuzzyNumber(n.nominalValue, n.rep, q)
     }
 
   /**
@@ -218,16 +218,16 @@ case class FuzzyNumber(override val nominalValue: Value, override val representa
     //  Currently, this is a hack but other places essentially do this same thing but I'm having a hard time merging the appropriate code.
     val w = ww.replaceAll("""0\[5]""", Asterisk)
 
-    representation match {
+    rep match {
       case Logarithmic(_) =>
-        sb.append(representation.render(w))
+        sb.append(rep.render(w))
       case Scalar(_) =>
         sb.append(w)
-        sb.append(representation.toString)
+        sb.append(rep.toString)
       case InversePower(_) =>
-        sb.append(representation.render(w))
+        sb.append(rep.render(w))
       case _ =>
-        throw CoreException(s"representation is not matched: $representation")
+        throw CoreException(s"representation is not matched: $rep")
     }
     sb.toString
   }
@@ -269,11 +269,11 @@ case class FuzzyNumber(override val nominalValue: Value, override val representa
     * Both the nominalValue and the representation will be changed.
     *
     * @param v the nominalValue.
-    * @param f the representation.
+    * @param rep the representation.
     * @return a FuzzyNumber.
     */
-  def make(v: Value, f: Representation): Number =
-    FuzzyNumber(v, f, fuzz)
+  def make(v: Value, rep: Representation): Number =
+    FuzzyNumber(v, rep, fuzz)
 
   /**
     * Make a copy of this Number, with the same nominalValue and representation but with a different nominalValue of fuzziness.
@@ -283,9 +283,9 @@ case class FuzzyNumber(override val nominalValue: Value, override val representa
     */
   def make(fo: Option[Fuzziness[Double]]): Number = fo match {
     case Some(_) =>
-      FuzzyNumber(nominalValue, representation, fo)
+      FuzzyNumber(nominalValue, rep, fo)
     case None =>
-      ExactNumber(nominalValue, representation)
+      ExactNumber(nominalValue, rep)
   }
 
   /**
@@ -294,12 +294,12 @@ case class FuzzyNumber(override val nominalValue: Value, override val representa
     * This method should be followed by a call to specialize.
     *
     * @param v  the nominalValue (a Double).
-    * @param f  Representation.
+    * @param rep Representation.
     * @param fo optional fuzz.
     * @return either a Number.
     */
-  def make(v: Double, f: Representation, fo: Option[Fuzziness[Double]]): Number =
-    FuzzyNumber(Value.fromDouble(Some(v)), f, fo)
+  def make(v: Double, rep: Representation, fo: Option[Fuzziness[Double]]): Number =
+    FuzzyNumber(Value.fromDouble(Some(v)), rep, fo)
 }
 
 /**
@@ -410,9 +410,9 @@ object FuzzyNumber {
         val (p, q) = a.alignTypes(b)
         (p, q) match {
           case (n: FuzzyNumber, _) =>
-            composeDyadic(n, q, p.representation, DyadicOperationPlus, independent = true, None)
+            composeDyadic(n, q, p.rep, DyadicOperationPlus, independent = true, None)
           case (_, n: FuzzyNumber) =>
-            composeDyadic(n, p, q.representation, DyadicOperationPlus, independent = true, None)
+            composeDyadic(n, p, q.rep, DyadicOperationPlus, independent = true, None)
           case (_, _) =>
             p `doAdd` q
         }
@@ -428,7 +428,7 @@ object FuzzyNumber {
     *
     * @param n            the first operand.
     * @param q            the second operand.
-    * @param f            the Representation to be used for the result.
+    * @param rep          the Representation to be used for the result.
     * @param op           the dyadic operation.
     * @param independent  true if the fuzziness of the inputs is independent..
     * @param coefficients an optional Tuple representing the coefficients to scale the fuzz values by.
@@ -436,9 +436,9 @@ object FuzzyNumber {
     *                     For addition or multiplication, they will be 1 and 1.
     * @return a new Number which is the result of operating on n and q as described above.
     */
-  private def composeDyadic(n: Number, q: Number, f: Representation, op: DyadicOperation, independent: Boolean, coefficients: Option[(Double, Double)]): Number = n match {
+  private def composeDyadic(n: Number, q: Number, rep: Representation, op: DyadicOperation, independent: Boolean, coefficients: Option[(Double, Double)]): Number = n match {
     case x: FuzzyNumber =>
-      prepareWithSpecialize(x.composeDyadicFuzzy(q, f)(op, independent, coefficients))
+      prepareWithSpecialize(x.composeDyadicFuzzy(q, rep)(op, independent, coefficients))
   }
 
   /**
@@ -457,9 +457,9 @@ object FuzzyNumber {
         val (p, q) = a.alignTypes(b)
         (p, q) match {
           case (n: FuzzyNumber, _) =>
-            composeDyadic(n, q, p.representation, DyadicOperationTimes, independent = x != y, None)
+            composeDyadic(n, q, p.rep, DyadicOperationTimes, independent = x != y, None)
           case (_, n: FuzzyNumber) =>
-            composeDyadic(n, p, q.representation, DyadicOperationTimes, independent = x != y, None)
+            composeDyadic(n, p, q.rep, DyadicOperationTimes, independent = x != y, None)
           case (_, _) =>
             p `doMultiply` q
         }
@@ -494,7 +494,7 @@ object FuzzyNumber {
       p <- number.toNominalDouble;
       g: Fuzziness[Double] <- Fuzziness.combine(p, 0.0, f.style, independent = false)((fo, fAdditional.normalize(p, f.style)))
     ) yield g
-    FuzzyNumber(v, number.representation, combinedFuzz)
+    FuzzyNumber(v, number.rep, combinedFuzz)
   }
 
   /**
@@ -505,7 +505,7 @@ object FuzzyNumber {
     * @return the result of raising the FuzzyNumber to the specified power.
     */
   private def power(number: FuzzyNumber, p: Number): Number =
-    composeDyadic(number.scale(PureNumber), p, p.representation, DyadicOperationPower, independent = false, getPowerCoefficients(number, p))
+    composeDyadic(number.scale(PureNumber), p, p.rep, DyadicOperationPower, independent = false, getPowerCoefficients(number, p))
 
   /**
     * Get the fuzz coefficients for calculating the fuzz on a power operation.

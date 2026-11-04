@@ -58,7 +58,7 @@ trait Complex extends Multivariate {
     *
     * @return an optional `Representation`.
     */
-  def maybeRepresentation: Option[Representation] = Some(PureNumber)
+  def maybeRep: Option[Representation] = Some(PureNumber)
 
   /**
     * Method to add this Complex to another Complex.
@@ -114,7 +114,7 @@ object Complex {
 //      case "-" => i.makeNegative
 //      case _ => i
 //    }
-    i.representation match {
+    i.rep match {
       case Radian => ComplexPolar(real, imag)
       case _ => ComplexCartesian(real, imag)
     }

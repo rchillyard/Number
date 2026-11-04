@@ -736,7 +736,7 @@ _NumberLike_ is a trait that defines behavior which is of the most general numbe
 The specific methods defined are:
 
 ```scala
-def isExact(maybeRepresentation: Option[Representation]): Boolean // determines if this object is exact in the domain of the (optional) representation
+def isExact(maybeRep: Option[Representation]): Boolean // determines if this object is exact in the domain of the (optional) representation
 def isExact: Boolean = isExact(None)
 def asNumber: Option[Number]
 def render: String

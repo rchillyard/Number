@@ -731,8 +731,8 @@ trait Radians extends Scalar with Functional {
     * @param context the evaluation context within which the representation is to be determined.
     * @return an `Option` containing the representation if it exists; `None` otherwise.
     */
-  def maybeRepresentation(context: Context): Option[Representation] =
-    Option.when(context.representationQualifies(Radian))(Radian)
+  def maybeRep(context: Context): Option[Representation] =
+    Option.when(context.repQualifies(Radian))(Radian)
 
   /**
     * Represents the scalar value for converting radians to a pure number, using Pi as the scaling factor.

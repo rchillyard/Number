@@ -43,7 +43,7 @@ case class Real(x: Number) extends Field {
     *
     * @return an optional `Representation`.
     */
-  lazy val maybeRepresentation: Option[Representation] = x.maybeRepresentation
+  lazy val maybeRep: Option[Representation] = x.maybeRep
 
   /**
     * Method to determine if this Real has infinite magnitude.

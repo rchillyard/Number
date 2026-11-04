@@ -416,10 +416,10 @@ case class InversePower private(n: Int, number: Number)(val maybeName: Option[St
     *
     * @return an `Option` containing a `Representation` if available, otherwise `None`
     */
-  def maybeRepresentation(context: Context): Option[Representation] = n match {
-    case 1 if context.representationQualifies(PureNumber) => Some(PureNumber)
-    case 2 if context.representationQualifies(SquareRoot) => Some(SquareRoot)
-    case 3 if context.representationQualifies(CubeRoot) => Some(CubeRoot)
+  def maybeRep(context: Context): Option[Representation] = n match {
+    case 1 if context.repQualifies(PureNumber) => Some(PureNumber)
+    case 2 if context.repQualifies(SquareRoot) => Some(SquareRoot)
+    case 3 if context.repQualifies(CubeRoot) => Some(CubeRoot)
     case _ => None
   }
 

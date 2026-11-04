@@ -148,8 +148,8 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @param context the context in which the representation is evaluated.
     * @return an optional `Representation` if one qualifies under the provided context; otherwise, `None`.
     */
-  def maybeRepresentation(context: Context): Option[Representation] =
-    evaluate(context) flatMap (v => v.maybeRepresentation(context))
+  def maybeRep(context: Context): Option[Representation] =
+    evaluate(context) flatMap (v => v.maybeRep(context))
 
   /**
     * Evaluates the given context to produce an optional field, leveraging the aggregate function

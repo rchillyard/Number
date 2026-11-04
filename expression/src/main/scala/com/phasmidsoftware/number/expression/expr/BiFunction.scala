@@ -124,7 +124,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       em.Match(a * Two)
     case BiFunction(BiFunction(w, x, Power), BiFunction(y, z, Power), Product) if w == y =>
       em.Match(w ∧ (x + z))
-    case BiFunction(a, IsEager(b), Sum) if a.materialize.add(b).toOption.exists(_.isZero) && a.maybeRepresentation(AnyContext).contains(Radian) =>
+    case BiFunction(a, IsEager(b), Sum) if a.materialize.add(b).toOption.exists(_.isZero) && a.maybeRep(AnyContext).contains(Radian) =>
       em.Match(Literal(Angle.zero))
     case BiFunction(BiFunction(x, k1, Product), BiFunction(y, k2, Product), Sum) if k1 == k2 =>
       em.Match(BiFunction(k1, BiFunction(x, y, Sum), Product))
@@ -556,8 +556,8 @@ abstract class BinaryFunction(a: Expression, b: Expression, f: ExpressionBiFunct
     * @param context the context in which the representation is evaluated.
     * @return an optional `Representation` if one qualifies under the provided context; otherwise, `None`.
     */
-  def maybeRepresentation(context: Context): Option[Representation] =
-    evaluate(context) flatMap (v => v.maybeRepresentation(context))
+  def maybeRep(context: Context): Option[Representation] =
+    evaluate(context) flatMap (v => v.maybeRep(context))
 
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.

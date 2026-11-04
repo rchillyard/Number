@@ -286,11 +286,11 @@ sealed abstract class ExpressionBiFunction(
     * CONSIDER eliminating context as a parameter, or maybe changing it to the overall context
     * as used by leftContext.
     *
-    * @param representation  the `Representation` used to determine the specific right-hand `Context`.
+    * @param rep the `Representation` used to determine the specific right-hand `Context`.
     * @param context the initial `Context` typically derived from the evaluation of the left-hand parameter.
     * @return the updated right-hand `Context` for use in further evaluations.
     */
-  def rightContext(representation: Representation)(context: Context): Context
+  def rightContext(rep: Representation)(context: Context): Context
 
   /**
     * Applies the function exactly to the given input of type `P`, returning an
@@ -333,7 +333,7 @@ sealed abstract class ExpressionBiFunction(
     val cLeft = leftContext(context)
     val eo = for {
       x <- a.evaluate(cLeft)
-      cRight <- x.maybeRepresentation(cLeft).map(q => rightContext(q)(context)) // XXX Don't split this up.
+      cRight <- x.maybeRep(cLeft).map(q => rightContext(q)(context)) // XXX Don't split this up.
       y <- b.evaluate(cRight)
       z <- applyExact((x, y))
     } yield z
@@ -423,7 +423,7 @@ case object Atan extends ExpressionBiFunction("atan", ExpressionFunction.lift2(R
     * @param context the input evaluation `Context` that specifies the right-hand context for the operation.
     * @return the same `Context` object passed as input, representing the right-hand evaluation context.
     */
-  def rightContext(representation: Representation)(context: Context): Context =
+  def rightContext(rep: Representation)(context: Context): Context =
     RestrictedContext(PureNumber) `or` AnyRoot
 
   /**
@@ -495,7 +495,7 @@ case object Log extends ExpressionBiFunction("log", lift2(Real.log), false, None
     * @param context the input evaluation `Context` that specifies the right-hand context for the operation.
     * @return the same `Context` object passed as input, representing the right-hand evaluation context.
     */
-  def rightContext(representation: Representation)(context: Context): Context =
+  def rightContext(rep: Representation)(context: Context): Context =
     RestrictedContext(PureNumber)
 
   /**
@@ -720,8 +720,8 @@ case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExac
     * @param context the `Context` typically based on the value of the left-hand parameter.
     * @return the right-hand `Context` of the binary function.
     */
-  def rightContext(representation: Representation)(context: Context): Context =
-    RestrictedContext(representation)
+  def rightContext(rep: Representation)(context: Context): Context =
+    RestrictedContext(rep)
 
   /**
     * Applies a binary operation to the provided `Valuable` elements `a` and `b`, with stricter evaluation rules,
@@ -796,7 +796,7 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x `multipl
     * @param context the initial `Context` to be evaluated and transformed.
     * @return the resulting `Context` after applying the transformation logic.
     */
-  def rightContext(representation: Representation)(context: Context): Context = context match {
+  def rightContext(rep: Representation)(context: Context): Context = context match {
     case AnyScalar | AnyContext =>
       context `or` RestrictedContext(PureNumber)
     case AnyLog =>
@@ -905,7 +905,7 @@ case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)
     * @return the updated `Context` after applying the evaluation logic. Returns `None` if the input
     *         context matches `Some(PureNumber)`, otherwise returns `Some(PureNumber)`.
     */
-  def rightContext(representation: Representation)(context: Context): Context =
+  def rightContext(rep: Representation)(context: Context): Context =
     AnyScalar // ignore both parameters
 
   /**
@@ -931,7 +931,7 @@ case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)
       Some(eager.InversePower(n, x))
     case (x: CanPower[eager.Structure] @unchecked, y: Q) if x.isExact && y.isExact =>
       for {
-        f <- y.maybeRepresentation(AnyContext) if f == PureNumber
+        f <- y.maybeRep(AnyContext) if f == PureNumber
         result <- x.pow(RationalNumber(y.toRational))
       } yield result
     case (x: eager.Number, RationalNumber(y, _)) if y.invert.isWhole =>

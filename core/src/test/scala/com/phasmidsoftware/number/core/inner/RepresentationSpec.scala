@@ -127,7 +127,7 @@ class RepresentationSpec extends AnyFlatSpec with should.Matchers {
   def oldFactorOf(x: Number): Factor = x.factor
 
   @nowarn("cat=deprecation")
-  def asOldFactor(r: Representation): Factor = r
+  def asOldFactor(rep: Representation): Factor = rep
 
   @nowarn("cat=deprecation")
   def oldFactorApply(w: String): Factor = Factor(w)
@@ -142,12 +142,13 @@ class RepresentationSpec extends AnyFlatSpec with should.Matchers {
   }
   it should "keep the deprecated forwarders" in {
     @nowarn("cat=deprecation")
-    def maybeFactor(x: Number) = x.maybeFactor
+    def maybeRep(x: Number) = x.maybeFactor
     @nowarn("cat=deprecation")
-    def factorQualifies(c: CoreContext, f: Representation) = c.factorQualifies(f)
-    Number.pi.representation shouldBe Radian
-    maybeFactor(Number.pi) shouldBe Some(Radian)
-    factorQualifies(RestrictedContext(Radian), Radian) shouldBe true
-    factorQualifies(RestrictedContext(Radian), PureNumber) shouldBe false
+    def repQualifies(c: CoreContext, rep: Representation) = c.factorQualifies(rep)
+
+    Number.pi.rep shouldBe Radian
+    maybeRep(Number.pi) shouldBe Some(Radian)
+    repQualifies(RestrictedContext(Radian), Radian) shouldBe true
+    repQualifies(RestrictedContext(Radian), PureNumber) shouldBe false
   }
 }

@@ -326,20 +326,20 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
     squareRoot(RationalNumber(1, 4)).signum shouldBe 1
   }
 
-  behavior of "InversePower maybeRepresentation"
+  behavior of "InversePower maybeRep"
 
   it should "return SquareRoot representation for n=2" in {
-    squareRoot(4).maybeRepresentation(AnyContext) shouldBe Some(SquareRoot)
-    squareRoot(2).maybeRepresentation(AnyContext) shouldBe Some(SquareRoot)
+    squareRoot(4).maybeRep(AnyContext) shouldBe Some(SquareRoot)
+    squareRoot(2).maybeRep(AnyContext) shouldBe Some(SquareRoot)
   }
 
   it should "return CubeRoot representation for n=3" in {
-    cubeRoot(8).maybeRepresentation(AnyContext) shouldBe Some(CubeRoot)
-    cubeRoot(27).maybeRepresentation(AnyContext) shouldBe Some(CubeRoot)
+    cubeRoot(8).maybeRep(AnyContext) shouldBe Some(CubeRoot)
+    cubeRoot(27).maybeRep(AnyContext) shouldBe Some(CubeRoot)
   }
 
   it should "return PureNumber for n=1" in {
-    InversePower(1, 5).maybeRepresentation(AnyContext) shouldBe Some(PureNumber)
+    InversePower(1, 5).maybeRep(AnyContext) shouldBe Some(PureNumber)
   }
 
   behavior of "InversePower toRational"

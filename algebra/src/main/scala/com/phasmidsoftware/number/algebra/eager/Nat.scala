@@ -65,7 +65,7 @@ sealed trait Nat extends Eager with N {
     * @return an `Option[Representation]` containing the representation if it can be determined,
     *         or `None` if no suitable representation exists within the provided `Context`.
     */
-  def maybeRepresentation(context: Context): Option[Representation] = Some(PureNumber)
+  def maybeRep(context: Context): Option[Representation] = Some(PureNumber)
 
   /**
     * Adds the specified natural number to this natural number.

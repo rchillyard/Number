@@ -76,19 +76,19 @@ sealed trait Algebraic extends Solution with Unitary with Scalable[Algebraic] {
     * If the base value of the solution is zero, it returns `Some(representation)`.
     * Otherwise, it returns `None`.
     *
-    * CONSIDER invoke `normalize` and then apply `maybeRepresentation` to the result.
+    * CONSIDER invoke `normalize` and then apply `maybeRep` to the result.
     *
     * @return an `Option` of type `Representation`, where `Some` may contain the representation
     *         depending on the conditions, or `None` if no representation is applicable
     */
-  def maybeRepresentation(context: Context): Option[Representation] =
+  def maybeRep(context: Context): Option[Representation] =
     (base, offset) match {
       case (x, y) if x.isZero && y.isZero =>
         Some(PureNumber)
       case (x, y) if y.isZero =>
-        x.maybeRepresentation(context)
+        x.maybeRep(context)
       case (x, y) if x.isZero =>
-        y.maybeRepresentation(context)
+        y.maybeRep(context)
       case _ =>
         Some(Composite)
     }
@@ -332,7 +332,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
     * @return true if the offset of the solution is zero, otherwise false.
     */
   lazy val isPureNumber: Boolean =
-    coefficient == 0 || offset.isZero || offset.maybeRepresentation(RestrictedContext(PureNumber)).isDefined
+    coefficient == 0 || offset.isZero || offset.maybeRep(RestrictedContext(PureNumber)).isDefined
 
   /**
     * Determines if the current QuadraticSolution instance represents unity (1).
@@ -394,7 +394,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
     */
   def add(addend: Rational): Algebraic = {
     val zo: Option[Structure] = for {
-      case numerical.Real(n) <- Valuable.valuableToMaybeField(base) if n.representation == PureNumber
+      case numerical.Real(n) <- Valuable.valuableToMaybeField(base) if n.rep == PureNumber
       value <- doComposeValueDyadic(n.nominalValue, fromRational(addend))(DyadicOperationPlus.functions)
       field = numerical.Real(ExactNumber(value, PureNumber))
       case m: Structure <- Some(Eager(field))

@@ -402,7 +402,7 @@ case object NoScalar extends Scalar with Exact {
     * @return an `Option[Representation]` containing the representation of this object,
     *         or `None` if factorization is not applicable or unavailable.
     */
-  def maybeRepresentation(context: Context): Option[Representation] = None
+  def maybeRep(context: Context): Option[Representation] = None
 
   /**
     * Converts the given `Structure` object to an optional instance of the same type.

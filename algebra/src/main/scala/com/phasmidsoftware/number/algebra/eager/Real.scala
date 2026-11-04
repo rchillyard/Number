@@ -526,8 +526,8 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     *
     * @return A FuzzyNumber representation of the current value.
     */
-  def toFuzzyNumber(representation: Representation): FuzzyNumber =
-    new FuzzyNumber(Value.fromDouble(Some(value)), representation, fuzz)
+  def toFuzzyNumber(rep: Representation): FuzzyNumber =
+    new FuzzyNumber(Value.fromDouble(Some(value)), rep, fuzz)
 }
 
 /**
