@@ -42,16 +42,14 @@ Number is organized into multiple modules:
 
 #### Current Version
 
-This version is 1.11.0
-The latest published version is 1.10.6 (see [HISTORY](docs/HISTORY.md)).
-That should match the version of the latest release on Maven Central in the badge at the top.
+This version is 1.11.0 (see [HISTORY](docs/HISTORY.md) for what changed in each version).
 
-To use Number in your project, add the following dependency:
+To use Number in your project, add the following dependency, where `x.y.z` is the latest version on Maven Central: it's shown on the [Sonatype Central](https://central.sonatype.com/artifact/com.phasmidsoftware/number_3) badge at the top of this page.
 
 **SBT (Scala 3):**
 
 ```scala
-libraryDependencies += "com.phasmidsoftware" %% "number" % "1.10.6"
+libraryDependencies += "com.phasmidsoftware" %% "number" % "x.y.z"
 ```
 
 **Maven:**
@@ -61,7 +59,7 @@ libraryDependencies += "com.phasmidsoftware" %% "number" % "1.10.6"
 <dependency>
     <groupId>com.phasmidsoftware</groupId>
     <artifactId>number_3</artifactId>
-    <version>1.10.6</version>
+    <version>x.y.z</version>
 </dependency>
 ```
 
