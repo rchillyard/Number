@@ -42,7 +42,7 @@ Number is organized into multiple modules:
 
 #### Current Version
 
-This version is 1.10.6
+This version is 1.11.0
 The latest published version is 1.10.6 (see [HISTORY](docs/HISTORY.md)).
 That should match the version of the latest release on Maven Central in the badge at the top.
 

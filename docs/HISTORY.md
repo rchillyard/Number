@@ -1,6 +1,7 @@
 # Migration and Version History
 
 ## Versions
+* Version 1.11.0: `core.inner.Factor` is renamed `Representation`, and the methods and fields named after it are renamed too: `factor` is now `rep`, `maybeFactor` is `maybeRep`, `factorQualifies` is `repQualifies`, `alignFactors` is `alignRepresentations`, `factorsMatch` is `representationsMatch`, and `RestrictedContext(factor)` is `RestrictedContext(representation)`. The old names stay as deprecated aliases, so existing code still compiles, but named arguments change (`factor =` becomes `rep =` in the constructors and `copy` of `ExactNumber`, `FuzzyNumber` and `GeneralNumber`, and in factory methods such as `Number.apply`). The implicit `HasValueDouble$` is renamed `DoubleHasValue`. `QuadraticSolution` now throws `AlgebraException`, rather than `MatchError`, when the product isn't `Algebraic`. Built with the compiler options shared by all the Phasmid libraries, with no warnings (and `-Werror`).
 * Version 1.10.6: Built with Scala 3.9.0 (needs Scala 3.9 or later; use 1.10.5 for 3.7 or 3.8). `Prime.primeFactorMultiplicity` now returns `Seq[PrimePower]` (was `Map[Prime, Int]`); new `PrimePower(p, r)` case class with `totient` and `reducedTotient`. Depends on Flog 1.1.0 and Matchers 1.1.0.
 * Version 1.10.5: Fixed various issues (mostly regarding infinity) exposed by the EML expansion.
 * Version 1.10.1: Fixed issue with over-precise Rational numbers.
