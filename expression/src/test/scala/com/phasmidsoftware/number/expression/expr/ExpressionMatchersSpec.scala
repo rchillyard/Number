@@ -382,7 +382,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     z shouldBe em.Match(Expression(9))
   }
   it should "distributeProductSum b" in {
-    import Rational.RationalHelper
+    import Rational.r
     val x = Eager("2.00")
     val y = Eager("3.00")
     val a = BiFunction(One, Literal(x), Sum)

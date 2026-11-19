@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.inner.*
-import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
+import com.phasmidsoftware.number.core.inner.Rational.r
 import com.phasmidsoftware.number.core.numerical.Complex.{ComplexHelper, convertToCartesian, convertToPolar}
 import com.phasmidsoftware.number.core.numerical.Field.convertToNumber
 import com.phasmidsoftware.number.core.numerical.Number.{half, inverse, negate, one, pi, piBy2, root3, zeroR, √}

@@ -803,32 +803,16 @@ object Rational {
   }
 
   /**
-    * Implicit class RationalHelper to allow definition of Rationals by Strings of the form r"n/d".
-    *
-    * @param sc a StringContext.
+    * Extension methods for creating [[Rational]] values based on interpolated strings.
     */
-  implicit class RationalHelper(val sc: StringContext) extends AnyVal {
-    def r(args: Any*): Rational = {
-      val strings = sc.parts.iterator
-      val expressions = args.iterator
-      val sb = new StringBuffer()
-      while (strings.hasNext) { // NOTE using "while" here on a mutable object.
-        val s = strings.next()
-        if (s.isEmpty) {
-          if (expressions.hasNext)
-            sb.append(expressions.next()): Unit
-          else
-            throw RationalException("r: logic error: missing expression")
-        }
-        else
-          sb.append(s): Unit
-      }
-      if (expressions.hasNext)
-        throw RationalException(s"r: ignored: ${expressions.next()}")
-      else
-        Rational(sb.toString)
-    }
-  }
+  extension (sc: StringContext)
+    /**
+      * Creates a {@code Rational} from the raw interpolated string produced with the supplied arguments.
+      *
+      * @param args values to substitute into the raw string context
+      * @return the resulting {@code Rational}
+      */
+    def r(args: Any*): Rational = Rational(sc.raw(args *))
 
   /**
     * Method to approximate an irrational number as a Rational.

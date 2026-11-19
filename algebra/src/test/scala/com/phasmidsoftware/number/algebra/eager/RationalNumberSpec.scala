@@ -8,7 +8,7 @@ import algebra.ring.Field
 import com.phasmidsoftware.number.algebra.eager.RationalNumber.rationalNumberIsField
 import com.phasmidsoftware.number.algebra.eager.{Number, RationalNumber, Real}
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
+import com.phasmidsoftware.number.core.inner.Rational.r
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

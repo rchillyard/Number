@@ -101,7 +101,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
   val eml: ExpressionMatchers = new ExpressionMatchers() {}
 
   import Expression.ExpressionOps
-  import Rational.RationalHelper
+  import Rational.r
   import com.phasmidsoftware.number.parse.ExpressionParser.*
 
   behavior of "Noop"

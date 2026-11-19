@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
+import com.phasmidsoftware.number.core.inner.Rational.r
 import com.phasmidsoftware.number.core.inner.{PureNumber, Radian, Rational, SquareRoot}
 import com.phasmidsoftware.number.core.numerical.ComplexPolar.±
 import com.phasmidsoftware.number.core.numerical.Number.{negate, zeroR}
