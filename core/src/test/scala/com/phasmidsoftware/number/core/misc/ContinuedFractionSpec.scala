@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.core.misc
 
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
+import com.phasmidsoftware.number.core.inner.Rational.r
 import com.phasmidsoftware.number.core.misc.*
 import com.phasmidsoftware.number.core.misc.ConFrac.LongLazyListFrom
 import com.phasmidsoftware.number.core.misc.ContinuedFraction.{Hurwitz, fPiBy4Leibniz}
@@ -217,7 +217,7 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
     val one: LazyList[Long] = LongLazyListFrom(1)
     val cf: ConFrac = ConFrac.simple(one)
 
-    import Rational.RationalHelper
+    import Rational.r
     cf.toRational(0.05)(Hurwitz) shouldBe Some(r"10/7")
     cf.toRational(0.01)(Hurwitz) shouldBe Some(r"43/30")
     cf.toRational(0.005)(Hurwitz) shouldBe Some(r"43/30")
@@ -399,7 +399,7 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
   it should "implement toNominalRational(Double)" in {
     val cf: ContinuedFraction = ContinuedFraction.phi
 
-    import Rational.RationalHelper
+    import Rational.r
     cf.toRational(0.05) shouldBe Some(r"5/3")
     cf.toRational(0.01) shouldBe Some(r"13/8")
     cf.toRational(0.005) shouldBe Some(r"21/13")

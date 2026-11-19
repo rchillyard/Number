@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.inner
 
-import com.phasmidsoftware.number.core.inner.Rational.{RationalHelper, bigTen, createExact, findRepeatingSequence, half, negZeroDouble, pi_5000, third, zero}
+import com.phasmidsoftware.number.core.inner.Rational.{bigTen, createExact, findRepeatingSequence, half, negZeroDouble, pi_5000, r, third, zero}
 import com.phasmidsoftware.number.core.numerical.Prime
 import org.scalatest.matchers.should
 import org.scalatest.{PrivateMethodTester, flatspec}

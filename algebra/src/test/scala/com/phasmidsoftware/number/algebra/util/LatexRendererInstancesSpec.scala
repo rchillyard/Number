@@ -58,7 +58,7 @@ class LatexRendererInstancesSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "render speed of light in furlongs per fortnight" in {
-    import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
+    import com.phasmidsoftware.number.core.inner.Rational.r
     val r: Rational = r"2518256647200000/1397"
     r.toLatex shouldBe "\\frac{2518256647200000}{1397}"
   }

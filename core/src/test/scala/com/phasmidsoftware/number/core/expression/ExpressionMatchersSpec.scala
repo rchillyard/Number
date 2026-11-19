@@ -349,7 +349,7 @@
 //    z shouldBe em.Match(Expression(9))
 //  }
 //  it should "distributeProductSum b" in {
-//    import Rational.RationalHelper
+//    import Rational.r
 //    val x = Number("2.00")
 //    val y = Number("3.00")
 //    val a = BiFunction(One, Literal(x), Sum)

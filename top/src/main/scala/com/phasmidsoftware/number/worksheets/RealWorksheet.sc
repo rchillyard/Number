@@ -3,7 +3,7 @@
   * NOTE that Number is deprecated for application use -- it's designed for internal use.
   */
 
-import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
+import com.phasmidsoftware.number.core.inner.Rational.r
 import com.phasmidsoftware.number.core.numerical.Constants.one
 import com.phasmidsoftware.number.core.numerical.Real.RealOps
 import com.phasmidsoftware.number.core.numerical.{Constants, Field, Fuzzy, Number, Real}

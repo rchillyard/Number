@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.top
 
 
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.core.inner.Rational.RationalHelper
+import com.phasmidsoftware.number.core.inner.Rational.r
 import com.phasmidsoftware.number.core.numerical.Constants.one
 import com.phasmidsoftware.number.core.numerical.Number.zeroR
 import com.phasmidsoftware.number.core.numerical.Real.RealOps
