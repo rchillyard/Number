@@ -93,22 +93,37 @@ case class Product[X: Numeric](y: X) extends Known[X](s"times $y") {
 case class ExpDifferentiable[X]()(ev: FuzzyIsFractional) extends KnownDifferentiableFunction[X](
   s"exp",
   Exp[X]()(using implicitly[FuzzyIsFractional].asInstanceOf[Numeric[X]]),
-  x => math.exp(implicitly[FuzzyIsFractional].asInstanceOf[Numeric[X]].toDouble(x))
+  x => Exp.exponential(implicitly[FuzzyIsFractional].asInstanceOf[Numeric[X]].toDouble(x))
 )
 
 case class Exp[X]()(implicit ev: Numeric[X]) extends Known[X]("exp") {
   def apply(x: X): X = x match {
     case Exact(y) =>
-      Exact(math.exp(y)).asInstanceOf[X]
+      Exact(Exp.exponential(y)).asInstanceOf[X]
     case Bounded(mu, delta) =>
       ev match {
         // CONSIDER shouldn't we be adding mu to delta?
-        case numeric: FuzzyIsFractional => numeric.fromDoubles(math.exp(mu), delta).asInstanceOf[X]
+        case numeric: FuzzyIsFractional => numeric.fromDoubles(Exp.exponential(mu), delta).asInstanceOf[X]
         case _ => throw new UnsupportedOperationException(s"cannot convert $x to Fuzzy")
       }
 
     case _ =>
-      math.exp(implicitly[Numeric[X]].toDouble(x)).asInstanceOf[X]
+      Exp.exponential(implicitly[Numeric[X]].toDouble(x)).asInstanceOf[X]
+  }
+}
+
+object Exp {
+
+  /**
+    * Computes the exponential function e raised to the specified power.
+    *
+    * @param y the exponent to which Euler's number is raised
+    * @return the value of e raised to the power of `y`
+    */
+  def exponential(y: Double): Double = y match {
+    case 0.0 => 1.0
+    case 1.0 => math.E
+    case _ => math.exp(y)
   }
 
 }
