@@ -43,6 +43,19 @@ ThisBuild / scalacOptions ++= Seq(
 // Tests may use a value as a statement (for example, in a matcher), so each project's tests skip -Wnonunit-statement.
 lazy val testScalacOptions = Test / scalacOptions ~= (_.filterNot(_ == "-Wnonunit-statement"))
 
+// Exclude the tests tagged Slow, scoped to ScalaTest so that no other framework sees the flag.
+// This must NOT be given on a command line as `testOnly -- -l Slow`: sbt hands everything after
+// `--` to EVERY test framework on the classpath, and the JUnit interface answers an unrecognised
+// selector by running none of the 140 Java tests in core -- silently, with no run line, no skip
+// count and exit code 0. See issue #217.
+//
+// The tag name is the bare "Slow" of the custom tag in core's test package object, NOT
+// org.scalatest.tags.Slow. It is what keeps the two LazyNumberFuzzySpec tests marked
+// "Fails on CircleCI" out of the build; those two assert bit-exact equality of a Math.exp
+// result and so differ by one ulp between platforms -- see issue #222, which would let this
+// exclusion be removed altogether.
+ThisBuild / Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-l", "Slow")
+
 // ============================================================================
 // MODULE DEFINITIONS
 // ============================================================================

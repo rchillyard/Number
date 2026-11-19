@@ -45,12 +45,14 @@ jobs:
             - ~/.cache/coursier
           key: v2-dependencies-{{ checksum "build.sbt" }}-{{ checksum "project/build.properties" }}-{{ checksum "project/plugins.sbt" }}
 
-      # A plain `sbt test`, deliberately. Arguments after `--` on a testOnly command line are
-      # handed to EVERY test framework on the classpath, so the old `-- -l Slow` reached the
-      # JUnit interface, which answered an unrecognised selector by running none of the 140
-      # Java tests -- silently, with no run line, no skip count and exit code 0. See issue #217.
+      # A plain `sbt test`, deliberately. The Slow exclusion now lives in build.sbt, scoped to
+      # ScalaTest with Tests.Argument, and must stay there: arguments after `--` on a testOnly
+      # command line are handed to EVERY test framework on the classpath, so the old
+      # `-- -l Slow` reached the JUnit interface, which answered an unrecognised selector by
+      # running none of the 140 Java tests -- silently, with no run line, no skip count and
+      # exit code 0. See issue #217.
       - run:
-          name: Test
+          name: Test (Slow excluded via build.sbt)
           command: cat /dev/null | sbt test
 
       # Generate the unified Scaladoc (catches doc warnings, and it is what GitHub Pages publishes)
