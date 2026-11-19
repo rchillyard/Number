@@ -45,9 +45,13 @@ jobs:
             - ~/.cache/coursier
           key: v2-dependencies-{{ checksum "build.sbt" }}-{{ checksum "project/build.properties" }}-{{ checksum "project/plugins.sbt" }}
 
+      # A plain `sbt test`, deliberately. Arguments after `--` on a testOnly command line are
+      # handed to EVERY test framework on the classpath, so the old `-- -l Slow` reached the
+      # JUnit interface, which answered an unrecognised selector by running none of the 140
+      # Java tests -- silently, with no run line, no skip count and exit code 0. See issue #217.
       - run:
-          name: Test (excluding Slow)
-          command: cat /dev/null | sbt "testOnly * -- -l Slow"
+          name: Test
+          command: cat /dev/null | sbt test
 
       # Generate the unified Scaladoc (catches doc warnings, and it is what GitHub Pages publishes)
       - run:
@@ -68,7 +72,7 @@ jobs:
       # Coverage, reported but not enforced. It starts with clean, because the earlier steps' classes aren't instrumented.
       - run:
           name: Coverage
-          command: cat /dev/null | sbt clean coverage "testOnly * -- -l Slow" coverageAggregate
+          command: cat /dev/null | sbt clean coverage test coverageAggregate
 
       - store_artifacts:
           path: target/scala-3.9.0/scoverage-report
