@@ -73,9 +73,20 @@ class LazyNumberFuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
   }
 
   behavior of "fuzzy composition" //fixed
-  it should "work" in {
+  it should "work for e^1" in {
     val p = fuzz1.map(ExpDifferentiable[Fuzzy]()(Fuzzy.FuzzyNumeric))
     p.get shouldBe Exact(Math.E)
+  }
+  // exp(2) is not substituted, so it comes from math.exp, which is accurate to within one ulp
+  // and is not required to be reproducible across platforms. Comparing within a tolerance makes
+  // the test true on every platform, so it needs no tag: the tolerance below is far wider than
+  // one ulp and far tighter than any error worth catching.
+  it should "work for e^2" in {
+    val p = LazyFuzzy(2).map(ExpDifferentiable[Fuzzy]()(Fuzzy.FuzzyNumeric))
+    p.get match {
+      case Exact(y) => y shouldBe 7.38905609893065 +- 1E-12
+      case other => fail(s"expected an Exact value but got: $other")
+    }
   }
   it should "work with fuzzy 1" in {
     val f = LazyFuzzy(Bounded(1, 1E-3))

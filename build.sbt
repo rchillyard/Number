@@ -43,28 +43,14 @@ ThisBuild / scalacOptions ++= Seq(
 // Tests may use a value as a statement (for example, in a matcher), so each project's tests skip -Wnonunit-statement.
 lazy val testScalacOptions = Test / scalacOptions ~= (_.filterNot(_ == "-Wnonunit-statement"))
 
-// A plain `sbt test` runs everything, the tests tagged Slow included, so a developer machine
-// keeps exercising them -- which matters because their expected values are platform-dependent
-// and "locally" is not always an Apple-silicon Mac. CI runs `sbt ciTests`, which excludes them.
-//
-// The exclusion is scoped to ScalaTest with Tests.Argument and must never be given as
-// `testOnly -- -l Slow`: sbt hands everything after `--` to EVERY test framework on the
-// classpath, and the JUnit interface answers an unrecognised selector by running none of the
-// 140 Java tests in core -- silently, with no run line, no skip count and exit code 0.
-// See issue #217.
-//
-// Deliberately not called fastTests, as in Gambit, because this is not a fast/slow split: the
-// two LazyNumberFuzzySpec tests it excludes are marked "Fails on CircleCI" and are platform-
-// dependent rather than slow, asserting bit-exact equality of a Math.exp result that differs by
-// one ulp between platforms. Issue #222 would fix the tests, after which every test is platform
-// independent, this alias is the same thing as `test`, and it should be deleted.
-//
-// NOTE the tag name is the bare "Slow" of the custom tag in core's test package object, NOT
-// org.scalatest.tags.Slow, which is a different tag used elsewhere in this project (issue #220).
-// So the tag says "Slow" while the alias says "platform independent", and only the alias is
-// telling the truth: tagging anything genuinely slow with that same tag would make this name a
-// lie. Renaming the tag to match is part of #220.
-addCommandAlias("platformIndependentTests", """;set ThisBuild/Test/testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-l", "Slow") ;test""")
+// NOTE on test selection, kept because getting this wrong is invisible. Every test here runs in
+// every environment: there is no tag exclusion and CI uses a plain `sbt test`. If a tag filter
+// is ever wanted, it must be scoped to its framework with
+// Tests.Argument(TestFrameworks.ScalaTest, ...) and NOT given on a command line as
+// `testOnly -- -l SomeTag`. sbt hands everything after `--` to EVERY test framework on the
+// classpath, and the JUnit interface answers an unrecognised selector by running none of the 140
+// Java tests in core -- silently, with no run line, no skip count and exit code 0. That is what
+// issue #217 was.
 
 // ============================================================================
 // MODULE DEFINITIONS
