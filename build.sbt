@@ -72,12 +72,15 @@ testAll := {
   // The per-module summaries, which restore the detail that `test` would have logged through
   // testResultLogger -- executeTests does not run it.
   //
-  // NOTE these do NOT account for every test. ScalaTest and ScalaCheck emit a summary; the JUnit
-  // interface (com.novocode % junit-interface) emits none, so core's 140 Java tests appear in no
-  // line below and only in the TOTAL, which is derived from the events rather than the
-  // summaries. Measured 2026-11-19: the summaries add up to 3941 and the total is 4081. So the
-  // TOTAL is the only figure that would notice the Java tests silently ceasing to run, which is
-  // what issue #217 was; do not read the summaries as a complete breakdown.
+  // NOTE these do NOT account for every test. ScalaTest and ScalaCheck emit a summary; NEITHER
+  // JUnit interface does -- measured on 2026-11-19 for com.novocode % junit-interface % 0.11 and
+  // again for com.github.sbt.junit % jupiter-interface % 0.19.0 on the issue #218 branch, both
+  // yielding only ScalaTest and ScalaCheck entries. So core's 140 Java tests appear in no line
+  // below and only in the TOTAL, which is derived from the events rather than the summaries:
+  // the summaries add up to 3941 against a total of 4081, before and after that migration.
+  //
+  // The TOTAL is therefore the only figure that would notice the Java tests silently ceasing to
+  // run, which is what issue #217 was. Do not read the summaries as a complete breakdown.
   outputs.flatMap(_.summaries).filter(_.summaryText.nonEmpty).foreach(s => log.info(s"  ${s.name}: ${s.summaryText}"))
   log.info(
     s"TOTAL over ${outputs.size} modules: ${total.passedCount} passed, ${total.failureCount} failed, " +
