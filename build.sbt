@@ -56,6 +56,46 @@ lazy val testScalacOptions = Test / scalacOptions ~= (_.filterNot(_ == "-Wnonuni
 // issue #217 was.
 
 // ============================================================================
+// AGGREGATED TEST TOTAL
+// ============================================================================
+
+// `sbt test` reports a summary per module and no overall total, because `test` is defined per
+// project and returns Unit -- aggregation runs it once per module and each run logs its own
+// counts through testResultLogger, so there is nothing to add up. On a six-module build that
+// means six "All tests passed" blocks and arithmetic by hand.
+//
+// Test / executeTests is the task underneath `test` and does return a value, so collecting one
+// per aggregated module and folding gives a single figure. See issue #223.
+lazy val testAll = taskKey[Unit]("Run every aggregated module's tests and report one grand total")
+
+testAll := {
+  val log = streams.value.log
+  val outputs = (Test / executeTests).all(ScopeFilter(inAggregates(LocalRootProject))).value
+  val total = outputs.flatMap(_.events.values).foldLeft(SuiteResult.Empty)(_ + _)
+  // The per-module summaries, which restore the detail that `test` would have logged through
+  // testResultLogger -- executeTests does not run it.
+  //
+  // NOTE these do NOT account for every test. ScalaTest and ScalaCheck emit a summary; NEITHER
+  // JUnit interface does -- measured on 2026-11-19 for com.novocode % junit-interface % 0.11 and
+  // again for com.github.sbt.junit % jupiter-interface % 0.19.0 on the issue #218 branch, both
+  // yielding only ScalaTest and ScalaCheck entries. So core's 140 Java tests appear in no line
+  // below and only in the TOTAL, which is derived from the events rather than the summaries:
+  // the summaries add up to 3941 against a total of 4081, before and after that migration.
+  //
+  // The TOTAL is therefore the only figure that would notice the Java tests silently ceasing to
+  // run, which is what issue #217 was. Do not read the summaries as a complete breakdown.
+  outputs.flatMap(_.summaries).filter(_.summaryText.nonEmpty).foreach(s => log.info(s"  ${s.name}: ${s.summaryText}"))
+  log.info(
+    s"TOTAL over ${outputs.size} modules: ${total.passedCount} passed, ${total.failureCount} failed, " +
+      s"${total.errorCount} errors, ${total.skippedCount} skipped, ${total.ignoredCount} ignored, " +
+      s"${total.canceledCount} canceled, ${total.pendingCount} pending")
+  // executeTests does NOT fail the build -- that is `test`'s job -- so without this a red suite
+  // exits 0.
+  val bad = total.failureCount + total.errorCount
+  if (bad > 0) sys.error(s"$bad test(s) did not pass")
+}
+
+// ============================================================================
 // MODULE DEFINITIONS
 // ============================================================================
 
