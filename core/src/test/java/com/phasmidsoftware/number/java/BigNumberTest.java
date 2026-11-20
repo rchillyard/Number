@@ -2,13 +2,13 @@ package com.phasmidsoftware.number.java;
 
 import com.phasmidsoftware.number.core.inner.Rational;
 import com.phasmidsoftware.number.core.numerical.BigNumber;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import scala.util.Try;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class BigNumberTest {
     // NOTE that this approximatePi is nevertheless an exact number. It's an exact number that is close to pi. But we know it is not pi.
@@ -31,14 +31,14 @@ public class BigNumberTest {
         assertEquals(1, BigNumber.value(1).intValue());
     }
 
-    @Test(expected = ArithmeticException.class)
+    @Test
     public void testIntValueBad1() {
-        assertEquals(0, BigNumber.value(Long.MAX_VALUE).intValue());
+        assertThrows(ArithmeticException.class, () -> BigNumber.value(Long.MAX_VALUE).intValue());
     }
 
-    @Test(expected = Exception.class)
+    @Test
     public void testIntValueBad2() {
-        assertEquals(0, BigNumber.pi.longValue());
+        assertThrows(Exception.class, () -> BigNumber.pi.longValue());
     }
 
     @Test
@@ -46,14 +46,14 @@ public class BigNumberTest {
         assertEquals(0L, BigNumber.value(0).longValue());
     }
 
-    @Test(expected = ArithmeticException.class)
+    @Test
     public void testLongValueBad1() {
-        assertEquals(0L, BigNumber.value(Long.MAX_VALUE).add(BigNumber.one).longValue());
+        assertThrows(ArithmeticException.class, () -> BigNumber.value(Long.MAX_VALUE).add(BigNumber.one).longValue());
     }
 
-    @Test(expected = Exception.class)
+    @Test
     public void testLongValueBad2() {
-        assertEquals(0L, BigNumber.pi.longValue());
+        assertThrows(Exception.class, () -> BigNumber.pi.longValue());
     }
 
     @Test
@@ -275,10 +275,10 @@ public class BigNumberTest {
         assertEquals(BigNumber.value(3, 1415927, true), target);
     }
 
-    @Test(expected = Exception.class)
+    @Test
     public void testValueOfDouble() {
         // We do not support the (double) value method because doubles are not exact.
-        BigNumber.value(Math.PI);
+        assertThrows(Exception.class, () -> BigNumber.value(Math.PI));
     }
 
     @Test

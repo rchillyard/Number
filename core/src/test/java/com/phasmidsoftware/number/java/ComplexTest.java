@@ -4,9 +4,9 @@ import com.phasmidsoftware.number.core.numerical.Complex;
 import com.phasmidsoftware.number.core.numerical.ComplexCartesian;
 import com.phasmidsoftware.number.core.numerical.ComplexPolar;
 import com.phasmidsoftware.number.core.numerical.Number;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ComplexTest {
 
