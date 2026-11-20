@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number.core.inner
 
 import com.phasmidsoftware.number.core.inner.Modulo
-import com.phasmidsoftware.number.core.misc.FP
+import com.phasmidsoftware.number.core.misc.{FP, MathFunctions}
 import com.phasmidsoftware.number.core.misc.FP.*
 
 import scala.util.*
@@ -161,7 +161,7 @@ case object MonadicOperationExp extends MonadicOperation {
   val functions: MonadicFunctions = (
       expInt,
       expRat,
-      expDouble)
+      MathFunctions.exp)
 
   /**
     * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
@@ -203,16 +203,6 @@ case object MonadicOperationExp extends MonadicOperation {
     case r =>
       fail("can't do exp Rational=>Rational for non-zero parameter")(r)
   }
-
-  /**
-    * Computes the exponential of the given double value.
-    *
-    * @param x the double input for which the exponential operation is computed
-    * @return a `Try` containing the result of the exponential computation, or a failure
-    *         if the computation cannot be performed
-    */
-  private def expDouble(x: Double): Try[Double] =
-    Try(Math.exp(x))
 }
 
 /**
@@ -228,7 +218,7 @@ case object MonadicOperationLog extends MonadicOperation {
   val functions: MonadicFunctions = (
       logInt,
       logRat,
-      logDouble)
+      MathFunctions.log)
 
   /**
     * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
@@ -267,17 +257,6 @@ case object MonadicOperationLog extends MonadicOperation {
     case r =>
       fail("can't do log Rational=>Rational for parameter")(r)
   }
-
-  /**
-    * Computes the natural logarithm of a given double value.
-    * If the input value is valid, returns a successful Try containing the natural logarithm.
-    * If the input is invalid (e.g., less than or equal to zero), returns a failed Try.
-    *
-    * @param x the input double value for which the natural logarithm is to be computed
-    * @return a Try wrapping the computed natural logarithm of the input value, or a Failure if the computation fails
-    */
-  private def logDouble(x: Double): Try[Double] =
-    Try(Math.log(x))
 }
 
 /**
@@ -389,7 +368,7 @@ case object MonadicOperationSin extends MonadicOperation {
     * @return a Try[Double] containing the sine of the input, or a Throwable if an error occurs during computation.
     */
   private def sinDouble(x: Double): Try[Double] =
-    Try(Math.sin(x * math.Pi))
+    MathFunctions.sin(x * math.Pi)
 }
 
 val MonadicOperationSinh: MonadicOperation =

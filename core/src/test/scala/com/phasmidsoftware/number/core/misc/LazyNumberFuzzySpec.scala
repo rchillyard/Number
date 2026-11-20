@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.number.core.misc
 
-import com.phasmidsoftware.number.Slow
 import com.phasmidsoftware.number.core.misc.*
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
@@ -74,19 +73,25 @@ class LazyNumberFuzzySpec extends flatspec.AnyFlatSpec with should.Matchers {
   }
 
   behavior of "fuzzy composition" //fixed
-  // Fails on CircleCI
-  it should "work" taggedAs Slow in {
+  it should "work for e^1" in {
     val p = fuzz1.map(ExpDifferentiable[Fuzzy]()(Fuzzy.FuzzyNumeric))
-//    val z = p.get
-//    z should be(2.718281828459045)
-    p.get shouldBe Exact(2.7182818284590455)
+    p.get shouldBe Exact(Math.E)
   }
-  // Fails on CircleCI
-  it should "work with fuzzy 1" taggedAs Slow in {
+  // exp(2) is not substituted, so it comes from math.exp, which is accurate to within one ulp
+  // and is not required to be reproducible across platforms. Comparing within a tolerance makes
+  // the test true on every platform, so it needs no tag: the tolerance below is far wider than
+  // one ulp and far tighter than any error worth catching.
+  it should "work for e^2" in {
+    val p = LazyFuzzy(2).map(ExpDifferentiable[Fuzzy]()(Fuzzy.FuzzyNumeric))
+    p.get match {
+      case Exact(y) => y shouldBe 7.38905609893065 +- 1E-12
+      case other => fail(s"expected an Exact value but got: $other")
+    }
+  }
+  it should "work with fuzzy 1" in {
     val f = LazyFuzzy(Bounded(1, 1E-3))
     val p = f.map(ExpDifferentiable[Fuzzy]()(FuzzyNumeric))
-//    p.get should be(2.718281828459045)
-    p.get shouldBe Bounded(2.7182818284590455, 1E-3)
+    p.get shouldBe Bounded(Math.E, 1E-3)
   }
 
   it should "give 8" in {

@@ -93,24 +93,23 @@ case class Product[X: Numeric](y: X) extends Known[X](s"times $y") {
 case class ExpDifferentiable[X]()(ev: FuzzyIsFractional) extends KnownDifferentiableFunction[X](
   s"exp",
   Exp[X]()(using implicitly[FuzzyIsFractional].asInstanceOf[Numeric[X]]),
-  x => math.exp(implicitly[FuzzyIsFractional].asInstanceOf[Numeric[X]].toDouble(x))
+  x => MathFunctions.exp(implicitly[FuzzyIsFractional].asInstanceOf[Numeric[X]].toDouble(x)).get // XXX we allow get in this context
 )
 
 case class Exp[X]()(implicit ev: Numeric[X]) extends Known[X]("exp") {
   def apply(x: X): X = x match {
     case Exact(y) =>
-      Exact(math.exp(y)).asInstanceOf[X]
+      Exact(MathFunctions.exp(y).get).asInstanceOf[X] // XXX we allow get in this context
     case Bounded(mu, delta) =>
       ev match {
         // CONSIDER shouldn't we be adding mu to delta?
-        case numeric: FuzzyIsFractional => numeric.fromDoubles(math.exp(mu), delta).asInstanceOf[X]
+        case numeric: FuzzyIsFractional => numeric.fromDoubles(MathFunctions.exp(mu).get, delta).asInstanceOf[X] // XXX we allow get in this context
         case _ => throw new UnsupportedOperationException(s"cannot convert $x to Fuzzy")
       }
 
     case _ =>
-      math.exp(implicitly[Numeric[X]].toDouble(x)).asInstanceOf[X]
+      MathFunctions.exp(implicitly[Numeric[X]].toDouble(x)).asInstanceOf[X]
   }
-
 }
 
 // Arbitrary function that is named for debugging purposes only

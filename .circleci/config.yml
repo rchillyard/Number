@@ -45,17 +45,14 @@ jobs:
             - ~/.cache/coursier
           key: v2-dependencies-{{ checksum "build.sbt" }}-{{ checksum "project/build.properties" }}-{{ checksum "project/plugins.sbt" }}
 
-      # platformIndependentTests is defined in build.sbt: `test` with the Slow tag excluded,
-      # scoped to ScalaTest.
-      # The exclusion must not be given here as `testOnly -- -l Slow`, because arguments after
-      # `--` are handed to EVERY test framework on the classpath, and the JUnit interface
-      # answered that by running none of the 140 Java tests -- silently, with no run line, no
-      # skip count and exit code 0. See issue #217. A plain `sbt test` runs everything, which is
-      # what a developer machine should do; only CI excludes them, and only until issue #222
-      # makes those two tests platform-independent.
+      # A plain `sbt test`: every test runs in every environment, with no tag exclusion. Do not
+      # add one here as `testOnly -- -l SomeTag` -- arguments after `--` are handed to EVERY test
+      # framework on the classpath, and the JUnit interface answered that by running none of the
+      # 140 Java tests, silently, with no run line, no skip count and exit code 0. That was
+      # issue #217. A filter, if ever needed, belongs in build.sbt scoped with Tests.Argument.
       - run:
-          name: Test (platform-independent only)
-          command: cat /dev/null | sbt platformIndependentTests
+          name: Test
+          command: cat /dev/null | sbt test
 
       # Generate the unified Scaladoc (catches doc warnings, and it is what GitHub Pages publishes)
       - run:
@@ -76,7 +73,7 @@ jobs:
       # Coverage, reported but not enforced. It starts with clean, because the earlier steps' classes aren't instrumented.
       - run:
           name: Coverage
-          command: cat /dev/null | sbt clean coverage platformIndependentTests coverageAggregate
+          command: cat /dev/null | sbt clean coverage test coverageAggregate
 
       - store_artifacts:
           path: target/scala-3.9.0/scoverage-report
