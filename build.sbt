@@ -14,6 +14,9 @@ val matchersVersion = "1.1.0"
 val flogVersion = "1.1.0"
 val logbackClassicVersion = "1.5.32"
 val configVersion = "1.4.6"
+val jupiterVersion = "6.0.3"
+// Must match the sbt-jupiter-interface plugin in project/plugins.sbt.
+val jupiterInterfaceVersion = "0.19.0"
 
 ThisBuild / libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
@@ -112,7 +115,13 @@ lazy val core = (project in file("core"))
       "org.typelevel" %% "cats-kernel" % catsVersion,
       "org.typelevel" %% "cats-core" % catsVersion,
       "org.typelevel" %% "discipline-scalatest" % "2.3.0" % "test",
-      "com.novocode" % "junit-interface" % "0.11" % "test", // NOTE vulnerability here
+      // The Java API tests in core/src/test/java. jupiter-interface is the sbt test *interface*:
+      // without one, sbt compiles those tests and never runs them. See issue #218; it replaces
+      // com.novocode % junit-interface % 0.11, which was the only JUnit 4 interface available,
+      // is unmaintained since 2013, and was flagged here as a vulnerability.
+      "org.junit.jupiter" % "junit-jupiter-api" % jupiterVersion % Test,
+      "org.junit.jupiter" % "junit-jupiter-engine" % jupiterVersion % Test,
+      "com.github.sbt.junit" % "jupiter-interface" % jupiterInterfaceVersion % Test,
       "org.scalacheck" %% "scalacheck" % "1.19.0" % "test", // This is used for testing Rational
       "org.typelevel" %% "cats-laws" % catsVersion % "test",
       "org.typelevel" %% "algebra-laws" % catsVersion % "test",
