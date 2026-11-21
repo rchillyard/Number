@@ -72,7 +72,7 @@ class ErrorCommutativeMonoidFuncSpec extends AnyFlatSpec with Matchers {
     actualAbs shouldBe decoupledAbs +- 1e-9
 
     // And new method should be faster (or equal) than traditional
-    // NOTE: simple wall-clock comparison; if flaky in CI, relax or increase data size
+    // TODO simple wall-clock comparison; if flaky in CI, relax or increase data size (#607)
     // tParMs: 72.449458, tSeqMs: 194.883
     println(s"tParMs: $tParMs, tSeqMs: $tSeqMs")
     assert(tParMs <= tSeqMs, s"decoupled parallel folding should be faster: par=${tParMs}ms vs seq=${tSeqMs}ms")
@@ -142,7 +142,7 @@ class ErrorCommutativeMonoidFuncSpec extends AnyFlatSpec with Matchers {
     actualRel shouldBe decoupledRel +- 1e-1
 
     // And new method should be faster (or equal) than traditional
-    // NOTE: simple wall-clock comparison; if flaky in CI, relax or increase data size
+    // TODO simple wall-clock comparison; if flaky in CI, relax or increase data size (#607)
     // tParMs: 5.240125, tSeqMs: 7731.776417
     println(s"tParMs: $tParMs, tSeqMs: $tSeqMs")
     assert(tParMs <= tSeqMs, s"decoupled parallel folding should be faster: par=${tParMs}ms vs seq=${tSeqMs}ms")

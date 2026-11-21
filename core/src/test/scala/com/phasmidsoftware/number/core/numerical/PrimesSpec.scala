@@ -49,7 +49,7 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     p7.fermat(2) shouldBe 1
     Prime(71).fermat(9) shouldBe 1
   }
-  // NOTE This has been known to fail occasionally
+  // TODO This has been known to fail occasionally (#605)
   it should "implement Lucas for 7 and 71" in {
     p7.Lucas shouldBe true
     Prime(71).Lucas shouldBe true

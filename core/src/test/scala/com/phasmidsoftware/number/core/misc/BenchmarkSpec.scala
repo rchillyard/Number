@@ -32,7 +32,7 @@ class BenchmarkSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Benchmark"
 
-  // NOTE this takes a long time and may fail
+  // TODO this takes a long time and may fail (#606)
   //  it should "do 100rRepetitions" taggedAs Slow in {
   //    import com.phasmidsoftware.number.core.misc.Benchmark._
   //    implicit val r: Random = Random

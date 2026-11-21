@@ -140,7 +140,7 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
       ComplexCartesian(Number("0.6350(20)"), Number("1.2985(20)"))
     ) shouldBe true
 
-    // NOTE Using explicit wide Gaussian tolerance as workaround pending fix to Fuzziness.combine...
+    // TODO Using explicit wide Gaussian tolerance as workaround pending fix to Fuzziness.combine... (#604)
     // ... pending the resolution of Issue #196:
     // materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian(0.6350, 1.2985)) shouldBe true
   }
@@ -170,7 +170,7 @@ class ComplexFunctionSpec extends AnyFlatSpec with should.Matchers {
     val materialized = z.cosh.materialize
     println(materialized)
     materialized shouldBe a[Complex]
-    // NOTE Using explicit wide Gaussian tolerance as workaround pending fix to Fuzziness.combine...
+    // TODO Using explicit wide Gaussian tolerance as workaround pending fix to Fuzziness.combine... (#604)
     materialized.asInstanceOf[Complex].complex.isSame(ComplexCartesian(Number("0.8337(20)"), Number("0.9889(20)"))) shouldBe true
 
     // ... pending the resolution of Issue #196:
