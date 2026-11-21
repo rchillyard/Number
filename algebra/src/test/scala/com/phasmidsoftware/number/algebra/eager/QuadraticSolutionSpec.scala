@@ -662,4 +662,61 @@ class LinearSolutionSpec extends AnyFlatSpec with Matchers {
     val solution = LinearSolution(RationalNumber.half)
     solution.toString shouldBe "LinearSolution(RationalNumber(½))"
   }
+
+  behavior of "QuadraticSolution scaled by a Rational"
+
+  // 𝛗 = (1 + √5)/2 and 𝛙 = (1 - √5)/2.
+  private val Phi = 1.6180339887498949
+  private val Psi = -0.6180339887498949
+
+  private def coefficientOf(x: Algebraic): Int = x match {
+    case q: QuadraticSolution => q.coefficient
+    case _ => fail(s"expected a QuadraticSolution but got $x")
+  }
+
+  it should "negate the coefficient when scaled by a negative Rational" in {
+    val negated = phi * Rational(-1)
+    coefficientOf(negated) shouldBe -1
+    negated.approximate.toDouble shouldBe -Phi +- 1E-10
+  }
+
+  it should "negate the coefficient of 𝛙 when scaled by a negative Rational" in {
+    val negated = psi * Rational(-1)
+    coefficientOf(negated) shouldBe 1
+    negated.approximate.toDouble shouldBe -Psi +- 1E-10
+  }
+
+  it should "scale by a negative fraction without losing the irrational part" in {
+    val halved = phi * Rational(-1, 2)
+    coefficientOf(halved) shouldBe -1
+    halved.approximate.toDouble shouldBe (-Phi / 2) +- 1E-10
+  }
+
+  it should "preserve the coefficient when scaled by a positive Rational" in {
+    val doubled = phi * Rational(2)
+    coefficientOf(doubled) shouldBe 1
+    doubled.approximate.toDouble shouldBe (Phi * 2) +- 1E-10
+  }
+
+  it should "not leave a dangling operator in the rendering after a negative scale" in {
+    (phi * Rational(-1)).render should not include "- )"
+  }
+
+  behavior of "QuadraticSolution.render with a coefficient other than ±1"
+
+  it should "show the magnitude of the coefficient" in {
+    val solution = QuadraticSolution(RationalNumber.half, squareRoot(RationalNumber(Rational(5, 4))), 3, false)
+    solution.render should include("3·")
+  }
+
+  it should "show a negative coefficient with a minus sign and its magnitude" in {
+    val solution = QuadraticSolution(RationalNumber.half, squareRoot(RationalNumber(Rational(5, 4))), -3, false)
+    solution.render should include("- 3·")
+  }
+
+  it should "render a zero coefficient as the base alone" in {
+    val base = RationalNumber.half
+    val solution = QuadraticSolution(base, squareRoot(RationalNumber(Rational(5, 4))), 0, false)
+    solution.render shouldBe base.render
+  }
 }
