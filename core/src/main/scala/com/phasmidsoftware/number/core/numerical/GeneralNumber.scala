@@ -841,7 +841,7 @@ object GeneralNumber {
       case Some(r) =>
         power(x, r).specialize
       case None =>
-        // NOTE this is not used, but it doesn't seem to handle fuzziness (of the exponent) properly either.
+        // TODO this is not used, but it doesn't seem to handle fuzziness (of the exponent) properly either. (#603)
         val zo = for (p <- x.toNominalDouble; q <- y.toNominalDouble) yield Number(math.pow(p, q))
         prepareWithSpecialize(zo)
     }
