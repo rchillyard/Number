@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.inner.{MonadicOperation, Percent}
+import com.phasmidsoftware.number.core.inner.{MonadicOperation, Percent, Rational}
 import com.phasmidsoftware.number.core.misc.Variance.{convolution, rootSumSquares}
 import com.phasmidsoftware.number.core.numerical.Fuzziness.{oneSigma, toDecimalPower, zipStrings}
 import com.phasmidsoftware.number.core.numerical.HasValue.DoubleHasValue
@@ -711,6 +711,59 @@ object Fuzziness {
     * @return a Fuzziness[Double].
     */
   lazy val doublePrecision: Fuzziness[Double] = RelativeFuzz[Double](DoublePrecisionTolerance, Box)
+
+  /**
+    * The canonical fuzziness of a value known only to a given written precision: half of its last
+    * place, as a `Box` distribution.
+    *
+    * `Box` is the right shape here because this is not a measurement uncertainty but a statement
+    * about what was written. A value given as 1.125 lies somewhere in [1.1245, 1.1255] and nowhere
+    * else, with no reason to prefer the middle. Contrast `Number.FuzzOps.~`, where the author
+    * states an uncertainty explicitly and `Gaussian` is appropriate.
+    *
+    * CONSIDER FuzzOps is an implicit class and would read better as a Scala 3 extension method.
+    *
+    * NOTE computed in exact `Rational` arithmetic rather than via `toDecimalPower`, whose use of
+    * `math.pow` is not exact: that gives 5.0000000000000005E-22 where this gives 5.0E-22 (#258).
+    *
+    * @param decimalPlaces the number of places to which the value is known.
+    * @param exponent      an exponent applied to the value, where it was written in scientific
+    *                      notation; zero otherwise.
+    * @return the Box fuzziness of half the last place.
+    */
+  def halfLastPlace(decimalPlaces: Int, exponent: Int = 0): Fuzziness[Double] =
+    AbsoluteFuzz(Rational(5).applyExponent(exponent - decimalPlaces - 1).toDouble, Box)
+
+  /**
+    * The fuzziness implied by a bare `Double`, i.e. by one that did not come from a String and so
+    * carries no record of how many digits were actually written.
+    *
+    * A `Double` whose exact `Rational` has a `BigDecimal` scale of 0, 1 or 2 is treated as exact:
+    * such a value is exactly representable and is taken to mean what it says. Beyond that we assume
+    * the written precision and allow `halfLastPlace`. Where no exact
+    * `Rational` can be formed at all, including for a non-finite value, we fall back to
+    * `doublePrecision`.
+    *
+    * NOTE this is the single definition of that policy. `GeneralNumber.createNumberFromDouble` and
+    * `Real.apply(Double)` both call it, having previously disagreed: `Real(4.0)` was fuzzy in one
+    * and exact in the other (#618).
+    *
+    * NOTE a `Double` parsed from a String does NOT come through here. There the digits written are
+    * known, so `NumberParser.calculateFuzz` is used instead, which derives the same quantity from
+    * the string and does so in exact `Rational` arithmetic.
+    *
+    * @param x a Double.
+    * @return `None` if the value should be treated as exact, else the fuzziness to give it.
+    */
+  def fuzzForDouble(x: Double): Option[Fuzziness[Double]] =
+    Rational.createExact(x).toOption.flatMap(_.toBigDecimal).map(_.scale) match {
+      case Some(0) | Some(1) | Some(2) =>
+        None
+      case Some(n) =>
+        Some(halfLastPlace(n))
+      case None =>
+        Some(doublePrecision)
+    }
 
   /**
     * A constant value representing the threshold ratio between large and small values,
