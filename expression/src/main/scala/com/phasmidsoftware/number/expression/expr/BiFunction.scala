@@ -234,10 +234,18 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   /**
     * Regular hashCode method.
     *
-    * @return an Int depending on f, a, and b.
+    * NOTE this must agree with `equals` below, which treats a commutative `f` as symmetric in its
+    * operands. Hashing `(f, a, b)` in order would give `a + b` and `b + a` different hash codes
+    * while `equals` calls them equal, so for a commutative `f` the operand hashes are combined
+    * with addition, which is itself commutative (#612).
+    *
+    * @return an Int depending on f and, for a commutative f, on a and b without regard to order.
     */
   override lazy val hashCode: Int =
-    java.util.Objects.hash(f, a, b)
+    if (f.commutes)
+      java.util.Objects.hash(f, Integer.valueOf(a.hashCode + b.hashCode))
+    else
+      java.util.Objects.hash(f, a, b)
 
   /**
     * An equals method which considers two BiFunctions, which are non-identical but symmetric, to be equal.
