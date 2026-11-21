@@ -145,6 +145,21 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
     val r = createExact(-0.0).get
     Rational.negZero shouldBe r
   }
+  // NOTE these used to throw a NumberFormatException from outside the Try, because
+  // BigDecimal.valueOf parses Double.toString(x) and so meets the string "Infinity" (#601).
+  it should "fail, rather than throw, for positive infinity" in {
+    createExact(Double.PositiveInfinity) should matchPattern { case Failure(_: ArithmeticException) => }
+  }
+  it should "fail, rather than throw, for negative infinity" in {
+    createExact(Double.NegativeInfinity) should matchPattern { case Failure(_: ArithmeticException) => }
+  }
+  it should "fail, rather than throw, for NaN" in {
+    createExact(Double.NaN) should matchPattern { case Failure(_: ArithmeticException) => }
+  }
+  it should "fail, rather than throw, for the reciprocal of a subnormal Double" in {
+    // 2.41930892819058E-309 is the value ScalaCheck found; its reciprocal overflows.
+    createExact(1.0 / 2.41930892819058E-309) should matchPattern { case Failure(_: ArithmeticException) => }
+  }
   it should "convert Avagadro's number" in {
     val target = Rational("6.02214076E23")
     target shouldBe createExact(6.02214076E23).get // +- 1E9
