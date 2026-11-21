@@ -238,15 +238,20 @@ case class Stack(stack: List[CoreMillItem]) extends CoreMill {
   /**
     * Calculate the Expression based the Dyadic operator f applied to x1 and x2.
     *
+    * NOTE the operands are applied in the order f(x2, x1), not f(x1, x2). This mill is an RPN
+    * stack, so `x1` is the operand popped first, which is the one written second: in "42 37 -",
+    * x1 is 37 and x2 is 42, and the answer is 42 - 37. Every case below follows that, which is
+    * why the non-commutative ones read back-to-front (#287).
+    *
     * @param f  the dyadic operator.
-    * @param x1 the first expression to be operated on.
-    * @param x2 the second expression to be operated on.
+    * @param x1 the expression popped first, written second in the input.
+    * @param x2 the expression popped second, written first in the input.
     * @return an Expression which is f(x2, x1)
     */
   private def calculateDyadic(f: Dyadic, x1: CoreMillExpression, x2: CoreMillExpression) = f match {
     case Multiply => x2 * x1
     case Add => x2 + x1
-    case Subtract => x2 + x1.negate // TODO CHECK this! Surely it should be x1 + x2.negate (#287)
+    case Subtract => x2 + x1.negate
     case Divide => x2 * x1.reciprocal
     case Power => x2 ∧ x1
   }
