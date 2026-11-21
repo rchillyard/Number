@@ -310,7 +310,7 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "not be exact for fuzzy real bases" in {
-    squareRoot(Real(2.0)).isExact shouldBe false
+    squareRoot(Real(2.0, 0.05)).isExact shouldBe false
   }
 
   it should "never be zero" in {

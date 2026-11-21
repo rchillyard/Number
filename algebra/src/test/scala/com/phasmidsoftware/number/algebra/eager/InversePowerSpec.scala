@@ -106,13 +106,19 @@ class InversePowerSpec extends AnyFlatSpec with should.Matchers {
     squareRoot(Real(4)).isExact shouldBe true
   }
 
-  // NOTE Real(4.0) is not 4: a one-decimal literal carries ±0.05 of fuzz, so its square root is
-  // inexact even though √4 is 2. This is the trap that made the old TODO here look true (#551).
+  // NOTE a Real is fuzzy only when its fuzz is stated or its scale exceeds 2, so the fuzz here
+  // is explicit. Until #618 a bare Real(4.0) was fuzzy while core called the same value exact,
+  // and that disagreement is what made the old TODO here look true (#551).
   it should "be inexact when the radicand is a fuzzy Real" in {
-    val fuzzy = Real(4.0)
+    val fuzzy = Real(4.0, 0.05)
     fuzzy.isExact shouldBe false
     squareRoot(fuzzy).isExact shouldBe false
-    squareRoot(Real(2.0)).isExact shouldBe false
+    squareRoot(Real(2.0, 0.05)).isExact shouldBe false
+  }
+
+  it should "be exact when the radicand is a Real of low scale" in {
+    Real(4.0).isExact shouldBe true
+    squareRoot(Real(4.0)).isExact shouldBe true
   }
 
   it should "maybeRep" in {

@@ -77,7 +77,8 @@ class NumberSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "isExact" in {
-    Real(0.0).isExact shouldBe false
+    Real(0.0).isExact shouldBe true // scale 0, so exact (#618)
+    Real(0.0, 0.05).isExact shouldBe false
     Real("0").isExact shouldBe true
     Real.zero.isExact shouldBe true
     Angle.zero.isExact shouldBe true
