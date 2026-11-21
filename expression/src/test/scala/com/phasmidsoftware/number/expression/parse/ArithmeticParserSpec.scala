@@ -9,7 +9,7 @@ import scala.util.*
 /**
   * Specification for ArithmeticParser.
   *
-  * CONSIDER move to parse package.
+  * CONSIDER move to parse package. (#490)
   *
   * @author scalaprof
   */

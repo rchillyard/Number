@@ -151,7 +151,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     f(Eager.one) shouldBe Eager.one
     f(Eager.half) should ===(Eager.two)
     f(Eager.two) shouldBe Eager.half
-    //    f(Eager.e) shouldBe Real(ExactNumber(-1, NaturalExponential)) TODO fix this later
+    //    f(Eager.e) shouldBe Real(ExactNumber(-1, NaturalExponential)) TODO fix this later (#398)
   }
   it should "work for Exp" in {
     val f: ExpressionMonoFunction = Exp
@@ -242,7 +242,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   // TODO Issue #140
   it should "evaluate /" in {
-    // CONSIDER should this be Valuable(3)?
+    // CONSIDER should this be Valuable(3)? (#488)
     val x = Expression(6) / 2
     x.materialize shouldEqual RationalNumber(3)
   }
@@ -411,7 +411,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "simplifyConstant"
   // TODO Issue #140
-  // TODO move this into behavior of "simplifyExpand"
+  // TODO move this into behavior of "simplifyExpand" (#489)
   it should "simplify biFunction expressions" in {
     val em: ExpressionMatchers = Expression.em
     Expression.simplifyExpand(BiFunction(Two, MinusOne, Product)) shouldBe em.Match(Expression(-2))
@@ -428,7 +428,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "simplify"
 
-  // XXX oops! This was working before the latest change
+  // FIXME oops! This was working before the latest change (#494)
   it should "simplify field expressions" in {
     import cats.syntax.eq.*
 
@@ -472,7 +472,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     BiFunction(BiFunction(Two, MinusOne, Product), Two, Sum).evaluateAsIs shouldBe Some(Eager.zero)
   }
 
-  // XXX appears to have fixed infinite recursion
+  // NOTE appears to have fixed infinite recursion
   it should "simplify aggregate expressions" in {
     Aggregate.total(BiFunction(Two, MinusOne, Product), Two).simplify shouldBe Zero
     Aggregate.total(Two).simplify shouldBe Two

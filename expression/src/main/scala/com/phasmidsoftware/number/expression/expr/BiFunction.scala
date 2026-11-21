@@ -74,7 +74,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   lazy val identitiesMatcher: em.AutoMatcher[Expression] =
     em.Matcher[Expression, Expression]("BiFunction:identitiesMatcher") {
-      // TODO these identity checks should use the isComplementary method for consistency
+      // TODO these identity checks should use the isComplementary method for consistency (#411)
       case BiFunction(a, b, f) if matchingIdentity(a, f, left = true).contains(true) =>
         em.Match(b)
       case BiFunction(a, b, f) if matchingIdentity(b, f, left = false).contains(true) =>
@@ -100,7 +100,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * - Attempts to simplify complementary terms within the `BiFunction`.
     * - Applies additional simplification logic as defined by `Expression.structuralMatcher` and `matchSimpler`.
     *
-    * TODO try to shorten this method.
+    * TODO try to shorten this method. (#412)
     *
     * If the expression cannot be simplified, the result will indicate the failure.
     *
@@ -302,7 +302,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * If a specific pattern is identified, returns a simplified or transformed expression wrapped in a MatchResult.
     * Otherwise, returns a Miss indicating the match was unsuccessful.
     *
-    * CONSIDER 1st and 2nd params should probably by ValueExpression
+    * CONSIDER 1st and 2nd params should probably by ValueExpression (#413)
     *
     * @param l the literal expression used as the matching base
     * @param x the expression to match against the literal
@@ -340,7 +340,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(a)
       case (QuadraticRoot(quadratic: QuadraticEquation, b1, _), QuadraticRoot(e2, b2, _)) if quadratic == e2 && b1 != b2 =>
         em.Match(quadratic.conjugateSum)
-      case (l: Literal, q: QuadraticRoot) => // TODO this should use the commutative extractor
+      case (l: Literal, q: QuadraticRoot) => // TODO this should use the commutative extractor (#414)
         matchLiteral(l, q, Sum)
       case SumSymmetricCommutative(x, y) => (x, y) match {
         case (IsSinSquared(z1), IsCosSquared(z2)) if z1 === z2 =>
@@ -373,19 +373,19 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(a)
       case ExpressionNegationCommutative(a, _) =>
         em.Match(-a)
-      // TODO determine whether we really need this case--and where does it belong?
-      // CONSIDER move it to simplifyByEvaluation?
-      // CONSIDER what's an appropriate guard? both variables exact?
+      // TODO determine whether we really need this case--and where does it belong? (#400)
+      // CONSIDER move it to simplifyByEvaluation? (#400)
+      // CONSIDER what's an appropriate guard? both variables exact? (#400)
       //      case IsImaginaryExpressionCommutative(m, x) =>
       //        simplifyComplexProduct(m, x)
       case InversePowerTimesNumberCommutative(ip, b) if ip.number.signum >= 0 =>
         em.matchIfDefined(simplifyInversePowerTimesNumber(ip, b))(this)
       case (QuadraticRoot(quadratic: QuadraticEquation, b1, _), QuadraticRoot(e2, b2, _)) if quadratic == e2 && b1 != b2 =>
         em.Match(quadratic.conjugateProduct)
-      // CONSIDER the following case should be copied for Sum (not just Product)
+      // CONSIDER the following case should be copied for Sum (not just Product) (#400)
       case (a, b) if !a.isExact && !b.isExact =>
         // NOTE if both a and b are inexact, we might as well combine them here
-        // CONSIDER is this really such a good idea? We have simplifyByEvaluation to fall back on later.
+        // CONSIDER is this really such a good idea? We have simplifyByEvaluation to fall back on later. (#400)
         em.matchIfSuccess(a.materialize.multiply(b.materialize).map(Literal(_)))((a, b))
       case _ =>
         em.Miss[Expression, Expression]("BiFunction: matchBiFunctionProduct: no trivial simplification for Product", this)
@@ -425,11 +425,11 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case (E, UniFunction(x, Ln)) =>
         em.Match(x)
       case (E, BiFunction(x, E, Log)) =>
-        em.Match(x) // TESTME
+        em.Match(x) // TESTME (#415)
       case (E, BiFunction(I, Pi, Product)) | (E, BiFunction(Pi, I, Product)) =>
         em.Match(MinusOne)
       case (E, IsEager(ComplexPolar(Number.pi, Number.piBy2, _))) =>
-        em.Match(MinusOne) // TESTME
+        em.Match(MinusOne) // TESTME (#416)
       case (E, x) =>
         em.Match(UniFunction(x, Exp))
       case (x, BiFunction(y, z, Log)) if x == y =>
@@ -451,7 +451,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case (r@QuadraticRoot(algebraic.QuadraticEquation(p, q), branch, _), IsInteger(w)) =>
         val expression = (r + q) ∧ (w - 1)
         em.Match(expression)
-      // CONSIDER generalizing this later but beware the general case breaks a lot of tests.
+      // CONSIDER generalizing this later but beware the general case breaks a lot of tests. (#417)
       case (Two, IsEager(RationalNumber(r, _))) if r == Rational.half =>
         em.Match(Root.squareRoot(Rational(2), 0))
       case (x, BiFunction(y, z, Log)) if x == z =>
@@ -476,7 +476,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         em.Match(Zero)
       case (a, b) if a == b =>
         em.Match(One)
-      case (a, E) => // TODO check that this is the correct order: value followed by the base
+      case (a, E) => // TODO check that this is the correct order: value followed by the base (#418)
         em.Match(UniFunction(a, Ln))
       case _ =>
         em.Miss[Expression, Expression]("BiFunction: matchBiFunctionLog: no trivial simplifications for Log", this)
@@ -562,7 +562,7 @@ abstract class BinaryFunction(a: Expression, b: Expression, f: ExpressionBiFunct
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.
     *
-    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
+    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either. (#393)
     *
     * The method returns `true` if there is no approximate representation
     * available (i.e., `approximation` is `None`), indicating that the
@@ -611,10 +611,10 @@ abstract class BinaryFunction(a: Expression, b: Expression, f: ExpressionBiFunct
     *         of this `Number`, or `None` if no approximation is available.
     */
   def approximation(force: Boolean): Option[eager.Real] = {
-    // CONSIDER treating empty approximation results as an error.
+    // CONSIDER treating empty approximation results as an error. (#419)
     val maybeValuable = for {x <- a.approximation(true); y <- b.approximation(true)} yield f(x, y)
-    // TODO asInstanceOf
-    // TODO this cast is a potential problem! We need to force the approximation to be be fuzzy otherwise we get a ClassCastException
+    // TODO asInstanceOf (#394)
+    // TODO this cast is a potential problem! We need to force the approximation to be be fuzzy otherwise we get a ClassCastException (#394)
     maybeValuable.asInstanceOf[Option[eager.Real]]
   }
 
@@ -685,10 +685,10 @@ object BiFunction {
     case BiFunction(x, Multiple(f, ys), Commutes(h)) if f == h =>
       Some(Aggregate(f, x +: ys))
     case BiFunction(BiFunction(w, x, Sum), BiFunction(y, z, Sum), Product) =>
-      Some(Aggregate(Sum, Seq(w :* y, w :* z, x :* y, x :* z)).simplify) // TODO why simplify?
+      Some(Aggregate(Sum, Seq(w :* y, w :* z, x :* y, x :* z)).simplify) // TODO why simplify? (#420)
     case BiFunction(BiFunction(w, x, Power), y, Power) =>
       Some(Aggregate(Power, Seq(w, x :* y)))
-      // TODO combine the following two cases
+      // TODO combine the following two cases (#421)
     case BiFunction(a, UniFunction(BiFunction(b, c, Sum), Negate), Sum) =>
       Some(Aggregate(Sum, Seq(a, -b, -c)))
     case BiFunction(UniFunction(BiFunction(a, b, Sum), Negate), c, Sum) =>

@@ -11,7 +11,7 @@ import scala.util.Try
   * The input is then converted to an IndexedSeq of Strings which is then reversed and rendered as a single String.
   * The purpose of this strange little dance is to reverse the order of the tokens without reversing the tokens themselves.
   *
-  * CONSIDER using a TokenParser instead of a RegexParser.
+  * CONSIDER using a TokenParser instead of a RegexParser. (#396)
   */
 abstract class BaseMillParser extends BaseNumberParser {
 

@@ -24,7 +24,7 @@ import scala.language.implicitConversions
   * It extends the `AtomicExpression` trait, allowing it to be used wherever atomic
   * expressions are valid.
   *
-  * CONSIDER placing maybeName in the second parameter list.
+  * CONSIDER placing maybeName in the second parameter list. (#469)
   *
   * @param value     the `Valuable` associated with the expression
   * @param maybeName an optional name for the Valuable expression
@@ -111,10 +111,10 @@ sealed abstract class ValueExpression(val value: Eager, val maybeName: Option[St
         case nat: Nat =>
           Some(nat)
         case normalizable: CanNormalize[?] =>
-          // CONSIDER putting the conditional in the pattern
+          // CONSIDER putting the conditional in the pattern (#470)
           Option.when(normalizable.maybeRep(context).isDefined && context.valuableQualifies(normalizable))(normalizable.normalize)
         case eager: Eager =>
-          // CONSIDER putting the conditional in the pattern
+          // CONSIDER putting the conditional in the pattern (#471)
           Option.when(eager.maybeRep(context).isDefined && context.valuableQualifies(eager))(value)
       }
 
@@ -354,7 +354,7 @@ case class Literal(override val value: Eager, override val maybeName: Option[Str
     //      case (Reciprocal, a: Algebraic) =>
     //            (a.invert)
     case (Reciprocal, c: Complex) =>
-      // TODO asInstanceOf
+      // TODO asInstanceOf (#394)
       Some(Complex(c.complex.invert.asInstanceOf[numerical.Complex]))
     case (function, q) if q.isExact =>
       function.applyExact(q)
@@ -424,7 +424,7 @@ object Literal {
     case numerical.Number.`∞` =>
       Infinity
     case _ =>
-      // XXX take care that we do not recurse infinitely here.
+      // NOTE take care that we do not recurse infinitely here.
       ValueExpression(Scalar(x))
   }
 
@@ -438,7 +438,7 @@ object Literal {
 
   /**
     * Extracts a Valuable value from a Literal instance.
-    * CONSIDER this may never be invoked.
+    * CONSIDER this may never be invoked. (#472)
     *
     * @param arg the Literal instance to extract the Valuable from.
     * @return an Option containing the extracted Valuable, or None if extraction is not possible.

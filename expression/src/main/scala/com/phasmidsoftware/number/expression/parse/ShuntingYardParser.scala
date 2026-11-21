@@ -14,7 +14,7 @@ import scala.util.Try
   *
   * For detail of the method, please see https://en.wikipedia.org/wiki/Shunting-yard_algorithm
   *
-  * CONSIDER using a TokenParser instead of a RegexParser.
+  * CONSIDER using a TokenParser instead of a RegexParser. (#396)
   */
 object ShuntingYardParser extends BaseMillParser {
 

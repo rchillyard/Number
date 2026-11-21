@@ -133,7 +133,7 @@ case class MonadicExpression(expression: Expression, str: String) extends Expres
       case "cos" => x => Real(x.cos)
       case _ => throw new IllegalArgumentException(s"unknown operator $str")
     }
-    f(expression.value).asNumber.get // TODO this should not be a problem but we should make it more elegant
+    f(expression.value).asNumber.get // TODO this should not be a problem but we should make it more elegant (#396)
   }
 }
 

@@ -82,7 +82,7 @@ case class Euler(r: Expression, θ: Expression) extends CompositeExpression {
 
   /**
     * Approximates this Euler expression via ComplexPolar.
-    * CONSIDER implement via ComplexPolar approximation
+    * CONSIDER implement via ComplexPolar approximation (#426)
     */
   def approximation(force: Boolean): Option[eager.Real] = None
 
@@ -146,7 +146,7 @@ case class Euler(r: Expression, θ: Expression) extends CompositeExpression {
       case Euler(r, BiFunction(Pi, IsEager(WholeNumber.three), Product)) =>
         em.Match.of(UniFunction(r, Negate))
 
-      // TODO option 2: evaluate angle to Literal(Angle) in operandsMatcher for uniform handling
+      // TODO option 2: evaluate angle to Literal(Angle) in operandsMatcher for uniform handling (#427)
 
       case Euler(r, BiFunction(IsEager(WholeNumber.three), Pi, Product)) =>
         em.Match.of(UniFunction(r, Negate))
@@ -257,7 +257,7 @@ object IsEuler {
     case UniFunction(IsEuler(eu), Negate) =>
       Some(Euler(eu.r, UniFunction(eu.θ, Negate)))
     case e@Euler(_, _) =>
-      Some(e) // CONSIDER eliminating this as it doesn't appear to be necessary.
+      Some(e) // CONSIDER eliminating this as it doesn't appear to be necessary. (#428)
     case _ =>
       None
   }

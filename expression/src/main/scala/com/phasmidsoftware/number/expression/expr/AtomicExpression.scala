@@ -78,7 +78,7 @@ object AtomicExpression {
     */
   def unapply(arg: AtomicExpression): Option[Valuable] = arg match {
     case c: Complex =>
-      Some(c) // CONSIDER eliminate this?
+      Some(c) // CONSIDER eliminate this? (#409)
     case ValueExpression(x, _) =>
       Some(x) // NOTE we lose the name here.
     case IsEager(x) =>
@@ -99,7 +99,7 @@ case class Noop(w: String) extends AtomicExpression {
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.
     *
-    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
+    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either. (#393)
     *
     * The method returns `true` if there is no approximate representation
     * available (i.e., `approximation` is `None`), indicating that the
@@ -182,7 +182,7 @@ case class Noop(w: String) extends AtomicExpression {
     *
     * @return an `Option[String]` representing the optional name
     */
-  val maybeName: Option[String] = Some(w) // CONSIDER returning None here instead
+  val maybeName: Option[String] = Some(w) // CONSIDER returning None here instead (#410)
 
   import com.phasmidsoftware.number.expression.expr.Noop.TEST_STRING
 

@@ -25,7 +25,7 @@ import scala.language.implicitConversions
 case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends CompositeExpression {
   /**
     * Method to determine what `Representation`, if there is such, this `Structure` object is based on.
-    * TODO implement this in CompositeExpression (then can remove all the overrides).
+    * TODO implement this in CompositeExpression (then can remove all the overrides). (#468)
     *
     * @return an optional `Representation`.
     */
@@ -35,7 +35,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.
     *
-    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
+    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either. (#393)
     *
     * The method returns `true` if there is no approximate representation
     * available (i.e., `approximation` is `None`), indicating that the
@@ -175,7 +175,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
         em.Match(UniFunction(Infinity, Negate))
       case UniFunction(IsEuler(Euler(r, θ)), Ln) =>
         em.Match((UniFunction(r, Ln) + (I * θ)).simplify)
-      // XXX Take care of the cases whereby the inverse of a log expression is a log expression with operand and base swapped.
+      // ASIDE Take care of the cases whereby the inverse of a log expression is a log expression with operand and base swapped.
       case UniFunction(UniFunction(x, Ln), Reciprocal) =>
         em.Match(BiFunction(E, x, Log))
       case UniFunction(UniFunction(x, Exp), Reciprocal) =>
@@ -190,7 +190,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
         matchExponential(x)
       case UniFunction(I, Reciprocal) =>
         em.Match(-I)
-      // XXX we check for certain exact literal function results
+      // ASIDE we check for certain exact literal function results
       case UniFunction(e: ValueExpression, f) if e.monadicFunction(f).isDefined =>
         em.matchIfDefined(e.monadicFunction(f))(e)
       case UniFunction(r: Root, Reciprocal) =>

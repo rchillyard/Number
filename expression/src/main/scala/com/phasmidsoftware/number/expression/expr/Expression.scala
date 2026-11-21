@@ -56,7 +56,7 @@ trait Expression extends Lazy with Approximate {
     *
     * @return an `eager.Real` representing the approximate value of this `Expression`
     */
-  lazy val fuzzy: eager.Eager = simplify match { // CONSIDER this looks wrong!
+  lazy val fuzzy: eager.Eager = simplify match { // CONSIDER this looks wrong! (#429)
     case IsEager(eager.Complex(c)) =>
       Eager(c)
     case _ =>
@@ -119,7 +119,7 @@ trait Expression extends Lazy with Approximate {
     */
   lazy val simplify: Expression = {
     @tailrec
-    def inner(x: Expression): Expression = matchSimpler(x) match { // XXX this does match all cases (need version 1.0.16 of Matchers to resolve the warning)
+    def inner(x: Expression): Expression = matchSimpler(x) match { // ASIDE this does match all cases (need version 1.0.16 of Matchers to resolve the warning)
       case em.Match(e) =>
         Expression.logger(s"simplification of $x: $e")
         inner(e)
@@ -312,15 +312,15 @@ object Expression {
     */
   given Show[Expression] = Show.show(_.materialize.render)
 
-  // TODO see ExpressionEq class which does handle all cases. But neither seems to be used in practice.
+  // TODO see ExpressionEq class which does handle all cases. But neither seems to be used in practice. (#399)
   given Eq[Expression] = (x: Expression, y: Expression) => (x, y) match {
     // Both are atomic - use default equality
-    // TODO there are other case where we should return true, for example where one expression is a Literal and the other is a more specific NamedExpression
+    // TODO there are other case where we should return true, for example where one expression is a Literal and the other is a more specific NamedExpression (#399)
     case (a: AtomicExpression, b: AtomicExpression) =>
       a == b
 
     // Both are composite - compare structure
-    // TODO a BiFunction(a, b, Sum) is should be equal to a BiFunction(b, a, Sum) but this won't do it.
+    // TODO a BiFunction(a, b, Sum) is should be equal to a BiFunction(b, a, Sum) but this won't do it. (#399)
     // ditto for Aggregate
     case (a: CompositeExpression, b: CompositeExpression) =>
       a == b
@@ -474,7 +474,7 @@ object Expression {
       case z: AtomicExpression =>
         z.evaluateAsIs flatMap (_.asCoreNumber) match {
           case Some(_) =>
-            // XXX this was the old code: Literal(q.sqrt)
+            // ASIDE this was the old code: Literal(q.sqrt)
             x ∧ Eager.half
           case _ =>
             x ∧ Eager.half
@@ -567,7 +567,7 @@ object Expression {
     /**
       * Eagerly compare this expression with y.
       *
-      * XXX this appears to be recursive! But it isn't
+      * NOTE this appears to be recursive! But it isn't
       *
       * @param comparand the number to be compared.
       * @return the result of the comparison.
@@ -629,7 +629,7 @@ object Expression {
     case Eager.infinity =>
       Infinity
     case _ =>
-      Literal(x) // CONSIDER invoking ValueExpression instead
+      Literal(x) // CONSIDER invoking ValueExpression instead (#430)
   }
 
   @deprecated("Use puremath or lazymath string interpolators instead", "1.6.5")
@@ -675,7 +675,7 @@ object Expression {
     * and applying the appropriate transformations based on the expression type.
     * Supports terminal, monadic, and dyadic expressions with specific operators.
     *
-    * CONSIDER make this private.
+    * CONSIDER make this private. (#431)
     *
     * @param expr The `mill.Expression` to be converted.
     * @return The corresponding `Expression` after applying the transformations.
@@ -720,7 +720,7 @@ object Expression {
   /**
     * Implicitly converts an integer into an `Expression` by wrapping it,
     * facilitating seamless conversions in mathematical operations.
-    * TODO have a cache of existing values
+    * TODO have a cache of existing values (#432)
     *
     * @param x the integer to be converted into an `Expression`
     * @return an `Expression` that represents the given integer
@@ -908,7 +908,7 @@ object Expression {
             em.Miss("Expression.simplifyByEvaluation: cannot evaluate", c)
         }
 
-      case a: AtomicExpression => // TODO there is no reason for this case!
+      case a: AtomicExpression => // TODO there is no reason for this case! (#433)
         em.Miss("Expression.simplifyByEvaluation: atomic expression already simplified", a)
 
       case e =>
@@ -951,7 +951,7 @@ object Expression {
     * Determines whether the provided expression `z` is an identity element
     * for the given binary function `f`.
     *
-    * TODO move this so that it is an instance method of ExpressionBiFunction.
+    * TODO move this so that it is an instance method of ExpressionBiFunction. (#434)
     *
     * @param f the binary function for which the identity property is to be checked.
     * @param z the expression to be evaluated as a potential identity element for the function `f`.
@@ -961,7 +961,7 @@ object Expression {
     (for {
       a <- z.evaluateAsIs
       b <- f.maybeIdentityL
-    } yield equivalent(a, b)).getOrElse(false) // CONSIDER comparing with maybeIdentityR if this is not true
+    } yield equivalent(a, b)).getOrElse(false) // CONSIDER comparing with maybeIdentityR if this is not true (#399)
 
   /**
     * Compares two `Eager` instances for equivalence based on their types and values.
@@ -990,7 +990,7 @@ object Expression {
       case _ => comp.simplify match {
         case uni: UniFunction => summon[LatexRenderer[UniFunction]].toLatex(uni)
         case bi: BiFunction => summon[LatexRenderer[BiFunction]].toLatex(bi)
-        // TODO add Aggregate
+        // TODO add Aggregate (#435)
         case a: Aggregate => throw ExpressionException(s"LatexRenderer[Expression] for not yet implemented for Aggregate: $a")
       }
     }

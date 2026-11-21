@@ -39,7 +39,7 @@ trait ComplexEquality extends Matchers {
     def areEqual(a: Complex, b: Any): Boolean = (a, b) match {
       case (Complex(x: ComplexCartesian), Complex(y: ComplexCartesian)) => x === y
       case (Complex(x: ComplexPolar), Complex(y: ComplexPolar)) => x === y
-      // TODO add case for cross-types
+      // TODO add case for cross-types (#477)
       case _ => false
     }
   }

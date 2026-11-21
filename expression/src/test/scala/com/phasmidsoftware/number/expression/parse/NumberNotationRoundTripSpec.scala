@@ -154,7 +154,7 @@ class NumberNotationRoundTripSpec extends AnyFlatSpec with Matchers {
     val original = "0.333..."
     val parsed = numerical.Number.parse(original).get
     parsed.fuzz shouldBe defined
-    // TODO restore
+    // TODO restore (#395)
     //    parsed.render should contain("*")
     parsed.render should not endWith "..."
   }
@@ -164,7 +164,7 @@ class NumberNotationRoundTripSpec extends AnyFlatSpec with Matchers {
     cases.foreach { original =>
       val parsed = numerical.Number.parse(original).get
       parsed.fuzz shouldBe defined
-      // TODO restore
+      // TODO restore (#395)
       //      parsed.render should contain("*")
     }
   }
@@ -274,7 +274,7 @@ class NumberNotationRoundTripSpec extends AnyFlatSpec with Matchers {
     val original = "0.000001*"
     val parsed = numerical.Number.parse(original).get
     parsed.fuzz shouldBe defined
-    // TODO restore
+    // TODO restore (#395)
     //    parsed.render should endWith("*")
   }
 
@@ -282,7 +282,7 @@ class NumberNotationRoundTripSpec extends AnyFlatSpec with Matchers {
     val original = "1000000.0*"
     val parsed = numerical.Number.parse(original).get
     parsed.fuzz shouldBe defined
-    // TODO restore
+    // TODO restore (#395)
     //    parsed.render should endWith("*")
   }
 

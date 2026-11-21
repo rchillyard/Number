@@ -47,7 +47,7 @@ sealed trait Root extends AtomicExpression with Branched[Root] with Zeroable {
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.
     *
-    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
+    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either. (#393)
     *
     * The method returns `true` if there is no approximate representation
     * available (i.e., `approximation` is `None`), indicating that the
@@ -224,7 +224,7 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int, @unused maybeName
     case LinearSolution(value) =>
       value.maybeRep(context)
     case _ =>
-      None // TODO implement complex solutions
+      None // TODO implement complex solutions (#464)
   }
 
   /**
@@ -362,7 +362,7 @@ sealed abstract class AbstractRoot(equ: Equation, branch: Int, @unused maybeName
     *
     * @return an `Expression` representing the negation of the current `Expression`.
     */
-  def negate: Expression = // TODO create a new Root instance rather than a Literal.
+  def negate: Expression = // TODO create a new Root instance rather than a Literal. (#465)
     Literal(solution.negate)
 
   /**
@@ -474,7 +474,7 @@ case class QuadraticRoot(equ: Equation, branch: Int, maybeName: Option[String] =
     * Constructs a `Root` for a given quadratic equation and retrieves the specific solution
     * branch corresponding to the provided index.
     *
-    * TODO this doesn't seem to make much sense!
+    * TODO this doesn't seem to make much sense! (#466)
     *
     * @param index the branch index corresponding to the desired root of the equation.
     *              Typically, for quadratic equations, this value is 0 or 1.
@@ -557,7 +557,7 @@ case class QuadraticRoot(equ: Equation, branch: Int, maybeName: Option[String] =
   * The `QuadraticRoot` object provides functionality to construct and manipulate roots of quadratic equations.
   * Basically, this method tries to reverse-engineer a QuadraticSolution into a QuadraticRoot.
   * We don't currently manage it for all possibilities (understatement!)
-  * TODO complete more cases.
+  * TODO complete more cases. (#467)
   *
   * This object acts as a factory for creating instances of `QuadraticRoot` using algebraic data,
   * and offers methods for working with quadratic equations and their solutions.

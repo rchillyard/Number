@@ -50,7 +50,7 @@ trait CompositeExpression extends Expression {
   /**
     * Determines if all components within a given `Expression` are named.
     *
-    * TODO handle the specific cases at their proper level in the type hierarchy.
+    * TODO handle the specific cases at their proper level in the type hierarchy. (#422)
     *
     * This method recursively checks whether each component of the provided `Expression`
     * either has a name (in the case of a `Nameable` expression) or, if it is a composite
@@ -67,7 +67,7 @@ trait CompositeExpression extends Expression {
       (x.keepSymbolic || y.keepSymbolic) && x.maybeName.isDefined && y.maybeName.isDefined
     case UniFunction(x, Sine | Cosine | Sinh | Cosh) =>
       !x.containsI
-//    case Euler(x: Nameable, y: Nameable) => // TODO unreachable.
+//    case Euler(x: Nameable, y: Nameable) => // TODO unreachable. (#398)
 //      (x.keepSymbolic || y.keepSymbolic) && x.maybeName.isDefined && y.maybeName.isDefined
     case c: CompositeExpression =>
       c.terms.exists {
@@ -133,7 +133,7 @@ trait CompositeExpression extends Expression {
     * sub-expressions into their precise, simplified forms. This method focuses on exact
     * mathematical simplifications that can be performed without introducing approximations.
     *
-    * TODO try to merge this method with Expression.simplifyByEvaluation.
+    * TODO try to merge this method with Expression.simplifyByEvaluation. (#423)
     *
     * @return an `em.AutoMatcher[Expression]` that encapsulates the logic for simplifying
     *         exact expressions. The result contains the simplified `Expression` if successful,
@@ -148,7 +148,7 @@ trait CompositeExpression extends Expression {
           expr.evaluateAsIs match {
             case Some(value) =>
               // NOTE double-check that the result is actually exact.
-              // CONSIDER is this necessary now what we have redefined this method as simplifyExpand?
+              // CONSIDER is this necessary now what we have redefined this method as simplifyExpand? (#424)
               em.Match(ValueExpression(value)).filter(_.isExact)
             case None =>
               em.Miss[Expression, Expression]("CompositeExpression: simplifyExpand: no simplifications", this)

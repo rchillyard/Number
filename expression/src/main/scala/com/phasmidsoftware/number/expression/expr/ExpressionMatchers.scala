@@ -28,7 +28,7 @@ import scala.util.{Failure, Success}
   *
   * Rules for matching:
   * (1) All substitution is based on a successful match -- no match, no substitution;
-  * CONSIDER this second rules seems strange
+  * CONSIDER this second rules seems strange (#454)
   * (2) The first match to try for any expression is the exactMaterializer which returns Match(Literal(value));
   * (2) Some matches return non-exact match results -- these should be passed to flatMap simplifier;
   * NOTE: do not pass anything to flatMap simplifier if it could possibly be the same as the input (else stack overflow).
@@ -52,7 +52,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
       Match(r)
     } else
       Match(r)
-  // CONSIDER the following code for MatchCheck which does not always return a Match.
+  // CONSIDER the following code for MatchCheck which does not always return a Match. (#455)
   //  def MatchCheck[R](r: R)(o: R): MatchResult[R] =
   //    if r == o then
   //      Miss(s"MatchCheck: unchanged", o)
@@ -77,7 +77,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
   /**
     * Implicit method to convert a Matcher[Expression, R] into an ExpressionMatcher[R].
     *
-    * CONSIDER if we used a type alias for ExpressionMatcher, would we still need this?
+    * CONSIDER if we used a type alias for ExpressionMatcher, would we still need this? (#456)
     *
     * @param m a Matcher[Expression, R].
     * @tparam R the result type.
@@ -237,7 +237,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     case Aggregate(Power, Nil) =>
       Miss("simplifyAggregate: cannot simplify Power(0, 0)", Aggregate(Power, Nil))
     case Aggregate(_, x :: Nil) =>
-      Match(x) // XXX we should not need to simplify x since simplifyOperands should already have done that
+      Match(x) // NOTE we should not need to simplify x since simplifyOperands should already have done that
     // NOTE it's important that you do not reintroduce a match into a BiFunction!
     case Aggregate(f, xs) if xs.exists { case Multiple(`f`, _) => true; case _ => false } =>
       Match(Aggregate(f, xs.flatMap {
@@ -245,7 +245,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
         case x => Seq(x)
       }))
     case a@Aggregate(_, _) =>
-      // TODO asInstanceOf
+      // TODO asInstanceOf (#394)
       ((angleEliminatorAggregate | complementaryTermsEliminatorAggregate) & alt(matchSimpler.asInstanceOf[Matcher[Expression, Expression]]))(a)
   }
 
@@ -258,7 +258,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * The method assumes that the provided aggregate function `f` typically involves
     * operations where complementary terms can be identified (e.g., summation).
     *
-    * TODO refactor and move what we can into Aggregate.
+    * TODO refactor and move what we can into Aggregate. (#397)
     *
     * @return A `Matcher[Aggregate, Expression]` that either matches an aggregate
     *         expression with reduced complementary terms or returns a miss description
@@ -270,7 +270,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
         case Success(list) =>
           matchOrMiss(a.function, list)(a)
         case Failure(x) =>
-          Error(x) // XXX the result of an extremely improbable NoSuchElementException
+          Error(x) // NOTE the result of an extremely improbable NoSuchElementException
       }
   }
 
@@ -285,16 +285,16 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     */
   def literalsCombiner: Matcher[Expression, Expression] = Matcher[Expression, Expression]("ExpressionMatchers:literalsCombiner") {
     case g@Aggregate(f, xs) =>
-      // XXX first, we partition `xs` according to which terms can be exactly combined because they are all pure numbers (the "literals").
+      // ASIDE first, we partition `xs` according to which terms can be exactly combined because they are all pure numbers (the "literals").
       // The other terms may also be literal constants but not evaluatable in the `PureNumber` context.
       // NOTE that we might be being a little over-restrictive here.
-      // CONSIDER relaxing `isAtomic`
+      // CONSIDER relaxing `isAtomic` (#457)
       xs.partition(exp => exp.isAtomic && exp.evaluate(RestrictedContext(PureNumber)).isDefined) match {
         case (Nil, _) =>
           Miss("literalsCombiner: no pure numbers", g)
         case (literals, others) =>
-          // XXX next, we evaluate an Aggregate based solely on the pure number elements (literals) and combine the result with the other elements (others)
-          // CONSIDER using CompositeExpression.apply
+          // ASIDE next, we evaluate an Aggregate based solely on the pure number elements (literals) and combine the result with the other elements (others)
+          // CONSIDER using CompositeExpression.apply (#458)
           (Aggregate(f, literals).evaluate(RestrictedContext(PureNumber)), others) match {
             case (Some(z), Nil) =>
               Match(z)
@@ -348,7 +348,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * Determines whether the provided pair of `ExpressionMonoFunction` values are complementary
     * monadic functions such as exponential and logarithmic.
     *
-    * TODO move this into ExpressionMonoFunction.
+    * TODO move this into ExpressionMonoFunction. (#397)
     *
     * @param f The first `ExpressionMonoFunction` value to compare.
     * @param g The second `ExpressionMonoFunction` value to compare.
@@ -397,7 +397,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
 
   /**
     * Method to define a `Matcher` to match a specific Number.
-    * CONSIDER using `matches`.
+    * CONSIDER using `matches`. (#459)
     *
     * @param x the `Number` to match.
     * @return a `AutoMatcher[Field]` which matches only on x.
@@ -416,7 +416,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * If the list is shorter than the original, a `Match` on a new `Aggregate` is returned.
     * If the list is the same length as the original, a `Miss` is returned.
     *
-    * TODO refactor and move what we can into ExpressionBiFunction
+    * TODO refactor and move what we can into ExpressionBiFunction (#397)
     *
     * @param f    A function combining two expressions into a composite expression.
     * @param list The list of the remaining (non-complementary) expressions to be processed.
@@ -428,16 +428,16 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     if list.isEmpty
     then
       // NOTE if the first term of xs is an angle, then the result will be an angle.
-      // CONSIDER using convert here.
+      // CONSIDER using convert here. (#460)
       if (a.xs.headOption.getOrElse(Zero).materialize.isInstanceOf[Angle])
         Match(Literal(Angle.zero))
       else
         Match(Zero)
     else if list != a.xs
-    // CONSIDER writing instead `MatchCheck(CompositeExpression(f, list))` But be careful!
+    // CONSIDER writing instead `MatchCheck(CompositeExpression(f, list))` But be careful! (#461)
     then
       MatchCheck(Aggregate(f, list))(a)
-    // CONSIDER the following:
+    // CONSIDER the following: (#462)
     //      Match(Aggregate(f, list)) `map` (_.simplify)
     else
       Miss(s"matchOrMiss: $a", a)
@@ -493,7 +493,7 @@ object ExpressionMatchers {
     * This method is designed to identify cases where the resulting `Expression` meets
     * particular characteristics, such as being a zero-valued `Structure` or a unit-valued `Unitary`.
     *
-    * TODO Move this into ExpressionBiFunction.
+    * TODO Move this into ExpressionBiFunction. (#397)
     *
     * @param f The binary function (`ExpressionBiFunction`) applied to evaluate the relationship
     *          between the two `Expression` instances.
@@ -508,7 +508,7 @@ object ExpressionMatchers {
       Some(Literal(z))
       case Some(z: Number) if z.isUnity && f == Product =>
         Some(Literal(z))
-      case Some(z) if f.maybeIdentityL.contains(z) => // CONSIDER this case doesn't add anything
+      case Some(z) if f.maybeIdentityL.contains(z) => // CONSIDER this case doesn't add anything (#463)
         Some(Literal(z))
       case _ =>
         None
