@@ -13,7 +13,7 @@ import scala.util.parsing.combinator.*
   * `ExpressionParser` is a parsing utility designed for processing and interpreting arithmetic
   * expressions. It extends `JavaTokenParsers` to leverage combinator-based parsing functionality.
   *
-  * CONSIDER I'm not sure that the Expression structure is that helpful in creating expressions such as BiFunction, etc.
+  * CONSIDER I'm not sure that the Expression structure is that helpful in creating expressions such as BiFunction, etc. (#475)
   * Probably we should put the operator first (or maybe last).
   *
   * The parser supports parsing arithmetic expressions involving addition, subtraction,
@@ -272,7 +272,7 @@ class ExpressionParser extends JavaTokenParsers with (String => Try[Expression])
     * "pi" (π) and "e" (Euler's number), into a `Factor`. If no valid number or constant is
     * provided, parsing will fail.
     *
-    * CONSIDER why do we need to repeat so many of the strings taken care of by the methods pi and e?
+    * CONSIDER why do we need to repeat so many of the strings taken care of by the methods pi and e? (#476)
     *
     * @return a `Parser[Factor]` that converts the input into a `Factor` instance representing
     *         either the numeric value or a mathematical constant.

@@ -70,7 +70,7 @@ trait Equation extends Branched[Expression] with Scalable[Equation] with Rendera
     * Given this equation `P(x) = 0`, such that `z` is a solution,
     * this method returns the equation `P(y) = 0` such that `z + c` is a solution.
     *
-    * CONSIDER a better name for this.
+    * CONSIDER a better name for this. (#401)
     *
     * @param c the rational value by which to shift the origin of the equation.
     * @return a new `Equation` instance with its origin shifted by the specified value.

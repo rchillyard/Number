@@ -30,7 +30,7 @@ import scala.annotation.nowarn
 /**
   * Test suite for `ExpressionMatchers` and related functionality, extending `AnyFlatSpec` with ScalaTest matchers functionalities.
   *
-  * TODO requires more simplification with removal of duplicates, etc.
+  * TODO requires more simplification with removal of duplicates, etc. (#480)
   *
   * This class provides unit tests for various operations and matchers related to `Expression` objects.
   * It validates the functionality of arithmetic operations, simplifications, matchers, and custom equality logic for expressions.
@@ -68,7 +68,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     *
     * This object is implicitly used wherever an `Equality[Expression]` implementation is required.
     *
-    * TODO make this generally available so that it doesn't have to be copied.
+    * TODO make this generally available so that it doesn't have to be copied. (#481)
     */
   implicit object ExpressionEquality extends Equality[Expression] {
     def areEqual(a: Expression, b: Any): Boolean = b match {
@@ -347,7 +347,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "simplify root3 * 2 / 2" in {
     import BiFunction.*
     val p = Expression.matchSimpler
-    val root3: numerical.Number = √(3) // TODO (temporary) this should be of type Valuable
+    val root3: numerical.Number = √(3) // TODO (temporary) this should be of type Valuable (#482)
     val x: Expression = Literal(root3) :* Eager.two
     val y: Expression = Expression(Eager.two).reciprocal
     val result = p(Product ~ x ~ y)
@@ -775,8 +775,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     em.representationsMatch(Sum, Pi, One) shouldBe false
     em.representationsMatch(Sum, One, Literal(root2)) shouldBe false
     em.representationsMatch(Sum, Literal(root2), One) shouldBe false
-    //    em.representationsMatch(Sum, Literal(root2), Literal(root2) * MinusOne) shouldBe false // TODO fix this
-    //    em.representationsMatch(Sum, Literal(root2) * MinusOne, Literal(root2)) shouldBe false // TODO fix this
+    //    em.representationsMatch(Sum, Literal(root2), Literal(root2) * MinusOne) shouldBe false // TODO fix this (#398)
+    //    em.representationsMatch(Sum, Literal(root2) * MinusOne, Literal(root2)) shouldBe false // TODO fix this (#398)
   }
   it should "match expression Product" in {
     em.representationsMatch(Product, Pi, MinusOne) shouldBe true
@@ -824,7 +824,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     literalAngleZero shouldBe Literal(Angle.zero)
     literalAngleZero.materialize shouldBe Angle.zero
 
-    // XXX: this part of the test is not working yet (it appears to be unique to Aggregate).
+    // TODO: this part of the test is not working yet (it appears to be unique to Aggregate). (#493)
     // It must be in the complementary terms evaluator.
     val target: Expression = Aggregate(Sum, Seq(Pi, -Pi))
     val simplify = target.simplify
@@ -949,7 +949,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x: Expression = Expression(7) * 2 * -3
     //val p = em.matchBiFunction & em.biFunctionAggregator
     //val result = p(x)
-    // CONSIDER why is this behavior different than that for 7 :+ 2 - 3?
+    // CONSIDER why is this behavior different than that for 7 :+ 2 - 3? (#483)
     val result = x match {
       case b: BiFunction => em.matchBiFunctionAsAggregate(b)
       case _ => em.Miss("not a BiFunction chain", x)
@@ -1129,7 +1129,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "match 1" in {
     import BiFunction.*
     val p = Expression.matchSimpler
-    // CONSIDER these shouldn't be handled by matchSimplifyDyadicTermsTwoLevels since they are handled by matchComplementary
+    // CONSIDER these shouldn't be handled by matchSimplifyDyadicTermsTwoLevels since they are handled by matchComplementary (#484)
     p(Sum ~ One ~ expr.UniFunction(One, Negate)) shouldBe em.Match(Zero)
     p(Sum ~ expr.UniFunction(One, Negate) ~ One) shouldBe em.Match(Zero)
   }
@@ -1335,7 +1335,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   it should "work with value on Real" in {
     val em = ems
     import em.MatcherOps
-    // CONSIDER this appears to be a debugging logger--that doesn't seem right.
+    // CONSIDER this appears to be a debugging logger--that doesn't seem right. (#485)
     implicit val logger: MatchLogger = em.matchLogger
     val f = em.value :| "value"
     f(Literal(FuzzyNumber(Right(1), PureNumber, None))).successful shouldBe true
@@ -1450,13 +1450,13 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     actual shouldBe expected
   }
 
-  // CONSIDER move the following
+  // CONSIDER move the following (#486)
   behavior of "matchSimplifyBiFunction"
   // Issue #106 (fixed)
   it should "simplify multiple similar ops" in {
     val p = Expression.matchSimpler
     p(Expression(2) * 3 * 5 * Eager.e) shouldBe em.Match(E * 30)
-    // TODO we would like the following to be E * 30
+    // TODO we would like the following to be E * 30 (#487)
     //    em.simplifier(E * 2 * 3 * 5) shouldBe em.Match(E * 2 * 15)
     //    em.simplifier(Expression(5) * 2 * 3 * Eager.e) shouldBe em.Match(E * 30)
   }
@@ -1555,7 +1555,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     result.successful shouldBe true
     result.get shouldBe Zero
   }
-  // XXX Issue #148
+  // NOTE Issue #148
   it should "work for (π :+ 1) * (π - 1)" in {
     val p = Expression.matchSimpler
     val e1 = BiFunction(Pi, One, Sum)

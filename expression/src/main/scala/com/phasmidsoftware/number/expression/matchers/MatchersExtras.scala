@@ -10,7 +10,7 @@ import com.phasmidsoftware.matchers.Matchers
   * This trait extends a set of Matchers which operate in a parallel fashion to the Parsers of the Scala
   * Parser Combinator library.
   *
-  * CONSIDER why to we need this trait?
+  * CONSIDER why to we need this trait? (#473)
   */
 trait MatchersExtras extends Matchers {
 
@@ -19,7 +19,7 @@ trait MatchersExtras extends Matchers {
     * Creates a `MatchResult` by applying a given function `f` to an input value of type `T`, 
     * and matching the result if the function yields a defined `Option`.
     * Matches and processes a given input using a function that returns an Option.
-    * TODO promote this into `Matchers` (where `matchOptionFunc` is already defined but could be based on this method).
+    * TODO promote this into `Matchers` (where `matchOptionFunc` is already defined but could be based on this method). (#474)
     *
     * @param f a function that transforms an input of type `T` into an `Option[R]`.
     * @param t the input value of type `T` to be transformed and matched.

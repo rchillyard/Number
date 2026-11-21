@@ -10,7 +10,7 @@ import scala.util.Try
   * Parser for Number.
   *
   * NOTE when we specify an exact number by following an integer by an exponent, we must precede the "E" with a decimal point.
-  * CONSIDER Try to eliminate that requirement.
+  * CONSIDER Try to eliminate that requirement. (#396)
   */
 abstract class BaseNumberParser extends BaseRationalParser {
 
@@ -62,7 +62,7 @@ abstract class BaseNumberParser extends BaseRationalParser {
         })
     }
 
-    // CONSIDER making this a method and having two places call it
+    // CONSIDER making this a method and having two places call it (#396)
     private def getExponent = maybeExponent.getOrElse("0").toInt
   }
 

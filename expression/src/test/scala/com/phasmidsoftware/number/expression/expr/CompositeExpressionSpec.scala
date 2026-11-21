@@ -245,7 +245,7 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
 
   // ============================================================================
   // BiFunction Tests - Evaluation (Product)
-  // TODO replace variable names below here with target
+  // TODO replace variable names below here with target (#478)
   // ============================================================================
 
   behavior of "BiFunction - Evaluation (Product)"
@@ -779,7 +779,7 @@ class CompositeExpressionSpec extends AnyFlatSpec with Matchers {
     val expr: BiFunction = BiFunction(fuzzy, Two, Product)
     expr.isExact shouldBe false
     expr.evaluate(pureNumberContext) should be(empty)
-    expr.materialize shouldBe Real(4.0, Some(RelativeFuzz(0.1, Box))) // CONSIDER this looks wrong. It should be AbsoluteFuzz(0.1, Box)
+    expr.materialize shouldBe Real(4.0, Some(RelativeFuzz(0.1, Box))) // CONSIDER this looks wrong. It should be AbsoluteFuzz(0.1, Box) (#479)
   }
 
   it should "preserve mathematical identities through simplification" in {

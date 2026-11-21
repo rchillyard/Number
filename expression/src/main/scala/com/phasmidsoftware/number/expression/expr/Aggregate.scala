@@ -28,7 +28,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.
     *
-    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
+    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either. (#393)
     *
     * The method returns `true` if there is no approximate representation
     * available (i.e., `approximation` is `None`), indicating that the
@@ -110,7 +110,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * The method identifies pairs of expressions within the aggregate that satisfy the provided
     * `complementaryPredicate` function and removes them, returning the remaining expressions.
     *
-    * CONSIDER This is currently called only once so it could be converted to a lazy def by fixing the parameter.
+    * CONSIDER This is currently called only once so it could be converted to a lazy def by fixing the parameter. (#406)
     *
     * @param complementaryPredicate a function that determines whether two expressions within the
     *                               context of a provided aggregate function are complementary.
@@ -133,7 +133,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     }
 
     // NOTE this ordering is really only appropriate when f is Sum.
-    // TODO find a better way to find complementary elements.
+    // TODO find a better way to find complementary elements. (#407)
     val sortFunction: Expression => Double =
       x => invertFunction(FP.recover(x.approximation.map(_.toDouble))(ExpressionException(s"Cannot approximate $x for complementary term elimination")))
 
@@ -215,8 +215,8 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     */
   def approximation(force: Boolean): Option[eager.Real] = {
     val identity: Eager = function.maybeIdentityL.getOrElse(Eager.zero) // NOTE should never require the default
-    val vos: Seq[Option[eager.Real]] = xs map (x => x.approximation(force)) // CONSIDER treating empty approximation result as an error
-    // TODO asInstanceOf
+    val vos: Seq[Option[eager.Real]] = xs map (x => x.approximation(force)) // CONSIDER treating empty approximation result as an error (#408)
+    // TODO asInstanceOf (#394)
     FP.sequence(vos) map (xs => xs.foldLeft[Eager](identity)(function.apply).asInstanceOf[eager.Real])
   }
 

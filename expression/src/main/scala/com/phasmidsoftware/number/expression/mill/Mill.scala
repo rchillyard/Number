@@ -11,7 +11,7 @@ import scala.util.Try
 /**
   * Trait to define the behavior of a "mill."
   *
-  * CONSIDER rename Stack as ListMill and extract push, pop and isEmpty as Stack[Item].
+  * CONSIDER rename Stack as ListMill and extract push, pop and isEmpty as Stack[Item]. (#396)
   *
   */
 trait Mill extends Iterable[Item] {
@@ -45,7 +45,7 @@ trait Mill extends Iterable[Item] {
     * @return an Iterator[Item].
     */
   def iterator: Iterator[Item] = {
-    // XXX using a var here, but the entire concept of an iterator pretty much requires mutability.
+    // NOTE using a var here, but the entire concept of an iterator pretty much requires mutability.
     var mill = this
 
     new Iterator[Item] {
@@ -60,7 +60,7 @@ trait Mill extends Iterable[Item] {
       def next(): Item = {
         val (xo, m) = mill.pop
         mill = m
-        xo.get // XXX this call to get is protected by the hasNext method. That's the way iterators are.
+        xo.get // NOTE this call to get is protected by the hasNext method. That's the way iterators are.
       }
     }
   }
@@ -174,7 +174,7 @@ case class Stack(stack: List[Item]) extends Mill {
   private def evaluateMonadic(f: Monadic): (Option[Expression], Mill) = evaluateInternal match {
     case (Some(e), m) =>
       val expression = calculateMonadic(f, e)
-      // TODO asInstanceOf
+      // TODO asInstanceOf (#394)
       m.push(Expr(expression)).asInstanceOf[Stack].evaluateInternal
     case (None, _) =>
       throw MillException(s"evaluateMonadic: $this is empty")
@@ -231,7 +231,7 @@ case class Stack(stack: List[Item]) extends Mill {
     evaluateInternal match {
       case (Some(e), m) =>
         val expression = calculateDyadic(f, x, e)
-        // TODO asInstanceOf
+        // TODO asInstanceOf (#394)
         m.push(Expr(expression)).asInstanceOf[Stack].evaluateInternal
       case (None, _) =>
         throw MillException(s"evaluate2: logic error: $this did not evaluate to an expression")
@@ -278,7 +278,7 @@ case class Stack(stack: List[Item]) extends Mill {
     case Add =>
       x2 + x1
     case Subtract =>
-      x2 + x1.negate // TODO CHECK this! Surely it should be x1 + x2.negate
+      x2 + x1.negate // TODO CHECK this! Surely it should be x1 + x2.negate (#396)
     case Divide =>
       x2 * x1.reciprocal
     case Power =>

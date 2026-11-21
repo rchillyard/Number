@@ -137,8 +137,8 @@ case class QuadraticEquation(p: Rational, q: Rational) extends Equation {
   def branches: Int = 2
 
   /**
-    * Yields the inverse of this Equation. CONSIDER Does this make sense??
-    * CONSIDER should we make it an abstract method on Equation?
+    * Yields the inverse of this Equation. CONSIDER Does this make sense?? (#402)
+    * CONSIDER should we make it an abstract method on Equation? (#403)
     */
   def invert: QuadraticEquation =
     transform((p, q) => p / q, (_, q) => q.invert)
@@ -320,7 +320,7 @@ case class LinearEquation(r: Rational) extends Equation {
     * Given this equation `P(x) = 0`, such that `z` is a solution,
     * this method returns the equation `P(y) = 0` such that `z + c` is a solution.
     *
-    * CONSIDER a better name for this.
+    * CONSIDER a better name for this. (#404)
     *
     * @param c the rational value by which to shift the origin of the equation.
     * @return a new `Equation` instance with its origin shifted by the specified value.
@@ -409,7 +409,7 @@ object QuadraticEquation {
           for (x <- realPart; y <- imaginaryPart) yield ComplexCartesian(x, y))(
           ExpressionException(s"Quadratic equation has bad complex roots: $equation")
         )
-      case InversePower(2, q: Q) => // CONSIDER replacing this case (and logic) with SquareRoot(z) keeping in mind that q = z^2.
+      case InversePower(2, q: Q) => // CONSIDER replacing this case (and logic) with SquareRoot(z) keeping in mind that q = z^2. (#405)
         val imag = ExactNumber(Value.fromRational(q.toRational), SquareRoot).doMultiple(coefficient)
         FP.recover(
           for (x <- realPart) yield ComplexCartesian(x, imag))(
