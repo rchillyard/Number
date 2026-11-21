@@ -277,14 +277,14 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
     * @return a String
     */
   lazy val render: String = maybeName getOrElse (this match {
-    case q@QuadraticSolution(base, offset, coefficient, false) if offset.isZero || base.isZero =>
+    case q@QuadraticSolution(base, offset, _, false) if offset.isZero || base.isZero =>
       q.normalize.render
+    case QuadraticSolution(base, _, 0, _) =>
+      base.render
     case QuadraticSolution(base, offset, coefficient, false) =>
-      val offStr = if (offset.isZero || coefficient == 0) "" else s"${offset.render}"
-      s"(${base.render} ${if (coefficient == 1) "+ " else "- "}$offStr)"
-    case _ =>
-      // TODO this is not correct in the cases where coefficient is not 1 or -1 (#507)
-      s"Complex quadratic solution: ${base.render} ${if (coefficient == -1) "- " else "+ "}${offset.render}"
+      s"(${base.render} ${QuadraticSolution.renderTerm(offset, coefficient)})"
+    case QuadraticSolution(base, offset, coefficient, true) =>
+      s"Complex quadratic solution: ${base.render} ${QuadraticSolution.renderTerm(offset, coefficient)}"
   })
 
   /**
@@ -524,7 +524,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
       QuadraticSolution(b.scale(r), o.scale(r), coefficient, imaginary)
     case (b: Scalar, InversePower(2, x)) =>
       val number = RationalNumber(r)
-      val br: Int = if (number.signum < 0) 1 - coefficient else coefficient
+      val br: Int = if (number.signum < 0) -coefficient else coefficient
       val offsetValue: Structure = if (number.isZero) WholeNumber.zero else InversePower(2, x * number * number)
       val value = QuadraticSolution(b.scale(r), offsetValue, br, imaginary)
       value
@@ -620,6 +620,24 @@ object QuadraticSolution {
       case _ =>
         new QuadraticSolution(base, offset, coefficient, imaginary)(None)
     }
+
+  /**
+    * Renders the `coefficient * offset` term of a `QuadraticSolution`, with its sign.
+    *
+    * NOTE: the magnitude is shown only when it is not 1, so the ordinary ±1 cases read as
+    * before. Arithmetic on a `QuadraticSolution` should not produce any other magnitude, but
+    * `apply` takes an arbitrary `Int`, so rendering does not assume one.
+    *
+    * @param offset      the offset component
+    * @param coefficient the coefficient by which the offset is multiplied
+    * @return a String such as "+ √1.25", "- √1.25" or "+ 3·√1.25"
+    */
+  def renderTerm(offset: Structure, coefficient: Int): String = {
+    val sign = if (coefficient < 0) "-" else "+"
+    val magnitude = math.abs(coefficient)
+    val factor = if (magnitude == 1) "" else s"${magnitude}·"
+    s"$sign $factor${offset.render}"
+  }
 
   /**
     * Represents the value `phi`, which is a solution of a quadratic equation
