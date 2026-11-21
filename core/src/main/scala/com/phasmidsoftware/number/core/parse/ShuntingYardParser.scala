@@ -17,7 +17,7 @@ import scala.util.Try
   *
   * For detail of the method, please see https://en.wikipedia.org/wiki/Shunting-yard_algorithm
   *
-  * CONSIDER using a TokenParser instead of a RegexParser.
+  * CONSIDER using a TokenParser instead of a RegexParser. (#242)
   */
 // core can't use the replacement, which is in the expression module, so it keeps the deprecated parser.
 @nowarn("cat=deprecation")

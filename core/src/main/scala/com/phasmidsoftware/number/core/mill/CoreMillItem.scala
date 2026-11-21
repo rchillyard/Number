@@ -198,14 +198,14 @@ object CoreMillItem {
     * @return an Item.
     */
   def apply(s: String): CoreMillItem = s.toLowerCase match {
-    // XXX Dyadic operators
+    // ASIDE Dyadic operators
     case "∧" => Power
     case "^" => Power
     case "+" => Add
     case "-" | "−" | "–" => Subtract
     case "*" | "×" => Multiply
     case "/" | "÷" => Divide
-    // XXX Monadic operators
+    // ASIDE Monadic operators
     case "chs" => Chs
     case "inv" => Inv
     case "v" | "sqrt" => Sqrt
@@ -213,14 +213,14 @@ object CoreMillItem {
     case "exp" => Exponent
     case "sin" => Sin
     case "cos" => Cos
-    // XXX Anadic operators
+    // ASIDE Anadic operators
     case "<>" => Swap
     case "c" | "clr" => Clr
     case "" => Noop
-    // XXX Parentheses
+    // ASIDE Parentheses
     case "(" => Open
     case ")" => Close
-    // XXX Expressions
+    // ASIDE Expressions
     case x => Expr(Number(x))
   }
 }

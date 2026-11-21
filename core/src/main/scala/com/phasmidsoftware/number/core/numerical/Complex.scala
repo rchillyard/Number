@@ -53,8 +53,8 @@ trait Complex extends Multivariate {
   /**
     * Method to determine what `Representation`, if there is such, this `NumberLike` object is based on.
     *
-    * TODO it's more complicated than this!
-    * CONSIDER having a Complex sub-type of Representation.
+    * TODO it's more complicated than this! (#313)
+    * CONSIDER having a Complex sub-type of Representation. (#314)
     *
     * @return an optional `Representation`.
     */

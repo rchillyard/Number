@@ -87,7 +87,7 @@
 //    f.apply(Constants.one) shouldBe Constants.one
 //    f.apply(Constants.half) should ===(Constants.two)
 //    f.apply(Constants.two) shouldBe Constants.half
-////    f(Constants.e) shouldBe Real(ExactNumber(-1, NatLog)) TODO fix this later
+////    f(Constants.e) shouldBe Real(ExactNumber(-1, NatLog)) TODO fix this later (#245)
 //  }
 //  it should "work for Exp" in {
 //    val f: ExpressionMonoFunction = Exp
@@ -153,7 +153,7 @@
 //    val x1 = Number.one
 //    val x2 = Number.pi
 //    val e = BiFunction.apply(Literal.apply(x1), Literal.apply(x2), Sum)
-//    // TODO let's make the representations of pi consistent. This was previously 𝛑
+//    // TODO let's make the representations of pi consistent. This was previously 𝛑 (#245)
 //    e.toString shouldBe "BiFunction{1 + π}"
 //    e.render shouldBe "4.14159265358979300(41)"
 //    e.materialize.render shouldBe "4.14159265358979300(41)"
@@ -355,7 +355,7 @@
 //    BiFunction.apply(BiFunction.apply(Two, MinusOne, Product), Two, Sum).evaluateAsIs shouldBe Some.apply(Constants.zero)
 //  }
 //
-//  // XXX appears to have fixed infinite recursion
+//  // ASIDE appears to have fixed infinite recursion
 //  it should "simplify aggregate expressions" in {
 //    Aggregate.total(BiFunction.apply(Two, MinusOne, Product), Two).simplify shouldBe Zero
 //    Aggregate.total(Two).simplify shouldBe Two

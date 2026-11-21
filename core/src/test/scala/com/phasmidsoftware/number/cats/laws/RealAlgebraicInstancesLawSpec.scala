@@ -56,7 +56,7 @@ class RealAlgebraicInstancesLawSpec
 
 //  checkAll("Real", RingLaws[Real].commutativeRing)
   
-  //TODO: Uncomment this when we have a way to pass the field law tests.
+  //TODO: Uncomment this when we have a way to pass the field law tests. (#245)
   //checkAll("Real", RingLaws[Real].field)
 }
 

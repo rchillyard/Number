@@ -78,7 +78,7 @@ trait Numerical extends NumberLike {
     * Yields the inverse of this Field.
     * This Number is first normalized so that its representation is PureNumber, since we cannot directly invert Numbers with other
     * representations.
-    * TODO note that this method does not belong in Numerical: it belongs in Field.
+    * TODO note that this method does not belong in Numerical: it belongs in Field. (#362)
     */
   def invert: Field
 

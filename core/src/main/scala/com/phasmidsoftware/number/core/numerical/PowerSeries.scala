@@ -26,7 +26,7 @@ trait PowerSeries[X, Y] extends (X => Series[Y]) {
   * Represents a lazy power series that is computed on demand, using a sequence of pre-specified
   * coefficients and a transformation function for powers of the input variable.
   *
-  * TESTME (not currently used)
+  * TESTME (not currently used) (#365)
   *
   * This class allows defining power series where the terms are calculated as required, combining
   * both the provided coefficients and a transformation of the powers of the input.
@@ -111,7 +111,7 @@ case class TaylorSeries(point: Number, startFunction: SeriesFunction, derivative
   lazy val functions: LazyList[SeriesFunction] =
     LazyList.iterate(startFunction) { f => derivative(f) }
   lazy val coefficients: LazyList[Number] = functions.map(f => f(point))
-  // CONSIDER we could use scanLeft and just multiply by the index (wouldn't need factorial, then)
+  // CONSIDER we could use scanLeft and just multiply by the index (wouldn't need factorial, then) (#366)
   lazy val terms: LazyList[Number] = coefficients.zipWithIndex.map {
     case (c, i) =>
       c `doMultiple` Rational(Factorial(i)).invert
@@ -160,7 +160,7 @@ object TaylorSeries {
       case _ => throw CoreException(s"getDerivative: unknown function $function") // Impossible (?)
     }
 
-    // XXX this is an appropriate value of convergence fo the sine Taylor series.
+    // NOTE this is an appropriate value of convergence fo the sine Taylor series.
     val convergence = 0.002
     TaylorSeries(point, sine, f => getDerivative(f), convergence)
   }

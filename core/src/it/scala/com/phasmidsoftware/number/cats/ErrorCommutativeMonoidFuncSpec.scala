@@ -78,7 +78,7 @@ class ErrorCommutativeMonoidFuncSpec extends AnyFlatSpec with Matchers {
     assert(tParMs <= tSeqMs, s"decoupled parallel folding should be faster: par=${tParMs}ms vs seq=${tSeqMs}ms")
   }
 
-  // CONSIDER this test is slow. We might want to tag it as Slow (or perhaps try to speed it up)
+  // CONSIDER this test is slow. We might want to tag it as Slow (or perhaps try to speed it up) (#243)
   it should "match decoupled parallel error folding with direct Number multiplication (all multiplication)" in {
     implicit val ec: ExecutionContext = ExecutionContext.global
 

@@ -97,7 +97,7 @@ object Value {
     * - If the `Value` is already a `Double`, it will be directly wrapped as a `java.lang.Number`.
     * - If none of the above conversions are applicable, `None` is returned.
     *
-    * CONSIDER using other methods from this class to get an appropriate Double.
+    * CONSIDER using other methods from this class to get an appropriate Double. (#284)
     *
     * @param x the `Value` to be converted.
     * @return an `Option` containing the `java.lang.Number` representation of the given `Value`, or `None`
@@ -141,7 +141,7 @@ object Value {
   /**
     * An optional Rational that corresponds to the value of this Number (but ignoring the representation).
     * A Double value is not converted to a Rational since, if it could be done exactly, it already would have been.
-    * CONSIDER using query
+    * CONSIDER using query (#241)
     */
   def maybeRational(value: Value): Option[Rational] = {
     import com.phasmidsoftware.number.core.misc.Converters.*
@@ -167,7 +167,7 @@ object Value {
   /**
     * An optional Int that corresponds to the value of this Number (but ignoring the representation).
     *
-    * CONSIDER using query
+    * CONSIDER using query (#241)
     */
   def maybeInt(value: Value): Option[Int] = {
     val xToZy0: Option[Double] => Try[Int] = {

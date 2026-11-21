@@ -33,7 +33,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     * Required by implementing Ordered[Field].
     * NOTE if the difference is a Complex number, we try to do fuzzy comparison (with confidence of 0.5).
     *
-    * TODO Complex should not implement compare (that's to say Field should not extend Ordering).
+    * TODO Complex should not implement compare (that's to say Field should not extend Ordering). (#253)
     *
     * @param that (a Field).
     * @return the comparison.
@@ -92,7 +92,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     * @return the sum.
     */
   def add(x: Field): Field =
-    sum(narrow(x, polar = false)) // CONSIDER dealing with infinity.
+    sum(narrow(x, polar = false)) // CONSIDER dealing with infinity. (#256)
 
   /**
     * Method to add this to the given parameter (a Cartesian).
@@ -169,7 +169,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
       case Number.two =>
         c.square
       case _ =>
-        convertToPolar(c).power(n).asInstanceOf[Complex] // CONSIDER try to improve upon this
+        convertToPolar(c).power(n).asInstanceOf[Complex] // CONSIDER try to improve upon this (#309)
     }
   }
 
@@ -189,7 +189,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     case (_, Constants.two) =>
       square
     case (c, p) if c.compare(Constants.e) == 0 && isIPi(p) =>
-      Constants.minusOne // XXX Euler's identity
+      Constants.minusOne // ASIDE Euler's identity
     case (ComplexCartesian(_, Number.zeroR), x) =>
       power(x)
     case _ =>
@@ -224,7 +224,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
         Some((y `doMultiply` y).makeNegative.make(SquareRoot))
       case ComplexPolar(r, theta, _) if theta.isProbablyZero() =>
         Some(r)
-      // CONSIDER allowing approximately pi
+      // CONSIDER allowing approximately pi (#310)
       case ComplexPolar(r, theta, _) if theta == Number.pi =>
         Some(r.makeNegative)
       case p@ComplexPolar(_, theta, _) if (theta `doMultiply` 2).abs == Number.pi =>
@@ -430,7 +430,7 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
     case (Number.zero, 0, 1) | (Number.zeroR, 0, 1) =>
       "0"
     case (x, 0, 1) =>
-      // CONSIDER Try to merge this code with the following case
+      // CONSIDER Try to merge this code with the following case (#254)
       val sign = (x, polar) match {
         case (Number.zero, true) =>
           ""
@@ -551,7 +551,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
   /**
     * Method to determine the modulus of this Complex number.
     *
-    * CONSIDER implementing real in the Complex trait (not just BaseComplex).
+    * CONSIDER implementing real in the Complex trait (not just BaseComplex). (#311)
     *
     * @return the modulus of this Complex.
     */
@@ -750,7 +750,7 @@ case class ComplexCartesian(x: Number, y: Number) extends BaseComplex(x, y) {
   /**
     * Method to scale this Cartesian Complex number by a factor.
     *
-    * TODO implement for more imaginary representations.
+    * TODO implement for more imaginary representations. (#255)
     *
     * @param x the factor (a Number).
     * @return this scaled by x.
@@ -875,7 +875,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
 
   //  require(!r.isZero, "polar radius is zero")
   if (r.isZero)
-    System.err.println(s"Warning: Polar r is zero: $this") // TODO make this a requirement
+    System.err.println(s"Warning: Polar r is zero: $this") // TODO make this a requirement (#256)
 
   /**
     * Method to determine if this Complex is imaginary-valued (i.e., the point lies on the imaginary axis).
@@ -967,7 +967,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     * @return the product as a Complex.
     */
   def numberProduct(n: Number): Complex = {
-    // TODO this first option currently works only for i, not for multiples of i.
+    // TODO this first option currently works only for i, not for multiples of i. (#255)
     if (n.isImaginary) convertToCartesian(this).rotate
     else make(r `doMultiply` n, theta)
   }
@@ -1026,7 +1026,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
     case (Number.one, Number.zero, 1) => "1"
     case (Number.one, Number.pi, 1) => "-1"
     case (Number.one, Number.minusPi, 1) => "-1"
-    // TODO combine these cases that all require rAsString
+    // TODO combine these cases that all require rAsString (#254)
     case (_, _, 2) =>
       val rAsString = r.render
       theta.nominalValue match {
@@ -1043,7 +1043,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
         case _ =>
           s"${rAsString}e∧${showImaginary(polar = true)}"
       }
-    // TODO handle the case where n is greater than 2
+    // TODO handle the case where n is greater than 2 (#255)
     case _ =>
       val rAsString = r.render
       val w = showImaginary(polar = true)
@@ -1098,7 +1098,7 @@ case class ComplexPolar(r: Number, theta: Number, n: Int = 1) extends BaseComple
 
   /**
     * Method to determine if this Complex is real-valued (i.e. the point lies on the real axis).
-    * TODO fix this properly. We can only really answer this question knowing with branch we're talking about.
+    * TODO fix this properly. We can only really answer this question knowing with branch we're talking about. (#312)
     *
     * @return true if the angle theta is a multiple of pi.
     */

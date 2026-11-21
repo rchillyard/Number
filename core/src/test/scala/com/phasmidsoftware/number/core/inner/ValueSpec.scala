@@ -11,7 +11,7 @@ import org.scalatest.matchers.should
 /**
   * Specification for Value.
   *
-  * CONSIDER flesh this out.
+  * CONSIDER flesh this out. (#379)
   */
 class ValueSpec extends AnyFlatSpec with should.Matchers {
 

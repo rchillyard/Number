@@ -121,7 +121,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "work for E as scalar (rel fuzzy)" in {
     val target = Number.e.scale(PureNumber)
     val w = target.render
-    w should startWith("2.718281828459045") // XXX relaxed this slightly because it doesn't satisfy CircleCI
+    w should startWith("2.718281828459045") // NOTE relaxed this slightly because it doesn't satisfy CircleCI
   }
   it should "work for 1 scaled as Radian" in {
     Number.one.scale(Radian).render shouldBe "0.3183098861837907*\uD835\uDED1"
@@ -169,7 +169,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val result = target.sqrt.normalize.asInstanceOf[Real]
     result.render shouldBe "2.7182818284590450[35]"
   }
-  // TODO fix this--it fails in CircleCI (fails here, too)
+  // TODO fix this--it fails in CircleCI (fails here, too) (#247)
   // NOTE this is quite bizarre
   it should "work for NatLog, SquareRoot" taggedAs Slow in { //fixed
     val target = Number.e
@@ -220,7 +220,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val ePi: Field = (Constants.pi `multiply` Constants.e).normalize
     ePi match {
       case Real(x) =>
-        // CONSIDER should the representation by Radian, with a nominal value of 2.718?
+        // CONSIDER should the representation by Radian, with a nominal value of 2.718? (#385)
         x.rep shouldBe PureNumber
         x.toNominalDouble.get should be(8.539734222673568 +- 1e-10)
       case _ =>
@@ -390,7 +390,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     target.nominalValue shouldBe Left(Right(Rational(31415927, 10000000)))
   }
 
-  behavior of "Number.parse" // CONSIDER Moving these into NumberParserSpec
+  behavior of "Number.parse" // CONSIDER Moving these into NumberParserSpec (#386)
   it should "parse boltzmann" in {
     val zy = Number.parse(sBoltzmann)
     zy should matchPattern { case Success(_) => }
@@ -431,7 +431,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     xy.isSuccess shouldBe true
     val x = xy.get
     x.isExact shouldBe false
-    // TODO do this through pattern matching
+    // TODO do this through pattern matching (#244)
     val fuzzyX = x.asInstanceOf[FuzzyNumber]
     fuzzyX.fuzz shouldBe Some(AbsoluteFuzz(1.5E-15, Gaussian))
     Real(x) shouldEqual Constants.G // "6.67430(15)E-11"
@@ -923,7 +923,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     convertToNumber(x `divide` y) should ===(Number(1 / Math.PI))
   }
 
-  // XXX what is this ** operator?
+  // ASIDE what is this ** operator?
   behavior of "**"
   it should "work for 2∧2" in {
     val target = Constants.two

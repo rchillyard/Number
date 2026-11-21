@@ -37,7 +37,7 @@ case class RandomLong(value: Long) extends BaseRNG[Long](value) {
   def unit[U](u: U): RNG[U] = u match {
     case x: Long => new RandomLong(x).asInstanceOf[RNG[U]]
     case _ => new BaseRNG[U](u) {
-      // TODO this is nonsense. I don't think we can really implement unit for RNG.
+      // TODO this is nonsense. I don't think we can really implement unit for RNG. (#249)
       def nextRandom: U = u
 
       def convertToLong(u: U): Long = u match {
@@ -46,7 +46,7 @@ case class RandomLong(value: Long) extends BaseRNG[Long](value) {
         case x => x.hashCode().toLong
       }
 
-      def unit[V](v: V): RNG[V] = self.unit(convertToLong(u)).map(_ => v) // TODO this is nonsense
+      def unit[V](v: V): RNG[V] = self.unit(convertToLong(u)).map(_ => v) // TODO this is nonsense (#249)
     }
   }
 }

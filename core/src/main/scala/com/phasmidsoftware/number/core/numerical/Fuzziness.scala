@@ -107,7 +107,7 @@ sealed trait Fuzziness[T] {
 
   /**
     * Computes the probability that random points will be found with the range `-x` to `+x` where `l` is a measure of the magnitude of this Fuzziness.
-    * TODO change the types of l and x to be T
+    * TODO change the types of l and x to be T (#322)
     *
     * @param l the size or scale of the probability density function (e.g., standard deviation for a Gaussian distribution).
     * @param x the specific point that bounds the region we're interested in.
@@ -151,7 +151,7 @@ sealed trait Fuzziness[T] {
     * Creates a fuzziness value using the given input magnitude and applies a Gaussian distribution.
     * This is intended for the situation where we evaluate a series of terms until the remaining terms are
     * smaller than some threshold (the magnitude).
-    * CONSIDER in general, we may want to apply a safety factor of 2 or 3 here.
+    * CONSIDER in general, we may want to apply a safety factor of 2 or 3 here. (#258)
     *
     * @param u the magnitude of the input value used to compute fuzziness.
     * @return a Fuzziness[Double] instance representing the absolute fuzziness with Gaussian distribution.
@@ -194,7 +194,7 @@ case class RelativeFuzz[T: HasValue](tolerance: Double, shape: Shape) extends Fu
     * @return an optional RelativeFuzz[T]
     */
   def absolute(t: T): Option[AbsoluteFuzz[T]] = {
-    // CONSIDER using multiply, scale, etc.
+    // CONSIDER using multiply, scale, etc. (#323)
     Try(AbsoluteFuzz(tv.normalize(tv.times(tv.fromDouble(tolerance), t)), shape)).toOption
   }
 
@@ -472,7 +472,7 @@ case class AbsoluteFuzz[T: HasValue](magnitude: T, shape: Shape) extends Fuzzine
     * Method to render this Fuzziness according to the nominal value t.
     * NOTE that we are actually embedding the fuzziness into the nominal value and returning that.
     *
-    * CONSIDER cleaning this method up a bit.
+    * CONSIDER cleaning this method up a bit. (#324)
     *
     * @param t               a T value.
     * @param forceScientific if true, always use scientific notation regardless of value magnitude.
@@ -855,7 +855,7 @@ object Fuzziness {
 
   /**
     * Apply a decimal exponent of n to x and return the new value.
-    * CONSIDER using BigDecimal for more precision (see AbsoluteFuzz.round)
+    * CONSIDER using BigDecimal for more precision (see AbsoluteFuzz.round) (#258)
     *
     * @param x a Double.
     * @param n the size of the exponent.
@@ -909,7 +909,7 @@ object Fuzziness {
   * Describes a probability density function for a continuous distribution.
   * NOTE: this isn't suitable for discrete distributions, obviously.
   *
-  * CONSIDER: implement additional shapes, for example O(f(x)). This would be used for the Basel problem, for example.
+  * CONSIDER: implement additional shapes, for example O(f(x)). This would be used for the Basel problem, for example. (#325)
   */
 trait Shape {
 
@@ -948,7 +948,7 @@ trait Shape {
 
 /**
   * Uniform probability density over a specific range, otherwise zero.
-  * CONSIDER making this a case class with a member corresponding to the `l` value of wiggle.
+  * CONSIDER making this a case class with a member corresponding to the `l` value of wiggle. (#257)
   */
 case object Box extends Shape {
   /**
@@ -1034,7 +1034,7 @@ case object Box extends Shape {
   * The flat top has half-width (b-a) and the ramps extend to (a+b).
   * NOTE: unlike Box and Gaussian which are case objects with `l` passed as a parameter to `wiggle`,
   * Trapezoid carries its own scale parameters `a` and `b`. The `l` parameter of `wiggle` and
-  * `probability` is therefore ignored. TODO: at some future point, refactor Box and Gaussian
+  * `probability` is therefore ignored. TODO: at some future point, refactor Box and Gaussian (#257)
   * similarly, moving `l` into the case class/object.
   *
   * @param a the half-width of the smaller of the two constituent Box distributions (a <= b).
@@ -1111,7 +1111,7 @@ case class Trapezoid(a: Double, b: Double) extends Shape {
 
 /**
   * A "normal" probability distribution function.
-  * CONSIDER making this a case class with a member corresponding to the `l` value of wiggle.
+  * CONSIDER making this a case class with a member corresponding to the `l` value of wiggle. (#257)
   */
 case object Gaussian extends Shape {
   /**

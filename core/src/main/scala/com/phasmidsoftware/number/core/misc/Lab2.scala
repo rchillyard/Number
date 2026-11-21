@@ -2,11 +2,11 @@ package com.phasmidsoftware.number.core.misc
 
 object Lab2 {
 
-  // TODO create a lazy list with the values 1/x∧2
+  // TODO create a lazy list with the values 1/x∧2 (#252)
 
   val xs = LazyList from 1 map (x => 1.0 / x / x)
 
-  // TODO get a list based on xs such that we ignore anything with value < 1E-6
+  // TODO get a list based on xs such that we ignore anything with value < 1E-6 (#252)
 
   val ys = xs.takeWhile(_ >= 1E-6)
 

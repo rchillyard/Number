@@ -11,7 +11,7 @@ import scala.util.Try
 /**
   * Trait to define the behavior of a "mill."
   *
-  * CONSIDER rename Stack as ListMill and extract push, pop and isEmpty as Stack[Item].
+  * CONSIDER rename Stack as ListMill and extract push, pop and isEmpty as Stack[Item]. (#286)
   *
   */
 trait CoreMill extends Iterable[CoreMillItem] {
@@ -45,7 +45,7 @@ trait CoreMill extends Iterable[CoreMillItem] {
     * @return an Iterator[Item].
     */
   lazy val iterator: Iterator[CoreMillItem] = {
-    // XXX using a var here, but the entire concept of an iterator pretty much requires mutability.
+    // NOTE using a var here, but the entire concept of an iterator pretty much requires mutability.
     var mill = this
 
     new Iterator[CoreMillItem] {
@@ -60,7 +60,7 @@ trait CoreMill extends Iterable[CoreMillItem] {
       def next(): CoreMillItem = {
         val (xo, m) = mill.pop
         mill = m
-        xo.get // XXX this call to get is protected by the hasNext method. That's the way iterators are.
+        xo.get // NOTE this call to get is protected by the hasNext method. That's the way iterators are.
       }
     }
   }
@@ -246,7 +246,7 @@ case class Stack(stack: List[CoreMillItem]) extends CoreMill {
   private def calculateDyadic(f: Dyadic, x1: CoreMillExpression, x2: CoreMillExpression) = f match {
     case Multiply => x2 * x1
     case Add => x2 + x1
-    case Subtract => x2 + x1.negate // TODO CHECK this! Surely it should be x1 + x2.negate
+    case Subtract => x2 + x1.negate // TODO CHECK this! Surely it should be x1 + x2.negate (#287)
     case Divide => x2 * x1.reciprocal
     case Power => x2 ∧ x1
   }

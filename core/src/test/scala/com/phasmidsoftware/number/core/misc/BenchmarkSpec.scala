@@ -13,7 +13,7 @@ import scala.util.Random
 /**
   * A class representing a specification for benchmarking tests.
   *
-  * TODO move this into functional specs.
+  * TODO move this into functional specs. (#243)
   *
   * This class is based on ScalaTest's `AnyFlatSpec` and `should.Matchers` for behavior-driven development.
   * It includes a test case written for benchmarking a computation that calculates the value of Pi using random sampling.

@@ -188,7 +188,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * Method to determine if this Number is positive.
     * Use case: does the String representation not start with a "-"?
     *
-    * CONSIDER evaluating toString instead.
+    * CONSIDER evaluating toString instead. (#233)
     *
     * @return true if this Number is greater than or equal to 0.
     */
@@ -299,7 +299,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * Handles special cases such as multiplication with zero, one, or specific constants.
     *
     * NOTE this code seems almost identical to the times method in GeneralNumber
-    * CONSIDER combining them and using the Representation facilities more.
+    * CONSIDER combining them and using the Representation facilities more. (#344)
     *
     * @param x the Field instance to be multiplied with the current instance
     * @return the result of the multiplication as a Field
@@ -370,7 +370,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
 
   /**
     * Calculates the square of a number by multiplying the number by itself.
-    * CONSIDER different implementations according to the representation.
+    * CONSIDER different implementations according to the representation. (#345)
     *
     * @return the result of squaring this number
     */
@@ -396,7 +396,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * This Number is first normalized so that its representation is PureNumber, since we cannot directly invert Numbers with other
     * representations.
     *
-    * CONSIDER allowing logarithmic numbers to be inverted simply by changing the sign of the value.
+    * CONSIDER allowing logarithmic numbers to be inverted simply by changing the sign of the value. (#235)
     */
   lazy val invert: Field =
     Real(getInverse)
@@ -406,7 +406,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * This Number is first normalized so that its representation is PureNumber, since we cannot directly invert Numbers with other
     * representations.
     *
-    * CONSIDER allowing logarithmic numbers to be inverted simply by changing the sign of the value.
+    * CONSIDER allowing logarithmic numbers to be inverted simply by changing the sign of the value. (#235)
     */
   lazy val getInverse: Number =
     Number.inverse(convertToNumber(normalize))
@@ -441,7 +441,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * @return the tangent
     */
   lazy val tan: Number =
-    (nominalValue, rep) match { // CONSIDER modulating first.
+    (nominalValue, rep) match { // CONSIDER modulating first. (#240)
       case (Left(Right(r)), Radian) =>
         r match {
           case Rational(Rational.bigOne, Rational.bigThree) =>
@@ -478,7 +478,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
   /**
     * Method to determine the natural log of this Number.
     * The result will be a Number with `PureNumber` representation.
-    * CONSIDER renaming this as "ln" but keep in mind that the Java library calls the function "log."
+    * CONSIDER renaming this as "ln" but keep in mind that the Java library calls the function "log." (#234)
     *
     * @return the natural log of this.
     */
@@ -731,7 +731,7 @@ trait Number extends Fuzz[Double] with Ordered[Number] with Numerical {
     * A Number based on a Rational will yield a Number based on a BigInt (if there is a unit denominator).
     * A Number based on a BigInt will yield a Number based on a Int (if it is sufficiently small).
     *
-    * CONSIDER do we really need this in Number?
+    * CONSIDER do we really need this in Number? (#346)
     *
     * @return a Number with the same magnitude as this.
     */
@@ -894,8 +894,8 @@ object Number {
 
   /**
     * Implicit class to operate on Numbers introduced as integers.
-    * CONSIDER reinstating the ∧ operator definitions (but they were never used).
-    * CONSIDER generalizing this to inputs of Values (or Rationals, Doubles).
+    * CONSIDER reinstating the ∧ operator definitions (but they were never used). (#347)
+    * CONSIDER generalizing this to inputs of Values (or Rationals, Doubles). (#238)
     *
     * @param x an Int to be treated as a Number.
     */
@@ -977,7 +977,7 @@ object Number {
       */
     def ~(n: Int): Try[Number] =
       for {
-        x <- parse(w) // XXX We don't strictly need this now we also have components
+        x <- parse(w) // ASIDE We don't strictly need this now we also have components
         components <- parseComponents(w)
         f <- toTry(components._3, Failure(CoreException(s"no fractional part: " + w)))
         exp = components._4.getOrElse("0")
@@ -1000,7 +1000,7 @@ object Number {
     createFromDouble(x, PureNumber)
 
   /**
-    * CONSIDER why do we need this method?
+    * CONSIDER why do we need this method? (#348)
     *
     * NOTE not all double values should be given fuzz.
     *
@@ -1075,7 +1075,7 @@ object Number {
     */
   def apply(x: String, rep: Representation): Number =
     parse(x) match {
-      // CONSIDER we should perhaps process n (e.g. to modulate a Radian value)
+      // CONSIDER we should perhaps process n (e.g. to modulate a Radian value) (#236)
       case Success(n) =>
         n.make(rep)
       case Failure(e) =>
@@ -1086,14 +1086,14 @@ object Number {
     * Method to construct a `Number` from a `String`.
     * This is by far the best way of creating the number that you really want.
     *
-    * CONSIDER why does this not invoke `apply(String,Representation)` in turn?
+    * CONSIDER why does this not invoke `apply(String,Representation)` in turn? (#349)
     *
     * @param x the `String` representation of the value.
     * @return a Number based on `x`.
     */
   def apply(x: String): Number =
     parse(x) match {
-      // CONSIDER we should perhaps process n (e.g. to modulate a Radian value)
+      // CONSIDER we should perhaps process n (e.g. to modulate a Radian value) (#236)
       case Success(n) =>
         n
       case Failure(e) =>
@@ -1132,7 +1132,7 @@ object Number {
   /**
     * Method to construct a new Number from value, representation and fuzz, according to whether there is any fuzziness.
     *
-    * CONSIDER modulate the result so that, in the case of a multiple of Radian, we restrict the range to 0 to 2pi immediately.
+    * CONSIDER modulate the result so that, in the case of a multiple of Radian, we restrict the range to 0 to 2pi immediately. (#240)
     * However, note that this will change the behavior such that it is no longer possible to have the constant 2pi.
     *
     * @param value  the value of the Number, expressed as a nested Either type.
@@ -1346,7 +1346,7 @@ object Number {
       else if (x.rep == Euler && y.rep == Euler)
         compare(x.make(Radian), y.make(Radian))
       else {
-        // CONSIDER invoking the compare method in GeneralNumber.
+        // CONSIDER invoking the compare method in GeneralNumber. (#350)
         GeneralNumber.plus(x, Number.negate(y)).signum
       }
     }
@@ -1365,7 +1365,7 @@ object Number {
     Number(x, rep, None)
 
   /**
-    * CONSIDER inlining this method or making it private.
+    * CONSIDER inlining this method or making it private. (#237)
     *
     * @param x the first number.
     * @param y the second number.
@@ -1386,7 +1386,7 @@ object Number {
   /**
     * Method to deal with a change of representation.
     *
-    * TODO: this will work for FuzzyNumber but only if the fuzz is relative, and even then perhaps not for NatLog conversions.
+    * TODO: this will work for FuzzyNumber but only if the fuzz is relative, and even then perhaps not for NatLog conversions. (#351)
     *
     * @param n      the Number to be scaled.
     * @param rep    the representation to which it should be converted.
@@ -1401,10 +1401,10 @@ object Number {
       case (PureNumber, NatLog) =>
         prepare(n.transformMonadic(rep)(MonadicOperationLog))
       case (NthRoot(_), PureNumber) if Value.signum(n.nominalValue) < 0 =>
-        // CONSIDER we should handle i, the imaginary number here
+        // CONSIDER we should handle i, the imaginary number here (#352)
         Number.NaN
       case (SquareRoot, PureNumber) =>
-        prepare(n.transformMonadic(rep)(MonadicOperationSqrt)) // CONSIDER use of convert
+        prepare(n.transformMonadic(rep)(MonadicOperationSqrt)) // CONSIDER use of convert (#353)
       case (InversePower(r), PureNumber) =>
         prepare(n.composeDyadic(r.invert, rep)(DyadicOperationPower)) // CHECK that this handles fuzz correctly
       case (NatLog, Scalar(_)) | (Scalar(_), NatLog) | (Logarithmic(_), NthRoot(_)) =>
@@ -1428,7 +1428,7 @@ object Number {
         }
       case (Euler, _) | (_, Euler) =>
         throw CoreException(s"Number.scale: scaling between ${n.rep} and $rep representations is not supported")
-//        n // CONSIDER will this cause problems? Should we throw an Exception instead?
+//        n // CONSIDER will this cause problems? Should we throw an Exception instead? (#245)
       case (Logarithmic(_), Scalar(_)) =>
         scale(scale(n, NatLog), rep)
       case (InversePower(_), Logarithmic(_)) =>
@@ -1439,7 +1439,7 @@ object Number {
         throw CoreException(s"Number.scale: scaling between ${n.rep} and $rep representations is not supported")
     }
 
-  // CONSIDER some of the following should probably be moved to GeneralNumber
+  // CONSIDER some of the following should probably be moved to GeneralNumber (#354)
 
   /**
     * Method to change the sign of this Number.
@@ -1484,7 +1484,7 @@ object Number {
   }
 
   /**
-    * CONSIDER move this to GeneralNumber as an instance method.
+    * CONSIDER move this to GeneralNumber as an instance method. (#355)
     *
     * @param x a Number.
     * @return -1, 0, or 1 according to its sign.
@@ -1498,17 +1498,17 @@ object Number {
     * Implement sin of a Number.
     * See [[https://en.wikipedia.org/wiki/Sine_and_cosine]].
     *
-    * CONSIDER implementing this (and cos) as part of exp method (providing a Complex parameter, of course).
+    * CONSIDER implementing this (and cos) as part of exp method (providing a Complex parameter, of course). (#239)
     *
-    * CONSIDER implementing this (and cos) by using MonadicOperationSin throughout. But NOTE that said operation will need enhancement before it can work identically.
+    * CONSIDER implementing this (and cos) by using MonadicOperationSin throughout. But NOTE that said operation will need enhancement before it can work identically. (#239)
     *
-    * CONSIDER returning an Expression rather than a Number. That would enable an exact result for 1/12 and 5/12 pi.
+    * CONSIDER returning an Expression rather than a Number. That would enable an exact result for 1/12 and 5/12 pi. (#239)
     *
     * @param x a Number, typically in Radians, but if not, then will be converted.
     * @return a PureNumber Number which represents the sine of x.
     */
   def sin(x: Number): Number = {
-    // TODO much of the logic here is a repeat of what's in transformMonadic. {
+    // TODO much of the logic here is a repeat of what's in transformMonadic. { (#356)
     val maybeModulated = x.scale(Radian).transformMonadic(Radian)(MonadicOperationModulate(-1, 1, inclusive = true, true))
     maybeModulated match {
       case Some(z) =>
@@ -1544,7 +1544,7 @@ object Number {
   /**
     * Calculates the arctangent of the angle specified by the ratio of y to x.
     * The result is an angle expressed in radians.
-    * CONSIDER checking here for x being zero.
+    * CONSIDER checking here for x being zero. (#357)
     *
     * @param x the horizontal coordinate of the point
     * @param y the vertical coordinate of the point
@@ -1559,7 +1559,7 @@ object Number {
     * Otherwise, if the representation is PureNumber, we first convert it to a NatLog number, then call log recursively.
     * Otherwise, we convert to a PureNumber number and call log recursively.
     *
-    * CONSIDER using x.rep.log(x.nominalValue)
+    * CONSIDER using x.rep.log(x.nominalValue) (#358)
     *
     * @param x a Number.
     * @return the natural log of x.
@@ -1625,8 +1625,8 @@ object Number {
     * @return either x or a number equivalent to x with value in defined range.
     */
   def modulate(x: Number): Number = x.rep match {
-    case Radian | Euler => // CONSIDER why Euler?
-      // CONSIDER using rep.modulate(...)
+    case Radian | Euler => // CONSIDER why Euler? (#240)
+      // CONSIDER using rep.modulate(...) (#240)
       prepare(x.transformMonadic(x.rep)(MonadicOperationModulate(-1, 1, inclusive = true, x.rep == Radian)))
     case _ =>
       x

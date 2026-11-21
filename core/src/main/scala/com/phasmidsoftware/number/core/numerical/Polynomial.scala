@@ -11,7 +11,7 @@ import com.phasmidsoftware.number.core.misc.FP
   * Represents a polynomial function with a numeric type parameter X.
   * Supports evaluation, differentiation, and construction of new polynomials.
   *
-  * TODO create an abstract Polynomial which will have the implicit Numeric[X] value
+  * TODO create an abstract Polynomial which will have the implicit Numeric[X] value (#363)
   */
 trait Polynomial[X] extends (X => X) {
 
@@ -77,7 +77,7 @@ trait Polynomial[X] extends (X => X) {
   /**
     * Computes the nth derivative of the polynomial.
     *
-    * TODO fix me
+    * TODO fix me (#364)
     *
     * @param n the number of times to compute the derivative, where n must be a non-negative integer
     * @return a new polynomial representing the nth derivative of the current polynomial

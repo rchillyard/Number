@@ -13,7 +13,7 @@ import java.util.Objects
   * This class is designed to model an exact Numeral.
   * See GeneralNumber for more details on the actual representation.
   *
-  * TODO implement scientific notation by having representations such os 10∧3, 10∧6, etc. (alternatively, add a separate parameter)
+  * TODO implement scientific notation by having representations such os 10∧3, 10∧6, etc. (alternatively, add a separate parameter) (#316)
   *
   * @param nominalValue the nominalValue of the Number, expressed as a nested Either type.
   * @param rep          the representation of the Number: valid representations are: PureNumber, Radian, and NatLog.
@@ -90,7 +90,7 @@ case class ExactNumber(override val nominalValue: Value, override val rep: Repre
       Number(-1)
     case (Euler, Left(Right(Rational.half))) => // this is `e∧i𝛑/2`, which equals `i` by Euler's Identity
       Number.i
-    // XXX this handles all roots (of which there are currently only SquareRoot and CubeRoot)
+    // NOTE this handles all roots (of which there are currently only SquareRoot and CubeRoot)
     case (NthRoot(n), v) =>
       v match {
         case Right(x) =>
@@ -157,7 +157,7 @@ case class ExactNumber(override val nominalValue: Value, override val rep: Repre
     * Make a copy of this Number, given the same degree of fuzziness as the original.
     * Both the value and the representation will be changed.
     *
-    * CONSIDER should be invoke simplify from other make methods?
+    * CONSIDER should be invoke simplify from other make methods? (#317)
     *
     * @param v the value.
     * @param rep the representation.
@@ -346,6 +346,6 @@ object ExactNumber {
     (for {
       i <- -10 to 10
       z <- Option.when((b `power` i) == x)(i)
-    } yield z).headOption.map(Number(_)) // TODO we can improve on this, I think
+    } yield z).headOption.map(Number(_)) // TODO we can improve on this, I think (#318)
 
 }

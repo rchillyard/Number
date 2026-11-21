@@ -14,7 +14,7 @@ import scala.util._
 /**
   * Specification for ExpressionParser.
   *
-  * CONSIDER move to parse package.
+  * CONSIDER move to parse package. (#388)
   *
   * @author scalaprof
   */

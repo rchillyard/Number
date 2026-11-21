@@ -78,7 +78,7 @@ case class Prime(n: BigInt) {
   /**
     * Method to apply the Lucas test of primality.
     *
-    * TODO determine why this is so slow compared with Miller-Rabin.
+    * TODO determine why this is so slow compared with Miller-Rabin. (#367)
     *
     * @return true if for any random value a such that 0 < a < n - 1, Lucas(n-1, factors)(a) is true where factors are the prime factors of n - 1.
     */
@@ -185,7 +185,7 @@ case class Prime(n: BigInt) {
   /**
     * Method to render this Prime number as a String with a delimiter every third place.
     *
-    * CONSIDER get the delimiter from the Java i18n features.
+    * CONSIDER get the delimiter from the Java i18n features. (#368)
     *
     * @return a String representing a Prime number.
     */
@@ -204,7 +204,7 @@ case class Prime(n: BigInt) {
     * Method to determine if this Prime is coPrime to n.
     * Recall that this class doesn't only have true prime members.
     *
-    * XXX Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
+    * NOTE Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
     *
     * @param x a BigInt.
     * @return true or false.
@@ -233,7 +233,7 @@ case class Prime(n: BigInt) {
   /**
     * Return a Boolean which is true if a.pow(c/q) != 1 mod n for all q where q is a prime factor of c.
     *
-    * CONSIDER renaming this to something more descriptive.
+    * CONSIDER renaming this to something more descriptive. (#369)
     *
     * @param c  the value that is one less than a candidate prime number (i.e. a composite number).
     * @param qs the prime factors of c.
@@ -308,7 +308,7 @@ object Prime {
   /**
     * Method to yield the value of the Euler's Totient function (phi) for this Prime.
     *
-    * XXX Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
+    * NOTE Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
     *
     * @param x a BigInt for which we require Euler's totient function.
     * @return a BigInt, which represents the number of elements less than n which are relatively prime to x.
@@ -377,7 +377,7 @@ object Prime {
     * Method to yield the prime factors (with repeated elements).
     * NOTE that if x is prime, then the list returned consists of x (not sure why but that's how it's implemented in Scala 99).
     *
-    * XXX Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
+    * NOTE Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
     *
     * @param x        a BigInt whose prime factors are to be determined.
     * @param maybeMax an optional maximum number of prime factors to consider. Defaults to None.
@@ -390,7 +390,7 @@ object Prime {
     * Computes the prime factorization of the given number `x` and returns a map of prime factors with their respective
     * multiplicities (exponents). The computation can optionally be limited to a maximum number of primes through `maybeMax`.
     *
-    * XXX Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
+    * NOTE Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
     *
     * @param x        the number to factorize.
     * @param maybeMax an optional parameter specifying the maximum number of primes to consider during factorization.
@@ -608,7 +608,7 @@ object Prime {
   /**
     * If necessary, we do a lookup in the first 10,000 Carmichael numbers.
     *
-    * TODO determine whether this is faster or slower than checking the rest of the conditions for isCarmichaelNumber.
+    * TODO determine whether this is faster or slower than checking the rest of the conditions for isCarmichaelNumber. (#370)
     */
   private lazy val carmichaelFile: Seq[BigInt] =
     readFromResource("/carmichael.txt", wa => wa.lastOption).getOrElse(Nil)

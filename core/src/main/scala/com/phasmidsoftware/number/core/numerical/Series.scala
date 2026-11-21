@@ -13,7 +13,7 @@ import scala.util.Try
   * A trait representing a mathematical series, where terms can be computed
   * and evaluated up to a certain level of precision or number of terms.
   *
-  * CONSIDER extending some trait like HasValue, NumberLike, Numerical, Evaluatable, or Fuzz...
+  * CONSIDER extending some trait like HasValue, NumberLike, Numerical, Evaluatable, or Fuzz... (#373)
   *
   * @tparam X the type of the series terms
   */
@@ -173,7 +173,7 @@ abstract class AbstractSeries[X: Numeric](terms: Seq[X]) extends Series[X] {
     * Evaluates the series by summing the specified number of terms or a default number of terms if not provided.
     * If any term cannot be evaluated, the method returns `None`.
     *
-    * CONSIDER merge with the other implementation of this
+    * CONSIDER merge with the other implementation of this (#374)
     *
     * @param maybeN An optional integer specifying the number of terms to evaluate. If not provided, the default number of terms will be used.
     * @return An `Option[X]` containing the result of the summation if all terms are successfully evaluated, or `None` if any term evaluation fails.

@@ -207,7 +207,7 @@ case object MonadicOperationExp extends MonadicOperation {
 
 /**
   * MonadicOperation to yield the natural logarithm of a Number.
-  * CONSIDER Renaming as MonadicOperationLn
+  * CONSIDER Renaming as MonadicOperationLn (#268)
   */
 case object MonadicOperationLog extends MonadicOperation {
   /**
@@ -266,7 +266,7 @@ case object MonadicOperationLog extends MonadicOperation {
   * NOTE that this evaluator for sine is not as useful as the evaluator in the Number class.
   * That's because this type of operation does not change the representation.
   *
-  * CONSIDER allow Monadic operations to change representation.
+  * CONSIDER allow Monadic operations to change representation. (#269)
   *
   * See https://en.wikipedia.org/wiki/List_of_trigonometric_identities
   */
@@ -295,7 +295,7 @@ case object MonadicOperationSin extends MonadicOperation {
     * A private value representing a partially lifted function that calculates the sine of an integral angle (in radians).
     *
     * This function considers that for any integral angle (in radians), the sine value is zero.
-    * XXX any integral angle (in radians) results in a zero sine value.
+    * NOTE any integral angle (in radians) results in a zero sine value.
     *
     * @return a Try[Int], where the sine value is always 0.
     */
@@ -507,7 +507,7 @@ case class MonadicOperationModulate(min: Int, max: Int, inclusive: Boolean, angu
 /**
   * MonadicOperation to yield the square root of a Number.
   *
-  * CONSIDER eliminating this and using power only.
+  * CONSIDER eliminating this and using power only. (#260)
   */
 case object MonadicOperationSqrt extends MonadicOperation {
   /**
@@ -530,7 +530,7 @@ case object MonadicOperationSqrt extends MonadicOperation {
     */
   val fuzz: Option[Int] = Some(3)
 
-  private lazy val sqrtInt: Int => Try[Int] = // CONSIDER not using squareRoots: there are other ways.
+  private lazy val sqrtInt: Int => Try[Int] = // CONSIDER not using squareRoots: there are other ways. (#270)
     x => toTryWithThrowable(Rational.squareRoots.get(x), OperationsException("Cannot create Int from Double"))
 
   private lazy val sqrtRat: Rational => Try[Rational] =
@@ -540,7 +540,7 @@ case object MonadicOperationSqrt extends MonadicOperation {
 
 /**
   * This monadic operation is used to scale a Value by a Rational.
-  * CONSIDER eliminating this unused operation.
+  * CONSIDER eliminating this unused operation. (#260)
   *
   * @param r the scale factor (a Rational).
   */
@@ -936,7 +936,7 @@ object Operations {
     * @return an `Option[T]` containing the result of applying the appropriate query function, or `None` if the query fails.
     */
   def doQuery[T](v: Value, functions: QueryFunctions[T]): Option[T] = {
-    val (fInt, fRational, fDouble) = (functions.fInt, functions.fRat, functions.fDouble) // CONSIDER improve this (what's the problem?)
+    val (fInt, fRational, fDouble) = (functions.fInt, functions.fRat, functions.fDouble) // CONSIDER improve this (what's the problem?) (#271)
     val xToZy0: Option[Double] => Try[T] = {
       case Some(n) =>
         fDouble(n)

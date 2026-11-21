@@ -17,7 +17,7 @@ import scala.language.implicitConversions
   * The operations supported are addition, subtraction, multiplication and division.
   * By inference, we should be able to raise an instance of Field to a numeric power.
   *
-  * TODO it is inappropriate to extend Ordered here since complex numbers do not have an intrinsic order.
+  * TODO it is inappropriate to extend Ordered here since complex numbers do not have an intrinsic order. (#253)
   */
 trait Field extends Numerical with Approximatable with Ordered[Field] {
 
@@ -133,7 +133,7 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
     case 2 =>
       this.square
     case _ =>
-      power(Number(p)) // TODO need to simplify the result. See NumberSpec: power/work for squaring Log2
+      power(Number(p)) // TODO need to simplify the result. See NumberSpec: power/work for squaring Log2 (#319)
   }
 
   /**
@@ -168,7 +168,7 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
     *         approximated, or None if the approximation is not possible.
     */
   def approximation: Option[Real] =
-    asNumber map (Real(_)) // TODO check this is correct
+    asNumber map (Real(_)) // TODO check this is correct (#320)
 
   /**
     * Computes the sine of this Field.
@@ -201,7 +201,7 @@ trait Field extends Numerical with Approximatable with Ordered[Field] {
 
   /**
     * Computes the natural logarithm (log base e) of this Field.
-    * CONSIDER renaming this as "ln" but note that the Java library calls this operation "log."
+    * CONSIDER renaming this as "ln" but note that the Java library calls this operation "log." (#234)
     *
     * @return a new Field representing the result of the logarithmic computation.
     */
@@ -272,7 +272,7 @@ object Field {
 
 /**
   * Represents a trait for multivariate algebraic fields.
-  * CONSIDER renaming this Algebraic.
+  * CONSIDER renaming this Algebraic. (#321)
   *
   * A multivariate field is characterized by being algebraic, where
   * algebraic fields can be expressed as the root of non-zero polynomials

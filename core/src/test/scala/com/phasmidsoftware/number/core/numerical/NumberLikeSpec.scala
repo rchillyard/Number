@@ -14,7 +14,7 @@ class NumberLikeSpec extends AnyFlatSpec with should.Matchers {
   it should "asJavaNumber" in {
     Constants.zero.asJavaNumber shouldBe Some(Int.box(0))
     Constants.half.asJavaNumber shouldBe Some(Double.box(0.5))
-    // CONSIDER is the following the desired behavior?
+    // CONSIDER is the following the desired behavior? (#384)
     Rational.third.asJavaNumber shouldBe Some(Double.box(1.0 / 3))
     Constants.pi.asJavaNumber shouldBe None
     Constants.e.asJavaNumber shouldBe None

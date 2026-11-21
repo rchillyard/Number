@@ -480,7 +480,7 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
   behavior of "map"
   it should "work" in {
     val fuzz = RelativeFuzz(1E-15, Box)
-    // TODO do this through pattern matching
+    // TODO do this through pattern matching (#244)
     val n: FuzzyNumber = FuzzyNumber(Value.fromInt(1), PureNumber, None).addFuzz(fuzz).asInstanceOf[FuzzyNumber]
     val op = MonadicOperationExp
     val r: Option[Value] = Operations.doTransformValueMonadic(n.nominalValue)(op.functions)

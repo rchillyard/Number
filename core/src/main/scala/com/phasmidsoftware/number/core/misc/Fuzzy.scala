@@ -226,7 +226,7 @@ case class Gaussian(mu: Double, sigma: Double) extends FuzzyBase(mu, sigma, new 
 
   def newFuzzy(x: Double, delta: Double): Fuzzy = Gaussian(x, delta)
 
-  // TODO implement me
+  // TODO implement me (#299)
   def parseString(str: String): Option[Fuzzy] = {
     val tryFuzzy = parser.parseAll(parser.fuzzyGaussian, str) match {
       case parser.Success(x: Fuzzy, _) => Success(x)
@@ -259,7 +259,7 @@ case class Bounded(mu: Double, delta: Double) extends FuzzyBase(mu, delta, new U
 object Fuzzy {
 
   implicit object FuzzyNumeric extends FuzzyIsFractional {
-    // CONSIDER it's rather arbitrary to choose Bounded here.
+    // CONSIDER it's rather arbitrary to choose Bounded here. (#300)
     def fromDoubles(x: Double, y: Double): Fuzzy = Bounded(x, y)
   }
 
@@ -291,7 +291,7 @@ object Fuzzy {
 
     val fuzz = for {z <- f; w <- fraction; y <- exp orElse Some(1.0)} yield fuzzFactor(z, w._2) * y
     //    println(s"creating Fuzzy: with parameters: $i $x $f $e with intermediate results fraction=$fraction, fuzz=$fuzz, exponent=$exponent")
-    // TODO this is not really going to work: it creates a Gaussian without exponent in preference to an Exact with exponent.
+    // TODO this is not really going to work: it creates a Gaussian without exponent in preference to an Exact with exponent. (#301)
     map3(fraction, exp, fuzz)(createFuzzyXEF) orElse map2(fraction, fuzz)(createFuzzyXF) orElse map2(fraction, exp)(createFuzzyXE) orElse (fraction map {
       createFuzzyX
     }) match {
@@ -301,7 +301,7 @@ object Fuzzy {
   }
 
   def parse(s: String): Try[Fuzzy] = {
-    // CONSIDER using stringParser in SignificantSpaceParsers
+    // CONSIDER using stringParser in SignificantSpaceParsers (#302)
     parser.parseAll(parser.fuzzy, s) match {
       case parser.Success(x: Fuzzy, _) => Success(x)
       case parser.Failure(_, z) => Failure(new RuntimeException(s"parser failure: $z"))
@@ -328,7 +328,7 @@ object Fuzzy {
       case Exact(q) => Exact(p + q);
       case _ => sum(y, x)
     }
-    // CONSIDER try to eliminate the following cast
+    // CONSIDER try to eliminate the following cast (#303)
     case _ => x.asInstanceOf[FuzzyBase].combine(y, _ + _, (_, _) => 1, (_, _) => 1)
   }
 

@@ -127,7 +127,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     val z = c1_2 `power` -1
     z shouldBe ComplexCartesian(Number(r"1/5"), Number(r"-2/5"))
   }
-  // TODO fix me. This arose when working with Representation.raise
+  // TODO fix me. This arose when working with Representation.raise (#380)
   it should "c1_2∧1/2" in {
     //    val z: Field = convertToPolar(c1_2)
     val result: Complex = c1_2 `power` half
@@ -234,7 +234,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     val theta = math.atan2(tangent, 1)
     val result = math.tan(theta)
     result shouldBe tangent +- 1E-8
-    // TODO understand why the math.atan method seems to be so imprecise
+    // TODO understand why the math.atan method seems to be so imprecise (#381)
     theta * 3 shouldBe math.Pi +- 2E-1
   }
   it should "check that math.atan really works 2" in {
@@ -260,7 +260,7 @@ class ComplexSpec extends AnyFlatSpec with should.Matchers {
     val theta = math.atan2(opposite, adjacent)
     val result = math.tan(theta)
     val expected = opposite * 1.0 / adjacent
-    // CONSIDER what's going on here? When might it be pos inf?
+    // CONSIDER what's going on here? When might it be pos inf? (#382)
     if (expected != Double.PositiveInfinity)
       result shouldBe expected +- 1E-6: Unit
   }

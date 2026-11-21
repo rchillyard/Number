@@ -65,7 +65,7 @@ case class ComposedDifferentiable[X: Numeric](g1: DiFunc[X], g2: DiFunc[X]) exte
   // This is the so-called "Chain Rule" of differentiation
   def df_dx(i: Int): X => Double = { x => g1.df_dx(i)(g2.f(x)) * g2.df_dx(i)(x) }
 
-  // TODO check the order here
+  // TODO check the order here (#304)
   lazy val f: X => X = g1.f.compose(g2.f)
 
   def apply(x: X): X = //g1.f(g2.f(x))
@@ -93,17 +93,17 @@ case class Product[X: Numeric](y: X) extends Known[X](s"times $y") {
 case class ExpDifferentiable[X]()(ev: FuzzyIsFractional) extends KnownDifferentiableFunction[X](
   s"exp",
   Exp[X]()(using implicitly[FuzzyIsFractional].asInstanceOf[Numeric[X]]),
-  x => MathFunctions.exp(implicitly[FuzzyIsFractional].asInstanceOf[Numeric[X]].toDouble(x)).get // XXX we allow get in this context
+  x => MathFunctions.exp(implicitly[FuzzyIsFractional].asInstanceOf[Numeric[X]].toDouble(x)).get // NOTE we allow get in this context
 )
 
 case class Exp[X]()(implicit ev: Numeric[X]) extends Known[X]("exp") {
   def apply(x: X): X = x match {
     case Exact(y) =>
-      Exact(MathFunctions.exp(y).get).asInstanceOf[X] // XXX we allow get in this context
+      Exact(MathFunctions.exp(y).get).asInstanceOf[X] // NOTE we allow get in this context
     case Bounded(mu, delta) =>
       ev match {
-        // CONSIDER shouldn't we be adding mu to delta?
-        case numeric: FuzzyIsFractional => numeric.fromDoubles(MathFunctions.exp(mu).get, delta).asInstanceOf[X] // XXX we allow get in this context
+        // CONSIDER shouldn't we be adding mu to delta? (#305)
+        case numeric: FuzzyIsFractional => numeric.fromDoubles(MathFunctions.exp(mu).get, delta).asInstanceOf[X] // NOTE we allow get in this context
         case _ => throw new UnsupportedOperationException(s"cannot convert $x to Fuzzy")
       }
 

@@ -21,7 +21,7 @@ class ErrorCommutativeMonoidSpec extends AnyFlatSpec with Matchers {
 
   behavior of "Abstracting advocacy communication into lawful scalar folding"
 
-  // CONSIDER putting this in "it" (functional tests)
+  // CONSIDER putting this in "it" (functional tests) (#243)
   it should "match decoupled parallel error folding with direct Number addition (all addition)" taggedAs Slow in {
     implicit val ec: ExecutionContext = ExecutionContext.global
 
@@ -65,7 +65,7 @@ class ErrorCommutativeMonoidSpec extends AnyFlatSpec with Matchers {
     //    assert(tParMs <= tSeqMs, s"decoupled parallel folding should be faster: par=${tParMs}ms vs seq=${tSeqMs}ms")
   }
 
-  // CONSIDER putting this in "it" (functional tests)
+  // CONSIDER putting this in "it" (functional tests) (#243)
   it should "match decoupled parallel error folding with direct Number multiplication (all multiplication)" taggedAs Slow in {
     implicit val ec: ExecutionContext = ExecutionContext.global
 

@@ -46,7 +46,7 @@ class RationalPropertySpec extends Properties("Rational") {
   property("Double") = forAll { (x: Double) =>
     import org.scalactic.Tolerance.*
     import org.scalactic.TripleEquals.*
-    // CONSIDER check this is OK. Might need to be Rational(BigDecimal.valueOf(x))
+    // CONSIDER check this is OK. Might need to be Rational(BigDecimal.valueOf(x)) (#377)
     val ry = Rational.createExact(x)
     val sy = Rational.createExact(1.0 / x)
     (for (r <- ry; s <- sy) yield r * s) match {

@@ -16,15 +16,15 @@ import scala.collection.mutable
   * This class is designed to model a fuzzy Number.
   * See GeneralNumber for more details on the actual representation.
   *
-  * CONSIDER FuzzyNumber should be the "norm." ExactNumber is just a fuzzy number with None for fuzz.
+  * CONSIDER FuzzyNumber should be the "norm." ExactNumber is just a fuzzy number with None for fuzz. (#330)
   * I suspect that this inversion of logic might be the cause of some stack overflows that occur for some ignored tests.
   *
-  * TODO ensure that every Double calculation contributes fuzziness.
+  * TODO ensure that every Double calculation contributes fuzziness. (#331)
   *
   * NOTE it is not necessary to override compareTo because the operative method is signum for all Number comparisons,
   * and that is overridden here.
   *
-  * CONSIDER implementing equals (but be careful!). Don't implement it in terms of compare(...)==0 or Same.
+  * CONSIDER implementing equals (but be careful!). Don't implement it in terms of compare(...)==0 or Same. (#332)
   *
   * @param nominalValue the (nominal) value of the Number, expressed as a nested Either type.
   * @param rep          the representation of the Number: valid representations are: PureNumber, Radian, and NatLog.
@@ -57,7 +57,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val rep: Repre
 
   /**
     * Method to force the fuzziness of this FuzzyNumber to be absolute.
-    * CONSIDER why do we make the fuzziness absolute here?
+    * CONSIDER why do we make the fuzziness absolute here? (#333)
     *
     * @return the same FuzzyNumber but with absolute fuzziness.
     */
@@ -200,7 +200,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val rep: Repre
     val sb = new mutable.StringBuilder()
     lazy val valueAsString = Value.valueToString(nominalValue, skipOne = false, exact = fuzz.isEmpty)
     val z = fuzz match {
-      // CONSIDER will the following test work in all cases?
+      // CONSIDER will the following test work in all cases? (#334)
       case Some(f) if f.wiggle() > 1E-16 =>
         f.getQualifiedString(toNominalDouble.getOrElse(0.0))
       case Some(_) =>
@@ -214,7 +214,7 @@ case class FuzzyNumber(override val nominalValue: Value, override val rep: Repre
       case (false, s) =>
         valueAsString + "\u00B1" + s
     }
-    // TODO Improve this.
+    // TODO Improve this. (#335)
     //  Currently, this is a hack but other places essentially do this same thing but I'm having a hard time merging the appropriate code.
     val w = ww.replaceAll("""0\[5]""", Asterisk)
 
@@ -424,7 +424,7 @@ object FuzzyNumber {
     * Evaluate a dyadic operator, defined by op, on n and q.
     * Parameter independent relates to the calculation of the error bounds of the result.
     *
-    * CONSIDER removing this method (merging it with code in GeneralNumber).
+    * CONSIDER removing this method (merging it with code in GeneralNumber). (#251)
     *
     * @param n            the first operand.
     * @param q            the second operand.
@@ -444,7 +444,7 @@ object FuzzyNumber {
   /**
     * Method to multiply two Numbers, the first a GeneralNumber.
     *
-    * CONSIDER why do we have this as well as the times method in GeneralNumber?
+    * CONSIDER why do we have this as well as the times method in GeneralNumber? (#251)
     * Perhaps the type of x should be FuzzyNumber.
     *
     * @param x a GeneralNumber.
