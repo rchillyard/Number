@@ -27,7 +27,7 @@ class ScalarSpec extends AnyFlatSpec with should.Matchers {
 
   it should "correctly determine if a value is exact" in {
     val exact = WholeNumber(5)
-    val inexact = Real(5.5)
+    val inexact = Real(5.5, 0.05) // NOTE a bare Real(5.5) is exact: scale 1 (#618)
     exact.isExact shouldBe true
     inexact.isExact shouldBe false
   }

@@ -70,7 +70,20 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     case RationalNumber(r, _) =>
       Angle(Radian.modulate(Value.fromRational(r)))
     case Real(value, fuzz) =>
-      Angle(Radian.modulate(Value.fromDouble(Some(value)))) // TODO take care of fuzz (#530)
+      // NOTE the fuzz must be carried across explicitly. Going through Angle(Value) would reach
+      // Angle's Double case, which builds Real(x) and so replaces the stated fuzz with whatever
+      // Fuzziness.fuzzForDouble makes of the modulated value (#530).
+      Radian.modulate(Value.fromDouble(Some(value))) match {
+        case Left(Left(Some(x))) =>
+          // NOTE modulation subtracts a whole number of half-turns, which leaves the absolute
+          // uncertainty alone. So an unchanged value keeps its fuzz as it stands, while a changed
+          // one needs a relative fuzz re-expressed as absolute against the value it was relative
+          // to, or it would come to mean a different quantity.
+          val carried = if (x == value) fuzz else fuzz.flatMap(_.normalize(value, relative = false))
+          new Angle(Real(x, carried))()
+        case v =>
+          Angle(v)
+      }
     case _ =>
       throw AlgebraException(s"normalize: unexpected type $number")
   }

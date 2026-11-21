@@ -68,7 +68,7 @@ class ExponentialSpec extends AnyFlatSpec with should.Matchers {
     NaturalExponential(WholeNumber.zero).isExact shouldBe true
     NaturalExponential(WholeNumber.one).isExact shouldBe true
     NaturalExponential(RationalNumber(1, 2)).isExact shouldBe true
-    NaturalExponential(Real(0.5)).isExact shouldBe false
+    NaturalExponential(Real(0.5, 0.05)).isExact shouldBe false
   }
 
   it should "determine signum correctly" in {
@@ -265,7 +265,7 @@ class ExponentialSpec extends AnyFlatSpec with should.Matchers {
   it should "determine isExact correctly" in {
     BinaryExponential(WholeNumber.zero).isExact shouldBe true
     BinaryExponential(WholeNumber.one).isExact shouldBe true
-    BinaryExponential(Real(0.5)).isExact shouldBe false
+    BinaryExponential(Real(0.5, 0.05)).isExact shouldBe false
   }
 
   it should "determine signum correctly" in {

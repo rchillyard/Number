@@ -530,18 +530,18 @@ abstract class GeneralNumber(val nominalValue: Value, val rep: Representation, v
 
   private def createNumberFromDouble(d: Value, x: Double): Number =
     if (fuzz.isDefined) this // already has fuzz — don't add more
-    else Rational.createExact(x) match {
-      case Success(r) =>
-        r.toBigDecimal.map(_.scale) match {
-          case Some(0) | Some(1) | Some(2) =>
+    else Fuzziness.fuzzForDouble(x) match {
+      // NOTE None means the policy considers x exact, which it can only conclude by forming the
+      // exact Rational, so createExact succeeds here. The Failure case is defensive (#618).
+      case None =>
+        Rational.createExact(x) match {
+          case Success(r) =>
             make(r)
-          case Some(n) =>
-            FuzzyNumber(d, rep, None).addFuzz(AbsoluteFuzz(Fuzziness.toDecimalPower(5, -(n + 1)), Box))
-          case _ =>
+          case Failure(_) =>
             FuzzyNumber(d, rep, None).addFuzz(Fuzziness.doublePrecision)
         }
-      case Failure(_) =>
-        FuzzyNumber(d, rep, None).addFuzz(Fuzziness.doublePrecision)
+      case Some(f) =>
+        FuzzyNumber(d, rep, None).addFuzz(f)
     }
 
   /**

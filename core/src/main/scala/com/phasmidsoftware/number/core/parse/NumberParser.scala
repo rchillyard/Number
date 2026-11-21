@@ -176,7 +176,7 @@ abstract class BaseNumberParser extends BaseRationalParser {
     * @return an `Option` containing a `Fuzziness[Double]` instance if the calculation succeeds.
     */
   private def calculateFuzz(exponent: Int, decimalPlaces: Int): Option[Fuzziness[Double]] =
-    Some(AbsoluteFuzz[Double](Rational(5).applyExponent(exponent - decimalPlaces - 1).toDouble, Box))
+    Some(Fuzziness.halfLastPlace(decimalPlaces, exponent))
 
   import Representation.*
 

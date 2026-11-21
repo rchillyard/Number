@@ -4,16 +4,18 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.inner.{MonadicOperation, Percent}
+import com.phasmidsoftware.number.core.inner.{MonadicOperation, Percent, PureNumber, Rational}
+import com.phasmidsoftware.number.core.misc.FP.{optional, toTry}
 import com.phasmidsoftware.number.core.misc.Variance.{convolution, rootSumSquares}
 import com.phasmidsoftware.number.core.numerical.Fuzziness.{oneSigma, toDecimalPower, zipStrings}
 import com.phasmidsoftware.number.core.numerical.HasValue.DoubleHasValue
 import com.phasmidsoftware.number.core.numerical.Number.NumberIsFractional
+import com.phasmidsoftware.number.core.parse.RationalParser.parseComponents
 import org.apache.commons.math3.special.Erf.{erf, erfInv}
 
 import scala.annotation.{nowarn, unused}
 import scala.math.Numeric.DoubleIsFractional
-import scala.util.Try
+import scala.util.{Failure, Try}
 import scala.util.matching.Regex
 
 /**
@@ -711,6 +713,136 @@ object Fuzziness {
     * @return a Fuzziness[Double].
     */
   lazy val doublePrecision: Fuzziness[Double] = RelativeFuzz[Double](DoublePrecisionTolerance, Box)
+
+  /**
+    * The canonical fuzziness of a value known only to a given written precision: half of its last
+    * place, as a `Box` distribution.
+    *
+    * `Box` is the right shape here because this is not a measurement uncertainty but a statement
+    * about what was written. A value given as 1.125 lies somewhere in [1.1245, 1.1255] and nowhere
+    * else, with no reason to prefer the middle. Contrast `lastPlaceDigits`, where the author
+    * states an uncertainty explicitly and `Gaussian` is appropriate.
+    *
+    * The Gaussian counterpart is `lastPlaceDigits`, below.
+    *
+    * NOTE computed in exact `Rational` arithmetic rather than via `toDecimalPower`, whose use of
+    * `math.pow` is not exact: that gives 5.0000000000000005E-22 where this gives 5.0E-22 (#258).
+    *
+    * @param decimalPlaces the number of places to which the value is known.
+    * @param exponent      an exponent applied to the value, where it was written in scientific
+    *                      notation; zero otherwise.
+    * @return the Box fuzziness of half the last place.
+    */
+  def halfLastPlace(decimalPlaces: Int, exponent: Int = 0): Fuzziness[Double] =
+    AbsoluteFuzz(Rational(5).applyExponent(exponent - decimalPlaces - 1).toDouble, Box)
+
+  /**
+    * The canonical fuzziness of a value whose uncertainty is stated rather than implied: the given
+    * digits standing in its last places, as a `Gaussian` distribution.
+    *
+    * This is the counterpart of `halfLastPlace`, and the two are the same computation with a
+    * different digit and a different shape. `halfLastPlace` says "this is how much was written, so
+    * the value lies somewhere in the last place", which is a `Box`. This one says "the author
+    * measured it and reports this uncertainty", which is a `Gaussian`.
+    *
+    * NOTE computed in exact `Rational` arithmetic, as `halfLastPlace` is, rather than through
+    * `math.pow` (#258).
+    *
+    * @param digits        the stated uncertainty, as two digits in the last two places.
+    * @param decimalPlaces the number of places to which the value is written.
+    * @param exponent      an exponent applied to the value, where it was written in scientific
+    *                      notation; zero otherwise.
+    * @return the Gaussian fuzziness of that uncertainty.
+    */
+  def lastPlaceDigits(digits: Int, decimalPlaces: Int, exponent: Int = 0): Fuzziness[Double] =
+    AbsoluteFuzz(Rational(digits).applyExponent(exponent - decimalPlaces).toDouble, Gaussian)
+
+  /**
+    * Attaches a stated uncertainty to a `Double`, yielding a fuzzy `Number`: an alternative to
+    * parsing a fuzzy number from a String.
+    *
+    * NOTE this lives here, beside `lastPlaceDigits`, rather than in `Number`, so that the Box and
+    * Gaussian ways of making fuzz sit together and the choice between them is visible (#619).
+    *
+    * NOTE use the String counterpart below, rather than this, where the fractional part ends in
+    * a zero: a `Double` cannot preserve that, and the precision would be understated.
+    *
+    * @param x a Double.
+    */
+  extension (x: Double)
+    /**
+      * Yields a scalar `Number` whose value is x and whose fuzziness is Gaussian, with the given
+      * two digits standing in the last two places of x as written.
+      *
+      * @param y a two-digit Int.
+      * @return a Number with absolute, Gaussian fuzziness.
+      */
+    def ~(y: Int): Number =
+      if (y >= 10 && y < 100)
+        Number(x, PureNumber, Some(lastPlaceDigits(y, BigDecimal(x).scale)))
+      else
+        throw CoreException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + y)
+
+  /**
+    * Attaches a stated uncertainty to a number written as a String, yielding a fuzzy `Number`.
+    *
+    * This differs from the `Double` form in two ways. The input is a String, so that trailing
+    * zeros in the fractional part are not lost, which would otherwise understate the precision.
+    * And the result is a `Try[Number]`, because the String may not parse.
+    *
+    * NOTE the string is parsed twice, once by `Number.parse` for the value and once by
+    * `parseComponents` for the written precision. See #621.
+    *
+    * @param w a String.
+    */
+  extension (w: String)
+    /**
+      * Yields a scalar `Number` whose value is w and whose fuzziness is Gaussian, with the given
+      * two digits standing in the last two places of w as written.
+      *
+      * @param n a two-digit Int.
+      * @return a Try of a Number with absolute, Gaussian fuzziness.
+      */
+    def ~(n: Int): Try[Number] =
+      for {
+        x <- Number.parse(w)
+        components <- parseComponents(w)
+        f <- toTry(components._3, Failure(CoreException(s"no fractional part: " + w)))
+        exp = components._4.getOrElse("0")
+        e <- toTry(implicitly[Numeric[Int]].parseString(exp), Failure(CoreException(s"Logic error: " + exp)))
+        y <- toTry(optional[Int](x => x >= 10 && x < 100)(n), Failure(CoreException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + n)))
+      } yield x.make(Some(lastPlaceDigits(y, f.length, e)))
+
+  /**
+    * The fuzziness implied by a bare `Double`, i.e. by one that did not come from a String and so
+    * carries no record of how many digits were actually written.
+    *
+    * A `Double` whose exact `Rational` has a `BigDecimal` scale of 0, 1 or 2 is treated as exact:
+    * such a value is exactly representable and is taken to mean what it says. Beyond that we assume
+    * the written precision and allow `halfLastPlace`. Where no exact
+    * `Rational` can be formed at all, including for a non-finite value, we fall back to
+    * `doublePrecision`.
+    *
+    * NOTE this is the single definition of that policy. `GeneralNumber.createNumberFromDouble` and
+    * `Real.apply(Double)` both call it, having previously disagreed: `Real(4.0)` was fuzzy in one
+    * and exact in the other (#618).
+    *
+    * NOTE a `Double` parsed from a String does NOT come through here. There the digits written are
+    * known, so `NumberParser.calculateFuzz` is used instead, which derives the same quantity from
+    * the string and does so in exact `Rational` arithmetic.
+    *
+    * @param x a Double.
+    * @return `None` if the value should be treated as exact, else the fuzziness to give it.
+    */
+  def fuzzForDouble(x: Double): Option[Fuzziness[Double]] =
+    Rational.createExact(x).toOption.flatMap(_.toBigDecimal).map(_.scale) match {
+      case Some(0) | Some(1) | Some(2) =>
+        None
+      case Some(n) =>
+        Some(halfLastPlace(n))
+      case None =>
+        Some(doublePrecision)
+    }
 
   /**
     * A constant value representing the threshold ratio between large and small values,

@@ -18,7 +18,7 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
 //    }
 //  }
 
-  import com.phasmidsoftware.number.core.numerical.Number.FuzzOps
+  import com.phasmidsoftware.number.core.numerical.Fuzziness.~
 
   val sG = "6.67430(15)E-11" // m ∧ 3 kg ∧ -1 s ∧ -2
   val sBoltzmann = "1380649.E-29" // J K ∧ -1

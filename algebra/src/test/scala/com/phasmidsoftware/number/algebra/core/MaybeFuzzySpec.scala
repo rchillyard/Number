@@ -90,6 +90,10 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
     a.asAbsolute shouldBe "0.78(1)"
   }
 
+  // NOTE these assert the fuzz stated below actually reaches the renderer. Until #530 it did not:
+  // Angle.normalize dropped it and rebuilt the angle from the bare Double. They passed anyway,
+  // because the replacement fuzz for Real(0.25) was ±0.005, which is exactly 2% of 0.25. The
+  // coincidence only came to light when Real(0.25) became exact (#618).
   it should "render fuzzy Angle 𝛑/4 with relative fuzz using asAbsolute" in {
     val a = Angle(Real(0.25, Some(RelativeFuzz(0.02, Gaussian))))
     a.show shouldBe "0.785±2%"
@@ -97,7 +101,6 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
 
   it should "render fuzzy Angle 𝛑/4 with asRelative" in {
     val a = Angle(Real(1.0 / 4, Some(RelativeFuzz(0.02, Gaussian))))
-    println(a.convert(Real.zero))
     a.show shouldBe "0.785±2%"
   }
 
@@ -105,6 +108,13 @@ class MaybeFuzzySpec extends AnyFlatSpec with Matchers {
     val a = Angle(Real(0.25, Some(RelativeFuzz(0.02, Gaussian))))
     a.show should include("±")
     a.show should include("2%") // Percentage form
+  }
+
+  // NOTE a distinct fuzz must survive as a distinct fuzz, not be replaced by one that happens to
+  // match. 1% of 0.25 is ±0.0025, which Real(0.25) would never have produced (#530).
+  it should "carry a fuzz that the old reconstruction could not have reproduced" in {
+    val a = Angle(Real(0.25, Some(RelativeFuzz(0.01, Gaussian))))
+    a.show should include("1%")
   }
 
   behavior of "MaybeFuzzy extension methods for InversePower"

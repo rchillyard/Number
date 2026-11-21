@@ -417,16 +417,16 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     z.get.isExact shouldBe true
   }
 
-  behavior of "FuzzOps"
+  behavior of "the ~ operator on Double"
   it should "get mu" in {
-    import Number.FuzzOps
+    import Fuzziness.~
     val x = 1836.15267343 ~ 11
     x.isExact shouldBe false
     x.render shouldBe "1836.15267343(11)"
     Real(x) shouldEqual Constants.mu
   }
-  it should "get G using FuzzStringOps" in {
-    import Number.FuzzStringOps
+  it should "get G using the ~ operator on String" in {
+    import Fuzziness.~
     val xy = "6.67430E-11" ~ 15
     xy.isSuccess shouldBe true
     val x = xy.get
@@ -438,7 +438,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     x.render shouldBe "6.67430(15)E-11"
   }
   it should "get alpha" in {
-    import Number.FuzzOps
+    import Fuzziness.~
     val x = 0.0072973525693 ~ 11
     x.isExact shouldBe false
     x shouldEqual Number(sAlpha)
@@ -1033,13 +1033,13 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "work for One" in {
     val target = Number.one
     val sin = target.sin
-    import com.phasmidsoftware.number.core.numerical.Number.FuzzOps
+    import com.phasmidsoftware.number.core.numerical.Fuzziness.~
     sin should ===(0.8414709848078965 ~ 21)
   }
   it should "work for 1/12" in {
     val target = Number(Rational(12).invert, Radian)
     val sin = target.sin
-    import com.phasmidsoftware.number.core.numerical.Number.FuzzOps
+    import com.phasmidsoftware.number.core.numerical.Fuzziness.~
     sin should ===(0.2588190451025207 ~ 10)
   }
   it should "work for 1/3" in {

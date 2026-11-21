@@ -555,21 +555,22 @@ object Real {
   /**
     * Constructs a `Real` with the given numeric value and a default fuzziness level.
     *
-    * This method creates a `Real` instance using the provided value and a default
-    * level of fuzziness based on double-precision.
+    * The policy lives in `Fuzziness.fuzzForDouble`, which `GeneralNumber` uses too: a value whose
+    * exact `Rational` has a `BigDecimal` scale of 0, 1 or 2 is exact, and otherwise it is given
+    * half of its last place. So `Real(4.0)` is exact, while `Real(1.125)` is 1.125 ± 5.0E-4. The
+    * fuzziness is NOT based on the precision of the `Double`, which is usually far finer.
+    *
+    * NOTE this used to count the characters after the '.' in `value.toString` and decide for
+    * itself. That miscounted every value printing in E-notation, which `Double.toString` uses
+    * below 1e-3 and at or above 1e7, because the exponent's own digits were counted as decimal
+    * places and its magnitude ignored: `Real(1.0E-20)` was given a fuzz 10^14 times the value
+    * itself (#617). It also disagreed with core about which values are exact at all (#618).
     *
     * @param value the numeric value to be associated with the `Real`
     * @return a `Real` instance initialized with the specified value and default fuzziness
     */
-  def apply(value: Double): Real = {
-    val str = value.toString
-    val fuzz: Option[Fuzziness[Double]] = if (str.contains('.')) {
-      val decimalPlaces = str.split('.')(1).length
-      Fuzziness.createAbsFuzz(math.pow(10, -decimalPlaces) / 2.0)
-    } else
-      Fuzziness.createFuzz(Some(0))
-    new Real(value, fuzz)()
-  }
+  def apply(value: Double): Real =
+    new Real(value, Fuzziness.fuzzForDouble(value))()
 
   /**
     * Constructs a `Real` instance using the provided value and absolute fuzziness.

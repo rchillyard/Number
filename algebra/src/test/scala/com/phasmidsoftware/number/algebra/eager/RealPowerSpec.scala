@@ -294,8 +294,9 @@ class RealPowerSpec extends AnyFlatSpec with Matchers with Inside {
   it should "report isUnity correctly" in {
     Real(1, None).isUnity shouldBe true
     Real(2, None).isUnity shouldBe false
-    // fuzzy 1.0 is NOT unity (not exact)
-    Real(1.0).isUnity shouldBe false
+    // NOTE a fuzzy 1.0 is not unity, because it is not exact. The fuzz has to be stated: a bare
+    // Real(1.0) is exact, its scale being 0 (#618).
+    Real(1.0, 0.05).isUnity shouldBe false
   }
 
   it should "report isZero correctly" in {
@@ -305,7 +306,8 @@ class RealPowerSpec extends AnyFlatSpec with Matchers with Inside {
 
   it should "report isExact correctly" in {
     Real(5, None).isExact shouldBe true
-    Real(5.0).isExact shouldBe false
+    Real(5.0).isExact shouldBe true // scale 0, so exact (#618)
+    Real(5.0, 0.05).isExact shouldBe false
   }
 
   // ─── Ordering ────────────────────────────────────────────────────────────────
@@ -354,7 +356,7 @@ class RealPowerSpec extends AnyFlatSpec with Matchers with Inside {
   }
 
   it should "return None for a fuzzy Real" in {
-    Real(7.0).maybeDouble shouldBe None
+    Real(7.0, 0.5).maybeDouble shouldBe None
   }
 
   // ─── scaleByPi ───────────────────────────────────────────────────────────────

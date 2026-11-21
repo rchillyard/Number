@@ -38,14 +38,14 @@ class AngleSpec extends AnyFlatSpec with Matchers with AssertionHelpers {
     pi.isExact shouldBe true
     piBy2.isExact shouldBe true
     Angle(Real(1)).isExact shouldBe true
-    Angle(Real(0.5)).isExact shouldBe false
+    Angle(Real(0.5, 0.05)).isExact shouldBe false
   }
 
   it should "maybeDouble" in {
     pi.maybeDouble shouldBe Some(3.141592653589793)
     piBy2.maybeDouble shouldBe Some(1.5707963267948966)
     Angle(Real(1)).maybeDouble shouldBe Some(3.141592653589793)
-    Angle(Real(0.5)).maybeDouble shouldBe None
+    Angle(Real(0.5, 0.05)).maybeDouble shouldBe None
   }
 
   it should "isZero" in {

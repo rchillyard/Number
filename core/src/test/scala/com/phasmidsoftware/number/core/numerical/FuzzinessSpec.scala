@@ -89,9 +89,9 @@ class FuzzinessSpec extends AnyFlatSpec with should.Matchers {
     z should matchPattern { case p.Failure(_, _) => }
   }
 
-  behavior of "FuzzOps"
+  behavior of "the ~ operator on Double"
   it should "understand ..." in {
-    import Number.FuzzOps
+    import Fuzziness.~
     val x = 3.1415927 ~ 12
     x.isExact shouldBe false
     x.toString shouldBe "FuzzyNumber(Left(Left(Some(3.1415927))),,Some(AbsoluteFuzz(1.2E-6,Gaussian)))"
