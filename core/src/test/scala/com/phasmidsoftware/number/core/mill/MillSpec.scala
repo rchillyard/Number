@@ -73,6 +73,22 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
 //  it should "process list of Items with Noop: 42, 37, +, Noop" in {
 //    checkMill(Real(79), List("42", "37", "+", "")) should matchPattern { case Succeeded => }
 //  }
+  // NOTE these pin the operand order of the non-commutative operators (#287). calculateDyadic
+  // is documented to return f(x2, x1), where x1 is the operand popped first, so "42 37 -" is
+  // 42 - 37 and not 37 - 42. They use `value` rather than the checkMill helper, which is
+  // commented out along with most of this spec (#610).
+  it should "subtract in stack order: 42, 37, -" in {
+    create(List("42", "37", "-")).evaluate.map(_.value) shouldBe Some(Number(5))
+  }
+  it should "subtract in stack order after Swap: 42, 37, <>, -" in {
+    create(List("42", "37", "<>", "-")).evaluate.map(_.value) shouldBe Some(Number(-5))
+  }
+  it should "divide in stack order: 42, 7, /" in {
+    create(List("42", "7", "/")).evaluate.map(_.value) shouldBe Some(Number(6))
+  }
+  it should "raise to a power in stack order: 3, 2, ∧" in {
+    create(List("3", "2", "∧")).evaluate.map(_.value) shouldBe Some(Number(9))
+  }
   it should "process list of Items with Clr: 42, 37, +, c" in {
     val x: CoreMill = create(List("42", "37", "+", "c"))
     x.evaluate shouldBe None
