@@ -2,7 +2,7 @@ package com.phasmidsoftware.number.cats.laws
 
 import com.phasmidsoftware.number.cats.{ComplexAlgebraicInstances => CI}
 import com.phasmidsoftware.number.core.inner.Rational
-import com.phasmidsoftware.number.core.numerical.Number.FuzzOps
+import com.phasmidsoftware.number.core.numerical.Fuzziness.~
 import com.phasmidsoftware.number.core.numerical.{Complex, ComplexCartesian, Number}
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.funsuite.AnyFunSuite

@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.numerical
 
-import com.phasmidsoftware.number.core.inner.{MonadicOperation, Percent, Rational}
+import com.phasmidsoftware.number.core.inner.{MonadicOperation, Percent, PureNumber, Rational}
 import com.phasmidsoftware.number.core.misc.Variance.{convolution, rootSumSquares}
 import com.phasmidsoftware.number.core.numerical.Fuzziness.{oneSigma, toDecimalPower, zipStrings}
 import com.phasmidsoftware.number.core.numerical.HasValue.DoubleHasValue
@@ -718,10 +718,10 @@ object Fuzziness {
     *
     * `Box` is the right shape here because this is not a measurement uncertainty but a statement
     * about what was written. A value given as 1.125 lies somewhere in [1.1245, 1.1255] and nowhere
-    * else, with no reason to prefer the middle. Contrast `Number.FuzzOps.~`, where the author
+    * else, with no reason to prefer the middle. Contrast `lastPlaceDigits`, where the author
     * states an uncertainty explicitly and `Gaussian` is appropriate.
     *
-    * CONSIDER FuzzOps is an implicit class and would read better as a Scala 3 extension method.
+    * The Gaussian counterpart is `lastPlaceDigits`, below.
     *
     * NOTE computed in exact `Rational` arithmetic rather than via `toDecimalPower`, whose use of
     * `math.pow` is not exact: that gives 5.0000000000000005E-22 where this gives 5.0E-22 (#258).
@@ -733,6 +733,55 @@ object Fuzziness {
     */
   def halfLastPlace(decimalPlaces: Int, exponent: Int = 0): Fuzziness[Double] =
     AbsoluteFuzz(Rational(5).applyExponent(exponent - decimalPlaces - 1).toDouble, Box)
+
+  /**
+    * The canonical fuzziness of a value whose uncertainty is stated rather than implied: the given
+    * digits standing in its last places, as a `Gaussian` distribution.
+    *
+    * This is the counterpart of `halfLastPlace`, and the two are the same computation with a
+    * different digit and a different shape. `halfLastPlace` says "this is how much was written, so
+    * the value lies somewhere in the last place", which is a `Box`. This one says "the author
+    * measured it and reports this uncertainty", which is a `Gaussian`.
+    *
+    * NOTE computed in exact `Rational` arithmetic, as `halfLastPlace` is, rather than through
+    * `math.pow` (#258).
+    *
+    * @param digits        the stated uncertainty, as two digits in the last two places.
+    * @param decimalPlaces the number of places to which the value is written.
+    * @param exponent      an exponent applied to the value, where it was written in scientific
+    *                      notation; zero otherwise.
+    * @return the Gaussian fuzziness of that uncertainty.
+    */
+  def lastPlaceDigits(digits: Int, decimalPlaces: Int, exponent: Int = 0): Fuzziness[Double] =
+    AbsoluteFuzz(Rational(digits).applyExponent(exponent - decimalPlaces).toDouble, Gaussian)
+
+  /**
+    * Attaches a stated uncertainty to a `Double`, yielding a fuzzy `Number`: an alternative to
+    * parsing a fuzzy number from a String.
+    *
+    * NOTE this lives here, beside `lastPlaceDigits`, rather than in `Number`, so that the Box and
+    * Gaussian ways of making fuzz sit together and the choice between them is visible (#619).
+    *
+    * NOTE its String counterpart, `Number.FuzzStringOps`, cannot follow it here: that one needs
+    * `RationalParser.parseComponents`, and `core.parse` already depends on this file. It shares
+    * `lastPlaceDigits` instead. Use it rather than this where the fractional part ends in a zero,
+    * which a `Double` cannot preserve.
+    *
+    * @param x a Double.
+    */
+  extension (x: Double)
+    /**
+      * Yields a scalar `Number` whose value is x and whose fuzziness is Gaussian, with the given
+      * two digits standing in the last two places of x as written.
+      *
+      * @param y a two-digit Int.
+      * @return a Number with absolute, Gaussian fuzziness.
+      */
+    def ~(y: Int): Number =
+      if (y >= 10 && y < 100)
+        Number(x, PureNumber, Some(lastPlaceDigits(y, BigDecimal(x).scale)))
+      else
+        throw CoreException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + y)
 
   /**
     * The fuzziness implied by a bare `Double`, i.e. by one that did not come from a String and so

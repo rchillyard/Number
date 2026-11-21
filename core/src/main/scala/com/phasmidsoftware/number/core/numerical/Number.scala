@@ -866,31 +866,10 @@ object Number {
     */
   lazy val root5: Number = Number(5, SquareRoot)
 
-  /**
-    * Implicit class which takes a Double, and using method ~ and an Int parameter,
-    * yields a Number with the appropriate degree of fuzziness.
-    * This class provides an alternative to having to parse a fuzzy number from a String.
-    *
-    * @param x a Double.
-    */
-  implicit class FuzzOps(x: Double) {
-    /**
-      * Method to yield a (scalar) Number, whose value is x, and whose fuzziness is Gaussian with standard deviation
-      * defined by y.
-      * The magnitude of the fuzziness is determined by the number of decimal places of x.
-      * However, if the decimal part of the number ends in a zero, you should use the method in FuzzStringOps instead.
-      *
-      * @param y a two-digit Int.
-      * @return a Number with absolute, Gaussian fuzziness, whose std. dev. is y.
-      */
-    def ~(y: Int): Number =
-      if (y >= 10 && y < 100) {
-        val p = y * math.pow(10.0, -BigDecimal(x).scale)
-        Number(x, PureNumber, Some(AbsoluteFuzz(implicitly[HasValue[Double]].fromDouble(p), Gaussian)))
-      }
-      else
-        throw CoreException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + y)
-  }
+  // NOTE the Double counterpart of FuzzStringOps now lives in Fuzziness, as the extension method
+  // `~`, beside the Box and Gaussian constructors it is built from. Import Fuzziness.~ for it.
+  // FuzzStringOps stays here because it needs RationalParser.parseComponents, and core.parse
+  // already depends on Fuzziness (#619).
 
   /**
     * Implicit class to operate on Numbers introduced as integers.
@@ -959,7 +938,7 @@ object Number {
     * yields a Number with the appropriate degree of fuzziness.
     * This class provides an alternative to having to parse a fuzzy number from a String.
     * Really, the only function it provides is the ability to put the error bounds after the exponent.
-    * It is parallel to FuzzOps except for two differences:
+    * It is parallel to the `~` extension in Fuzziness except for two differences:
     * the input is a String, and this is is so that trailing zeros in the fractional part don't get ignored,
     * thus messing up the fuzziness;
     * And, secondly, the result of ~ is a Try[Number], not just a Number.
@@ -983,8 +962,7 @@ object Number {
         exp = components._4.getOrElse("0")
         e <- toTry(implicitly[Numeric[Int]].parseString(exp), Failure(CoreException(s"Logic error: " + exp)))
         y <- toTry(optional[Int](x => x >= 10 && x < 100)(n), Failure(CoreException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + n)))
-        p = y * math.pow(10, e - f.length)
-      } yield x.make(Some(AbsoluteFuzz(implicitly[HasValue[Double]].fromDouble(p), Gaussian)))
+      } yield x.make(Some(Fuzziness.lastPlaceDigits(y, f.length, e)))
   }
 
   /**

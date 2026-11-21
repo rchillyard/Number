@@ -200,7 +200,7 @@ class RealSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "work for One" in {
     val target = Number.one
     val sin = target.sin
-    import com.phasmidsoftware.number.core.numerical.Number.FuzzOps
+    import com.phasmidsoftware.number.core.numerical.Fuzziness.~
     sin should ===(0.8414709848078965 ~ 21)
   }
 

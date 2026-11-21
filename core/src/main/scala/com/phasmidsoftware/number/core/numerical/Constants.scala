@@ -188,7 +188,7 @@ object Constants {
     */
   lazy val root2s: Field = ComplexPolar(Number.root2, Number.zeroR, 2)
 
-  import com.phasmidsoftware.number.core.numerical.Number.FuzzOps
+  import com.phasmidsoftware.number.core.numerical.Fuzziness.~
 
   /**
     * [[https://en.wikipedia.org/wiki/Euler–Mascheroni_constant]].
