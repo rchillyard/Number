@@ -417,7 +417,7 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     z.get.isExact shouldBe true
   }
 
-  behavior of "FuzzOps"
+  behavior of "the ~ operator on Double"
   it should "get mu" in {
     import Fuzziness.~
     val x = 1836.15267343 ~ 11
@@ -425,8 +425,8 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     x.render shouldBe "1836.15267343(11)"
     Real(x) shouldEqual Constants.mu
   }
-  it should "get G using FuzzStringOps" in {
-    import Number.FuzzStringOps
+  it should "get G using the ~ operator on String" in {
+    import Fuzziness.~
     val xy = "6.67430E-11" ~ 15
     xy.isSuccess shouldBe true
     val x = xy.get

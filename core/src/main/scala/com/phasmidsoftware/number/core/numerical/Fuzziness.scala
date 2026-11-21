@@ -5,15 +5,17 @@
 package com.phasmidsoftware.number.core.numerical
 
 import com.phasmidsoftware.number.core.inner.{MonadicOperation, Percent, PureNumber, Rational}
+import com.phasmidsoftware.number.core.misc.FP.{optional, toTry}
 import com.phasmidsoftware.number.core.misc.Variance.{convolution, rootSumSquares}
 import com.phasmidsoftware.number.core.numerical.Fuzziness.{oneSigma, toDecimalPower, zipStrings}
 import com.phasmidsoftware.number.core.numerical.HasValue.DoubleHasValue
 import com.phasmidsoftware.number.core.numerical.Number.NumberIsFractional
+import com.phasmidsoftware.number.core.parse.RationalParser.parseComponents
 import org.apache.commons.math3.special.Erf.{erf, erfInv}
 
 import scala.annotation.{nowarn, unused}
 import scala.math.Numeric.DoubleIsFractional
-import scala.util.Try
+import scala.util.{Failure, Try}
 import scala.util.matching.Regex
 
 /**
@@ -762,10 +764,8 @@ object Fuzziness {
     * NOTE this lives here, beside `lastPlaceDigits`, rather than in `Number`, so that the Box and
     * Gaussian ways of making fuzz sit together and the choice between them is visible (#619).
     *
-    * NOTE its String counterpart, `Number.FuzzStringOps`, cannot follow it here: that one needs
-    * `RationalParser.parseComponents`, and `core.parse` already depends on this file. It shares
-    * `lastPlaceDigits` instead. Use it rather than this where the fractional part ends in a zero,
-    * which a `Double` cannot preserve.
+    * NOTE use the String counterpart below, rather than this, where the fractional part ends in
+    * a zero: a `Double` cannot preserve that, and the precision would be understated.
     *
     * @param x a Double.
     */
@@ -782,6 +782,36 @@ object Fuzziness {
         Number(x, PureNumber, Some(lastPlaceDigits(y, BigDecimal(x).scale)))
       else
         throw CoreException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + y)
+
+  /**
+    * Attaches a stated uncertainty to a number written as a String, yielding a fuzzy `Number`.
+    *
+    * This differs from the `Double` form in two ways. The input is a String, so that trailing
+    * zeros in the fractional part are not lost, which would otherwise understate the precision.
+    * And the result is a `Try[Number]`, because the String may not parse.
+    *
+    * NOTE the string is parsed twice, once by `Number.parse` for the value and once by
+    * `parseComponents` for the written precision. See #621.
+    *
+    * @param w a String.
+    */
+  extension (w: String)
+    /**
+      * Yields a scalar `Number` whose value is w and whose fuzziness is Gaussian, with the given
+      * two digits standing in the last two places of w as written.
+      *
+      * @param n a two-digit Int.
+      * @return a Try of a Number with absolute, Gaussian fuzziness.
+      */
+    def ~(n: Int): Try[Number] =
+      for {
+        x <- Number.parse(w)
+        components <- parseComponents(w)
+        f <- toTry(components._3, Failure(CoreException(s"no fractional part: " + w)))
+        exp = components._4.getOrElse("0")
+        e <- toTry(implicitly[Numeric[Int]].parseString(exp), Failure(CoreException(s"Logic error: " + exp)))
+        y <- toTry(optional[Int](x => x >= 10 && x < 100)(n), Failure(CoreException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + n)))
+      } yield x.make(Some(lastPlaceDigits(y, f.length, e)))
 
   /**
     * The fuzziness implied by a bare `Double`, i.e. by one that did not come from a String and so
