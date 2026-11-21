@@ -1173,13 +1173,20 @@ object Rational {
   /**
     * Creates an exact `Rational` representation of the given `Double` value if possible.
     *
+    * NOTE: a non-finite `x` yields a `Failure`. It must be rejected before `BigDecimal.valueOf`,
+    * which is `new BigDecimal(Double.toString(x))` and so parses the string "Infinity" and throws
+    * a NumberFormatException — from outside the `Try` below, which made this method break its own
+    * signature (#601).
+    *
     * @param x the `Double` value to be converted to an exact `Rational`
     * @return a `Try` containing the exact `Rational` if the conversion is possible and exact,
-    *         or a `Failure` containing an `ArithmeticException` if the conversion is not possible
-    *         or loses precision
+    *         or a `Failure` containing an `ArithmeticException` if `x` is not finite, or if the
+    *         conversion is not possible or loses precision
     */
   def createExact(x: Double): Try[Rational] =
-    if (x.compare(negZeroDouble) == 0)
+    if (!x.isFinite)
+      Failure(new ArithmeticException(s"Cannot create exact Rational from non-finite Double: $x"))
+    else if (x.compare(negZeroDouble) == 0)
       Success(negZero)
     else {
       val bigDecimal = BigDecimal.valueOf(x)

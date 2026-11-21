@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number.core.inner
 
-import org.scalacheck.Prop.forAll
+import org.scalacheck.Prop.{forAll, propBoolean}
 import org.scalacheck.Properties
 import org.scalatest.Assertions.fail
 
@@ -14,8 +14,9 @@ import scala.util.{Failure, Success}
 /**
   * Created by scalaprof on 10/4/16.
   *
-  * NOTE: it is possible that these tests will fail due to randomly generating a Double precision number out of range of Double (E311).
-  * Recommend just re-run.
+  * NOTE: the Double property constrains its domain to inputs whose reciprocal is finite. It used
+  * to fail intermittently for a subnormal x, where 1.0 / x overflows (#601); the advice then was
+  * to re-run, which is what kept the underlying defect in createExact alive.
   */
 class RationalPropertySpec extends Properties("Rational") {
 
@@ -46,14 +47,19 @@ class RationalPropertySpec extends Properties("Rational") {
   property("Double") = forAll { (x: Double) =>
     import org.scalactic.Tolerance.*
     import org.scalactic.TripleEquals.*
-    // CONSIDER check this is OK. Might need to be Rational(BigDecimal.valueOf(x)) (#377)
-    val ry = Rational.createExact(x)
-    val sy = Rational.createExact(1.0 / x)
-    (for (r <- ry; s <- sy) yield r * s) match {
-      case Success(z) => z.toDouble === 1.0 +- 1E-6
-      case Failure(x) => fail(s"exception: $x")
+    // NOTE the property is about a round trip through the reciprocal, so it only means anything
+    // where the reciprocal exists as a Double. For a subnormal x, 1.0 / x overflows to Infinity,
+    // and there is no Rational to compare against -- which used to surface as a NumberFormatException
+    // from createExact and an intermittent build failure (#601).
+    (x != 0.0 && (1.0 / x).isFinite) ==> {
+      // CONSIDER check this is OK. Might need to be Rational(BigDecimal.valueOf(x)) (#377)
+      val ry = Rational.createExact(x)
+      val sy = Rational.createExact(1.0 / x)
+      (for (r <- ry; s <- sy) yield r * s) match {
+        case Success(z) => z.toDouble === 1.0 +- 1E-6
+        case Failure(x) => fail(s"exception: $x")
+      }
     }
-
   }
 
   property("Division") = forAll { (a: Short, b: Short) =>
