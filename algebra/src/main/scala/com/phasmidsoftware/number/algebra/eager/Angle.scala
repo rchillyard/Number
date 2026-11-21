@@ -737,7 +737,14 @@ trait Radians extends Scalar with Functional {
   /**
     * Represents the scalar value for converting radians to a pure number, using Pi as the scaling factor.
     */
-  val scaleFactor: Double = math.Pi // TODO change this to be an exact number (not a Double) (#540)
+  // NOTE this Double costs no exactness. Exact 𝛑 is the structure Angle(WholeNumber.one), and
+  // Angle.isExact reads the nominal value without ever consulting scaleFactor. This is used only
+  // by asDouble and the two Double => Double functions below, and converting a Radian value to a
+  // PureNumber is approximate by nature, so an exact scaleFactor would have nowhere to go (#615).
+  //
+  // CONSIDER giving Scalar.scaleFactor an exact type anyway, which becomes easier if asDouble is
+  // eliminated in favour of nominalValue (#533, #540)
+  val scaleFactor: Double = math.Pi
 
   /**
     * This yields the scale function for this Functional.
