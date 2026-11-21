@@ -376,9 +376,16 @@ case class InversePower private(n: Int, number: Number)(val maybeName: Option[St
     * Method to determine if this Structure object is exact.
     * For instance, `Number.pi` is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
+    * NOTE a root is exact exactly when its radicand is, which is all this method needs to do. An
+    * irrational root such as √2 is still exact, because InversePower is itself an exact
+    * representation of it. Beware that Real(4.0) is not 4: a one-decimal literal carries ±0.05 of
+    * fuzz, so √(Real(4.0)) is inexact even though √4 is 2. That is the trap which made the TODO
+    * formerly here ("there are some situations where a Root is actually exact") look true; no such
+    * situation could be found (#551).
+    *
     * @return true if this Structure object is exact in the context of No representation, else false.
     */
-  def isExact: Boolean = number.isExact // TODO there are some situations where a Root is actually exact. (#551)
+  def isExact: Boolean = number.isExact
 
   /**
     * Converts this `Number` into its corresponding `Rational` representation, if possible.
