@@ -47,7 +47,7 @@ class RealWorksheetSpec extends AnyFlatSpec with should.Matchers {
     val oneHalf = (sinePiBy4 doMultiply sinePiBy4).normalize
     oneHalf shouldBe Real(Number.half)
 
-    // TODO turn the following into test assertions
+    // TODO turn the following into test assertions (#593)
 
     // Parsing from Strings: Exact
     Real("1.0") // fewer than 15 decimal places

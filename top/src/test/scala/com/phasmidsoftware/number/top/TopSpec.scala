@@ -211,7 +211,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
   }
   it should "work for Exp Infinity" in {
     lazymath"\e^∞" shouldBe Infinity
-    // CONSIDER should this be Real.∞ instead?
+    // CONSIDER should this be Real.∞ instead? (#594)
     math"\e^∞" shouldBe RationalNumber(Rational.infinity)
   }
   it should "work for Exp neg Infinity" in {
@@ -229,7 +229,7 @@ class TopSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
     math"\e^1" shouldBe e
   }
   it should "work for Ln Zero" in {
-    // TODO make the following line work
+    // TODO make the following line work (#595)
 //    lazymath"\ln(0)" shouldBe UniFunction(Infinity, Negate)
     math"\ln(0)" shouldBe negInfinity
   }

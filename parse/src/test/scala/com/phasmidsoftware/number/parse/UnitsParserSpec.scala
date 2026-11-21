@@ -8,7 +8,7 @@ import org.scalatest.matchers.should.Matchers
 
 /**
   * A specification class for testing the functionality of the `UnitsParser` component.
-  * TODO what are all these println statements?
+  * TODO what are all these println statements? (#589)
   *
   * This class verifies the ability of `UnitsParser` to accurately parse and interpret various unit formats,
   * including simple units, derived units, composite units, and units using different notations.
