@@ -96,6 +96,25 @@ class InversePowerSpec extends AnyFlatSpec with should.Matchers {
     cubeRoot(8).isExact shouldBe true
   }
 
+  // NOTE isExact forwards to the operand, and that is the whole of it: a root is exact exactly
+  // when its radicand is. An irrational root such as √2 is still exact, because InversePower is
+  // itself an exact representation of it (#551).
+  it should "be exact whenever the radicand is exact" in {
+    InversePower(2, -4).isExact shouldBe true
+    InversePower(4, 16).isExact shouldBe true
+    InversePower(3, 7).isExact shouldBe true
+    squareRoot(Real(4)).isExact shouldBe true
+  }
+
+  // NOTE Real(4.0) is not 4: a one-decimal literal carries ±0.05 of fuzz, so its square root is
+  // inexact even though √4 is 2. This is the trap that made the old TODO here look true (#551).
+  it should "be inexact when the radicand is a fuzzy Real" in {
+    val fuzzy = Real(4.0)
+    fuzzy.isExact shouldBe false
+    squareRoot(fuzzy).isExact shouldBe false
+    squareRoot(Real(2.0)).isExact shouldBe false
+  }
+
   it should "maybeRep" in {
     squareRoot(4).maybeRep(AnyContext) shouldBe Some(SquareRoot)
     squareRoot(2).maybeRep(AnyContext) shouldBe Some(SquareRoot)
