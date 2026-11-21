@@ -554,7 +554,7 @@ object Eager {
     * If the conversion fails, it recovers by throwing a `AlgebraException`
     * with an appropriate error message indicating the failure.
     *
-    * CONSIDER making this an instance method of `Eager`.
+    * CONSIDER making this an instance method of `Eager`. (#541)
     *
     * @param eager the `Eager` instance to be converted into a `Field`.
     *              This is expected to represent a numerical value.
@@ -678,7 +678,7 @@ object Eager {
           Failure(AlgebraException(s"Unexpected tryConvertAndOp: ${s.getClass.getSimpleName} === ${e.getClass.getSimpleName}"))
       }
     case n: Nat =>
-      // TODO: Handle overflow - need Nat.toBigInt or safe conversion
+      // TODO: Handle overflow - need Nat.toBigInt or safe conversion (#542)
       f(WholeNumber(n.toInt), s.asInstanceOf[T])
     case _ =>
       Failure(AlgebraException(s"Unexpected tryConvertAndCompare: ${s.getClass.getSimpleName} === ${e.getClass.getSimpleName}"))

@@ -383,7 +383,7 @@ class InversePowerAdditionalSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "use maybeName when present" in {
-    // TODO when we relax the private constructor thing, we can revert this
+    // TODO when we relax the private constructor thing, we can revert this (#585)
     //    val root = new InversePower(2, 2)(Some("sqrt2"))
     //    root.render shouldBe "sqrt2"
   }

@@ -29,8 +29,8 @@ import scala.util.{Success, Try}
   * The class is designed to work seamlessly with precise and exact number representations,
   * ensuring that operations maintain a high level of numeric fidelity.
   *
-  * CONSIDER adding a percentage flag to Real.
-  * CONSIDER merging the Rational class into this class (there's no compelling reason to have two separate classes).
+  * CONSIDER adding a percentage flag to Real. (#560)
+  * CONSIDER merging the Rational class into this class (there's no compelling reason to have two separate classes). (#561)
   *
   * @constructor Creates a `RationalNumber` with the given `Rational` value.
   * @param r          The `Rational` value represented by this `RationalNumber`.
@@ -433,9 +433,9 @@ object RationalNumber {
       case Rational.repeatingDecimals(x, repeating) if repeating.nonEmpty =>
         s"$x\\overline{$repeating}"
       case Rational.repeatingDecimals(x, _) =>
-        x // CONSIDER removing this case (empty repeating decimals) that never happens.
+        x // CONSIDER removing this case (empty repeating decimals) that never happens. (#562)
       case Rational.rationalForm(_, _) if r.isExactDouble =>
-        r.toDouble.toString // XXX It's very doubtful that this case will match
+        r.toDouble.toString // NOTE It's very doubtful that this case will match
       case Rational.integerForm(n) =>
         n
       case Rational.unicodeForm(_) =>

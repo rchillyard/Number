@@ -166,7 +166,7 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
       case RationalNumber(r, _) =>
         val product: Rational = Rational(x) * r
         Option.when(product.isWhole)(WholeNumber(product.toBigInt))
-      case _ => // TODO add other cases as they become available
+      case _ => // TODO add other cases as they become available (#579)
         None
     }
 
@@ -181,7 +181,7 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
     * @return an `Option[WholeNumber]` containing the scaled result, or `None` if the operation fails or the result is not a `WholeNumber`
     */
   def doScale(that: Number): Option[WholeNumber] =
-    scale(that).asInstanceOf[Option[WholeNumber]] // TODO check this (it's not right)
+    scale(that).asInstanceOf[Option[WholeNumber]] // TODO check this (it's not right) (#580)
 
   /**
     * Computes the signum of this WholeNumber.
@@ -231,7 +231,7 @@ case class WholeNumber(x: BigInt)(val maybeName: Option[String] = None) extends 
 
   /**
     * Converts the given structure to a `Real` representation.
-    * CONSIDER creating a fuzzy Real.zero that we could pass in to force fuzziness here.
+    * CONSIDER creating a fuzzy Real.zero that we could pass in to force fuzziness here. (#581)
     * For now, we use the default fuzziness of None.
     *
     * This method transforms the value `x` into an instance of the `Real` class

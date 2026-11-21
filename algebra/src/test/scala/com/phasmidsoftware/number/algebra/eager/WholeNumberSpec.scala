@@ -30,7 +30,7 @@ class WholeNumberSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "test comparison" in {
-    // TODO implement test
+    // TODO implement test (#506)
   }
 
   it should "test compareExact" in {

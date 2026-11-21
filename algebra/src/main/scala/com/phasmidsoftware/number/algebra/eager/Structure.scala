@@ -59,7 +59,7 @@ trait Structure extends Eager with WithFuzziness with Negatable[Structure] {
   /**
     * Converts the given `Structure` object to an optional instance of the same type.
     *
-    * TODO refactor this method to use a type class instance of `CanConvert[T, Structure]` instead of ClassTag.
+    * TODO refactor this method to use a type class instance of `CanConvert[T, Structure]` instead of ClassTag. (#578)
     *
     * @param t the input object of type `T` which is a subtype of `Structure`.
     * @return an `Option` containing a transformed instance of type `T` if the conversion is successful, or `None` otherwise.

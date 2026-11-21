@@ -16,7 +16,7 @@ import scala.util.{Either, Failure, Left, Right, Success, Try, Using}
 
 /**
   * This module is concerned with the generic operations for operating on Numbers.
-  * TODO resolve duplication.
+  * TODO resolve duplication. (#582)
   * NOTE this is similar (maybe idential) to `core.misc.FP`.
   */
 object FP {
@@ -403,7 +403,7 @@ object FP {
   /**
     * Computes the power of a given number by raising it to the specified exponent.
     *
-    * CONSIDER moving this somewhere else more aligned to Numeric ops
+    * CONSIDER moving this somewhere else more aligned to Numeric ops (#583)
     *
     * @param x the base number
     * @param n the exponent to which the base number is raised

@@ -52,9 +52,9 @@ trait Valuable extends Renderable with Numeric with Zeroable with Unitary with E
     * Obtains the product of this `Valuable` instance and another `Valuable` instance.
     * The behavior of the method is determined by whether the instances are of type `Lazy` or `Eager`.
     * If the provided instances do not conform to the expected types, an `AlgebraException` is thrown.
-    * CONSIDER supporting `sum` also.
+    * CONSIDER supporting `sum` also. (#517)
     *
-    * CONSIDER using lazify
+    * CONSIDER using lazify (#518)
     *
     * @param other the other `Valuable` instance to compute the product with
     * @return a `Valuable` instance representing the product of this and the other instance
@@ -91,7 +91,7 @@ trait Valuable extends Renderable with Numeric with Zeroable with Unitary with E
   /**
     * Casts this `Valuable` instance into a `Structure` type if it already is a `Structure`.
     * If the instance is not a `Structure`, an `AlgebraException` is thrown.
-    * CONSIDER returning Option[Structure] instead.
+    * CONSIDER returning Option[Structure] instead. (#519)
     *
     * @return the current instance as a `Structure`
     * @note Throws [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the instance is not of type `Structure`
@@ -149,7 +149,7 @@ trait Lazy extends Valuable {
     * Multiplies this `Lazy` instance with another `Lazy` instance, producing
     * a new `Lazy` result that represents the product of the two inputs.
     *
-    * CONSIDER we should probably orivude an `add` method as well.
+    * CONSIDER we should probably orivude an `add` method as well. (#520)
     *
     * @param other the `Lazy` instance to multiply with this instance
     * @return a new `Lazy` instance representing the product of the two inputs
@@ -259,7 +259,7 @@ object Valuable {
     case InversePower(n, x) =>
       Some(numberToField(x).power(ExactNumber(Value.fromRational(Rational(n).invert), PureNumber)))
     case _ =>
-      None // XXX v should be an Expression in this case (but expressions are not known in this package).
+      None // NOTE v should be an Expression in this case (but expressions are not known in this package).
   }
 
   /**

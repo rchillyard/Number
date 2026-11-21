@@ -14,7 +14,7 @@ import com.phasmidsoftware.number.core.inner.Rational
 trait R {
   /**
     * Converts the current instance to a Double representation.
-    * CONSIDER changing to maybeDouble returning Option[Double].
+    * CONSIDER changing to maybeDouble returning Option[Double]. (#499)
     *
     * @return the Double value corresponding to the current instance
     */

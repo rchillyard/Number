@@ -47,7 +47,7 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
 
   /**
     * Computes an Exponential instance based on the input number.
-    * CONSIDER promoting this into `Transformed`.
+    * CONSIDER promoting this into `Transformed`. (#543)
     *
     * @param x the number to transform, of type `Number`
     * @return a new `Exponential` instance representing the transformed value
@@ -118,7 +118,7 @@ abstract class Exponential(val number: Number) extends Transformed with CanAdd[E
       case fuzzy: WithFuzziness =>
         fuzzy.fuzz
       case _ =>
-        None // CONSIDER should this throw an exception?
+        None // CONSIDER should this throw an exception? (#544)
     }
 
   /**
@@ -322,7 +322,7 @@ case class NaturalExponential(exponent: Number)(val maybeName: Option[String] = 
 
   /**
     * Returns a new instance of `Structure` that is the negation of the current instance.
-    * CONSIDER sorting out the use of CanNegate so that we can extend that for Structure.
+    * CONSIDER sorting out the use of CanNegate so that we can extend that for Structure. (#497)
     *
     * @return a `Structure` representing the negation of this instance
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input is not a Real number.
@@ -411,8 +411,8 @@ case class BinaryExponential(exponent: Number)(val maybeName: Option[String] = N
 
   /**
     * Returns a new instance of `Structure` that is the negation of the current instance.
-    * CONSIDER sorting out the use of CanNegate so that we can extend that for Structure.
-    * TODO sort this out.
+    * CONSIDER sorting out the use of CanNegate so that we can extend that for Structure. (#497)
+    * TODO sort this out. (#497)
     *
     * @return a `Structure` representing the negation of this instance
     */

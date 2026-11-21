@@ -14,7 +14,7 @@ trait Negatable[T] {
 
   /**
     * Returns a new instance of `T` that is the negation of the current instance.
-    * CONSIDER sorting out the use of CanNegate so that we can extend that for Structure.
+    * CONSIDER sorting out the use of CanNegate so that we can extend that for Structure. (#497)
     *
     * @return a `Structure` representing the negation of this instance
     */
