@@ -28,7 +28,7 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
   /**
     * Returns the number of branches in `this`.
     *
-    * CONSIDER implement this more generally.
+    * CONSIDER implement this more generally. (#572)
     * For the roots of quadratic equations, the number of branches is 2, since there are two possible solutions.
     * But for nth roots, we would need to support more branches.
     *
@@ -67,8 +67,8 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
   /**
     * Method to determine what `Representation`, if there is such, this `NumberLike` object is based on.
     *
-    * TODO it's more complicated than this!
-    * CONSIDER having a Complex sub-type of Representation.
+    * TODO it's more complicated than this! (#508)
+    * CONSIDER having a Complex sub-type of Representation. (#508)
     *
     * @return an optional `Representation`.
     */
@@ -173,7 +173,7 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.
     *
-    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
+    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either. (#498)
     *
     * The method returns `true` if there is no approximate representation
     * available (i.e., `approximation` is `None`), indicating that the
@@ -197,7 +197,7 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
 
   /**
     * If this `Solution` can be represented as a `Structure`, return it wrapped in `Some`, otherwise return `None`.
-    * TODO implement imaginary cases.
+    * TODO implement imaginary cases. (#573)
     *
     * @return an `Option[Structure]`.
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the complex number is imaginary.
@@ -233,7 +233,7 @@ case class Complex(complex: numerical.Complex)(val maybeName: Option[String] = N
   }
 
   override def fuzzyEqv(confidence: Double)(that: Eager): Try[Boolean] = (this, that) match {
-    case (Complex(a), Complex(b)) => Success(a.isSame(b)) // TODO we lose the value of `p` here (it defaults to 0.5)
+    case (Complex(a), Complex(b)) => Success(a.isSame(b)) // TODO we lose the value of `p` here (it defaults to 0.5) (#574)
     case _ => Failure(AlgebraException(s"Complex.fuzzyEqv: unexpected input: $this, $that"))
   }
 
@@ -296,7 +296,7 @@ trait Solution extends Eager with Negatable[Solution] {
     * Adds another `Solution` instance to the current instance, combining their effects or values
     * based on the implementation of the `+` operation in the `Solution` trait.
     *
-    * CONSIDER this should be defined in `CanAdd[Solution]` rather than `Solution`.
+    * CONSIDER this should be defined in `CanAdd[Solution]` rather than `Solution`. (#575)
     * Maybe we could achieve that by defining `Can` as a subtype of `Eager`, rather than of `Structure`.
     *
     * @param other the `Solution` instance to add to the current instance
@@ -306,7 +306,7 @@ trait Solution extends Eager with Negatable[Solution] {
 
   /**
     * Scales the current `Solution` instance by a given `Rational` factor.
-    * CONSIDER this could be merged with `*`.
+    * CONSIDER this could be merged with `*`. (#576)
     *
     * The scaling operation adjusts the `Solution` based on the value of the provided
     * `Rational` parameter, resulting in a new `Solution` instance that reflects
@@ -372,7 +372,7 @@ object Complex {
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
-  // CONSIDER do we need this?
+  // CONSIDER do we need this? (#502)
   given DyadicOperator[Complex] = new DyadicOperator[Complex] {
     def op[B <: Complex, Z](f: (Complex, B) => Try[Z])(x: Complex, y: B): Try[Z] = f(x, y)
   }
@@ -412,7 +412,7 @@ object Complex {
     def isNegOne(n: com.phasmidsoftware.number.core.numerical.Number): Boolean =
       n == Number.negOne
 
-    // TODO do it with latex
+    // TODO do it with latex (#577)
     (isZero(real), isZero(imag)) match {
       case (true, true) => "0"
       case (true, false) =>

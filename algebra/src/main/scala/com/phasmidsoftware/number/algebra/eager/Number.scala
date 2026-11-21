@@ -24,7 +24,7 @@ import scala.util.{Failure, Success, Try}
   *
   * `Number` is a trait that extends the `Scalar` trait, adding functionality for ordered comparison.
   *
-  * CONSIDER why does it not extend Ordered[Number]?
+  * CONSIDER why does it not extend Ordered[Number]? (#556)
   */
 trait Number extends Scalar with Unitary with Ordered[Scalar] {
 
@@ -69,7 +69,7 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
   /**
     * Adds this `Number` instance to another `Number` instance and returns the result.
     *
-    * CONSIDER: there is an alternative way of adding Numbers and that is to summon an commutative addend. Which should we be using?
+    * CONSIDER: there is an alternative way of adding Numbers and that is to summon an commutative addend. Which should we be using? (#557)
     * This method allows for appropriate conversions whereas the other method does not.
     *
     * The addition is performed based on the types of the two `Number` instances:
@@ -211,16 +211,16 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the comparison cannot be performed due to invalid approximation logic
     */
   def compare(that: Number): Int =
-    if isExact && that.isExact then // XXX both are exact
+    if isExact && that.isExact then // ASIDE both are exact
       FP.recover(compareExact(that))(AlgebraException(s"Number.compare(Number): logic error: $this, $that"))
-    else if !isExact then { // XXX this is not exact
+    else if !isExact then { // ASIDE this is not exact
       val maybeInt: Option[Int] = for
         x <- approximation()
         y <- that.approximation()
       yield x.compare(y)
       FP.recover(maybeInt)(AlgebraException("Number.compare: Logic error"))
     }
-    else // XXX this is exact and that is not exact
+    else // ASIDE this is exact and that is not exact
       -that.compare(this)
 
   /**
@@ -242,7 +242,7 @@ trait Number extends Scalar with Unitary with Ordered[Scalar] {
     case (a: Number, b: Number) =>
       // Both are Numbers - compare them
       if (a.isExact && b.isExact) {
-        Success(a.compareExact(b).contains(0)) // TODO check if we should normalize a and b first.
+        Success(a.compareExact(b).contains(0)) // TODO check if we should normalize a and b first. (#558)
       } else {
         // At least one is not exact - use approximation
         val maybeResult = for {
@@ -351,7 +351,7 @@ trait ExactNumber extends Number with Exact with Q with Scalable[ExactNumber] wi
   /**
     * Scales the current `WholeNumber` by a given Rational multiplier and returns the result
     * wrapped as an `Option[Structure]`.
-    * CONSIDER renaming as `*`
+    * CONSIDER renaming as `*` (#559)
     *
     * @param scale the Rational multiplier to scale the current `WholeNumber`
     * @return an `Option[Structure]` representing the scaled result

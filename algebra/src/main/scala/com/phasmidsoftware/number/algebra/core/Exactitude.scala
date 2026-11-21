@@ -17,7 +17,7 @@ trait Exactitude {
   /**
     * Determines whether this object is exact, i.e., is not any kind of approximation.
     *
-    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
+    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either. (#498)
     *
     * The method returns `true` if the value is represented exactly
     * in IEEE 754 format, or Two's complement _or_ the exact value must be represented symbolically.

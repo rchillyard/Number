@@ -51,7 +51,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     *   - Reals are adjusted using their double value, with fuzz consideration awaiting implementation.
     *   - Whole numbers are directly handled using their integer representation.
     *
-    * CONSIDER we lose information regarding degrees here (perhaps fix that?)
+    * CONSIDER we lose information regarding degrees here (perhaps fix that?) (#529)
     *
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the input type is not recognized.
     * @return a new instance of `Angle` representing the normalized value
@@ -70,7 +70,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     case RationalNumber(r, _) =>
       Angle(Radian.modulate(Value.fromRational(r)))
     case Real(value, fuzz) =>
-      Angle(Radian.modulate(Value.fromDouble(Some(value)))) // TODO take care of fuzz
+      Angle(Radian.modulate(Value.fromDouble(Some(value)))) // TODO take care of fuzz (#530)
     case _ =>
       throw AlgebraException(s"normalize: unexpected type $number")
   }
@@ -81,7 +81,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * The comparison is based on the numeric value contained within each `Functional` object
     * and the sign of the derivative function at the numeric value.
     *
-    * TODO check this as it won't work with all other Functional types.
+    * TODO check this as it won't work with all other Functional types. (#531)
     *
     * @param that the `Functional` instance to compare with the current instance
     * @return an `Int` where:
@@ -105,7 +105,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     */
   def compareExact(that: Scalar): Option[Int] = that match {
     case Angle(r, _) =>
-      // TODO normalize before comparison
+      // TODO normalize before comparison (#532)
       Some(number.compare(r))
     case _ =>
       None
@@ -183,7 +183,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
 
   /**
     * Converts the current instance to a Double representation.
-    * CONSIDER may be able to eliminate this method and use nominalValue instead.
+    * CONSIDER may be able to eliminate this method and use nominalValue instead. (#533)
     *
     * @return the Double value corresponding to the current instance
     */
@@ -226,11 +226,11 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
   lazy val render: String = maybeName getOrElse {
     val value = normalize.number
     if (degrees)
-      value.scale(r180).render + "°" // CONSIDER switching to interpolation
+      value.scale(r180).render + "°" // CONSIDER switching to interpolation (#501)
     else {
       val prefix = value.render
       val suffix = "𝛑"
-      (if prefix == "1" then "" else prefix) + suffix // CONSIDER switching to interpolation
+      (if prefix == "1" then "" else prefix) + suffix // CONSIDER switching to interpolation (#501)
     }
   }
 
@@ -264,7 +264,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * by adding their respective number, returning a new `Angle` instance
     * representing the sum.
     *
-    * CONSIDER Extract this method to an Additive trait (not to be confused with CanAdd).
+    * CONSIDER Extract this method to an Additive trait (not to be confused with CanAdd). (#534)
     *
     * @param a the `Angle` to be added to the current `Angle`
     * @return a new `Angle` representing the sum of the current `Angle` and the specified `Angle`
@@ -277,7 +277,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     * This method handles addition based on the type of `Scalar` provided. If the input is an `Angle`,
     * it computes the sum of the current `Angle` and the provided `Angle`. If the input is a `Number`,
     * the addition is delegated to the `doPlus` implementation of the `Number`.
-    * CONSIDER eliminating this method (only used by unit tests).
+    * CONSIDER eliminating this method (only used by unit tests). (#535)
     *
     * @param that the `Scalar` to be added to the current instance
     * @return an `Option[Scalar]` containing the result of the addition, or `None` if the operation is not valid
@@ -394,7 +394,7 @@ case class Angle private[algebra](number: Number, degrees: Boolean = false)(val 
     */
   override def eqv(that: Eager): Try[Boolean] = (this, that) match {
     case (Angle.zero, x: Number) if x.isZero =>
-      Success(true) // XXX special case for zero angle
+      Success(true) // ASIDE special case for zero angle
     case (a1: Angle, a2: Angle) =>
       Success(a1.normalize.number === a2.normalize.number)
     case _ =>
@@ -463,7 +463,7 @@ object Angle {
 
   /**
     * Converts the given rational number to an `Angle` instance by performing modulation and necessary computations.
-    * CONSIDER whether we really need this method.
+    * CONSIDER whether we really need this method. (#536)
     * The `Angle` class already has a `normalize` method that performs modulation and other necessary computations.
     *
     * @param r the input `RationalNumber` representing the rational value to be converted into an angle
@@ -478,11 +478,11 @@ object Angle {
     * @return an `Angle` instance corresponding to the given numeric value in degrees
     */
   def degrees(x: Number): Angle =
-    Angle(x.scale(r180.invert).asInstanceOf[Number], true)()// TODO tidy this up!
+    Angle(x.scale(r180.invert).asInstanceOf[Number], true)()// TODO tidy this up! (#537)
 
   /**
     * Converts a `Value` into an `Angle` represented as degrees.
-    * CONSIDER invoking degrees(Number) instead.
+    * CONSIDER invoking degrees(Number) instead. (#538)
     *
     * @param x the input `Value` to be converted to an angle in degrees; the type of value can represent
     *          various numeric structures such as whole numbers, rational numbers, or real numbers.
@@ -649,7 +649,7 @@ object Angle {
   val twoPi: Angle = new Angle(RationalNumber(Rational.two))(Some("2𝛑"))
   val negPi: Angle = new Angle(WholeNumber.minusOne)(Some("-𝛑"))
   val negPiBy2: Angle = new Angle(RationalNumber(Rational.half).negate)(Some("-½𝛑"))
-  // CONSIDER using NoScalar instead
+  // CONSIDER using NoScalar instead (#539)
   private val nan: Angle = Angle(RationalNumber(Rational.NaN))
 
   /**
@@ -737,7 +737,7 @@ trait Radians extends Scalar with Functional {
   /**
     * Represents the scalar value for converting radians to a pure number, using Pi as the scaling factor.
     */
-  val scaleFactor: Double = math.Pi // TODO change this to be an exact number (not a Double)
+  val scaleFactor: Double = math.Pi // TODO change this to be an exact number (not a Double) (#540)
 
   /**
     * This yields the scale function for this Functional.

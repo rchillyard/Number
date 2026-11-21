@@ -10,7 +10,7 @@ import scala.util.Try
 /**
   * A trait for types `T` that can be raised to a rational or integer power.
   *
-  * CONSIDER eliminating this trait.
+  * CONSIDER eliminating this trait. (#516)
   *
   * This trait provides methods for performing operations where values of type `T`
   * are raised to an exponent represented as a rational or integer. It is 

@@ -14,7 +14,7 @@ package com.phasmidsoftware.number.algebra.core
   */
 trait FuzzyEq[A]:
   def eqv(x: A, y: A, p: Double): Boolean
-// CONSIDER the following alternative signature:
+// CONSIDER the following alternative signature: (#515)
 //  def eqv(p: Double)(x: A, y: A): Boolean
 
 object FuzzyEq:

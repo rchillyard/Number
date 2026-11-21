@@ -30,7 +30,7 @@ import scala.util.{Failure, Success, Try}
   * Solutions are subject to various operations such as addition, scaling, and number conversions.
   * Extends the `NumberLike` trait, inheriting behavior common to number-like entities.
   *
-  * CONSIDER why is there so much dependence on the core module here? We shouldn't need that at all!
+  * CONSIDER why is there so much dependence on the core module here? We shouldn't need that at all! (#521)
   */
 sealed trait Algebraic extends Solution with Unitary with Scalable[Algebraic] {
   /**
@@ -76,7 +76,7 @@ sealed trait Algebraic extends Solution with Unitary with Scalable[Algebraic] {
     * If the base value of the solution is zero, it returns `Some(representation)`.
     * Otherwise, it returns `None`.
     *
-    * CONSIDER invoke `normalize` and then apply `maybeRep` to the result.
+    * CONSIDER invoke `normalize` and then apply `maybeRep` to the result. (#522)
     *
     * @return an `Option` of type `Representation`, where `Some` may contain the representation
     *         depending on the conditions, or `None` if no representation is applicable
@@ -271,7 +271,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
 
   /**
     * Method to render this NumberLike in a presentable manner.
-    * CONSIDER improve this in the event that offset itself is negative (as opposed to imaginary).
+    * CONSIDER improve this in the event that offset itself is negative (as opposed to imaginary). (#523)
     * However, that scenario is unlikely, I believe.
     *
     * @return a String
@@ -283,7 +283,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
       val offStr = if (offset.isZero || coefficient == 0) "" else s"${offset.render}"
       s"(${base.render} ${if (coefficient == 1) "+ " else "- "}$offStr)"
     case _ =>
-      // TODO this is not correct in the cases where coefficient is not 1 or -1
+      // TODO this is not correct in the cases where coefficient is not 1 or -1 (#507)
       s"Complex quadratic solution: ${base.render} ${if (coefficient == -1) "- " else "+ "}${offset.render}"
   })
 
@@ -427,7 +427,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
     * the `offset`, `representation`, and `negative` properties of both solutions match the
     * specified conditions.
     *
-    * CONSIDER rewriting this method in the style of its cousins.
+    * CONSIDER rewriting this method in the style of its cousins. (#524)
     *
     * @param solution the solution to be added to the current solution
     * @return an Option containing the resulting solution after the addition if the conditions are met, or None otherwise
@@ -452,7 +452,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
       Success(QuadraticSolution(basePart.asMonotone, offsetPart.asMonotone, 0, ix)(None))
     case (QuadraticSolution(bx: eager.Number, ox: Scalable[eager.Number] @unchecked, nx, ix), y: eager.Number) =>
       Success(QuadraticSolution((bx + y).asMonotone, ox, nx, ix)(None))
-    // TODO add more cases (see commented code below)
+    // TODO add more cases (see commented code below) (#507)
       // Issue #147
     case _ =>
       Failure(AlgebraException(s"QuadraticSolution.add($solution)"))
@@ -466,7 +466,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
   def square: Eager = this * this
 
   def *(other: QuadraticSolution): Eager = (this, other) match {
-    // XXX Special case where both ox terms are SquareRoots
+    // ASIDE Special case where both ox terms are SquareRoots
     case (QuadraticSolution(bx: eager.Number, InversePower(2, px), nx, false), QuadraticSolution(by: eager.Number, InversePower(2, py), ny, false)) if px == py =>
       val rx = RationalNumber(nx)
       val ry = RationalNumber(ny)
@@ -488,11 +488,11 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
       throw AlgebraException(s"QuadraticSolution: $this*$other not supported")
   }
 
-  // TODO this needs more work and testing.
+  // TODO this needs more work and testing. (#507)
   def multiply(solution: Algebraic): Option[Eager] = (this, solution) match {
     case (x: QuadraticSolution, y: QuadraticSolution) =>
       Some(x * y)
-    // CONSIDER add more cases
+    // CONSIDER add more cases (#507)
     case _ =>
       None
   }
@@ -534,7 +534,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
 
   /**
     * Scales the current solution by a given rational number.
-    * CONSIDER do we really need both `*` and `scale`?
+    * CONSIDER do we really need both `*` and `scale`? (#525)
     *
     * @param r The rational number by which to scale the current solution.
     * @return A new scaled solution.
@@ -560,7 +560,7 @@ case class QuadraticSolution(base: Structure, offset: Structure, coefficient: In
       Success(a.base === b && a.offset.isZero)
     case (a: QuadraticSolution, b: eager.InversePower) =>
       Success(a.offset === b && a.base.isZero)
-    // TODO we need the inverses of these cases implemented.
+    // TODO we need the inverses of these cases implemented. (#507)
     case _ =>
       super.eqv(that)
   }
@@ -649,7 +649,7 @@ object QuadraticSolution {
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
-  // CONSIDER do we need this?
+  // CONSIDER do we need this? (#502)
   given DyadicOperator[QuadraticSolution] = new DyadicOperator[QuadraticSolution] {
     def op[B <: QuadraticSolution, Z](f: (QuadraticSolution, B) => Try[Z])(x: QuadraticSolution, y: B): Try[Z] =
       f(x, y)
@@ -708,7 +708,7 @@ object QuadraticSolution {
   * Represents a linear solution characterized by a single `value`.
   * Implements the `Algebraic` trait where the `base` is equal to the `value`,
   * the `offset` is `Value.zero`, and the `representation` is `PureNumber`.
-  * CONSIDER we should not have to deal with `offset, representation, negative` attributes here.
+  * CONSIDER we should not have to deal with `offset, representation, negative` attributes here. (#526)
   *
   * @param value the base value of the solution
   */
@@ -731,7 +731,7 @@ case class LinearSolution(value: Structure)(val maybeName: Option[String] = None
     *
     * @return a new `Solution` instance representing the conjugate of the current instance
     */
-  def conjugate: Solution = this // CONSIDER throwing an exception instead.
+  def conjugate: Solution = this // CONSIDER throwing an exception instead. (#527)
 
   /**
     * Normalizes the current instance of `LinearSolution` to its simplest equivalent form.
@@ -782,7 +782,7 @@ case class LinearSolution(value: Structure)(val maybeName: Option[String] = None
 
   /**
     * Scales the current `Solution` instance by a given `Rational` factor.
-    * CONSIDER this could be merged with the method whose name is the asterisk.
+    * CONSIDER this could be merged with the method whose name is the asterisk. (#528)
     *
     * The scaling operation adjusts the `Solution` based on the value of the provided
     * `Rational` parameter, resulting in a new `Solution` instance that reflects
@@ -849,7 +849,7 @@ case class LinearSolution(value: Structure)(val maybeName: Option[String] = None
     * Adds the specified solution to the current solution and returns
     * a new solution that represents the result of the addition.
     *
-    * TODO implement me
+    * TODO implement me (#507)
     *
     * @param addend the Eager to be added to the current solution
     * @return an optional solution representing the sum of the current solution
@@ -996,7 +996,7 @@ object LinearSolution {
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
-  // CONSIDER do we need this?
+  // CONSIDER do we need this? (#502)
   given DyadicOperator[LinearSolution] = new DyadicOperator[LinearSolution] {
     def op[B <: LinearSolution, Z](f: (LinearSolution, B) => Try[Z])(x: LinearSolution, y: B): Try[Z] =
       f(x, y)

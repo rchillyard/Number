@@ -33,7 +33,7 @@ trait Scalar extends Structure {
     * Compares this `Scalar` with another `Scalar` for exact equivalence.
     * This method checks if both instances can be compared exactly.
     *
-    * CONSIDER moving this up into Structure and having `that` be a `Structure`
+    * CONSIDER moving this up into Structure and having `that` be a `Structure` (#504)
     *
     * @param that the `Scalar` instance to compare against
     * @return an `Option[Int]` value:
@@ -73,7 +73,7 @@ trait Scalar extends Structure {
 
   /**
     * Scales the current scalar instance by the specified rational factor.
-    * TODO eliminate this method and replace it with * (below).
+    * TODO eliminate this method and replace it with * (below). (#569)
     *
     * @param r the `Rational` factor by which to scale the scalar
     * @return a new `Scalar` instance representing the scaled value
@@ -90,7 +90,7 @@ trait Scalar extends Structure {
 
   /**
     * Returns a new instance of `Structure` that is the negation of the current instance.
-    * CONSIDER sorting out the use of CanNegate so that we can extend that for Structure.
+    * CONSIDER sorting out the use of CanNegate so that we can extend that for Structure. (#497)
     *
     * @return a `Structure` representing the negation of this instance
     */
@@ -162,9 +162,9 @@ trait Scalar extends Structure {
       FP.recover(for (p <- a.convert(Real.zero); q <- b.convert(Real.zero)) yield p.multiply(q))(AlgebraException(s"multiplyScalars: unable to convert Angles $a and $b to Real"))
     // Cross-type operations - dimensionless scaling
     case (n: Number, a: Angle) =>
-      a.multiply(n) // TODO remove this as it only returns a Failure
+      a.multiply(n) // TODO remove this as it only returns a Failure (#505)
     case (a: Angle, n: Number) =>
-      a.multiply(n) // TODO remove this as it only returns a Failure
+      a.multiply(n) // TODO remove this as it only returns a Failure (#505)
 
     case _ =>
       Failure(Exception(s"Cannot multiply $x and $y"))
@@ -204,7 +204,7 @@ object Scalar {
     * Converts the number into an appropriate scalar representation,
     * either exact or fuzzy, depending on the properties of the input.
     *
-    * CONSIDER moving this up into Structure.
+    * CONSIDER moving this up into Structure. (#504)
     *
     * @param x the `core.Number` to be converted into a `Scalar`.
     *          It can be an `ExactNumber` or a `FuzzyNumber`, each with specific
@@ -273,7 +273,7 @@ object Scalar {
     * the appropriate numerical representation (e.g., `WholeNumber`, `Real`, `RationalNumber`)
     * and associates it with the provided representation (e.g., `PureNumber`, `Radian`).
     *
-    * CONSIDER this should return a Scalar. Alternatively, it shoul be moved to Structure and renamed to createStructure.
+    * CONSIDER this should return a Scalar. Alternatively, it shoul be moved to Structure and renamed to createStructure. (#570)
     *
     * @param value  the numerical value, which can either be a right value for exact numbers
     *               (e.g., integers, floating-point values) or a left value for rational
@@ -315,7 +315,7 @@ object Scalar {
             throw AlgebraException(s"Scalar.createScalar: unsupported inverse power $representation")
         }
       case _ =>
-        // TODO implement other representations (%, and degrees)
+        // TODO implement other representations (%, and degrees) (#571)
         throw AlgebraException(s"Scalar.createScalar: unsupported representation $representation")
     }
   }
@@ -351,7 +351,7 @@ case object NoScalar extends Scalar with Exact {
     * Compares this `Scalar` with another `Scalar` for exact equivalence.
     * This method checks if both instances can be compared exactly.
     *
-    * CONSIDER moving this up into Structure and having `that` be a `Structure`
+    * CONSIDER moving this up into Structure and having `that` be a `Structure` (#504)
     *
     * @param that the `Scalar` instance to compare against
     * @return an `Option[Int]` value:
@@ -440,7 +440,7 @@ case object NoScalar extends Scalar with Exact {
   /**
     * Determines whether this object is exact, i.e., is not any kind of approximation.
     *
-    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
+    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either. (#498)
     *
     * The method returns `true` if the value is represented exactly
     * in IEEE 754 format, or Two's complement _or_ the exact value must be represented symbolically.

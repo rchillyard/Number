@@ -27,7 +27,7 @@ import scala.util.{Success, Try}
   * Operations on natural numbers, such as addition and multiplication,
   * can be defined recursively via pattern matching.
   *
-  * CONSIDER increasing the use of the `asInt` value for better performance.
+  * CONSIDER increasing the use of the `asInt` value for better performance. (#554)
   * But note that doing that destroys the Peano aspect of this class (keep in mind that we also have WholeNumber).
   */
 sealed trait Nat extends Eager with N {
@@ -118,7 +118,7 @@ sealed trait Nat extends Eager with N {
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.
     *
-    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
+    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either. (#498)
     *
     * The method returns `true` if there is no approximate representation
     * available (i.e., `approximation` is `None`), indicating that the
@@ -145,7 +145,7 @@ sealed trait Nat extends Eager with N {
 
   /**
     * Converts the current instance to a Double representation.
-    * CONSIDER changing to maybeDouble returning Option[Double].
+    * CONSIDER changing to maybeDouble returning Option[Double]. (#499)
     *
     * @return the Double value corresponding to the current instance
     */
@@ -281,7 +281,7 @@ case class Succ(pred: Nat) extends Nat {
   /**
     * Converts this natural number into an integer.
     *
-    * We should CONSIDER making this either a BigInt or an Option[Long] or perhaps a SafeLong.
+    * We should CONSIDER making this either a BigInt or an Option[Long] or perhaps a SafeLong. (#555)
     *
     * @return the integer value corresponding to this natural number
     */
@@ -424,7 +424,7 @@ object Nat {
       }
 
       val ten = Nat(10)
-      // XXX if either `Nat` object is greater than ten (arbitrary),
+      // NOTE if either `Nat` object is greater than ten (arbitrary),
       //  then we use `Int` multiplication instead (for performance reasons)
       if compare(x, ten) > 0 || compare(y, ten) > 0 then
         Nat(x.toInt * y.toInt)

@@ -28,10 +28,10 @@ import scala.util.{Success, Try}
   *
   * NOTE do not invoke the constructor directory: all construction should go via the apply method(s) which will normalize as appropriate.
   *
-  * TODO there are problems with multiplication (class cast exception, for example).
+  * TODO there are problems with multiplication (class cast exception, for example). (#546)
   * Therefore, we should remove the `CanMultiplyAndDivide` mixin.
   *
-  * CONSIDER making this an (abstract?) class and having subclasses for square root and cube root.
+  * CONSIDER making this an (abstract?) class and having subclasses for square root and cube root. (#547)
   *
   * @param n      the degree of the root, specified as an integer
   * @param number the base `Number` value on which the root operation is defined
@@ -163,7 +163,7 @@ case class InversePower private(n: Int, number: Number)(val maybeName: Option[St
 
   /**
     * Returns a new instance of `Structure` that is the negation of the current instance.
-    * CONSIDER sorting out the use of CanNegate so that we can extend that for Structure.
+    * CONSIDER sorting out the use of CanNegate so that we can extend that for Structure. (#497)
     *
     * @return a `Structure` representing the negation of this instance
     * @note Throws an [[com.phasmidsoftware.number.algebra.util.AlgebraException]] if the negation operation is not defined for the current instance
@@ -225,7 +225,7 @@ case class InversePower private(n: Int, number: Number)(val maybeName: Option[St
       case fuzzy: WithFuzziness =>
         fuzzy.fuzz
       case _ =>
-        None // CONSIDER should this throw an exception?
+        None // CONSIDER should this throw an exception? (#548)
     }
 
   /**
@@ -240,7 +240,7 @@ case class InversePower private(n: Int, number: Number)(val maybeName: Option[St
     *         and `None` is returned if the comparison cannot be made
     */
   def compareExact(that: Structure): Option[Int] = that match {
-    case InversePower(m, x) if m == n => // TODO - there are other situations where the result should be Some(0) (see Representation class).
+    case InversePower(m, x) if m == n => // TODO - there are other situations where the result should be Some(0) (see Representation class). (#549)
       Some(number.compare(x))
     case _ =>
       None
@@ -286,7 +286,7 @@ case class InversePower private(n: Int, number: Number)(val maybeName: Option[St
     *         cannot be interpreted as a complex.
     */
   lazy val asComplex: Option[Complex] = this match {
-    // CONSIDER using IsSquareRoot here (but then x would have a different value).
+    // CONSIDER using IsSquareRoot here (but then x would have a different value). (#550)
     case InversePower(2, x) if x.signum > 0 =>
       numberToRealComplex(x)
     case HasImaginary(x: Number) =>
@@ -378,7 +378,7 @@ case class InversePower private(n: Int, number: Number)(val maybeName: Option[St
     *
     * @return true if this Structure object is exact in the context of No representation, else false.
     */
-  def isExact: Boolean = number.isExact // TODO there are some situations where a Root is actually exact.
+  def isExact: Boolean = number.isExact // TODO there are some situations where a Root is actually exact. (#551)
 
   /**
     * Converts this `Number` into its corresponding `Rational` representation, if possible.
@@ -451,7 +451,7 @@ case class InversePower private(n: Int, number: Number)(val maybeName: Option[St
       case (x: CanPower[Number] @unchecked, y: Z) =>
         val triedRational = y.toRational.power(Rational(n).invert).toOption
         triedRational.flatMap(r => x.pow(RationalNumber(r)))
-      // TODO need to match on types, not use isInstanceOf, etc.
+      // TODO need to match on types, not use isInstanceOf, etc. (#552)
       case _ =>
         throw AlgebraException(s"InversePower.doScale: cannot scale $this by $that")
     }
@@ -581,7 +581,7 @@ object InversePower {
 
   /**
     * Creates an instance of `InversePower` using the given parameters.
-    * TODO why is this showing it's recursive?
+    * TODO why is this showing it's recursive? (#553)
     *
     * @param n The exponent value to be used in the `InversePower` instance.
     * @param x The numeric value to be wrapped within the `WholeNumber` type and used in the `InversePower` instance.
@@ -595,7 +595,7 @@ object InversePower {
     * Computes the square root of a given number by creating an `InversePower`
     * instance where the exponent is set to 2.
     *
-    * TODO move this to Eager.
+    * TODO move this to Eager. (#503)
     *
     * @param x The number for which the square root is to be computed.
     * @return An instance of `InversePower` representing the square root of the input number.
@@ -616,7 +616,7 @@ object InversePower {
     * Computes the cube root of a given number by creating an `InversePower` instance where
     * the exponent is set to 3.
     *
-    * TODO move this to Eager.
+    * TODO move this to Eager. (#503)
     *
     * @param x The number for which the cube root is to be computed.
     * @return An instance of `InversePower` representing the cube root of the input number.

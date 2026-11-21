@@ -54,7 +54,7 @@ class AngleSpec extends AnyFlatSpec with Matchers with AssertionHelpers {
   }
 
   it should "test comparison" in {
-    // TODO implement test
+    // TODO implement test (#506)
   }
 
   it should "test compareExact" in {

@@ -21,7 +21,7 @@ import scala.reflect.ClassTag
   * The operations are designed to work within the context of an `AdditiveCommutativeMonoid`, ensuring
   * that the defined addition operations respect the algebraic properties of associativity, commutativity, and identity.
   *
-  * CONSIDER could we do without the U type parameter.
+  * CONSIDER could we do without the U type parameter. (#509)
   *
   * Type Parameters:
   * - `T`: A type extending `Structure` that supports addition operations and satisfies the properties
@@ -41,8 +41,8 @@ trait CanAdd[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
   /**
     * Adds the given instance of the same type to this instance, leveraging the properties
     * of an `AdditiveCommutativeMonoid` to ensure associativity, commutativity, and identity.
-    * CONSIDER keeping percentage if both are percentages.
-    * CONSIDER rewriting this in such a way that no exception will ever be thrown (use compiler to check, not runtime).
+    * CONSIDER keeping percentage if both are percentages. (#510)
+    * CONSIDER rewriting this in such a way that no exception will ever be thrown (use compiler to check, not runtime). (#511)
     *
     * @param that The instance of the same type to be added to this instance.
     * @return The result of adding this instance and the provided instance.
@@ -56,7 +56,7 @@ trait CanAdd[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
     * of an `AdditiveCommutativeMonoid`. The operation returns an optional result where the addition
     * succeeds if a valid transformation and combination can be performed.
     *
-    * CONSIDER eliminate this method and use with + instead.
+    * CONSIDER eliminate this method and use with + instead. (#512)
     *
     * @param that the `Structure` object to be added to this object.
     * @return an `Option` containing the result of the addition if successful, or `None` if the operation
@@ -162,7 +162,7 @@ trait CanMultiply[T <: Structure : ClassTag, U <: Structure] extends Can[T] {
 
   /**
     * Retrieves an implicit instance of `MultiplicativeMonoid[T]` from the given context.
-    * CONSIDER whether this is exactly the correct type to use.
+    * CONSIDER whether this is exactly the correct type to use. (#500)
     * It needs to support all required properties and it must be a superclass of `CommutativeRing`.
     *
     * @param using an implicit parameter of type `MultiplicativeMonoid[T]`, representing the context
@@ -209,7 +209,7 @@ trait CanMultiplyAndDivide[T <: Structure : ClassTag] extends CanMultiply[T, T] 
 
   /**
     * Returns the implicit `MultiplicativeGroup[T]` for the type `T`.
-    * CONSIDER whether this is exactly the correct type to use.
+    * CONSIDER whether this is exactly the correct type to use. (#500)
     *
     * @param using an implicit parameter that provides evidence that `T` has a `MultiplicativeGroup` structure
     * @return the `MultiplicativeGroup[T]` instance for type `T`
@@ -255,7 +255,7 @@ trait Scalable[T <: Scalable[T]] {
 /**
   * Represents a type class for performing power operations on instances of type `T`.
   *
-  * CONSIDER two parametric types
+  * CONSIDER two parametric types (#513)
   *
   * This trait defines the behavior for raising an instance of `T` to a power
   * specified by a `Scalar`. Implementations of this trait are responsible for
@@ -284,7 +284,7 @@ trait CanPower[T] {
 /**
   * Trait `CanNormalize` provides a mechanism to normalize instances of type `T`.
   *
-  * TODO merge this with Normalizable
+  * TODO merge this with Normalizable (#514)
   *
   * Normalization is a process of transforming an entity into a standard form, often employed in mathematical,
   * algebraic, or logical contexts to simplify representations or ensure a canonical structure.

@@ -59,10 +59,10 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
 
   /**
     * Returns the normalized representation of the current object.
-    * CONSIDER if we have an exact `Real`, and a value that corresponds precisely to an `Int`,
+    * CONSIDER if we have an exact `Real`, and a value that corresponds precisely to an `Int`, (#563)
     * maybe we should return a `WholeNumber` instead.
-    * XXX would use d == d.floor
-    * XXX let's not try it for rationals as well!
+    * ASIDE would use d == d.floor
+    * NOTE let's not try it for rationals as well!
     *
     * @return the normalized form of this object as a `Valuable` instance
     */
@@ -70,7 +70,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
 
   /**
     * Converts the current instance to a Double representation.
-    * CONSIDER changing to maybeDouble returning Option[Double].
+    * CONSIDER changing to maybeDouble returning Option[Double]. (#499)
     *
     * @return the Double value corresponding to the current instance
     */
@@ -287,7 +287,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
   lazy val render: String =
     maybeName getOrElse toFuzzyNumber(PureNumber).render
 
-  override lazy val show: String = // CONSIDER isn't this just the same as in supertype?
+  override lazy val show: String = // CONSIDER isn't this just the same as in supertype? (#564)
     maybeName getOrElse toFuzzyNumber(PureNumber).show
 
   override lazy val toString: String = {
@@ -328,7 +328,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     * to convert them to a compatible type with this scalar and computes the
     * result if the conversion is successful.
     *
-    * CONSIDER eliminating this method.
+    * CONSIDER eliminating this method. (#565)
     *
     * @param that the `Scalar` to be added to the current scalar
     * @return an `Option[Scalar]` containing the result of the addition,
@@ -445,7 +445,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
 
   /**
     * Scales the current `Real` instance by the mathematical constant π (pi).
-    * CONSIDER make this package private again
+    * CONSIDER make this package private again (#566)
     *
     * This method creates a new `Real` by multiplying the internal value of
     * the current instance with the constant π.
@@ -464,7 +464,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]])(val maybeName: O
     *         if the computation is successful
     */
   infix def power(r: Rational): Option[Real] = {
-    // TODO use pow instead
+    // TODO use pow instead (#567)
     val exp = r.toDouble
     Option.when(value >= 0 || Rational.toIntOption(r).isDefined)(
       Real(math.pow(value, exp), fuzz.map(Fuzziness.scaleTransform(exp)))()
@@ -846,7 +846,7 @@ object Real {
     * and the retrieval of constants (`zero` and `one`) for the `Real` type, thus
     * conforming to the requirements of the `Ring` algebraic structure.
     *
-    * CONSIDER extending Semiring instead (Claude feels that it would be appropriate for fuzzy numbers),
+    * CONSIDER extending Semiring instead (Claude feels that it would be appropriate for fuzzy numbers), (#568)
     * but I don't have a problem with the additive (or multiplicative) inverse.
     */
   implicit object realIsRing extends Ring[Real] with Ordering[Real] {
