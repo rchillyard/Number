@@ -312,7 +312,9 @@ object Expression {
     */
   given Show[Expression] = Show.show(_.materialize.render)
 
-  // TODO see ExpressionEq class which does handle all cases. But neither seems to be used in practice. (#399)
+  // TODO ExpressionEq.given also handles Aggregate commutatively, but nothing ever imports it,
+  // so this one wins throughout, including the `===` in BiFunction.operandsMatch. Decide which
+  // of the two to keep rather than leaving both (#399).
   given Eq[Expression] = (x: Expression, y: Expression) => (x, y) match {
     // Both are atomic - use default equality
     // TODO there are other case where we should return true, for example where one expression is a Literal and the other is a more specific NamedExpression (#399)
@@ -320,8 +322,9 @@ object Expression {
       a == b
 
     // Both are composite - compare structure
-    // TODO a BiFunction(a, b, Sum) is should be equal to a BiFunction(b, a, Sum) but this won't do it. (#399)
-    // ditto for Aggregate
+    // NOTE BiFunction does handle this: its own equals is symmetric when f.commutes, so
+    // BiFunction(a, b, Sum) == BiFunction(b, a, Sum) already. Aggregate does not, and
+    // reordering its terms gives an unequal expression unless it is simplified first (#399).
     case (a: CompositeExpression, b: CompositeExpression) =>
       a == b
 

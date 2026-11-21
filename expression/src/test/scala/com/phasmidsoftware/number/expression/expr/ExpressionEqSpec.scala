@@ -174,4 +174,35 @@ class ExpressionEqSpec extends AnyFlatSpec with Matchers {
     e1.mathEq(e2) shouldBe true
   }
 
+  behavior of "BiFunction equals/hashCode contract"
+
+  // NOTE equals is symmetric when f.commutes, so hashCode must be too, or hash-based
+  // collections disagree with equality. Small immutable Sets (Set1..Set4) compare with == and
+  // never consult hashCode, which hides this; distinct builds a hash set, so it does not (#612).
+  it should "give equal commutative BiFunctions equal hash codes" in {
+    val x = BiFunction(Literal(WholeNumber(3)), Literal(WholeNumber(5)), Sum)
+    val y = BiFunction(Literal(WholeNumber(5)), Literal(WholeNumber(3)), Sum)
+    x shouldBe y
+    x.hashCode shouldBe y.hashCode
+  }
+
+  it should "give equal commutative Product BiFunctions equal hash codes" in {
+    val x = BiFunction(Literal(WholeNumber(3)), Literal(WholeNumber(5)), Product)
+    val y = BiFunction(Literal(WholeNumber(5)), Literal(WholeNumber(3)), Product)
+    x shouldBe y
+    x.hashCode shouldBe y.hashCode
+  }
+
+  it should "deduplicate reordered commutative BiFunctions" in {
+    val x = BiFunction(Literal(WholeNumber(3)), Literal(WholeNumber(5)), Sum)
+    val y = BiFunction(Literal(WholeNumber(5)), Literal(WholeNumber(3)), Sum)
+    List(x, y).distinct.size shouldBe 1
+  }
+
+  it should "still distinguish reordered non-commutative BiFunctions" in {
+    val x = BiFunction(Literal(WholeNumber(2)), Literal(WholeNumber(3)), Power)
+    val y = BiFunction(Literal(WholeNumber(3)), Literal(WholeNumber(2)), Power)
+    x should not be y
+    List(x, y).distinct.size shouldBe 2
+  }
 }
