@@ -225,7 +225,7 @@ object FP {
 
   /**
     * Method to convert an `Option` into a `Try` where the default is an exception, i.e., a `Throwable`.
-    * TODO split parameter set into two.
+    * TODO split parameter set into two. (#296)
     *
     * @param xo      an `Option[X]`.
     * @param default a `Throwable`.
@@ -377,14 +377,14 @@ object FP {
   def toOption[X](xy: Try[X]): Option[X] = xy match {
     case Success(x) => Some(x)
     case Failure(x) =>
-      System.err.println(s"FP.toOption: $x") // TODO log this error
+      System.err.println(s"FP.toOption: $x") // TODO log this error (#297)
       None
   }
 
   /**
     * Computes the power of a given number by raising it to the specified exponent.
     *
-    * CONSIDER moving this somewhere else more aligned to Numeric ops
+    * CONSIDER moving this somewhere else more aligned to Numeric ops (#298)
     *
     * @param x the base number
     * @param n the exponent to which the base number is raised

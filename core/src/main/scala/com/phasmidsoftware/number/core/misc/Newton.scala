@@ -8,7 +8,7 @@ import scala.util._
   * [[https://en.wikipedia.org/wiki/Newton%27s_method]].
   * Newton-Raphson is a special case of Householder's more general method
   * [[https://en.wikipedia.org/wiki/Householder%27s_method]].
-  * CONSIDER implementing Halley's method [[https://en.wikipedia.org/wiki/Halley%27s_method]].
+  * CONSIDER implementing Halley's method [[https://en.wikipedia.org/wiki/Halley%27s_method]]. (#306)
   *
   * @constructor Creates a new Newton solver with the given function and its derivative.
   * @param f      The function whose root is to be found.
@@ -54,7 +54,7 @@ case class Newton(f: Double => Double, dfByDx: Double => Double) {
       else if (n == 0) Failure(new Exception(s"failed to converge after $tries tries"))
       else step(r, y) match {
         case Some(x) => inner(x, n - 1)
-        case None => Success(r) // CONSIDER failing this case
+        case None => Success(r) // CONSIDER failing this case (#307)
       }
     }
 

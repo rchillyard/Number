@@ -355,7 +355,7 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     Prime(29).reciprocalPeriod shouldBe Some(28)
     Prime(31).reciprocalPeriod shouldBe Some(15)
     Prime(37).reciprocalPeriod shouldBe Some(3)
-    Prime(541).reciprocalPeriod shouldBe None // CONSIDER we should get the correct number for this
+    Prime(541).reciprocalPeriod shouldBe None // CONSIDER we should get the correct number for this (#387)
     Prime(1).reciprocalPeriod shouldBe None
   }
   it should "PrimeFactor" in {

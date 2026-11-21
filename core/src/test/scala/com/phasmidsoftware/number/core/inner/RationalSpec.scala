@@ -339,7 +339,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   behavior of "division"
   it should "work for 6 / 10 / 3" in {
     import Rational.RationalOps
-    // CONSIDER why do we have to use parentheses here?
+    // CONSIDER why do we have to use parentheses here? (#378)
     val r: Rational = (6 :/ 10) / 3
     r shouldBe Rational(5).invert
   }
@@ -643,7 +643,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "work for negative Infinity" in {
     Rational.infinity.negate.toString shouldBe "-1/0"
   }
-  // XXX this is the diagnostic for Issue #70
+  // NOTE this is the diagnostic for Issue #70
   it should "work for gamma" in {
     val n = BigInt("57721566490153286060651209008240243104215933593992")
     val d = bigTen.pow(50)
@@ -686,12 +686,12 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "work for negative Infinity" in {
     Rational.infinity.negate.render shouldBe "-∞"
   }
-// XXX this is the diagnostic for Issue #70
+// NOTE this is the diagnostic for Issue #70
   it should "work for gamma" in {
     val n = BigInt("57721566490153286060651209008240243104215933593992")
     val d = bigTen.pow(50)
     val r = Rational(n, d)
-    // XXX why doesn't this end in a 2?
+    // ASIDE why doesn't this end in a 2?
     r.render shouldBe "0.5772156649015328606065120900824024310421593359399"
   }
   it should "work for various prime denominators" in {
@@ -1137,7 +1137,7 @@ class RationalSpec extends flatspec.AnyFlatSpec with should.Matchers with Privat
   it should "invert 37 and render as ..." in {
     Rational(37).invert.renderExact shouldBe "0.<027>"
   }
-  // XXX FIXED Issue #184
+  // NOTE FIXED Issue #184
   it should "invert 137 and render as 0.<00729927>" in {
     Rational(137).invert.render shouldBe "0.<00729927>"
     Rational(137).invert.findRepeatingSequence shouldBe Success("0.<00729927>")

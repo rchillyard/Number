@@ -5,7 +5,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
 /**
-  * CONSIDER moving this to an integration testing directory since it is a bit slow.
+  * CONSIDER moving this to an integration testing directory since it is a bit slow. (#243)
   */
 class PrimesSpec extends AnyFlatSpec with should.Matchers {
 

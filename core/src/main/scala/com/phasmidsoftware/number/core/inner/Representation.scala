@@ -21,7 +21,7 @@ import scala.util.*
   *
   * NOTE this trait was called Factor before version 1.11.0 (Factor is now a deprecated alias).
   *
-  * CONSIDER defining an imaginary (or Complex) subclass of Representation.
+  * CONSIDER defining an imaginary (or Complex) subclass of Representation. (#232)
   *
   * This trait serves as a foundation for different kinds of representations and provides functionality such as:
   * - Determining whether the representation is additive.
@@ -32,7 +32,7 @@ import scala.util.*
 sealed trait Representation {
   /**
     * A value which can be used to convert a value associated with this Representation to a different Representation.
-    * CONSIDER redefining this as a Number (which could be exact or fuzzy).
+    * CONSIDER redefining this as a Number (which could be exact or fuzzy). (#229)
     */
   val value: Double
 
@@ -45,7 +45,7 @@ sealed trait Representation {
 
   /**
     * Determines whether the current representation can be augmented by the given representation.
-    * CONSIDER do we need this method now that we have add(x, y, this)?
+    * CONSIDER do we need this method now that we have add(x, y, this)? (#228)
     *
     * @param rep the representation to be checked for compatibility with addition.
     * @return true if the representations can be added; false otherwise.
@@ -55,7 +55,7 @@ sealed trait Representation {
 
   /**
     * Determines whether the current representation can be multiplied by the given representation.
-    * CONSIDER do we need this method now that we have multiply(x, y, this)?
+    * CONSIDER do we need this method now that we have multiply(x, y, this)? (#228)
     *
     * @param rep the representation to be checked for compatibility with multiplication.
     * @return true if the representations can be multiplied; false otherwise.
@@ -72,7 +72,7 @@ sealed trait Representation {
 
   /**
     * Determines whether `this` representation can be raised by the given representation `rep`.
-    * CONSIDER do we need this method now that we have raise(x, y, this)?
+    * CONSIDER do we need this method now that we have raise(x, y, this)? (#228)
     *
     * @param rep the representation to be checked for compatibility with raising to a power.
     * @return true if the representations can be powered; false otherwise.
@@ -81,9 +81,9 @@ sealed trait Representation {
     case PureNumber =>
       true
     case Radian =>
-      this == PureNumber // XXX CHECK this
+      this == PureNumber // CONSIDER CHECK this (#389)
     case NatLog =>
-      this == PureNumber // XXX CHECK this
+      this == PureNumber // CONSIDER CHECK this (#389)
     case _ =>
       false
   }
@@ -91,7 +91,7 @@ sealed trait Representation {
   /**
     * Determines if the current representation operates additively.
     *
-    * CONSIDER rewriting in terms of canAdd
+    * CONSIDER rewriting in terms of canAdd (#230)
     *
     * @return true if the representation is additive; false otherwise.
     */
@@ -141,7 +141,7 @@ sealed trait Representation {
     */
   def render(v: String): String
 
-  // CONSIDER adding the following methods for exact arithmetic,
+  // CONSIDER adding the following methods for exact arithmetic, (#278)
   // or possibly with an additional member in the result defining any additional fuzz.
 
   /**
@@ -185,7 +185,7 @@ sealed trait Representation {
   /**
     * Raises x to the power of y and compute an appropriate representation for the result.
     * NOTE: for now, we only allow raising to a power of a PureNumber.
-    * TODO: enable powers of Radian representation.
+    * TODO: enable powers of Radian representation. (#231)
     *
     * @param x the first value
     * @param y the power
@@ -217,7 +217,7 @@ sealed trait Representation {
   def clean(po: Option[ProtoNumber]): Option[ProtoNumber] =
     po match {
       case Some(p@(v, f, zo)) =>
-        // XXX simplify root quantities
+        // ASIDE simplify root quantities
         f match {
           case AnyRoot(k) if k == Rational.one =>
             Some((v, PureNumber, zo))
@@ -309,7 +309,7 @@ sealed trait Scalar extends Representation {
   /**
     * Adds two values together, applying the specified representation, to compute a resultant value and representation.
     *
-    * TODO handle the negative cases properly
+    * TODO handle the negative cases properly (#231)
     *
     * @param x        the first value to be added
     * @param y        the second value (addend) to be added
@@ -372,7 +372,7 @@ sealed trait Logarithmic extends Representation {
   /**
     * Determines whether the current representation can be multiplied by the given representation.
     *
-    * TODO implement me properly
+    * TODO implement me properly (#231)
     *
     * @param rep the representation to be checked for compatibility with multiplication.
     * @return true if the representations can be multiplied; false otherwise.
@@ -451,7 +451,7 @@ sealed trait Logarithmic extends Representation {
 
   /**
     * Renders a string representation of the value based on the current base and the given input value.
-    * CONSIDER why do we have a second signature for render?
+    * CONSIDER why do we have a second signature for render? (#279)
     *
     * @param v the input value to be rendered, represented as a string
     * @return a string combining the base and the input value in a specific exponential format
@@ -488,7 +488,7 @@ sealed trait Logarithmic extends Representation {
 
   /**
     * Multiplies two values together and computes an appropriate representation for the result.
-    * TODO implement for Log10
+    * TODO implement for Log10 (#231)
     *
     * @param x the first value
     * @param y the multiplicand
@@ -930,7 +930,7 @@ abstract class NthRoot(val n: Int) extends InversePower {
   /**
     * Determines whether the current representation can be multiplied by the given representation.
     *
-    * TODO check the logic here
+    * TODO check the logic here (#231)
     *
     * @param rep the representation to be checked for compatibility with multiplication.
     * @return true if the representations can be multiplied; false otherwise.
@@ -964,7 +964,7 @@ object NthRoot {
   * A case object representing the pure number 1.
   * `PureNumber` extends the `Scalar` trait and behaves as a unit scalar representation.
   *
-  * CONSIDER expanding to include a DecimalNumber as well as a PureNumber (which logically should be represented in binary).
+  * CONSIDER expanding to include a DecimalNumber as well as a PureNumber (which logically should be represented in binary). (#232)
   * Just because we can represent something exactly in binary doesn't mean we can represent it in decimal (and vice versa).
   *
   * This object encapsulates the value of 1, providing a representation of a pure scalar.
@@ -1064,7 +1064,7 @@ case object PureNumber extends Scalar {
 case object Percent extends Scalar {
   /**
     * A value which can be used to convert a value associated with this Representation to a different Representation.
-    * CONSIDER redefining this as a Number (which could be exact or fuzzy).
+    * CONSIDER redefining this as a Number (which could be exact or fuzzy). (#229)
     */
   val value: Double = 0.01
 
@@ -1110,7 +1110,7 @@ case object Percent extends Scalar {
     * @return an optional tuple containing the resultant value and its representation
     */
   def multiply(x: Value, y: Value, rep: Representation): Option[(Value, Representation, Option[Fuzziness[Double]])] =
-    // CONSIDER clean this up
+    // CONSIDER clean this up (#280)
     rep match {
       case PureNumber =>
         clean(for {
@@ -1152,7 +1152,7 @@ case object Percent extends Scalar {
   * So, you could think of it as essentially a shorthand for writing both cosine and sine.
   * NOTE however that, unlike, with the representation NatLog, we currently do not treat Radian values in quite this way in the code.
   *
-  * CONSIDER implementing the Radian representation conversions in a manner similar to that of NatLog.
+  * CONSIDER implementing the Radian representation conversions in a manner similar to that of NatLog. (#281)
   * This would entail conversion from a single number to a pair of Doubles when going from Radian to PureNumber.
   * We could do that using a Complex number but I'd rather do it as a 2-tuple of Doubles.
   * Perhaps the whole idea of our Complex implementation is misguided (although it does allow us to represent
@@ -1179,7 +1179,7 @@ case object Radian extends Scalar {
     * Modulates the provided value using a monadic transformation defined by
     * a specific range and circularity settings.
     *
-    * TODO there are other places in the code where we use the MonadicOperationModulate more directly.
+    * TODO there are other places in the code where we use the MonadicOperationModulate more directly. (#282)
     * We should get those place to use this method.
     *
     * @param value the input value to be modulated.
@@ -1514,7 +1514,7 @@ case object SquareRoot extends NthRoot(2) {
   /**
     * Raises the value `x` to the power of the value `y`.
     *
-    * TODO move this up into NthRoot.
+    * TODO move this up into NthRoot. (#283)
     *
     * @param x the base value to be raised
     * @param y the exponent value (from a PureNumber)
@@ -1641,13 +1641,13 @@ case object CubeRoot extends NthRoot(3) {
 case class AnyRoot(inversePower: Rational) extends InversePower {
   /**
     * Determines whether the current representation can be multiplied by the given representation.
-    * CONSIDER do we need this method now that we have multiply(x, y, this)?
+    * CONSIDER do we need this method now that we have multiply(x, y, this)? (#228)
     *
     * @param rep the representation to be checked for compatibility with multiplication.
     * @return true if the representations can be multiplied; false otherwise.
     */
   def canMultiply(rep: Representation): Boolean =
-    false // TODO figure this out
+    false // TODO figure this out (#231)
 
   /**
     * Convert a value x from this representation to rep if possible, using the simplest possible mechanism.
@@ -1660,7 +1660,7 @@ case class AnyRoot(inversePower: Rational) extends InversePower {
     * @return an optional Value which, given representation rep, represents the same quantity as v given this.
     */
   def convert(v: Value, rep: Representation): Option[Value] =
-    None // TODO figure this out
+    None // TODO figure this out (#231)
 
   /**
     * Raises the value `x` to the power of the value `y`.
@@ -1705,7 +1705,7 @@ case class AnyRoot(inversePower: Rational) extends InversePower {
 case object Composite extends Representation {
   /**
     * A value which can be used to convert a value associated with this Representation to a different Representation.
-    * CONSIDER redefining this as a Number (which could be exact or fuzzy).
+    * CONSIDER redefining this as a Number (which could be exact or fuzzy). (#229)
     */
   val value: Double = 0
 
@@ -1718,7 +1718,7 @@ case object Composite extends Representation {
 
   /**
     * Determines whether the current representation can be multiplied by the given representation.
-    * CONSIDER do we need this method now that we have multiply(x, y, this)?
+    * CONSIDER do we need this method now that we have multiply(x, y, this)? (#228)
     *
     * @param rep the representation to be checked for compatibility with multiplication.
     * @return true if the representations can be multiplied; false otherwise.
@@ -1736,7 +1736,7 @@ case object Composite extends Representation {
   /**
     * Determines if the current representation operates additively.
     *
-    * CONSIDER rewriting in terms of canAdd
+    * CONSIDER rewriting in terms of canAdd (#230)
     *
     * @return true if the representation is additive; false otherwise.
     */
@@ -1969,18 +1969,18 @@ object Render {
     optionMap(v)(
       y => renderInt(y),
       x => optionMap(x)(
-        // XXX Render a Rational (not all Rationals can be rendered precisely in decimal format)
+        // NOTE Render a Rational (not all Rationals can be rendered precisely in decimal format)
         renderRationalMaybeNonExact(exact),
         renderDoubleOrNaN
       )
     ).getOrElse(("<undefined>", true))
 
   private val renderDoubleOrNaN: PartialFunction[Option[Double], Option[(String, Boolean)]] = {
-    // XXX Render a Double (all Doubles can be rendered precisely in decimal format)
+    // ASIDE Render a Double (all Doubles can be rendered precisely in decimal format)
     case Some(n) =>
       Some(renderDouble(n))
     case None =>
-      None // XXX NaN
+      None // ASIDE NaN
   }
 
   /**

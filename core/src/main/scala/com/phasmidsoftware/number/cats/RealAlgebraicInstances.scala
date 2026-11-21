@@ -61,7 +61,7 @@ trait RealAlgebraicInstances {
 
     /**
       * // Cannot pass the field law tests.
-      * //TODO: Uncomment this when we have a way to pass the field law tests.
+      * //TODO: Uncomment this when we have a way to pass the field law tests. (#245)
       *
       * implicit val realField: AlgebraField[Real] = new AlgebraField[Real] {
       * lazy val zero: Real = Constants.zero

@@ -15,7 +15,7 @@ import scala.util.Try
 /**
   * Sub-class of Field: as opposed to Complex.
   *
-  * TODO remove (direct) Number references and replace with Real.
+  * TODO remove (direct) Number references and replace with Real. (#371)
   *
   * @param x a Number which represents the value of this Real.
   */
@@ -361,7 +361,7 @@ case class Real(x: Number) extends Field {
   /**
     * Compares the current object with the specified object for equality.
     *
-    * CONSIDER eliminating this method as it is simply the default implementation.
+    * CONSIDER eliminating this method as it is simply the default implementation. (#372)
     *
     * @param obj the object to compare with the current object
     * @return true if the specified object is of type `Real` and its value matches the current object's value, false otherwise
@@ -508,7 +508,7 @@ object Real {
   /**
     * Implicit class to operate on Numbers introduced as integers.
     *
-    * CONSIDER generalizing this to inputs of Values (or Rationals, Doubles).
+    * CONSIDER generalizing this to inputs of Values (or Rationals, Doubles). (#238)
     *
     * @param x an Int to be treated as a Real.
     */
@@ -671,7 +671,7 @@ object Real {
   }
 
   /**
-    * CONSIDER inlining this method or making it private.
+    * CONSIDER inlining this method or making it private. (#237)
     *
     * @param x the first number.
     * @param y the second number.

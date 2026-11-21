@@ -36,7 +36,7 @@
 //    * Computes the nth Fibonacci number using algebraic expressions for phi (the golden ratio)
 //    * and psi, derived from Binet's formula. The calculation involves powers, subtraction,
 //    * and division of these expressions and produces a BigInt representation of the result.
-//    * CONSIDER refactoring to avoid repetition of exceptions.
+//    * CONSIDER refactoring to avoid repetition of exceptions. (#245)
 //    *
 //    * @param n the index of the Fibonacci sequence (must be a non-negative integer).
 //    * @return the nth Fibonacci number as a BigInt.
@@ -45,7 +45,7 @@
 //  def fib(n: Int): BigInt = {
 //    val expression = fibExpression(n)
 //    val errorMessage = s"fib($n) = ${((phi ∧ n) - (psi ∧ n)) / Constants.root5}"
-//    // CONSIDER should this be PureNumber or Scalar?
+//    // CONSIDER should this be PureNumber or Scalar? (#245)
 //    expression.materialize match {
 //      case Real(x) => x match {
 //        case ExactNumber(y, PureNumber) => maybeRational(y) match {

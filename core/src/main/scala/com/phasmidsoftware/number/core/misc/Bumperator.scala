@@ -18,7 +18,7 @@ import scala.annotation.tailrec
   * the following day with their former order reversed.
   * See [[https://en.wikipedia.org/wiki/Bumps_race Bumps race]]
   *
-  * TODO move this into `expression` module.
+  * TODO move this into `expression` module. (#289)
   *
   * @tparam T the type of each element in the iterator
   * @param xs an input iterator providing elements to iterate over

@@ -160,7 +160,7 @@ object Constants {
 
   /**
     * Represents the square root of 2 as a field constant.
-    * CONSIDER making this a Complex.
+    * CONSIDER making this a Complex. (#315)
     *
     * This value is particularly useful in mathematical computations where the
     * irrational constant √2 is required, expressed within the `Field` type system.

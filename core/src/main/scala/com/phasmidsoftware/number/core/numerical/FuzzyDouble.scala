@@ -12,7 +12,7 @@ import scala.language.implicitConversions
   * Fuzziness quantifies the margin of error or uncertainty associated with the value.
   * NOTE that this class has no obvious "raison d'etre."
   * It is structurally the same as `Real` in the algebra module, but missing a lot of functionality.
-  * CONSIDER eliminating this class.
+  * CONSIDER eliminating this class. (#326)
   *
   * @param x    The numeric value represented by this instance.
   * @param fuzz An optional fuzziness object that describes the level and type of uncertainty.
@@ -21,7 +21,7 @@ case class FuzzyDouble(x: Double, fuzz: Option[Fuzziness[Double]]) extends Fuzz[
   /**
     * Adds the provided fuzziness to the current `Fuzz[T]` and returns the resulting value.
     * This method may utilize the fuzziness parameter for calculations where applicable.
-    * TESTME
+    * TESTME (#327)
     *
     * @param f the fuzziness to add, represented as a Fuzziness[T].
     * @return a Number that represents the result of adding the provided fuzziness.
@@ -54,7 +54,7 @@ object FuzzyDouble {
 
     def toDouble(x: FuzzyDouble): Double = x.x
 
-    def compare(x: FuzzyDouble, y: FuzzyDouble): Int = // TEST
+    def compare(x: FuzzyDouble, y: FuzzyDouble): Int = // TEST (#328)
       val diff = plus(x, negate(y))
       val difference = math.abs(diff.x)
       if (diff.x < difference) 0 else diff.x.sign.toInt
@@ -62,7 +62,7 @@ object FuzzyDouble {
     def minus(x: FuzzyDouble, y: FuzzyDouble): FuzzyDouble =
       plus(x, negate(y))
 
-    def parseString(str: String): Option[FuzzyDouble] = // CONSIDER adding double-precision fuzziness
+    def parseString(str: String): Option[FuzzyDouble] = // CONSIDER adding double-precision fuzziness (#329)
       str.toDoubleOption map (x => FuzzyDouble(x, None))
   }
 

@@ -328,13 +328,13 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
   it should "toDouble" in {
     val maybeDouble = ConFrac.root19.toDouble(1E-6, Hurwitz)
     maybeDouble.nonEmpty shouldBe true
-    // TODO: find out why we don't get precision of 1E-6
+    // TODO: find out why we don't get precision of 1E-6 (#248)
     maybeDouble.get shouldBe root19 +- 1.0E-4
   }
 
   it should "implement toDouble(Double)" in {
     def checkValue(epsilon: Double): Unit = {
-      // TODO: find out why we need this divisor of 6
+      // TODO: find out why we need this divisor of 6 (#248)
       ConFrac.root19.toDouble(epsilon / 6, Hurwitz).foreach {
         x => math.abs(x - root19) should be < epsilon
       }
@@ -510,7 +510,7 @@ class ContinuedFractionSpec extends flatspec.AnyFlatSpec with should.Matchers {
 
   it should "implement toDouble(Double)" in {
     def checkValue(epsilon: Double): Unit = {
-      // TODO: find out why we need this divisor of 6
+      // TODO: find out why we need this divisor of 6 (#248)
       ContinuedFraction.root19.toDouble(epsilon / 6).foreach {
         x => math.abs(x - root19) should be < epsilon
       }

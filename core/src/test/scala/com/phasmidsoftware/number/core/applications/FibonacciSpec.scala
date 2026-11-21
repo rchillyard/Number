@@ -65,7 +65,7 @@
 //    bottom shouldBe BiFunction(phi, -psi, Sum)
 //    val materialized = bottom.materialize
 //    materialized should ===(Constants.root5)
-//    // TODO reinsert the following
+//    // TODO reinsert the following (#245)
 //    val fib2 = top / bottom
 //    val fib2M = fib2.materialize
 //    top match {
@@ -73,12 +73,12 @@
 //        val t1 = x / Constants.root5
 //        val t2 = y / Constants.root5
 //        val q = t1 `plus` t2
-//      // TODO restore the following
+//      // TODO restore the following (#245)
 //      //       q shouldBe Constants.one (really?  Doesn't seem like it)
 ////        q.materialize should ===(Constants.one)
 //    }
 //    fib2M should ===(Constants.one)
-//    // TODO restore the following
+//    // TODO restore the following (#245)
 //    //  fib2M shouldBe Constants.one
 //  }
 //  it should "psiFuzzy" in {
@@ -98,7 +98,7 @@
 //  }
 //  it should "fib" in {
 //    Fibonacci.fib(0) shouldBe BigInt(0)
-//    // TODO reinsert the following
+//    // TODO reinsert the following (#245)
 //
 //    //println(s"fib(1) = ${Fibonacci.fib(1)}")
 //    //println(s"Fibonacci.fibExpression(1).materialize = ${Fibonacci.fibExpression(1).materialize}")

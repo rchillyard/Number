@@ -32,7 +32,7 @@ trait CoreContext {
   /**
     * Checks if the given `Field` qualifies based on its associated representation, if any.
     *
-    * CONSIDER moving Field into inner package.
+    * CONSIDER moving Field into inner package. (#266)
     *
     * @param f the field to evaluate.
     * @return true if the field's associated representation qualifies, or if no representation is associated; false otherwise.
@@ -98,7 +98,7 @@ case class RestrictedContext(context: Representation) extends CoreContext {
   /**
     * Determines whether the given representation qualifies for this `Context`.
     *
-    * TODO this needs to be checked!
+    * TODO this needs to be checked! (#267)
     *
     * @param rep the representation.
     * @return true if the representation qualifies; false otherwise.

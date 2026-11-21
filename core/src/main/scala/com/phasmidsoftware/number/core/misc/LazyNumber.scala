@@ -25,7 +25,7 @@ abstract class LazyNumber[X: Fractional](x: => X, f: X => X) extends Valuable[X]
 
   lazy val get: X = f(x)
 
-  // XXX Could we use CanBuildFrom/Builder here?
+  // CONSIDER Could we use CanBuildFrom/Builder here? (#390)
   def construct(x: => X, f: X => X): LazyNumber[X]
 
   def unit(x: => X): LazyNumber[X] = construct(x, identity)
@@ -101,7 +101,7 @@ object LazyNumber {
 }
 
 case class LazyRational(x: Rational, f: Rational => Rational) extends LazyNumber[Rational](x, f) {
-  // XXX why is Codacy complaining about this? Ignore it.
+  // NOTE why is Codacy complaining about this? Ignore it.
   def construct(x: => Rational, f: Rational => Rational): LazyNumber[Rational] = LazyRational(x, f)
 
   def fromInt(x: Int): LazyRational = LazyRational(x)

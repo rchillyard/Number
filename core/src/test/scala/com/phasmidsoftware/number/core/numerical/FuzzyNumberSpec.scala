@@ -464,16 +464,16 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
     z.probabilityOfZero shouldBe Some(1.0)
     z.thresholdConfidence.isDefined shouldBe true
     z.thresholdConfidence.get shouldBe 0.8921 +- 0.001
-    z.isProbablyZero(0) shouldBe true // XXX we won't have any confidence in this result
-    z.isProbablyZero(1) shouldBe false // XXX we wanted certainty and we don't get it!
-    z.isProbablyZero(0.1) shouldBe true // XXX this is just within the thresholdConfidence so it is true.
-    z.isProbablyZero(0.875) shouldBe false // XXX this is way outside the thresholdConfidence and so is false.
+    z.isProbablyZero(0) shouldBe true // NOTE we won't have any confidence in this result
+    z.isProbablyZero(1) shouldBe false // NOTE we wanted certainty and we don't get it!
+    z.isProbablyZero(0.1) shouldBe true // NOTE this is just within the thresholdConfidence so it is true.
+    z.isProbablyZero(0.875) shouldBe false // NOTE this is way outside the thresholdConfidence and so is false.
   }
 
   behavior of "make(Fuzziness)"
   it should "work" in {
     val fuzz = RelativeFuzz(1E-15, Box)
-    // TODO do this through pattern matching
+    // TODO do this through pattern matching (#244)
     val n: FuzzyNumber = FuzzyNumber(Value.fromInt(1), PureNumber, None).addFuzz(fuzz).asInstanceOf[FuzzyNumber]
     val op = MonadicOperationExp
     val r: Option[Value] = Operations.doTransformValueMonadic(n.nominalValue)(op.functions)
@@ -609,7 +609,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with should.Matchers {
 //    val gField: Field = g.materialize
 //    val fuzzyNumber = gField.asNumber.get
 //    fuzzyNumber.nominalValue shouldBe Left(Left(Some(9.820393077205809)))
-//    // XXX Why is the fuzz absolute?
+//    // ASIDE Why is the fuzz absolute?
 //    fuzzyNumber.fuzz should matchPattern { case Some(AbsoluteFuzz(5.386947749921274, Gaussian)) => }
 //  }
 }

@@ -123,7 +123,7 @@ object ContinuedFraction {
   /**
     * Construct a ContinuedFraction based on a function.
     *
-    * CONSIDER changing the f to be Int => Pair.
+    * CONSIDER changing the f to be Int => Pair. (#290)
     *
     * @param f        a function which yields a `LazyList` of `Pairs`.
     * @param infinite true if xs is infinite (defaults to true).
@@ -558,7 +558,7 @@ object ConFrac {
   /**
     * Method to measure the Hurwitz factor.
     *
-    * CONSIDER factoring the markov constant into the epsilon so that we could eliminate one parameter.
+    * CONSIDER factoring the markov constant into the epsilon so that we could eliminate one parameter. (#291)
     *
     * @param epsilon the allowable error (must be positive).
     * @param markov  the Markov constant to be considered.
@@ -569,7 +569,7 @@ object ConFrac {
     1.0 / r.d.toDouble / r.d.toDouble / markov > epsilon
 
   /**
-    * CONSIDER most if not all of the following definitions should be in the Spec file (they are duplicated in ContinuousFraction).
+    * CONSIDER most if not all of the following definitions should be in the Spec file (they are duplicated in ContinuousFraction). (#292)
     */
 //  private val lFib: LazyList[Long] =
 //    1L #:: lFib.scanLeft(1L)(_ + _)
@@ -672,7 +672,7 @@ object ConFrac {
 /**
   * Scaled ConFrac.  The "value" of the ConFrac is "divided" by a.
   *
-  * CONSIDER making CF a trait.
+  * CONSIDER making CF a trait. (#293)
   *
   * @param a the coefficient to apply to c`.
   * @param c a `ConFrac`.
@@ -686,7 +686,7 @@ case class CF(a: Long, c: ConFrac) {
   * The a value is always 1 in the case of a simple Continued Fraction.
   * The b value is always positive (except for the b which precedes a Continue Fraction, which may be negative).
   *
-  * CONSIDER representing this by a Rational. However, these coefficients are really independent entities.
+  * CONSIDER representing this by a Rational. However, these coefficients are really independent entities. (#294)
   *
   * @param b the `b` value.
   * @param a the `a` value.
@@ -763,7 +763,7 @@ trait Evaluatable {
     * Evaluate this Evaluatable object as a Double such that the absolute error between the true value and the result
     * * is less than epsilon.
     *
-    * CONSIDER removing the markov parameter.
+    * CONSIDER removing the markov parameter. (#295)
     *
     * @param epsilon the maximum allowable error.
     * @param markov  the Markov constant for this Evaluatable.

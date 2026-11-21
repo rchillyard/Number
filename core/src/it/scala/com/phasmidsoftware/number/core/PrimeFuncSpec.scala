@@ -10,7 +10,7 @@ class PrimeFuncSpec extends AnyFlatSpec with should.Matchers {
   behavior of "Prime"
 
 
-  // CONSIDER removing parentheses (but I think CircleCI requires them).
+  // CONSIDER removing parentheses (but I think CircleCI requires them). (#261)
   it should "check for Mersenne primes" taggedAs Slow in {
     createMersennePrime(0).isDefined shouldBe true
     createMersennePrime(1).isDefined shouldBe true

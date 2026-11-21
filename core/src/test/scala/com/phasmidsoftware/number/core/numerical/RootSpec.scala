@@ -70,7 +70,7 @@
 //    materialized.render.substring(0, 16) shouldBe sPhi.substring(0, 16)
 //  }
 //  it should "evaluateAsIs" in {
-//    // CONSIDER redefining evaluateAsIs so that it does not approximate
+//    // CONSIDER redefining evaluateAsIs so that it does not approximate (#245)
 //    phi.evaluateAsIs.get should ===(Real(sPhi))
 ////    phi.evaluateAsIs shouldBe None
 //  }

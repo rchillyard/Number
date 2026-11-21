@@ -82,7 +82,7 @@ class ConstantsSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality 
   it should "have planck" in {
     val target = Constants.planck
     target.isExact shouldBe true
-    // TODO find out why we have to put the following in quotes (compare with avagadro above).
+    // TODO find out why we have to put the following in quotes (compare with avagadro above). (#383)
     target shouldBe Real("6.6260701500E-34")
     target.render shouldBe "6.62607015E-34"
   }

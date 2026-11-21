@@ -19,7 +19,7 @@ import scala.util.*
   * The types are: Int, BigInt, Rational, Double.
   * The representations are: Scalar, Logarithmic, and NthRoot (with various subtypes).
   *
-  * TODO continue refactoring to merge similar methods, particularly in GeneralNumber and FuzzyNumber.
+  * TODO continue refactoring to merge similar methods, particularly in GeneralNumber and FuzzyNumber. (#251)
   *
   * @param nominalValue the nominalValue of the Number, expressed as a nested Either type.
   * @param rep          the representation of the Number: valid representations are: PureNumber, Radian, and NatLog.
@@ -106,7 +106,7 @@ abstract class GeneralNumber(val nominalValue: Value, val rep: Representation, v
     * Method to get the nominalValue of this Number as an (optional) BigDecimal.
     * This will return Some(x) only if this is an Int, or a Rational with unit denominator.
     *
-    * TESTME
+    * TESTME (#336)
     *
     * @return an Option of BigDecimal.
     */
@@ -131,7 +131,7 @@ abstract class GeneralNumber(val nominalValue: Value, val rep: Representation, v
     * Method to determine if this Number is positive.
     * Use case: does the String representation not start with a "-"?
     *
-    * CONSIDER evaluating toString instead.
+    * CONSIDER evaluating toString instead. (#233)
     *
     * @return true if this Number is greater than or equal to 0.
     */
@@ -334,7 +334,7 @@ abstract class GeneralNumber(val nominalValue: Value, val rep: Representation, v
   /**
     * Evaluate a monadic operator on this.
     *
-    * CONSIDER the exact cases don't change the fuzziness at all.
+    * CONSIDER the exact cases don't change the fuzziness at all. (#337)
     * But, if there is already fuzziness, then the monadic function should change it.
     *
     * @param rep the representation to apply to the result.
@@ -439,7 +439,7 @@ abstract class GeneralNumber(val nominalValue: Value, val rep: Representation, v
     * Only the value and representation will change.
     * This method should be followed by a call to specialize.
     *
-    * TESTME
+    * TESTME (#338)
     *
     * @param x the value (a Double).
     * @param rep Representation.
@@ -503,10 +503,10 @@ abstract class GeneralNumber(val nominalValue: Value, val rep: Representation, v
     */
   //protected
   lazy val specialize: Number = nominalValue match {
-    // XXX Int case
+    // ASIDE Int case
     case Right(_) =>
       this
-    // XXX Rational cases
+    // ASIDE Rational cases
     case Left(Right(Rational(x, Rational.bigOne))) =>
       make(x)
     case Left(Right(_)) =>
@@ -515,15 +515,15 @@ abstract class GeneralNumber(val nominalValue: Value, val rep: Representation, v
       Number.NaN
     case Left(Left(Some(x))) if x.isInfinity =>
       Number.Infinity
-    // XXX Double case
+    // ASIDE Double case
     case d@Left(Left(Some(x))) =>
       // NOTE: here we attempt to deal with Doubles.
       // If a double can be represented by a BigDecimal with scale 0, 1, or 2 then we treat it as exact.
       // Otherwise, we will give it appropriate fuzziness.
       // In general, if you wish to have more control over this, then define your input using a String.
-      // CONSIDER will this handle numbers correctly which are not close to 1?
+      // CONSIDER will this handle numbers correctly which are not close to 1? (#339)
       createNumberFromDouble(d, x)
-    // XXX Invalid case
+    // ASIDE Invalid case
     case _ =>
       this
   }
@@ -576,7 +576,7 @@ abstract class GeneralNumber(val nominalValue: Value, val rep: Representation, v
   /**
     * Method to align the types of this and x such that the resulting Numbers (in the tuple) each have the same structure.
     *
-    * CONSIDER renaming this alignValueTypes
+    * CONSIDER renaming this alignValueTypes (#340)
     *
     * @param q the Number to be aligned with this.
     * @return a tuple of two Numbers, the first of which will be the more general type:
@@ -586,38 +586,38 @@ abstract class GeneralNumber(val nominalValue: Value, val rep: Representation, v
   def alignTypes(q: Number): (Number, Number) = q match {
     case x: GeneralNumber =>
       nominalValue match {
-        // XXX this is an invalid Number: return a pair of invalid numbers
+        // ASIDE this is an invalid Number: return a pair of invalid numbers
         case Left(Left(None)) =>
           (this, this)
-        // XXX this nominalValue is a real Number: convert x to a Number based on real.
+        // ASIDE this nominalValue is a real Number: convert x to a Number based on real.
         case Left(Left(Some(_))) =>
           x.nominalValue match {
-            // XXX x's nominalValue is invalid: swap the order so the the first element is invalid
+            // ASIDE x's nominalValue is invalid: swap the order so the the first element is invalid
             case Left(Left(None)) =>
               x.alignTypes(this)
-            // XXX otherwise: return this and x re-cast as a Double
+            // ASIDE otherwise: return this and x re-cast as a Double
             case _ =>
               (this, Number.prepare(x.maybeNominalDouble.map(y => make(y, x.rep, x.fuzz).specialize)))
           }
-        // XXX this nominalValue is a Rational:
+        // ASIDE this nominalValue is a Rational:
         case Left(Right(_)) =>
           x.nominalValue match {
-            // XXX x's nominalValue is a real Number:
+            // ASIDE x's nominalValue is a real Number:
             //  swap the order so that the first element is the real number
             case Left(Left(_)) =>
               x.alignTypes(this)
-            // XXX otherwise: return this and x re-cast as a Rational
+            // ASIDE otherwise: return this and x re-cast as a Rational
             case _ =>
               (this, x.make(x.maybeNominalRational.getOrElse(Rational.NaN)).specialize)
           }
-        // XXX this nominalValue is an Int:
+        // ASIDE this nominalValue is an Int:
         case Right(_) =>
           x.nominalValue match {
-            // XXX x's nominalValue is a BigInt, Rational or real Number:
+            // ASIDE x's nominalValue is a BigInt, Rational or real Number:
             //  swap the order so that the first element is the BigInt/Rational/real number
             case Left(_) =>
               x.alignTypes(this)
-            // XXX otherwise: return this and x re-cast as an Int
+            // ASIDE otherwise: return this and x re-cast as an Int
             case _ =>
               (this, x.make(x.maybeInt.getOrElse(0), x.rep).specialize)
           }
@@ -627,7 +627,7 @@ abstract class GeneralNumber(val nominalValue: Value, val rep: Representation, v
   /**
     * An optional Rational that corresponds to the nominalValue of this Number (but ignoring the representation).
     * A Double nominalValue is not converted to a Rational since, if it could be done exactly, it already would have been.
-    * CONSIDER using query
+    * CONSIDER using query (#241)
     */
   def maybeNominalRational: Option[Rational] = Value.maybeRational(nominalValue)
 
@@ -682,7 +682,7 @@ abstract class GeneralNumber(val nominalValue: Value, val rep: Representation, v
     */
   private def doComposeDyadic(other: Number, rep: Representation)(functions: DyadicFunctions): Option[Number] = {
     val vo: Option[Value] = Operations.doComposeValueDyadic(nominalValue, other.nominalValue)(functions)
-    for (v <- vo) yield make(v, rep) // CONSIDER what about extra fuzz?
+    for (v <- vo) yield make(v, rep) // CONSIDER what about extra fuzz? (#341)
   }
 
   /**
@@ -699,7 +699,7 @@ abstract class GeneralNumber(val nominalValue: Value, val rep: Representation, v
   private lazy val maybeInt: Option[Int] = Value.maybeInt(nominalValue)
 
   /**
-    * CONSIDER do we really need this?
+    * CONSIDER do we really need this? (#342)
     */
   private def canEqual(other: Any): Boolean = other.isInstanceOf[GeneralNumber]
 }
@@ -828,9 +828,9 @@ object GeneralNumber {
     * Method to raise an (exact) Number to a power.
     * NOTE: This method is invoked only by doPower (in ExactNumber).
     *
-    * TODO: move this into ExactNumber but CAREFULLY!
+    * TODO: move this into ExactNumber but CAREFULLY! (#250)
     *
-    * CONSIDER: surely that y.scale(PureNumber) might create a fuzzy number, right?
+    * CONSIDER: surely that y.scale(PureNumber) might create a fuzzy number, right? (#250)
     *
     * @param x the base Number (always exact).
     * @param y the power (may not be exact).
@@ -875,7 +875,7 @@ object GeneralNumber {
 
   /**
     * Method to raise an (exact) Number to a Rational power.
-    * CONSIDER shouldn't this be in ExactNumber? Be careful!
+    * CONSIDER shouldn't this be in ExactNumber? Be careful! (#250)
     *
     * @param x the base Number.
     * @param r the power.
@@ -908,7 +908,7 @@ object GeneralNumber {
               case _ =>
                 throw CoreException("rational power cannot be represented as two Ints")
             }
-          // TODO we should also handle some situations where r.d is not 1.
+          // TODO we should also handle some situations where r.d is not 1. (#343)
           case NthRoot(n) if r.n == n && r.d == 1 =>
             x.make(PureNumber)
           case _ =>

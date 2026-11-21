@@ -472,7 +472,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * Renders the current object into its string representation.
     * The method conditionally determines the output based on the
     * result of an internal conditional computation.
-    * TODO improve this doc! For example, how can we ensure that the output will be decimal, not a ratio?
+    * TODO improve this doc! For example, how can we ensure that the output will be decimal, not a ratio? (#272)
     *
     * @return A string representation of the object. If a certain
     *         condition evaluates to true, a specific value is
@@ -589,7 +589,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
 
   /**
     * Renders a conditional output based on the provided boolean flag.
-    * CONSIDER: why not return an Option[String] ?
+    * CONSIDER: why not return an Option[String] ? (#273)
     * NOTE the parameter exact is `always` true.
     *
     * @param exact A boolean flag indicating whether to render the exact output or a default value.
@@ -709,7 +709,7 @@ case class Rational private[inner](n: BigInt, d: BigInt) extends NumberLike {
     * @return A string representation of the value, either as a rational string or a BigDecimal string with an ellipsis.
     */
   private lazy val asString: String = d match {
-    case x if x <= 100_000L => // XXX arbitrary limit of one hundred thousand.
+    case x if x <= 100_000L => // NOTE arbitrary limit of one hundred thousand.
       toRationalString
     case _ =>
       // NOTE this case represents a Rational that cannot easily be rendered in decimal form.
@@ -821,7 +821,7 @@ object Rational {
     * NOTE: this method is designed for true Doubles, not floating-point representations of decimal numbers.
     * Such decimal numbers should be converted to BigDecimal first using BigDecimal.valueOf(x).
     *
-    * CONSIDER what we need here is to pass in a function and a desired Rational result,
+    * CONSIDER what we need here is to pass in a function and a desired Rational result, (#274)
     * and perhaps even the first derivative of the function, so that we can approximate the solution (root) of the function.
     *
     * @param x       the value to approximate.
@@ -1308,7 +1308,7 @@ object Rational {
   private def narrow(x: Rational, min: BigInt, max: BigInt): Try[BigInt] =
     for (b <- toBigInt(x); z <- narrow(b, min, max)) yield z
 
-  // CONSIDER making this public
+  // CONSIDER making this public (#275)
   private def toBigInt(x: Rational): Try[BigInt] =
     if (x.isWhole)
       Success(x.n)
@@ -1337,7 +1337,7 @@ object Rational {
     * @param bottom the expected denominator of the ratio
     * @return true if the Rational number has the correct ratio, false otherwise
     * @note Throws RationalException if the ratio is incorrect
-    */// CONSIDER making this private or moving back into RationalSpec
+    */// CONSIDER making this private or moving back into RationalSpec (#276)
   def hasCorrectRatio(r: Rational, top: BigInt, bottom: BigInt): Boolean = {
     val _a = r * bottom
     val result = bottom == 0 || _a.isInfinite || (_a.isWhole && _a.toBigInt == top)
@@ -1391,7 +1391,7 @@ object Rational {
   /**
     * This method gets an Int from a Rational.
     *
-    * XXX: Needs to be public for testing
+    * NOTE: Needs to be public for testing
     *
     * @param x a Rational.
     * @return an Try[Int]
@@ -1545,7 +1545,7 @@ object Rational {
     }
 
     sequence(primeFactors map (_.reciprocalPeriod)) match {
-      case None if d < BigNumber.MAXDECIMALDIGITS => // XXX The reason for this is that we only generate 1000 characters for the rendering
+      case None if d < BigNumber.MAXDECIMALDIGITS => // NOTE The reason for this is that we only generate 1000 characters for the rendering
         getCandidates(Seq(d.toInt - 1))
       case None =>
         Failure(RationalException(s"Rational.getPeriods: no suitable candidates for repeating sequence length"))
@@ -1642,7 +1642,7 @@ object Rational {
     case `bigThree` =>
       ContinuedFraction.root3.toRational(epsilon)
     case _ =>
-      None // TODO implement these cases
+      None // TODO implement these cases (#277)
   }
 
   /**

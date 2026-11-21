@@ -27,7 +27,7 @@ object XXX {
 
   def coemergence(x: Int): Boolean = xix(x) && xiv(x)
 
-  val emergences = LazyList.from(2021).filter(coemergence).take(n) // TODO
+  val emergences = LazyList.from(2021).filter(coemergence).take(n) // TODO (#308)
 
   def main(args: Array[String]): Unit = println(emergences.mkString(","))
 

@@ -9,7 +9,7 @@ import com.phasmidsoftware.number.core.inner.{PureNumber, Representation, Value}
 /**
   * Trait to define the behavior of things that are number-like.
   *
-  * CONSIDER extending Ordered[NumberLike]
+  * CONSIDER extending Ordered[NumberLike] (#359)
   */
 trait NumberLike {
 
@@ -43,7 +43,7 @@ trait NumberLike {
     *
     * NOTE: to force this as a Number, use convertToNumber in the companion Object.
     *
-    * CONSIDER redefining this as Option[Field] or Option[Real].
+    * CONSIDER redefining this as Option[Field] or Option[Real]. (#360)
     *
     * @return a Some(x) if this is a Number; otherwise return None.
     */
@@ -68,7 +68,7 @@ trait NumberLike {
     asNumber match {
       case Some(ExactNumber(x, PureNumber)) =>
         Value.asJavaNumber(x)
-      // TODO This is not a good test: it needs to ensure that z is relative
+      // TODO This is not a good test: it needs to ensure that z is relative (#361)
       case Some(FuzzyNumber(x, PureNumber, Some(z))) if z.wiggle() < DoublePrecisionTolerance =>
         Value.asJavaNumber(x)
       case _ => None
