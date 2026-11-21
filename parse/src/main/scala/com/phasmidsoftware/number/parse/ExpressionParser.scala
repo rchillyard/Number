@@ -16,7 +16,7 @@ import scala.util.Try
   * simplification, and evaluation of mathematical expressions represented as `Expression`
   * objects.
   *
-  * TODO instead of throwing exceptions we should return a `ParseError` object.
+  * TODO instead of throwing exceptions we should return a `ParseError` object. (#588)
   */
 object ExpressionParser {
 

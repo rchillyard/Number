@@ -296,5 +296,5 @@ object Roman:
 
   def unapply(s: String): Option[Natural] = parser.parseRoman(s)
 
-  // TODO eliminate this method
+  // TODO eliminate this method (#590)
   def apply(n: Natural): String = n.toString

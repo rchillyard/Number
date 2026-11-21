@@ -10,12 +10,12 @@ class FunctionalSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Functional.sc"
 
-  // XXX Issue #163
+  // NOTE Issue #163 (closed; see #596)
   it should "get root2 right" in {
     puremath"\sqrt{2}".materialize shouldBe Eager.root2
   }
 
-  // XXX Issue #163
+  // NOTE Issue #163 (closed; see #596)
   it should "perform the worksheet operations" in {
 
     // Euler's constant (as an expression)
