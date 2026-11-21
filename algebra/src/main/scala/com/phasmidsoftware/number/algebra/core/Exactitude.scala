@@ -26,10 +26,10 @@ trait Exactitude {
     *
     * CONSIDER it may be possible that there are non-approximatable entities that are not exact either. (#498)
     *
-    * Equivalently, in terms of how the value is held, the method returns `true` if the value is represented exactly
-    * in IEEE 754 format, or Two's complement _or_ the exact value must be represented symbolically.
-    * Examples of the first type include the number one (represented here as either `WholeNumber(1)` or `Succ(NatZero)`.
-    * Examples of the second type include 1.5 or the square root of two (represented here as `InversePower(2,2)`).
+    * Examples: `WholeNumber(1)` and `Succ(NatZero)` are exact, as is `InversePower(2,2)`, the square
+    * root of two, and `Angle(WholeNumber.one)`, which is 𝛑. Exactness is a property of the available
+    * representations, not of any machine format: whether a value happens to fit an IEEE 754 double
+    * has no bearing on it.
     *
     * When we are forced to approximate a value, for example when we want to print the decimal value of 𝛗, the Golden Ratio, 
     * then we mark such a representation as approximate, i.e., this method returns `false`.
