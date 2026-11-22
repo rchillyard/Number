@@ -37,8 +37,7 @@ object FP {
     * @param x A computation represented as a call-by-name parameter, which returns a Try[X] when evaluated.
     * @return A Try[X] representing the result of the computation if the condition is true, or a Failure if the condition is false.
     */
-  def wheneverTry[X](p: Boolean)(x: => Try[X]): Try[X] =
-    whenTry(p)(x).flatten
+  def wheneverTry[X](p: Boolean)(x: => Try[X]): Try[X] = whenTry(p)(x).flatten
 
   /**
     * Executes the provided block of code conditionally based on the given boolean predicate.
@@ -49,8 +48,7 @@ object FP {
     * @param x a by-name parameter representing the block of code returning an Option of type X
     * @return an Option containing the result of the block of code if `p` is true, or None if `p` is false
     */
-  def whenever[X](p: Boolean)(x: => Option[X]): Option[X] =
-    when(p)(x).flatten
+  def whenever[X](p: Boolean)(x: => Option[X]): Option[X] = when(p)(x).flatten
 
   /**
     * Sequence method to combine elements of Try.
@@ -247,8 +245,7 @@ object FP {
     * @tparam X the underlying type of both input and output.
     * @return if `xo` is `Some(x)` then `Success(x)` else `Failure(RationalException(default))`.
     */
-  def toTryWithRationalException[X](xo: Option[X], default: => String): Try[X] =
-    toTryWithThrowable(xo)(RationalException(default))
+  def toTryWithRationalException[X](xo: Option[X], default: => String): Try[X] = toTryWithThrowable(xo)(RationalException(default))
 
   /**
     * Method to convert an `Option` into a `Try` where the default is an exception, i.e., a `Throwable`.
@@ -258,8 +255,7 @@ object FP {
     * @tparam X the underlying type of both input and output.
     * @return if `xo` is `Some(x)` then `Success(x)` else `Failure(default)`.
     */
-  def toTryWithThrowable[X](xo: Option[X])(default: => Throwable): Try[X] =
-    xo.toRight(default).toTry
+  def toTryWithThrowable[X](xo: Option[X])(default: => Throwable): Try[X] = xo.toRight(default).toTry
 
   /**
     * This method is a substitute for `Try.apply` in the case that we want it as a function
@@ -279,8 +275,7 @@ object FP {
     * @return A Try instance containing a failure with a CoreException
     *         initialized with the provided error message.
     */
-  def fail[Z](s: String): Try[Z] =
-    fail(CoreException(s))
+  def fail[Z](s: String): Try[Z] = fail(CoreException(s))
 
   /**
     * Creates a failed instance of `Try` containing the provided exception.
@@ -289,8 +284,7 @@ object FP {
     * @tparam Z the underlying type of the result.
     * @return A `Failure` wrapping the given exception.
     */
-  def fail[Z](e: Throwable): Try[Z] =
-    Failure(e)
+  def fail[Z](e: Throwable): Try[Z] = Failure(e)
 
   /**
     * Method to yield a constant function which always fails.
@@ -301,8 +295,7 @@ object FP {
     * @tparam Z the underlying type of the result.
     * @return a function of X => Try[Z] based on CoreException(s).
     */
-  def failF[X, Z](s: String): X => Try[Z] =
-    _ => fail(s)
+  def failF[X, Z](s: String): X => Try[Z] = _ => fail(s)
 
   /**
     * Method to yield a constant function which always fails.
@@ -313,8 +306,7 @@ object FP {
     * @tparam Z the underlying type of the result.
     * @return a function of X => Try[Z] based on e.
     */
-  def failF[X, Z](e: Throwable): X => Try[Z] =
-    _ => fail(e)
+  def failF[X, Z](e: Throwable): X => Try[Z] = _ => fail(e)
 
   /**
     * Method to yield a partially lifted version of a Function1 as a function.
@@ -324,8 +316,7 @@ object FP {
     * @tparam Z the type of the output from f and the underlying type of the resulting function.
     * @return a function X => Try[Z]
     */
-  def tryF[X, Z](f: X => Z): X => Try[Z] =
-    x => Try(f(x))
+  def tryF[X, Z](f: X => Z): X => Try[Z] = x => Try(f(x))
 
   /**
     * Method to yield a partially lifted version of a Function2 as a function.
@@ -336,8 +327,7 @@ object FP {
     * @tparam Z the type of the output from f and the underlying type of the resulting function.
     * @return a function X => Try[Z]
     */
-  def tryF[X, Y, Z](f: (X, Y) => Z): (X, Y) => Try[Z] =
-    (x, y) => Try(f(x, y))
+  def tryF[X, Y, Z](f: (X, Y) => Z): (X, Y) => Try[Z] = (x, y) => Try(f(x, y))
 
   /**
     * Method to yield an Option of T according to whether the predicate p yields true.
@@ -347,8 +337,7 @@ object FP {
     * @tparam T the type of t (and the underlying type of the result).
     * @return Some(t) if p(t) is true, otherwise None.
     */
-  def optional[T](p: T => Boolean)(t: T): Option[T] =
-    Some(t).filter(p)
+  def optional[T](p: T => Boolean)(t: T): Option[T] = Some(t).filter(p)
 
   /**
     * Method to get the value of an Option[X] but throwing a given exception rather than the usual NoSuchElement.
@@ -434,8 +423,7 @@ object FP {
     * @param xy The `Try` instance to be converted.
     * @return An `Option` containing the value if the `Try` is a Success, or `None` if the `Try` is a `Failure`.
     */
-  def toOption[X](xy: => Try[X]): Option[X] =
-    toOptionWithLog(_ => ())(xy)
+  def toOption[X](xy: => Try[X]): Option[X] = toOptionWithLog(_ => ())(xy)
 
   /**
     * Converts a `Try` instance into an `Option`.
@@ -474,11 +462,9 @@ object FP {
   * These converters are used by the tryMap and transpose.
   */
 object Converters {
-  implicit def convertIntToRational(x: Int): Either[Option[Double], Rational] =
-    Right(Rational(x))
+  implicit def convertIntToRational(x: Int): Either[Option[Double], Rational] = Right(Rational(x))
 
-  implicit def convertRationalToOptionalDouble(x: Rational): Option[Double] =
-    Try(x.toDouble).toOption
+  implicit def convertRationalToOptionalDouble(x: Rational): Option[Double] = Try(x.toDouble).toOption
 }
 
 object TryUsing {
