@@ -361,7 +361,7 @@ object FP {
     *         an error occurs during processing or if the file contains invalid input
     */
   def readFromResource(filename: String, function: Array[String] => Option[String]): Try[Seq[BigInt]] =
-    TryUsing(FP.resource[FP.type](filename).map(Source.fromURL(_))) {
+    TryUsing.tryIt(FP.resource[FP.type](filename).map(Source.fromURL(_))) {
       source =>
         val bn = implicitly[math.Numeric[BigInt]]
         val wos: Iterator[Option[String]] = source.getLines().map(l => function(l.split("""\s""")))
@@ -472,13 +472,18 @@ object TryUsing {
     * This method is similar to `apply(r)` but it takes a `Try[R]` as its parameter.
     * The definition of f is the same as in the other apply, however.
     *
-    * @param ry a Try[R] which is passed into f and will be managed via Using.apply
+    * NOTE this cannot be another overload of `apply`, which is why it has a name of its own.
+    * A by-name parameter erases to `Function0`, so `apply(ry: => Try[R])(f)` and
+    * `apply(resource: => R)(f)` would have the same signature after erasure and the compiler
+    * rejects them as conflicting definitions. Gryphon's `TryUsing` resolves it the same way.
+    *
+    * @param ry a Try[R] (call-by-name) which is passed into f and will be managed via Using.apply
     * @param f  a function of R => Try[A].
     * @tparam R the resource type.
     * @tparam A the underlying type of the result.
     * @return a Try[A]
     */
-  def apply[R: Releasable, A](ry: Try[R])(f: R => Try[A]): Try[A] =
+  def tryIt[R: Releasable, A](ry: => Try[R])(f: R => Try[A]): Try[A] =
     for r <- ry; a <- apply(r)(f) yield a
 
   /**

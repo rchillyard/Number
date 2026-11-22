@@ -200,6 +200,54 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
     logged.toList shouldBe List(noneException)
   }
 
+  behavior of "TryUsing"
+
+  private class Resource(name: String, log: ListBuffer[String]) extends AutoCloseable {
+    def value: Int = 42
+
+    def close(): Unit = {
+      log += s"closed $name"
+      ()
+    }
+  }
+
+  it should "apply: flatten the result and release the resource" in {
+    val log = ListBuffer[String]()
+    TryUsing(new Resource("a", log))(r => Success(r.value)) shouldBe Success(42)
+    log.toList shouldBe List("closed a")
+  }
+
+  it should "apply: release the resource even when f fails" in {
+    val log = ListBuffer[String]()
+    TryUsing(new Resource("b", log))(_ => failure) shouldBe failure
+    log.toList shouldBe List("closed b")
+  }
+
+  it should "tryIt: flatten the result and release the resource" in {
+    val log = ListBuffer[String]()
+    TryUsing.tryIt(Try(new Resource("c", log)))(r => Success(r.value)) shouldBe Success(42)
+    log.toList shouldBe List("closed c")
+  }
+
+  it should "tryIt: propagate a failed resource without calling f" in {
+    val log = ListBuffer[String]()
+    TryUsing.tryIt(failure: Try[Resource])(_ => fail("f should not be called")) shouldBe failure
+    log.toList shouldBe Nil
+  }
+
+  it should "tryIt: evaluate its by-name parameter exactly once" in {
+    val log = ListBuffer[String]()
+    val evaluations = ListBuffer[Int]()
+
+    def resource: Try[Resource] = {
+      evaluations += 1
+      Try(new Resource("d", log))
+    }
+
+    TryUsing.tryIt(resource)(r => Success(r.value)) shouldBe Success(42)
+    evaluations.size shouldBe 1
+  }
+
   it should "toTryWithRationalException" in {
     toTryWithRationalException(Some(1), hello) should matchPattern { case Success(1) => }
     toTryWithRationalException(None, hello) should matchPattern { case Failure(RationalException(`hello`)) => }

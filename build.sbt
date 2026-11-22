@@ -141,6 +141,11 @@ lazy val mimaSettings = Seq(
     ProblemFilters.exclude[IncompatibleResultTypeProblem]("com.phasmidsoftware.number.core.misc.FP.fail(java.lang.Throwable)scala.Function1"),
     ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.number.core.misc.FP.toOption(scala.util.Try)scala.Option"),
 
+    // #147's question, answered here: TryUsing's Try-taking overload of `apply` is now `tryIt`,
+    // and takes its Try by name. It could not stay an overload and become non-strict, because a
+    // by-name parameter erases to Function0 and the two `apply`s would then collide after erasure.
+    ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.number.core.misc.TryUsing.apply(scala.util.Try,scala.Function1,scala.util.Using#Releasable)scala.util.Try"),
+
     // ALREADY ON MAIN when MiMa was added, and unnoticed because nothing was checking: the
     // implicit class Rational.RationalHelper became the extension method `r` (d0618999), and
     // Number.FuzzOps / Number.FuzzStringOps moved to Fuzziness as extensions (#617, #621).
