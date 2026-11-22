@@ -11,9 +11,10 @@ import com.phasmidsoftware.number.algebra
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
-import com.phasmidsoftware.number.algebra.util.FP.recover
+import com.phasmidsoftware.number.core.misc.FP.recover
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.{LatexRendererOps, nthRoot}
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, LatexRenderer}
+import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.inner.Rational.toIntOption
 import com.phasmidsoftware.number.core.numerical

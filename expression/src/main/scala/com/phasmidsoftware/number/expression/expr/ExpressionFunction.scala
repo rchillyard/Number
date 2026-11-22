@@ -11,7 +11,8 @@ import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.Eager.eagerToField
 import com.phasmidsoftware.number.algebra.eager.Functional.logger
 import com.phasmidsoftware.number.algebra.eager.{Algebraic, Angle, Eager, RationalNumber, Solution, Structure}
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.util.AlgebraException
+import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.numerical.{Real, *}
 import com.phasmidsoftware.number.core.{inner, numerical}

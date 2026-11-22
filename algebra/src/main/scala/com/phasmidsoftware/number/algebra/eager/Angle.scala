@@ -12,7 +12,7 @@ import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.Angle.{angleIsCommutativeGroup, r180}
 import com.phasmidsoftware.number.algebra.util.AlgebraException
-import com.phasmidsoftware.number.algebra.util.FP.recover
+import com.phasmidsoftware.number.core.misc.FP.recover
 import com.phasmidsoftware.number.core.inner.{Radian, Rational, Representation, Value}
 import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Fuzziness}
 

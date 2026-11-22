@@ -12,6 +12,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatest.tagobjects.Slow
 
+import scala.collection.mutable.ListBuffer
 import scala.util.*
 
 class FPSpec extends AnyFlatSpec with should.Matchers {
@@ -26,13 +27,28 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "toTry" in {
-    toTry(Some(1), failure) shouldBe Success(1)
-    toTry(None, failure) shouldBe failure
+    toTry(Some(1))(failure) shouldBe Success(1)
+    toTry(None)(failure) shouldBe failure
   }
 
   it should "recover" in {
-    recover(Some(1), new Exception("logic error")) shouldBe 1
-    an[Exception] should be thrownBy recover(None, new Exception("logic error"))
+    recover(Some(1))(new Exception("logic error")) shouldBe 1
+    an[Exception] should be thrownBy recover[Int](None)(new Exception("logic error"))
+  }
+
+  it should "recover a Try" in {
+    recover(Success(1)) shouldBe 1
+    an[Exception] should be thrownBy recover(failure)
+  }
+
+  it should "recoverAsTry" in {
+    recoverAsTry(Some(1))(noneException) shouldBe Success(1)
+    recoverAsTry[Int](None)(noneException) shouldBe failure
+  }
+
+  it should "recoverWithTry" in {
+    recoverWithTry(Some(1))(failure) shouldBe Success(1)
+    recoverWithTry[Int](None)(failure) shouldBe failure
   }
 
   behavior of "doMap function"
@@ -54,8 +70,8 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "toTryWithThrowable" in {
-    toTryWithThrowable(Some(1), noneException) shouldBe Success(1)
-    toTryWithThrowable(None, noneException) shouldBe failure
+    toTryWithThrowable(Some(1))(noneException) shouldBe Success(1)
+    toTryWithThrowable(None)(noneException) shouldBe failure
   }
 
   // TODO try to understand why this doesn't work for CircleCI (actually, it doesn't work locally either) (#247)
@@ -102,9 +118,9 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
     sequence(List(failure)) should matchPattern { case Failure(_) => }
   }
 
-  it should "fail1: return a Failure with CoreException when given a String" in {
+  it should "failF1: return a Failure with CoreException when given a String" in {
     val s = "Test Error"
-    val failureFunction = FP.fail[String, Double](s) // Specify the types explicitly X is String, Z is Double
+    val failureFunction = FP.failF[String, Double](s) // Specify the types explicitly X is String, Z is Double
     val result: Try[Double] = failureFunction("anyString") // Passing a String, but ignored
 
     result shouldBe a[Failure[?]]
@@ -113,13 +129,31 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
     value1.getMessage shouldBe s
   }
 
-  it should "fail2: return a Failure with the given Throwable" in {
+  it should "failF2: return a Failure with the given Throwable" in {
     val e = CoreException("Test Error")
-    val result: Try[Int] = FP.fail[String, Int](e)("anything")
+    val result: Try[Int] = FP.failF[String, Int](e)("anything")
 
     result shouldBe a[Failure[?]]
     result.failed.get shouldBe e
     result.failed.get.getMessage shouldBe "Test Error"
+  }
+
+  it should "fail: return a Failure with CoreException when given a String" in {
+    val s = "Test Error"
+    val result: Try[Double] = FP.fail(s)
+
+    result shouldBe a[Failure[?]]
+    val x = result.failed.get // This is fine in a Spec file.
+    x shouldBe a[CoreException]
+    x.getMessage shouldBe s
+  }
+
+  it should "fail: return a Failure with the given Throwable" in {
+    val e = CoreException("Test Error")
+    val result: Try[Int] = FP.fail(e)
+
+    result shouldBe a[Failure[?]]
+    result.failed.get shouldBe e
   }
 
   it should "getOrThrow" in {
@@ -142,13 +176,76 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
   private val hello = "hello"
 
   it should "toTry" in {
-    toTry(Some(1), Failure(new NoSuchElementException)) should matchPattern { case Success(1) => }
-    toTry(None, Failure(new NoSuchElementException)) should matchPattern { case Failure(_: NoSuchElementException) => }
+    toTry(Some(1))(Failure(new NoSuchElementException)) should matchPattern { case Success(1) => }
+    toTry(None)(Failure(new NoSuchElementException)) should matchPattern { case Failure(_: NoSuchElementException) => }
   }
 
   it should "toTryWithThrowable" in {
-    toTryWithThrowable(Some(1), RationalException(hello)) should matchPattern { case Success(1) => }
-    toTryWithThrowable(None, RationalException(hello)) should matchPattern { case Failure(RationalException(`hello`)) => }
+    toTryWithThrowable(Some(1))(RationalException(hello)) should matchPattern { case Success(1) => }
+    toTryWithThrowable(None)(RationalException(hello)) should matchPattern { case Failure(RationalException(`hello`)) => }
+  }
+
+  behavior of "toOption"
+
+  it should "toOption" in {
+    toOption(Success(1)) shouldBe Some(1)
+    toOption(failure) shouldBe None
+  }
+
+  it should "toOptionWithLog: pass the Throwable to the log function" in {
+    val logged = ListBuffer[Throwable]()
+    toOptionWithLog(logged += _)(Success(1)) shouldBe Some(1)
+    logged.toList shouldBe Nil
+    toOptionWithLog[Int](logged += _)(failure) shouldBe None
+    logged.toList shouldBe List(noneException)
+  }
+
+  behavior of "TryUsing"
+
+  private class Resource(name: String, log: ListBuffer[String]) extends AutoCloseable {
+    def value: Int = 42
+
+    def close(): Unit = {
+      log += s"closed $name"
+      ()
+    }
+  }
+
+  it should "apply: flatten the result and release the resource" in {
+    val log = ListBuffer[String]()
+    TryUsing(new Resource("a", log))(r => Success(r.value)) shouldBe Success(42)
+    log.toList shouldBe List("closed a")
+  }
+
+  it should "apply: release the resource even when f fails" in {
+    val log = ListBuffer[String]()
+    TryUsing(new Resource("b", log))(_ => failure) shouldBe failure
+    log.toList shouldBe List("closed b")
+  }
+
+  it should "tryIt: flatten the result and release the resource" in {
+    val log = ListBuffer[String]()
+    TryUsing.tryIt(Try(new Resource("c", log)))(r => Success(r.value)) shouldBe Success(42)
+    log.toList shouldBe List("closed c")
+  }
+
+  it should "tryIt: propagate a failed resource without calling f" in {
+    val log = ListBuffer[String]()
+    TryUsing.tryIt(failure: Try[Resource])(_ => fail("f should not be called")) shouldBe failure
+    log.toList shouldBe Nil
+  }
+
+  it should "tryIt: evaluate its by-name parameter exactly once" in {
+    val log = ListBuffer[String]()
+    val evaluations = ListBuffer[Int]()
+
+    def resource: Try[Resource] = {
+      evaluations += 1
+      Try(new Resource("d", log))
+    }
+
+    TryUsing.tryIt(resource)(r => Success(r.value)) shouldBe Success(42)
+    evaluations.size shouldBe 1
   }
 
   it should "toTryWithRationalException" in {

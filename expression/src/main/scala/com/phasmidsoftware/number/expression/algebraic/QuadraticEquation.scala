@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.expression.algebraic
 import com.phasmidsoftware.number.algebra.core.{Q, Valuable}
 import com.phasmidsoftware.number.algebra.eager.*
 import com.phasmidsoftware.number.algebra.eager.RationalNumber.convRationalRationalNumber
-import com.phasmidsoftware.number.algebra.util.FP
+import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.inner.{Rational, SquareRoot, Value}
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.Constants.sPhi

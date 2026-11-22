@@ -356,7 +356,7 @@ case class Real(x: Number) extends Field {
     * @return the Double representation of this Real.
     */
   lazy val toDouble: Double =
-    recover(maybeDouble, CoreException("Real.toDouble: logic error: x"))
+    recover(maybeDouble)(CoreException("Real.toDouble: logic error: x"))
 
   /**
     * Compares the current object with the specified object for equality.

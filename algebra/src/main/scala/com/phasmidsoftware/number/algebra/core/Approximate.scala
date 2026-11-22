@@ -6,7 +6,7 @@ package com.phasmidsoftware.number.algebra.core
 
 import com.phasmidsoftware.number.algebra.eager.{Complex, Eager, Real}
 import com.phasmidsoftware.number.algebra.util.AlgebraException
-import com.phasmidsoftware.number.algebra.util.FP.recover
+import com.phasmidsoftware.number.core.misc.FP.recover
 
 /**
   * Trait representing a structure that supports approximation.

@@ -11,7 +11,8 @@ import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.core.FuzzyEq.~=
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, LatexRenderer}
+import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical.{AbsoluteFuzz, Fuzziness, FuzzyDouble, RelativeFuzz, WithFuzziness}
 import org.slf4j.{Logger, LoggerFactory}

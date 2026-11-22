@@ -12,7 +12,8 @@ import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.RationalNumber.rationalNumberIsField
 import com.phasmidsoftware.number.algebra.eager.Real.realIsRing
 import com.phasmidsoftware.number.algebra.eager.WholeNumber.WholeNumberIsCommutativeRing
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP}
+import com.phasmidsoftware.number.algebra.util.AlgebraException
+import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Representation}
 
 import scala.annotation.tailrec

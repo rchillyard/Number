@@ -54,6 +54,13 @@ jobs:
           name: Test
           command: cat /dev/null | sbt test
 
+      # Binary compatibility against the last release (previousRelease in build.sbt). This is the
+      # enforcement half of the pvp versionScheme: a patch release must pass, and a minor release
+      # that breaks on purpose needs a mimaBinaryIssueFilters entry and a note in docs/HISTORY.md.
+      - run:
+          name: MiMa
+          command: cat /dev/null | sbt mimaReportBinaryIssues
+
       # Generate the unified Scaladoc (catches doc warnings, and it is what GitHub Pages publishes)
       - run:
           name: Doc

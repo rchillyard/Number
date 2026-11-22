@@ -11,7 +11,8 @@ import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.Exponential.ExponentialIsCommutativeMonoid
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, LatexRenderer}
+import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.inner
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Representation}
 import com.phasmidsoftware.number.core.numerical.{Fuzziness, WithFuzziness}

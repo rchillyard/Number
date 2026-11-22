@@ -11,7 +11,8 @@ import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.core.Valuable.valuableToMaybeField
 import com.phasmidsoftware.number.algebra.eager.InversePower.squareRoot
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, LatexRenderer}
+import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical
 import com.phasmidsoftware.number.core.numerical.{ComplexCartesian, CoreExceptionWithCause, Field}

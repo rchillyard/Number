@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.*
-import com.phasmidsoftware.number.algebra.util.FP
+import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.inner.{PureNumber, Rational, Representation}
 import com.phasmidsoftware.number.expression.algebraic.QuadraticEquation.squareRootEquation
 import com.phasmidsoftware.number.expression.algebraic.{Equation, LinearEquation, QuadraticEquation}

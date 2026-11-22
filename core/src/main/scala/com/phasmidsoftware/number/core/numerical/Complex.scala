@@ -161,7 +161,7 @@ object Complex {
     * @return a new BaseComplex.
     */
   def apply(a: Field, b: Field, f: (Number, Number) => BaseComplex, x: => ComplexException): BaseComplex =
-    recover(for (u <- a.asNumber; v <- b.asNumber) yield f(u, v), x)
+    recover(for (u <- a.asNumber; v <- b.asNumber) yield f(u, v))(x)
 
   /**
     * Method to construct a Complex from a Field, a Number, a (Number,Number)=>BaseComplex function, and an exception.
@@ -173,7 +173,7 @@ object Complex {
     * @return a new BaseComplex.
     */
   def apply(a: Field, b: Number, f: (Number, Number) => BaseComplex, x: => ComplexException): BaseComplex =
-    recover(for (u <- a.asNumber) yield f(u, b), x)
+    recover(for (u <- a.asNumber) yield f(u, b))(x)
 
   /**
     * Method to construct a Complex from a Field, a Number, a (Number,Number)=>BaseComplex function, and an exception.
@@ -185,7 +185,7 @@ object Complex {
     * @return a new BaseComplex.
     */
   def apply(a: Number, b: Field, f: (Number, Number) => BaseComplex, x: => ComplexException): BaseComplex =
-    recover(for (u <- b.asNumber) yield f(a, u), x)
+    recover(for (u <- b.asNumber) yield f(a, u))(x)
 
   /**
     * Constructs a BaseComplex instance using the provided number as the real part

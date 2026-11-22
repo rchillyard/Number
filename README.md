@@ -42,7 +42,7 @@ Number is organized into multiple modules:
 
 #### Current Version
 
-This version is 1.11.0 (see [HISTORY](docs/HISTORY.md) for what changed in each version).
+This version is 1.12.0 (see [HISTORY](docs/HISTORY.md) for what changed in each version).
 
 To use Number in your project, add the following dependency, where `x.y.z` is the latest version on Maven Central: it's shown on the [Sonatype Central](https://central.sonatype.com/artifact/com.phasmidsoftware/number_3) badge at the top of this page.
 
