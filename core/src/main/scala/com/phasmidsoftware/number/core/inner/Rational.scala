@@ -1253,7 +1253,7 @@ object Rational {
     * @note Throws RationalParserException if w is malformed.
     */
   def apply(w: String): Rational =
-    toTry(VulgarFraction(w), Failure(new NoSuchElementException)).orElse(parse(w)) match {
+    toTry(VulgarFraction(w))(Failure(new NoSuchElementException)).orElse(parse(w)) match {
       case Success(value) => value
       case Failure(e) => throw e
     }

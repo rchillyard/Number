@@ -17,10 +17,18 @@ import scala.util.{Either, Failure, Left, Right, Success, Try, Using}
 
 /**
   * This module is concerned with the generic operations for operating on Numbers.
-  *
   */
 object FP {
 
+  /**
+    * Executes the provided computation if the given condition is true; otherwise, returns a Failure.
+    *
+    * @param p A Boolean condition that determines whether the computation should be executed.
+    * @param x A computation represented as a call-by-name parameter, which returns a Try[X] when evaluated.
+    * @return A Try[X] representing the result of the computation if the condition is true, or a Failure if the condition is false.
+    */
+  def whenTry[X](p: Boolean)(x: => X): Try[X] =
+    if p then Success(x) else Failure(new Exception(s"condition $p is not satisfied"))
 
   /**
     * Executes the provided computation if the given condition is true; otherwise, returns a Failure.
@@ -29,16 +37,8 @@ object FP {
     * @param x A computation represented as a call-by-name parameter, which returns a Try[X] when evaluated.
     * @return A Try[X] representing the result of the computation if the condition is true, or a Failure if the condition is false.
     */
-  def whenTry[X](p: Boolean)(x: => X): Try[X] = if (p) Success(x) else Failure(new Exception(s"condition $p is not satisfied"))
-
-  /**
-    * Executes the provided computation if the given condition is true; otherwise, returns a Failure.
-    *
-    * @param p A Boolean condition that determines whether the computation should be executed.
-    * @param x A computation represented as a call-by-name parameter, which returns a Try[X] when evaluated.
-    * @return A Try[X] representing the result of the computation if the condition is true, or a Failure if the condition is false.
-    */
-  def wheneverTry[X](p: Boolean)(x: => Try[X]): Try[X] = whenTry(p)(x).flatten
+  def wheneverTry[X](p: Boolean)(x: => Try[X]): Try[X] =
+    whenTry(p)(x).flatten
 
   /**
     * Executes the provided block of code conditionally based on the given boolean predicate.
@@ -49,7 +49,8 @@ object FP {
     * @param x a by-name parameter representing the block of code returning an Option of type X
     * @return an Option containing the result of the block of code if `p` is true, or None if `p` is false
     */
-  def whenever[X](p: Boolean)(x: => Option[X]): Option[X] = when(p)(x).flatten
+  def whenever[X](p: Boolean)(x: => Option[X]): Option[X] =
+    when(p)(x).flatten
 
   /**
     * Sequence method to combine elements of Try.
@@ -58,7 +59,8 @@ object FP {
     * @tparam X the underlying type
     * @return a Try of Iterator[X]
     */
-  def sequence[X](xys: Iterator[Try[X]]): Try[Iterator[X]] = sequence(xys.to(List)).map(_.iterator)
+  def sequence[X](xys: Iterator[Try[X]]): Try[Iterator[X]] =
+    sequence(xys.to(List)).map(_.iterator)
 
   /**
     * Sequence method to combine elements of Try.
@@ -70,7 +72,7 @@ object FP {
     */
   def sequence[X](xys: Iterable[Try[X]]): Try[Seq[X]] =
     xys.foldLeft(Try(Seq[X]())) {
-      (xsy, xy) => for (xs <- xsy; x <- xy) yield xs :+ x
+      (xsy, xy) => for xs <- xsy; x <- xy yield xs :+ x
     }
 
   /**
@@ -80,7 +82,8 @@ object FP {
     * @tparam X the underlying type
     * @return a Try of Iterator[X]
     */
-  def sequence[X](xos: Iterator[Option[X]]): Option[Iterator[X]] = sequence(xos.to(List)).map(_.iterator)
+  def sequence[X](xos: Iterator[Option[X]]): Option[Iterator[X]] =
+    sequence(xos.to(List)).map(_.iterator)
 
   /**
     * Sequence method to invert the order of types Option/Try.
@@ -102,11 +105,9 @@ object FP {
     * @param x  a Throwable to be thrown if to is None.
     * @tparam T the underlying type of to.
     * @return t if to is Some(t); otherwise x will be thrown.
+    * @note Throws java.lang.Throwable x
     */
-  def recover[T](to: Option[T], x: => Throwable): T = to match {
-    case Some(t) => t
-    case None => throw x
-  }
+  def recover[T](to: Option[T])(x: => Throwable): T = to.getOrElse(throw x)
 
   /**
     * Method to extract a value from a Try[T] or throw an exception.
@@ -119,6 +120,30 @@ object FP {
   def recover[T](ty: Try[T]): T = ty match {
     case Success(t) => t
     case Failure(exception) => throw exception
+  }
+
+  /**
+    * Converts an `Option` into a `Try`, providing a failure cause if the `Option` is `None`.
+    *
+    * @param to The optional value to convert into a `Try`.
+    * @param x  The throwable to use as the failure cause if the `Option` is `None`.
+    * @return A `Success` containing the value from the `Option` if it is `Some`, or a `Failure` if it is `None`.
+    */
+  def recoverAsTry[T](to: Option[T])(x: => Throwable): Try[T] = to match {
+    case Some(t) => Success(t)
+    case None => Failure(x)
+  }
+
+  /**
+    * Converts an `Option` into a `Try`, falling back on a given `Try` if the `Option` is `None`.
+    *
+    * @param to The optional value to convert into a `Try`.
+    * @param x  The `Try` to yield if the `Option` is `None`.
+    * @return A `Success` containing the value from the `Option` if it is `Some`, otherwise `x`.
+    */
+  def recoverWithTry[T](to: Option[T])(x: => Try[T]): Try[T] = to match {
+    case Some(t) => Success(t)
+    case None => x
   }
 
   /**
@@ -145,7 +170,8 @@ object FP {
     * In the Some(z) case, we return the Success(z).
     * In the None case, we return the result of tryMapLeft applied to the lRe with the function l2Zy.
     *
-    * NOTE: in practice, this does not seem to be used, but it should remain here.
+    * NOTE: in practice, this does not seem to be used (and is untested),
+    * but it should remain here.
     *
     * @param lRe  the input, an Either[L,R].
     * @param r2Z  a function R => Z.
@@ -184,16 +210,16 @@ object FP {
     * In the case of `Some(Failure)`, we invoke `tryMapLeft` with the transpose of `lRe` and the function `l2Zy`.
     * In the case of `None`, we return the result of `tryMapLeft` applied to the `lRe` with the function `l2Zy`.
     *
-    * @param lRe  the input, an Either[L,R].
-    * @param r2Zy a function R => Try[Z].
-    * @param l2Zy a function L => Try[Z]
-    * @param r2L  an (implicit) converter from R to L.
-    * @tparam L the type of the left-side of the Either.
-    * @tparam R the type of the right-side of the Either.
+    * @param lRe  the input, an `Either[L,R]`.
+    * @param r2Zy a function `R => Try[Z]`.
+    * @param l2Zy a function `L => Try[Z]`.
+    * @param r2L  an (implicit) converter from `R` to `L`.
+    * @tparam L the type of the left-side of the `Either`.
+    * @tparam R the type of the right-side of the `Either`.
     * @tparam Z the underlying type of the result.
-    * @return a Try[Z]
+    * @return a `Try[Z]`
     */
-  def tryMap[L, R, Z](lRe: Either[L, R])(r2Zy: R => Try[Z], l2Zy: L => Try[Z])(implicit r2L: R => L): Try[Z] =
+  def tryMap[L, R, Z](lRe: Either[L, R])(r2Zy: R => Try[Z], l2Zy: L => Try[Z])(using r2L: R => L): Try[Z] =
     lRe.toOption.map(r2Zy) match {
       case Some(Success(z)) => Success(z)
       case Some(Failure(_)) => tryMapLeft(transpose(lRe), l2Zy)
@@ -208,7 +234,7 @@ object FP {
     * @tparam R the right type.
     * @return a Left(L) as an Either[L, R].
     */
-  def transpose[L, R](lRe: Either[L, R])(implicit rToL: R => L): Either[L, R] = lRe match {
+  def transpose[L, R](lRe: Either[L, R])(using rToL: R => L): Either[L, R] = lRe match {
     case Right(y) => Left(rToL(y))
     case Left(_) => lRe
   }
@@ -221,21 +247,22 @@ object FP {
     * @tparam X the underlying type of both input and output.
     * @return if `xo` is `Some(x)` then `Success(x)` else `Failure(RationalException(default))`.
     */
-  def toTryWithRationalException[X](xo: Option[X], default: => String): Try[X] = toTryWithThrowable(xo, RationalException(default))
+  def toTryWithRationalException[X](xo: Option[X], default: => String): Try[X] =
+    toTryWithThrowable(xo)(RationalException(default))
 
   /**
     * Method to convert an `Option` into a `Try` where the default is an exception, i.e., a `Throwable`.
-    * TODO split parameter set into two. (#296)
     *
     * @param xo      an `Option[X]`.
     * @param default a `Throwable`.
     * @tparam X the underlying type of both input and output.
     * @return if `xo` is `Some(x)` then `Success(x)` else `Failure(default)`.
     */
-  def toTryWithThrowable[X](xo: Option[X], default: => Throwable): Try[X] = xo.toRight(default).toTry // toTry(xo, Failure(default))
+  def toTryWithThrowable[X](xo: Option[X])(default: => Throwable): Try[X] =
+    xo.toRight(default).toTry
 
   /**
-    * This method is a substitute for Try.apply in the case that we want it as a function
+    * This method is a substitute for `Try.apply` in the case that we want it as a function
     * (otherwise, we run into a type inference problem).
     *
     * @param x an X.
@@ -245,22 +272,49 @@ object FP {
   def identityTry[X](x: X): Try[X] = Success(x)
 
   /**
-    * Method to yield a Failure.
+    * Terminates the computation by producing a failure encapsulated in a Try instance.
     *
-    * @param s a String
+    * @param s The error message to be included in the exception.
     * @tparam Z the underlying type of the result.
-    * @return a function of Z => Failure[Z] based on CoreException(s)
+    * @return A Try instance containing a failure with a CoreException
+    *         initialized with the provided error message.
     */
-  def fail[X, Z](s: String): X => Try[Z] = fail(CoreException(s))
+  def fail[Z](s: String): Try[Z] =
+    fail(CoreException(s))
 
   /**
-    * Method to yield a Failure.
+    * Creates a failed instance of `Try` containing the provided exception.
     *
-    * @param e a Throwable
+    * @param e The `Throwable` representing the failure reason.
     * @tparam Z the underlying type of the result.
-    * @return a function of Z => Failure[Z] based on e
+    * @return A `Failure` wrapping the given exception.
     */
-  def fail[X, Z](e: Throwable): X => Try[Z] = _ => Failure(e)
+  def fail[Z](e: Throwable): Try[Z] =
+    Failure(e)
+
+  /**
+    * Method to yield a constant function which always fails.
+    * This is the function-valued counterpart of `fail`, for use where a `X => Try[Z]` is required.
+    *
+    * @param s a String.
+    * @tparam X the type of the (ignored) input to the resulting function.
+    * @tparam Z the underlying type of the result.
+    * @return a function of X => Try[Z] based on CoreException(s).
+    */
+  def failF[X, Z](s: String): X => Try[Z] =
+    _ => fail(s)
+
+  /**
+    * Method to yield a constant function which always fails.
+    * This is the function-valued counterpart of `fail`, for use where a `X => Try[Z]` is required.
+    *
+    * @param e a Throwable.
+    * @tparam X the type of the (ignored) input to the resulting function.
+    * @tparam Z the underlying type of the result.
+    * @return a function of X => Try[Z] based on e.
+    */
+  def failF[X, Z](e: Throwable): X => Try[Z] =
+    _ => fail(e)
 
   /**
     * Method to yield a partially lifted version of a Function1 as a function.
@@ -270,7 +324,8 @@ object FP {
     * @tparam Z the type of the output from f and the underlying type of the resulting function.
     * @return a function X => Try[Z]
     */
-  def tryF[X, Z](f: X => Z): X => Try[Z] = x => Try(f(x))
+  def tryF[X, Z](f: X => Z): X => Try[Z] =
+    x => Try(f(x))
 
   /**
     * Method to yield a partially lifted version of a Function2 as a function.
@@ -281,7 +336,8 @@ object FP {
     * @tparam Z the type of the output from f and the underlying type of the resulting function.
     * @return a function X => Try[Z]
     */
-  def tryF[X, Y, Z](f: (X, Y) => Z): (X, Y) => Try[Z] = (x, y) => Try(f(x, y))
+  def tryF[X, Y, Z](f: (X, Y) => Z): (X, Y) => Try[Z] =
+    (x, y) => Try(f(x, y))
 
   /**
     * Method to yield an Option of T according to whether the predicate p yields true.
@@ -291,7 +347,8 @@ object FP {
     * @tparam T the type of t (and the underlying type of the result).
     * @return Some(t) if p(t) is true, otherwise None.
     */
-  def optional[T](p: T => Boolean)(t: T): Option[T] = Some(t).filter(p)
+  def optional[T](p: T => Boolean)(t: T): Option[T] =
+    Some(t).filter(p)
 
   /**
     * Method to get the value of an Option[X] but throwing a given exception rather than the usual NoSuchElement.
@@ -315,12 +372,12 @@ object FP {
     *         an error occurs during processing or if the file contains invalid input
     */
   def readFromResource(filename: String, function: Array[String] => Option[String]): Try[Seq[BigInt]] =
-    TryUsing(FP.resourceForClass(filename) map (Source.fromURL(_))) {
+    TryUsing(FP.resource[FP.type](filename).map(Source.fromURL(_))) {
       source =>
-        val bn = implicitly[Numeric[BigInt]]
+        val bn = implicitly[math.Numeric[BigInt]]
         val wos: Iterator[Option[String]] = source.getLines().map(l => function(l.split("""\s""")))
-        val bos: Iterator[Option[BigInt]] = for (p <- wos) yield for (q <- p; qq <- bn.parseString(q)) yield qq
-        FP.toTry(FP.sequence(bos.toList), Failure(CoreException(s"invalid input in file: $filename")))
+        val bos: Iterator[Option[BigInt]] = for p <- wos yield for q <- p; qq <- bn.parseString(q) yield qq
+        FP.toTry(FP.sequence(bos.toList))(Failure(CoreException(s"invalid input in file: $filename")))
     }
 
   /**
@@ -333,7 +390,7 @@ object FP {
     */
   def sequence[X](xos: Iterable[Option[X]]): Option[Seq[X]] =
     xos.foldLeft(Option(Seq[X]())) {
-      (xso, xo) => for (xs <- xso; x <- xo) yield xs :+ x
+      (xso, xo) => for xs <- xso; x <- xo yield xs :+ x
     }
 
   /**
@@ -343,7 +400,8 @@ object FP {
     * @tparam C a class of the package containing the resourceForClass.
     * @return a Try[URL].
     */
-  def resource[C: ClassTag](resourceName: String): Try[URL] = resourceForClass(resourceName, implicitly[ClassTag[C]].runtimeClass)
+  def resource[C: ClassTag](resourceName: String): Try[URL] =
+    resourceForClass(resourceName, implicitly[ClassTag[C]].runtimeClass)
 
   /**
     * Method to yield a Try[URL] for a resource name and a given class.
@@ -352,10 +410,11 @@ object FP {
     * @param clazz        the class, relative to which, the resource can be found (defaults to the caller's class).
     * @return a Try[URL]
     */
-  def resourceForClass(resourceName: String, clazz: Class[?] = getClass): Try[URL] = Option(clazz.getResource(resourceName)) match {
-    case Some(u) => Success(u)
-    case None => Failure(new Exception(s"$resourceName is not a valid resource for $clazz"))
-  }
+  def resourceForClass(resourceName: String, clazz: Class[?] = getClass): Try[URL] =
+    Option(clazz.getResource(resourceName)) match {
+      case Some(u) => Success(u)
+      case None => Failure(CoreException(s"$resourceName is not a valid resource for $clazz"))
+    }
 
   /**
     * Method to convert an `Option` into a `Try`.
@@ -365,19 +424,32 @@ object FP {
     * @tparam X the underlying type of both input and output.
     * @return if `xo` is `Some(x)` then `Success(x)` else `default`.
     */
-  def toTry[X](xo: Option[X], default: => Try[X]): Try[X] = xo map (Success(_)) getOrElse default
+  def toTry[X](xo: Option[X])(default: => Try[X]): Try[X] =
+    xo map (Success(_)) getOrElse default
 
   /**
     * Converts a `Try` instance into an `Option`.
-    * Any `Exception` in the input is of course lost.
+    * Any `Exception` in the input is, of course, lost.
     *
     * @param xy The `Try` instance to be converted.
     * @return An `Option` containing the value if the `Try` is a Success, or `None` if the `Try` is a `Failure`.
     */
-  def toOption[X](xy: Try[X]): Option[X] = xy match {
-    case Success(x) => Some(x)
+  def toOption[X](xy: => Try[X]): Option[X] =
+    toOptionWithLog(_ => ())(xy)
+
+  /**
+    * Converts a `Try` instance into an `Option`.
+    * Any `Exception` in the input is logged according to the `log` function.
+    *
+    * @param log a function to process any Throwable (typically a logging function).
+    * @param xy  The `Try` instance to be converted.
+    * @return An `Option` containing the value if the `Try` is a Success, or `None` if the `Try` is a `Failure`.
+    */
+  def toOptionWithLog[X](log: Throwable => Unit)(xy: => Try[X]): Option[X] = xy match {
+    case Success(x) =>
+      Some(x)
     case Failure(x) =>
-      System.err.println(s"FP.toOption: $x") // TODO log this error (#297)
+      log(x)
       None
   }
 
@@ -390,11 +462,11 @@ object FP {
     * @param n the exponent to which the base number is raised
     * @return the result of raising the base number to the specified exponent
     */
-  def power[X: Numeric](x: X, n: Int): X =
-    if (n == 0)
-      implicitly[Numeric[X]].one
+  def power[X: math.Numeric](x: X, n: Int): X =
+    if n == 0 then
+      implicitly[math.Numeric[X]].one
     else
-      implicitly[Numeric[X]].times(x, power(x, n - 1))
+      implicitly[math.Numeric[X]].times(x, power(x, n - 1))
 
 }
 
@@ -402,15 +474,16 @@ object FP {
   * These converters are used by the tryMap and transpose.
   */
 object Converters {
-  implicit def convertIntToRational(x: Int): Either[Option[Double], Rational] = Right(Rational(x))
+  implicit def convertIntToRational(x: Int): Either[Option[Double], Rational] =
+    Right(Rational(x))
 
-  implicit def convertRationalToOptionalDouble(x: Rational): Option[Double] = Try(x.toDouble).toOption
+  implicit def convertRationalToOptionalDouble(x: Rational): Option[Double] =
+    Try(x.toDouble).toOption
 }
-
 
 object TryUsing {
   /**
-    * This method is similar to apply(r) but it takes a Try[R] as its parameter.
+    * This method is similar to `apply(r)` but it takes a `Try[R]` as its parameter.
     * The definition of f is the same as in the other apply, however.
     *
     * @param ry a Try[R] which is passed into f and will be managed via Using.apply
@@ -419,10 +492,11 @@ object TryUsing {
     * @tparam A the underlying type of the result.
     * @return a Try[A]
     */
-  def apply[R: Releasable, A](ry: Try[R])(f: R => Try[A]): Try[A] = for (r <- ry; a <- apply(r)(f)) yield a
+  def apply[R: Releasable, A](ry: Try[R])(f: R => Try[A]): Try[A] =
+    for r <- ry; a <- apply(r)(f) yield a
 
   /**
-    * This method is to Using.apply as flatMap is to Map.
+    * This method is to `Using.apply` as `flatMap` is to `map`.
     *
     * @param resource a resource which is used by f and will be managed via Using.apply
     * @param f        a function of R => Try[A].
@@ -430,5 +504,6 @@ object TryUsing {
     * @tparam A the underlying type of the result.
     * @return a Try[A]
     */
-  def apply[R: Releasable, A](resource: => R)(f: R => Try[A]): Try[A] = Using(resource)(f).flatten
+  def apply[R: Releasable, A](resource: => R)(f: R => Try[A]): Try[A] =
+    Using(resource)(f).flatten
 }

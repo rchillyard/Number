@@ -26,13 +26,28 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "toTry" in {
-    toTry(Some(1), failure) shouldBe Success(1)
-    toTry(None, failure) shouldBe failure
+    toTry(Some(1))(failure) shouldBe Success(1)
+    toTry(None)(failure) shouldBe failure
   }
 
   it should "recover" in {
-    recover(Some(1), new Exception("logic error")) shouldBe 1
-    an[Exception] should be thrownBy recover(None, new Exception("logic error"))
+    recover(Some(1))(new Exception("logic error")) shouldBe 1
+    an[Exception] should be thrownBy recover[Int](None)(new Exception("logic error"))
+  }
+
+  it should "recover a Try" in {
+    recover(Success(1)) shouldBe 1
+    an[Exception] should be thrownBy recover(failure)
+  }
+
+  it should "recoverAsTry" in {
+    recoverAsTry(Some(1))(noneException) shouldBe Success(1)
+    recoverAsTry[Int](None)(noneException) shouldBe failure
+  }
+
+  it should "recoverWithTry" in {
+    recoverWithTry(Some(1))(failure) shouldBe Success(1)
+    recoverWithTry[Int](None)(failure) shouldBe failure
   }
 
   behavior of "doMap function"
@@ -54,8 +69,8 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "toTryWithThrowable" in {
-    toTryWithThrowable(Some(1), noneException) shouldBe Success(1)
-    toTryWithThrowable(None, noneException) shouldBe failure
+    toTryWithThrowable(Some(1))(noneException) shouldBe Success(1)
+    toTryWithThrowable(None)(noneException) shouldBe failure
   }
 
   // TODO try to understand why this doesn't work for CircleCI (actually, it doesn't work locally either) (#247)
@@ -102,9 +117,9 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
     sequence(List(failure)) should matchPattern { case Failure(_) => }
   }
 
-  it should "fail1: return a Failure with CoreException when given a String" in {
+  it should "failF1: return a Failure with CoreException when given a String" in {
     val s = "Test Error"
-    val failureFunction = FP.fail[String, Double](s) // Specify the types explicitly X is String, Z is Double
+    val failureFunction = FP.failF[String, Double](s) // Specify the types explicitly X is String, Z is Double
     val result: Try[Double] = failureFunction("anyString") // Passing a String, but ignored
 
     result shouldBe a[Failure[?]]
@@ -113,13 +128,31 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
     value1.getMessage shouldBe s
   }
 
-  it should "fail2: return a Failure with the given Throwable" in {
+  it should "failF2: return a Failure with the given Throwable" in {
     val e = CoreException("Test Error")
-    val result: Try[Int] = FP.fail[String, Int](e)("anything")
+    val result: Try[Int] = FP.failF[String, Int](e)("anything")
 
     result shouldBe a[Failure[?]]
     result.failed.get shouldBe e
     result.failed.get.getMessage shouldBe "Test Error"
+  }
+
+  it should "fail: return a Failure with CoreException when given a String" in {
+    val s = "Test Error"
+    val result: Try[Double] = FP.fail(s)
+
+    result shouldBe a[Failure[?]]
+    val x = result.failed.get // This is fine in a Spec file.
+    x shouldBe a[CoreException]
+    x.getMessage shouldBe s
+  }
+
+  it should "fail: return a Failure with the given Throwable" in {
+    val e = CoreException("Test Error")
+    val result: Try[Int] = FP.fail(e)
+
+    result shouldBe a[Failure[?]]
+    result.failed.get shouldBe e
   }
 
   it should "getOrThrow" in {
@@ -142,13 +175,28 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
   private val hello = "hello"
 
   it should "toTry" in {
-    toTry(Some(1), Failure(new NoSuchElementException)) should matchPattern { case Success(1) => }
-    toTry(None, Failure(new NoSuchElementException)) should matchPattern { case Failure(_: NoSuchElementException) => }
+    toTry(Some(1))(Failure(new NoSuchElementException)) should matchPattern { case Success(1) => }
+    toTry(None)(Failure(new NoSuchElementException)) should matchPattern { case Failure(_: NoSuchElementException) => }
   }
 
   it should "toTryWithThrowable" in {
-    toTryWithThrowable(Some(1), RationalException(hello)) should matchPattern { case Success(1) => }
-    toTryWithThrowable(None, RationalException(hello)) should matchPattern { case Failure(RationalException(`hello`)) => }
+    toTryWithThrowable(Some(1))(RationalException(hello)) should matchPattern { case Success(1) => }
+    toTryWithThrowable(None)(RationalException(hello)) should matchPattern { case Failure(RationalException(`hello`)) => }
+  }
+
+  behavior of "toOption"
+
+  it should "toOption" in {
+    toOption(Success(1)) shouldBe Some(1)
+    toOption(failure) shouldBe None
+  }
+
+  it should "toOptionWithLog: pass the Throwable to the log function" in {
+    var logged: Option[Throwable] = None
+    toOptionWithLog(x => logged = Some(x))(Success(1)) shouldBe Some(1)
+    logged shouldBe None
+    toOptionWithLog[Int](x => logged = Some(x))(failure) shouldBe None
+    logged shouldBe Some(noneException)
   }
 
   it should "toTryWithRationalException" in {

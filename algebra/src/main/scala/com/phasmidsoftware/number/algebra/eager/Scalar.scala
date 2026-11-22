@@ -9,7 +9,8 @@ import cats.kernel.Eq
 import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.LatexRendererOps
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, LatexRenderer}
+import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.inner.{Rational, Representation}
 import com.phasmidsoftware.number.core.numerical.{ExactNumber, Fuzziness, FuzzyNumber}
 import com.phasmidsoftware.number.core.{inner, numerical}

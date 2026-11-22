@@ -729,7 +729,7 @@ object GeneralNumber {
             for (t <- x.toNominalDouble; z <- n.toNominalDouble) yield n.make(Fuzziness.monadicFuzziness(op, t, z, x.fuzz))
         }
     }
-    FP.toTry(no, Failure(CoreException("applyFunc: logic error")))
+    FP.toTry(no)(Failure(CoreException("applyFunc: logic error")))
   }
 
   /**

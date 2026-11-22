@@ -807,10 +807,10 @@ object Fuzziness {
       for {
         x <- Number.parse(w)
         components <- parseComponents(w)
-        f <- toTry(components._3, Failure(CoreException(s"no fractional part: " + w)))
+        f <- toTry(components._3)(Failure(CoreException(s"no fractional part: " + w)))
         exp = components._4.getOrElse("0")
-        e <- toTry(implicitly[Numeric[Int]].parseString(exp), Failure(CoreException(s"Logic error: " + exp)))
-        y <- toTry(optional[Int](x => x >= 10 && x < 100)(n), Failure(CoreException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + n)))
+        e <- toTry(implicitly[Numeric[Int]].parseString(exp))(Failure(CoreException(s"Logic error: " + exp)))
+        y <- toTry(optional[Int](x => x >= 10 && x < 100)(n))(Failure(CoreException(s"The ~ operator for defining fuzz for numbers must be followed by two digits: " + n)))
       } yield x.make(Some(lastPlaceDigits(y, f.length, e)))
 
   /**

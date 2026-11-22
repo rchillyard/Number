@@ -201,7 +201,7 @@ case object MonadicOperationExp extends MonadicOperation {
     case r if r.isInfinite && r.signum < 0 =>
       Success(Rational.zero)
     case r =>
-      fail("can't do exp Rational=>Rational for non-zero parameter")(r)
+      failF("can't do exp Rational=>Rational for non-zero parameter")(r)
   }
 }
 
@@ -255,7 +255,7 @@ case object MonadicOperationLog extends MonadicOperation {
     case Rational.zero =>
       Success(Rational.infinity.negate)
     case r =>
-      fail("can't do log Rational=>Rational for parameter")(r)
+      failF("can't do log Rational=>Rational for parameter")(r)
   }
 }
 
@@ -388,7 +388,7 @@ val MonadicOperationTanh: MonadicOperation =
 case class MonadicOperationAtan(xSign: Int, ySign: Int) extends MonadicOperation {
 
   val functions: MonadicFunctions =
-    (fail("atan cannot be Int"), atanRat, atanDouble)
+    (failF("atan cannot be Int"), atanRat, atanDouble)
 
   val relativeFuzz: Double => Double =
     fuzzRatio => fuzzRatio / (1 + math.pow(fuzzRatio, 2))
@@ -531,10 +531,10 @@ case object MonadicOperationSqrt extends MonadicOperation {
   val fuzz: Option[Int] = Some(3)
 
   private lazy val sqrtInt: Int => Try[Int] = // CONSIDER not using squareRoots: there are other ways. (#270)
-    x => toTryWithThrowable(Rational.squareRoots.get(x), OperationsException("Cannot create Int from Double"))
+    x => toTryWithThrowable(Rational.squareRoots.get(x))(OperationsException("Cannot create Int from Double"))
 
   private lazy val sqrtRat: Rational => Try[Rational] =
-    x => FP.toTry(x.root(2), Failure(OperationsException("Cannot get exact square root")))
+    x => FP.toTry(x.root(2))(Failure(OperationsException("Cannot get exact square root")))
 
 }
 
@@ -559,7 +559,7 @@ case class MonadicOperationScale(r: Rational) extends MonadicOperation {
       if (r.isWhole)
         tryF[Int, Int](math.multiplyExact(_, r.toInt))
       else
-        fail("can't do scale function Int=>Int")
+        failF("can't do scale function Int=>Int")
     val fRational = tryF[Rational, Rational](_ * r)
     val fDouble = tryF[Double, Double](_ * c)
     (fInt, fRational, fDouble)
@@ -591,7 +591,7 @@ case class MonadicOperationFunc(f: Double => Double, dfByDx: Double => Double) e
     * - Another function that always fails with the message "no apply".
     * - A lifted version of the function `f`, wrapped to return a `Try` for potential failure handling.
     */
-  val functions: MonadicFunctions = (fail("no apply"), fail("no apply"), tryF(f))
+  val functions: MonadicFunctions = (failF("no apply"), failF("no apply"), tryF(f))
 
   /**
     * Function to yield the relative fuzz of the output Number, given the relative fuzz of the input Number.
@@ -891,7 +891,7 @@ object Operations {
     }
 
     def tryConvert[X](x: X, msg: String)(extract: Value => Option[X], func: (X, X) => Try[X], g: X => Value): Try[Value] =
-      toTryWithThrowable(for (y <- extract(other)) yield func(x, y) map g, OperationsException(s"other is not a $msg")).flatten
+      toTryWithThrowable(for (y <- extract(other)) yield func(x, y) map g)(OperationsException(s"other is not a $msg")).flatten
 
     def tryRational(x: Rational): Try[Value] =
       tryConvert(x, "Rational")(v => Value.maybeRational(v), fRational, Value.fromRational)

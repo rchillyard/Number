@@ -491,7 +491,8 @@ abstract class BaseComplex(val real: Number, val imag: Number) extends Complex {
       z <- n.toNominalRational
       r = re `power` n
       branches <- (z.invert * w).maybeInt
-    } yield ComplexPolar(r, im.doMultiple(z), branches),
+    } yield ComplexPolar(r, im.doMultiple(z), branches)
+  )(
     ComplexException("logic error: power")
   )
 }

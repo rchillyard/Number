@@ -53,7 +53,7 @@ case class Bumperator[T](xs: Iterator[T])(f: (T, T) => Boolean) extends Iterator
     */
   def next(): T = {
     // NOTE we expect to throw an exception here if maybeCurrent is None
-    val result = FP.recover(maybeCurrent, CoreException("Bumperator.next: logic error: no more elements"))
+    val result = FP.recover(maybeCurrent)(CoreException("Bumperator.next: logic error: no more elements"))
     maybeCurrent = maybeFollowing
     maybeFollowing = None
     result

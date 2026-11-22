@@ -7,7 +7,7 @@ package com.phasmidsoftware.number.expression.expr
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.*
-import com.phasmidsoftware.number.algebra.util.FP
+import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.inner.Representation
 import com.phasmidsoftware.number.core.misc.Bumperator
 import com.phasmidsoftware.number.expression.expr.Expression.{ExpressionOps, em}

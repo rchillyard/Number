@@ -11,7 +11,8 @@ import com.phasmidsoftware.number.algebra.*
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager.RationalNumber.rationalNumberIsField
 import com.phasmidsoftware.number.algebra.util.LatexRenderer.{LatexRendererOps, frac}
-import com.phasmidsoftware.number.algebra.util.{AlgebraException, FP, LatexRenderer}
+import com.phasmidsoftware.number.algebra.util.{AlgebraException, LatexRenderer}
+import com.phasmidsoftware.number.core.misc.FP
 import com.phasmidsoftware.number.core.inner.{Percent, Rational}
 
 import scala.language.implicitConversions

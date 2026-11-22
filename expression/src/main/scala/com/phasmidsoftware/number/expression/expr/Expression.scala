@@ -9,7 +9,7 @@ import com.phasmidsoftware.matchers.{LogLevel, MatchLogger}
 import com.phasmidsoftware.number.algebra.core.*
 import com.phasmidsoftware.number.algebra.eager
 import com.phasmidsoftware.number.algebra.eager.{Angle, Eager, Functional, InversePower, RationalNumber, WholeNumber}
-import com.phasmidsoftware.number.algebra.util.FP.recover
+import com.phasmidsoftware.number.core.misc.FP.recover
 import com.phasmidsoftware.number.algebra.util.LatexRenderer
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.numerical
