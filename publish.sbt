@@ -35,7 +35,12 @@ ThisBuild / developers := List(
 // Optional
 
 // Publishing settings
-ThisBuild / versionScheme := Some("early-semver")
+// NOTE pvp, not early-semver. Under early-semver, sbt and Coursier treat x.(y+1) as binary
+// compatible with x.y and evict silently, which gives a downstream NoSuchMethodError when a minor
+// release breaks compatibility -- as Number's do. Under pvp the first TWO numbers form the major
+// version, so a patch release is compatible and a minor release may break, with a release note.
+// MiMa (see build.sbt) is the enforcement half of this.
+ThisBuild / versionScheme := Some("pvp")
 ThisBuild / publishConfiguration := publishConfiguration.value.withOverwrite(true)
 ThisBuild / publishLocalConfiguration := publishLocalConfiguration.value.withOverwrite(true)
 

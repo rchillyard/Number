@@ -1,5 +1,8 @@
 // build.sbt for the Number project
 
+// MimaPlugin auto-imports ProblemFilters but not the problem types it is parameterised on.
+import com.typesafe.tools.mima.core._
+
 ThisBuild / organization := "com.phasmidsoftware"
 
 ThisBuild / version := "1.12.0"
@@ -18,10 +21,15 @@ val jupiterVersion = "6.0.3"
 // Must match the sbt-jupiter-interface plugin in project/plugins.sbt.
 val jupiterInterfaceVersion = "0.19.0"
 
+// The last version published to Maven Central, which MiMa checks each publishable module against.
+// Move it on after each release.
+val previousRelease = "1.11.0"
+
 ThisBuild / libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
   "com.typesafe" % "config" % configVersion,
-  "ch.qos.logback" % "logback-classic" % logbackClassicVersion % "runtime"
+  // NOTE Test, not Runtime: a library must not publish a logging backend onto its users' classpath.
+  "ch.qos.logback" % "logback-classic" % logbackClassicVersion % Test
 )
 
 // CONSIDER removing this (for performance reasons) if publishLocal runs fine without it.
@@ -96,6 +104,58 @@ testAll := {
 }
 
 // ============================================================================
+// BINARY COMPATIBILITY (MiMa)
+// ============================================================================
+
+// MiMa checks each published module's bytecode against the last release, which is what makes the
+// pvp versionScheme in publish.sbt mean something: a patch release must be binary compatible, and
+// a minor release may break with a release note and a filter below.
+//
+// NOTE `moduleName.value`, never `name.value`. moduleName is the Maven artifactId; name is the
+// display name, and the two differ wherever a project's name is capitalised. They are identical
+// here (each module's build.sbt sets a lowercase, hyphenated name), but the rule is the same
+// across all the Phasmid libraries, so the snippet stays correct if a name is ever capitalised.
+lazy val mimaSettings = Seq(
+  mimaPreviousArtifacts := Set(organization.value %% moduleName.value % previousRelease),
+  // DELIBERATE BREAKS in 1.12.0, described in docs/HISTORY.md. Retire the whole list when
+  // previousRelease moves to 1.12.0 or later.
+  //
+  // Every line below was copied from MiMa's own failing output. Do not hand-write them: a filter
+  // that does not match is silent, so a wrong one looks like it worked until the break resurfaces.
+  mimaBinaryIssueFilters ++= Seq(
+    // #582: core.misc.FP absorbs algebra.util.FP, which is deleted along with the Converters and
+    // TryUsing objects beside it. `fail` now returns a Try rather than a function (`failF` is the
+    // function form), and `toOption` takes its argument by name.
+    //
+    // NOTE the currying of toTry, toTryWithThrowable and recover is NOT in this list, and needs no
+    // filter: Scala compiles multiple parameter lists into one JVM method, so those three keep
+    // their erased signatures. They are a source break only -- which is still a break, and still
+    // wants the minor version and the release note.
+    ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.number.algebra.util.FP"),
+    ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.number.algebra.util.FP$"),
+    ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.number.algebra.util.Converters"),
+    ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.number.algebra.util.Converters$"),
+    ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.number.algebra.util.TryUsing"),
+    ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.number.algebra.util.TryUsing$"),
+    ProblemFilters.exclude[IncompatibleResultTypeProblem]("com.phasmidsoftware.number.core.misc.FP.fail(java.lang.String)scala.Function1"),
+    ProblemFilters.exclude[IncompatibleResultTypeProblem]("com.phasmidsoftware.number.core.misc.FP.fail(java.lang.Throwable)scala.Function1"),
+    ProblemFilters.exclude[IncompatibleMethTypeProblem]("com.phasmidsoftware.number.core.misc.FP.toOption(scala.util.Try)scala.Option"),
+
+    // ALREADY ON MAIN when MiMa was added, and unnoticed because nothing was checking: the
+    // implicit class Rational.RationalHelper became the extension method `r` (d0618999), and
+    // Number.FuzzOps / Number.FuzzStringOps moved to Fuzziness as extensions (#617, #621).
+    // All three are binary breaks against 1.11.0, and all three belong to this same 1.12.0.
+    ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.number.core.inner.Rational$RationalHelper"),
+    ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.number.core.inner.Rational$RationalHelper$"),
+    ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.number.core.inner.Rational.RationalHelper(scala.StringContext)scala.StringContext"),
+    ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.number.core.numerical.Number$FuzzOps"),
+    ProblemFilters.exclude[MissingClassProblem]("com.phasmidsoftware.number.core.numerical.Number$FuzzStringOps"),
+    ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.number.core.numerical.Number.FuzzOps(Double)com.phasmidsoftware.number.core.numerical.Number#FuzzOps"),
+    ProblemFilters.exclude[DirectMissingMethodProblem]("com.phasmidsoftware.number.core.numerical.Number.FuzzStringOps(java.lang.String)com.phasmidsoftware.number.core.numerical.Number#FuzzStringOps")
+  )
+)
+
+// ============================================================================
 // MODULE DEFINITIONS
 // ============================================================================
 
@@ -108,6 +168,8 @@ lazy val mermaid = (project in file("mermaid"))
     name             := "mermaid",
     scalaVersion     := scalaVersionNumber,
     publish / skip   := true,
+    // Build tooling, never published, so there is no previous artifact for MiMa to compare against.
+    mimaFailOnNoPrevious := false,
     Test / test      := {},
     libraryDependencies += "ch.epfl.scala" %% "tasty-query" % "1.6.1",
     testScalacOptions
@@ -141,6 +203,8 @@ lazy val root = (project in file("."))
     addMappingsToSiteDir(ScalaUnidoc / packageDoc / mappings, ScalaUnidoc / siteSubdirName),
     git.remoteRepo := "git@github.com:rchillyard/Number.git"
   )
+  .settings(mimaSettings)
+
 lazy val core = (project in file("core"))
   .settings(
     scalaVersion := scalaVersionNumber,
@@ -166,15 +230,18 @@ lazy val core = (project in file("core"))
       "org.typelevel" %% "cats-laws" % catsVersion % "test",
       "org.typelevel" %% "algebra-laws" % catsVersion % "test",
       "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
-      "ch.qos.logback" % "logback-classic" % logbackClassicVersion % "runtime"
+      // NOTE Test, not Runtime: see the ThisBuild dependency above.
+      "ch.qos.logback" % "logback-classic" % logbackClassicVersion % Test
     )
   )
+  .settings(mimaSettings)
 
 lazy val algebra = (project in file("algebra"))
   .settings(
     scalaVersion := scalaVersionNumber,
     testScalacOptions
   )
+  .settings(mimaSettings)
   .dependsOn(core)
 
 lazy val expression = (project in file("expression"))
@@ -182,6 +249,7 @@ lazy val expression = (project in file("expression"))
     scalaVersion := scalaVersionNumber,
     testScalacOptions
   )
+  .settings(mimaSettings)
   .dependsOn(core, algebra)
 
 lazy val parse = (project in file("parse"))
@@ -192,6 +260,7 @@ lazy val parse = (project in file("parse"))
     libraryDependencies ++= Seq(
     )
   )
+  .settings(mimaSettings)
   .dependsOn(core, algebra, expression, dimensions)
 
 lazy val top = (project in file("top"))
@@ -199,6 +268,7 @@ lazy val top = (project in file("top"))
     scalaVersion := scalaVersionNumber,
     testScalacOptions
   )
+  .settings(mimaSettings)
   .dependsOn(core, algebra, expression, parse, dimensions)
 
 lazy val dimensions = (project in file("dimensions"))
@@ -206,6 +276,7 @@ lazy val dimensions = (project in file("dimensions"))
     scalaVersion := scalaVersionNumber,
     testScalacOptions
   )
+  .settings(mimaSettings)
   .dependsOn(algebra, core)
 
 // ============================================================================
