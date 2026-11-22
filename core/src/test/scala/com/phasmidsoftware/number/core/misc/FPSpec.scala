@@ -12,6 +12,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatest.tagobjects.Slow
 
+import scala.collection.mutable.ListBuffer
 import scala.util.*
 
 class FPSpec extends AnyFlatSpec with should.Matchers {
@@ -192,11 +193,11 @@ class FPSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "toOptionWithLog: pass the Throwable to the log function" in {
-    var logged: Option[Throwable] = None
-    toOptionWithLog(x => logged = Some(x))(Success(1)) shouldBe Some(1)
-    logged shouldBe None
-    toOptionWithLog[Int](x => logged = Some(x))(failure) shouldBe None
-    logged shouldBe Some(noneException)
+    val logged = ListBuffer[Throwable]()
+    toOptionWithLog(logged += _)(Success(1)) shouldBe Some(1)
+    logged.toList shouldBe Nil
+    toOptionWithLog[Int](logged += _)(failure) shouldBe None
+    logged.toList shouldBe List(noneException)
   }
 
   it should "toTryWithRationalException" in {
